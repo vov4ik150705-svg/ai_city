@@ -12,8 +12,8 @@
 
 | слой | путь |
 |---|---|
-| масса острова | `art/island_v3/island.glb` / `island.blend` (~248 МБ glb, ~317 МБ blend) |
-| канон массы без домов | `art/island_v3/snapshots/canon_2026-09-06_island/` (glb массы ~150 КБ) |
+| масса острова | `art/island_v3/island.glb` / `island.blend` (~236 МБ glb, ~302 МБ blend) |
+| канон массы без домов | `art/island_v3/snapshots/canon_2026-09-06_island/` (glb массы ~147 КБ) |
 | 18 зданий | `models/*.glb` — **не заменять, не рескейлить непропорционально** |
 | посадчик | `art/island_v3/build_island.py` |
 | паспорт посадки | `docs/reports/ISLAND_STUDIO.md` |

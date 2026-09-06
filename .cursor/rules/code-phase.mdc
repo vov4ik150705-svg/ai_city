@@ -35,7 +35,7 @@ alwaysApply: true
 
 ## Что читать
 
-`docs/CANON.md` — полный живой список. Для кода этого шага: `docs/reports/PLAN_ISLAND.md`, `docs/reports/ISLAND_STUDIO.md`, `DESIGN.md` (механика), `docs/WORLD.md` часть A (вид острова; часть B — экономическая сетка пака и архив кадра, не ТЗ острова), `assets/_STYLE_V3.txt` (стиль GLB). `HUD.md` и `docs/reports/TZ_HUD.md` — только после принятого вида. Числа — `content/params/*.json` и вывод `python content/build.py`, не из прозы.
+`docs/CANON.md` — полный живой список. Главное ТЗ вида острова — `docs/reports/TZ_ISLAND_LOOK.md`. Библиотека декора — `docs/reports/ASSETS_ISLAND.md`. Для кода этого шага: `docs/reports/PLAN_ISLAND.md`, `docs/reports/ISLAND_STUDIO.md`, `DESIGN.md` (механика), `docs/WORLD.md` часть A (вид острова; часть B — экономическая сетка пака и архив кадра, не ТЗ острова), `assets/_STYLE_V3.txt` (стиль GLB). `HUD.md` и `docs/reports/TZ_HUD.md` — только после принятого вида. Числа — `content/params/*.json` и вывод `python content/build.py`, не из прозы.
 
 Принципиальное расхождение с каноном — вопрос владельцу до кода. Изменил механику или провод — правь `DESIGN.md` / `docs/API.md` / `docs/WORLD.md` / `HUD.md` в том же заходе, одним-двумя предложениями.
 
@@ -65,7 +65,7 @@ alwaysApply: true
 
 Форма денег Rev-A не двигается. `creator_tax_bps = 200` не двигается. `missions_live` остаётся 0. Краны NFT нули. Барьер демо не ослабляется. Опубликованный пак не откатывается.
 
-Свободный id линтера — **L385**. Идентификаторы фаз и ключи пака не переименовываются и не откатываются.
+Свободный id линтера — **L386**. Идентификаторы фаз и ключи пака не переименовываются и не откатываются.
 
 ## Дисциплина кода
 
