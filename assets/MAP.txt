@@ -1,0 +1,73 @@
+Corporator — рабочая папка мокап-ассетов
+Источник: Downloads/assets 2 + 3, плюс два спрайт-листа в assets/_sheets/.
+Фон всех PNG: #FF00FF. art/raw не трогали.
+
+ИМЕНА НА ДИСКЕ ВРАЛИ — канон по пикселям
+
+  tesla-logo-building.png          → finance_tower (буква C, Coinbase)
+  tesla-logo-building (1).png      → tesla_mark (скульптура T)
+  tesla-logo-building (2).png      → _discard (токен Google G)
+  red-brick-building.png           → robotics_lab
+  red-brick-building (1).png       → energy_plant (T на стене)
+  red-brick-building (2).png       → logistics_hub (баннеры Amazon a)
+  green-glowing-tech-building.png  → exchange (графики)
+  green-glowing-tech-building (1)  → ai_research_center (NVIDIA)
+  blue-domed-classical-building    → city_hall
+  city-hall-building.*             → дубли Amazon/биржи/NVIDIA, меньше старых — не копировали
+  robotics-lab-building.png        → Google DC → _discard (в игре нет GOOGL)
+  robotics-lab-building (4).png    → Tesla (дубль energy_plant, меньше)
+  robotics-lab-building (5).png    → Coinbase (дубль finance_tower, меньше)
+  robotics-lab-building (6).png    → city_hall (дубль, меньше)
+  robotics-lab-building (7).png    → robotics_lab (дубль, меньше)
+
+НОВОЕ ИЗ assets 3 (этого не было в старой папке)
+
+  decor/lantern.png, lantern_02.png
+  decor/bush.png, bush_02.png
+  decor/flower.png, flower_02.png
+  decor/solar_panel.png            (одиночная панель; solar_array — старый массив)
+  vehicles/vehicle_van.png, vehicle_van_02.png
+  vehicles/drone_02.png
+  foliage/tree_green_02.png
+  agents/walker_robot_02.png, walker_robot_03.png
+  hud/label_* и hud/cat_*          (плашки Lv. и категории; не спрайты мира)
+
+НЕ БРАЛИ НАМЕРЕННО
+
+  ~60 сосен, ~60 лиственных, ~30 людей, ~40 роботов — оставлены 1–2 лучших
+  куски grass/road — это не тайлы 64×32, землю рисует tiles.py
+  Google-здание и лейбл Google — шестой сток COIN, не GOOGL
+
+ИЗ ДВУХ СПРАЙТ-ЛИСТОВ (sheet_blocks + sheet_clear)
+
+  Нарезано в assets/_sliced/: clear 240, blocks 246, фон #FF00FF.
+  Второй лист (чётче) — источник имён. Первый — только то, чего нет на втором
+  (victorian lantern, tracked robot, work boat).
+  Семь зданий НЕ заменяли: на листах они меньше и с травой/Lv-плашками.
+  Google Data Center → _discard (шестой сток COIN, не GOOGL).
+  Заголовки секций и обрезки JPEG не брали.
+
+  Новые папки: fx/, port/, terrain/, inbox/.
+  terrain/* — воксельные кубы с листа, это НЕ тайлы 64×32 (землю рисует tiles.py).
+  inbox/ — остальные целые срезы без канон-имени (дубли поз, кусты, иконки).
+
+  Добавлено с листов (чего не было):
+  agents   — worker/civilian/suit/guard/office/hazmat + quad/mecha/tracked
+  vehicles — bus, school_bus, ambulance, police, suv, cars, pickup, shuttle,
+             forklift, rover, drones yellow/white/cargo
+  foliage  — pine, autumn, два зелёных
+  decor    — district_billboard, bench, planter, lantern ornate/brass/victorian,
+             parking_sign, kiosk, phone_booth, barrier, cone, bus_stop, trash
+  fx       — beam/pad/flame/crystal/smoke
+  port     — lighthouse, yacht/tug/work boats, dock, buoy
+  terrain  — island cubes, water, road pieces (референс)
+  hud      — icon_coin/energy/compute/trophy/shield/confirm/close
+
+ЕЩЁ НЕТ В ЭТОЙ ПАПКЕ (нет на мокапе)
+
+  workshop, agent_hub, power_node, bank,
+  flagship_store (AAPL), cloud_campus (MSFT),
+  drone_depot, data_center (без G), fleet_yard,
+  retail_complex, clearing_house,
+  residential_block, office_block, silo_warehouse,
+  substation, server_annex, park, plaza

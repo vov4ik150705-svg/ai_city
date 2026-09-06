@@ -1,0 +1,17 @@
+{
+  "note": "Literal BRIEF.md §6 T10 inventory. WORLD.md and the linter must cover every item. Edit only together with BRIEF.",
+  "src": "docs/BRIEF.md §6 T10",
+  "items": [
+    { "id": "building_gap", "brief": "минимальный зазор между зданиями", "world_section": "§2", "rule_or_derived": "L171 building_gap_tiles" },
+    { "id": "road_access", "brief": "обязательный выход на дорогу", "world_section": "§2", "rule_or_derived": "L170" },
+    { "id": "block_size", "brief": "размер квартала", "world_section": "§2", "rule_or_derived": "derived.block_side L169" },
+    { "id": "decor_share", "brief": "целевая доля декоративных тайлов", "world_section": "§6", "rule_or_derived": "L174 decor_target_share_bps" },
+    { "id": "parks_plazas", "brief": "парки и площади", "world_section": "§6", "rule_or_derived": "derived.park_slots derived.plaza_slots L182" },
+    { "id": "water_shore", "brief": "вода и берег", "world_section": "§3", "rule_or_derived": "L186 L187 L191" },
+    { "id": "lanterns_trees", "brief": "фонари и деревья", "world_section": "§6", "rule_or_derived": "L189 derived.lantern_count derived.tree_count" },
+    { "id": "vehicles_drones", "brief": "машины и дроны как фон", "world_section": "§6", "rule_or_derived": "L190" },
+    { "id": "day_night", "brief": "день и ночь", "world_section": "§7", "rule_or_derived": "L179 derived.dawn_hour" },
+    { "id": "camera_zoom", "brief": "поведение камеры и зума", "world_section": "§8", "rule_or_derived": "L185 derived.zoom_levels" },
+    { "id": "level_overlays", "brief": "уровень здания читается оверлеями без новых спрайтов", "world_section": "§9", "rule_or_derived": "L180 derived.level_overlays" }
+  ]
+}

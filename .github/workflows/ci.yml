@@ -1,0 +1,66 @@
+# GENERATED from pack e45cd45df5a471712127b7de094cb615d5609fff1427f981471d120b8520620f; do not edit
+name: ci
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+jobs:
+  push:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.13.1"
+      - name: pack_lint
+        run: python content/lint.py
+      - name: pack_build
+        run: python content/build.py
+      - name: codegen_check
+        run: python content/codegen.py --check
+      - name: vector_oracle
+        run: python content/vectors.py
+      - name: install_frozen
+        run: pnpm -w install --frozen-lockfile
+      - name: workspace_gate
+        run: pnpm -w run gate
+  nightly:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.13.1"
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: "1.8.1"
+      - name: pack_lint
+        run: python content/lint.py
+      - name: pack_build
+        run: python content/build.py
+      - name: codegen_check
+        run: python content/codegen.py --check
+      - name: vector_oracle
+        run: python content/vectors.py
+      - name: install_frozen
+        run: pnpm -w install --frozen-lockfile
+      - name: workspace_gate
+        run: pnpm -w run gate
+      - name: attack_full
+        run: python content/attack.py --jobs 8
+      - name: sim
+        run: python content/sim.py
+      - name: forge_test
+        run: forge test --root contracts
+      - name: image_smoke
+        run: docker build -f deploy/Dockerfile --build-arg PACK_HASH=ci -t corporator:ci-smoke .

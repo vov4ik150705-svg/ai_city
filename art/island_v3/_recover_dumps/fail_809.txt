@@ -1,0 +1,7 @@
+LINE 1328
+OLD LEN 49
+NEW LEN 64
+OLD HEAD
+        z = PLAZA_Z if li == 0 else PLAZA_Z - 2.4
+---NEW HEAD---
+        z = PLAZA_Z if li == 0 else PLAZA_Z - 2.4 * ISLAND_SCALE

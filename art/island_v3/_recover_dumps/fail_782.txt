@@ -1,0 +1,74 @@
+LINE 1212
+OLD LEN 5105
+NEW LEN 3208
+OLD HEAD
+    bm = bmesh.new()
+    vmap: dict[tuple[object, ...], bmesh.types.BMVert] = {}
+
+    def vert(p: tuple[float, float], li: int) -> bmesh.types.BMVert:
+        kx, ky = _cell_key(p)
+        mk = ("p", kx, ky, li)
+        found = vmap.get(mk)
+        if found is not None:
+            return found
+        z = PLAZA_Z if li == 0 else PLAZA_Z - 2.4
+        nv = bm.verts.new((p[0], p[1], z))
+        vmap[mk] = nv
+        return nv
+
+    up0 = [vert(p, 0) for p in ring_pts]
+    n_ring = len(up0)
+
+    def poly_verts(poly: list[tuple[float, float]]) -> list[bmesh.types.BMVert]:
+        raw = [vert(p, 0) for p in _ensure_ccw(_dedupe_poly(poly))]
+        out: list[bmesh.types.BMVert] = []
+        for v in raw:
+            if not out or out[-1] is not v:
+                out.append(v)
+        if len(out
+---NEW HEAD---
+    bm = bmesh.new()
+    vmap: dict[tuple[object, ...], bmesh.types.BMVert] = {}
+    n_ring = len(ring_pts)
+    pts2d = [Vector((p[0], p[1])) for p in ring_pts]
+    seen_k = {_cell_key(p) for p in ring_pts}
+    for poly in usable:
+        npoly = len(poly)
+        sx0 = sum(p[0] for p in poly) / float(npoly)
+        sy0 = sum(p[1] for p in poly) / float(npoly)
+        extra = list(poly) + [(sx0, sy0)]
+        for p in extra:
+            k = _cell_key(p)
+            if k in seen_k:
+                continue
+            if not _pip(p, ring_pts):
+                continue
+            qx, qy = _nearest_on_ring(p, ring_pts)
+            if math.hypot(p[0] - qx, p[1] - qy) < 1.6:
+                continue
+            seen_k.add(k)
+            pts2d.append(Vector((p[0], p[1])))
+    ring_edges = [(i, (i + 1) % n_ring) for i in range(n_ring)]
+    cdt = delaunay_2d_cdt(pts2d, ring_edges, [list(range(n_ring))], 1, 0.02, False)
+    out_coords, out_faces = cdt[0], cdt[2]
+    bm_verts: list[bmesh.types.BMVert] = [
+        bm.verts.new((co.x, co.y, PLAZA_Z)) for co in out_coords
+    ]
+    n_tiles = 0
+    for face in out_faces:
+        if len(face) < 3:
+            continue
+        vs = [bm_verts[i] for i in face if i < len(bm_verts)]
+        if len(vs) < 3:
+            continue
+        try:
+            top = bm.faces.new(vs)
+        except ValueError:
+            continue
+        c = top.calc_center_median()
+        bin_i = _stone_bin(c.x, c.y)
+        for poly in usable:
+            if _pip((c.x, c.y), poly):
+                bin_i = _cell_bin(poly)
+                break
+        _mark_face(to

@@ -1,0 +1,75 @@
+{
+  "section": "tick",
+  "note": "T11 engine params. Layout v1, Happiness weights, live flags. Derived park capacity and energy buffer are not stored here: build_tick computes them from agents slots and time.offline_cap_ticks_base.",
+  "params": {
+    "layout_version": {
+      "v": 1,
+      "u": "count",
+      "src": "docs/TICK.md §8, D2",
+      "why": "First DecisionRecord layout. Zero fields ship from day one so a later add is a migration, not a silent tail"
+    },
+    "happiness_penalty_live": {
+      "v": 0,
+      "u": "flag",
+      "src": "docs/TICK.md §11, D7",
+      "why": "Penalty on output is off in v1. Turning it on multiplies exit and would recount T2 bands; precedent season_prizes_live"
+    },
+    "happiness_penalty_threshold_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "HUD.md §4.1, R-T11-7",
+      "why": "HUD red line at half. Lives in the pack so the interface does not author a second 50 percent"
+    },
+    "stability_hint_threshold_bps": {
+      "v": 7000,
+      "u": "bps",
+      "src": "HUD.md §4.1, R-T11-7",
+      "why": "HUD energy hint at 70 percent. Pack-owned so HUD.md cites the param, not a literal"
+    },
+    "happiness_weight_housing_bps": {
+      "v": 2500,
+      "u": "bps",
+      "src": "DESIGN.md §8, architect T11",
+      "why": "Four Happiness terms have no canon priority. Equal BPS/4 until T3 measures otherwise. Sum of four must be 10000"
+    },
+    "happiness_weight_parks_bps": {
+      "v": 2500,
+      "u": "bps",
+      "src": "DESIGN.md §8, architect T11",
+      "why": "Equal share with housing energy payroll. Unequal weights need a measurement v1 does not have"
+    },
+    "happiness_weight_energy_bps": {
+      "v": 2500,
+      "u": "bps",
+      "src": "DESIGN.md §8, architect T11",
+      "why": "Equal share. Energy surplus saturates at the offline-capable warehouse window, not a second authored 12"
+    },
+    "happiness_weight_payroll_bps": {
+      "v": 2500,
+      "u": "bps",
+      "src": "DESIGN.md §8, architect T11",
+      "why": "Equal share. Unpaid shifts enter as payroll_ratio_bps, already a pack magnitude"
+    }
+  },
+  "prng_streams": {
+    "jitter_legacy": {
+      "stream": "",
+      "src": "DESIGN.md §5.3, D11",
+      "why": "Empty stream omits the colon-suffix so sha256(city:tick:agent) matches every already recorded shift byte for byte"
+    }
+  },
+  "derived": {
+    "park_capacity_jobs": "slots_at_city_level[city_level_at_slots_cap] // (1 + playable_v1_count); parks term saturates at slot cap with every playable district open",
+    "energy_buffer_ticks": "offline_cap_ticks_base; energy term saturates when stock covers the offline-capable window",
+    "record_spec": "layout v1 field types for validate_record; not a second copy of DESIGN.md 6.1",
+    "header_spec": "TickInputHeader field types for validate_header; leaf 0 of the tick tree",
+    "record_fields": "generated field table matching GEN:tick.record_fields",
+    "remainder_sinks": "every floor division on the tick path named with its remainder sink and floor_divs count per function",
+    "day_boundary_contours": "midnight vs efficiency_recalc_hour; each event in exactly one contour",
+    "tick_prng_streams": "allowed PRNG stream ids; empty stream is the jitter legacy path",
+    "happiness_weights": "four term weights from params; sum must equal BPS",
+    "tick_codes": "codes the tick writes, mapped to HUD surfaces",
+    "state_source_producers": "screens.state_sources owner T11 to producer function name",
+    "lint_l196": "L196-L225 titles; rules live in lint.py RULES"
+  }
+}

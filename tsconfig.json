@@ -1,0 +1,39 @@
+/* GENERATED from pack e45cd45df5a471712127b7de094cb615d5609fff1427f981471d120b8520620f; do not edit */
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/engine"
+    },
+    {
+      "path": "packages/protocol"
+    },
+    {
+      "path": "packages/chainport"
+    },
+    {
+      "path": "packages/contentpack"
+    },
+    {
+      "path": "services/api"
+    },
+    {
+      "path": "services/attestor"
+    },
+    {
+      "path": "services/buyback"
+    },
+    {
+      "path": "services/llm"
+    },
+    {
+      "path": "packages/render"
+    },
+    {
+      "path": "services/sampler"
+    },
+    {
+      "path": "apps/client"
+    }
+  ]
+}

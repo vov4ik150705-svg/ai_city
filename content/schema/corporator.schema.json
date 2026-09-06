@@ -1,0 +1,2427 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corporator.dev/schema/corporator.schema.json",
+  "title": "Corporator content pack",
+  "description": "Normative schema for every file under content/params, content/strings and content/fixtures. Language-neutral on purpose: the server and the public verifier (DESIGN.md 6.3) must agree on validity without sharing an implementation language.",
+
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Snake-case entity identifier."
+    },
+    "code_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "description": "Upper-case failure or state code."
+    },
+    "ticker": { "type": "string", "pattern": "^[A-Z]{1,6}$" },
+    "src": {
+      "type": "string",
+      "minLength": 8,
+      "description": "Canon reference the value follows from. Acceptance criterion: no number without a source."
+    },
+    "why": {
+      "type": "string",
+      "minLength": 24,
+      "description": "Justification in prose. Enforced by length so that 'ok' does not pass."
+    },
+    "note": { "type": "string", "minLength": 24 },
+    "unit": {
+      "enum": [
+        "bps", "count", "days", "city_hours", "real_hours",
+        "weekday_iso", "day", "capital_per_corp", "tokens",
+        "usdg", "usd", "wei", "usd_8dec", "seconds", "ms", "flag",
+        "bytes", "px"
+      ]
+    },
+    "param": {
+      "type": "object",
+      "required": ["v", "u", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "description": "Integer only. Rates live in basis points so that no float ever reaches the hashed pack."
+        },
+        "u": { "$ref": "#/$defs/unit" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "param_map": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/param" }
+    },
+    "derived_map": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "type": "string", "minLength": 5 },
+      "description": "Names of values that must NOT be stored anywhere in params. Rule L09 checks both directions against the generator."
+    },
+    "id_list": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+
+    "meta_file": {
+      "type": "object",
+      "required": ["section", "rules_version", "pack_version", "note", "compat", "params", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "meta" },
+        "rules_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "pack_version": { "type": "integer", "minimum": 1 },
+        "note": { "$ref": "#/$defs/note" },
+        "compat": {
+          "type": "object",
+          "required": ["minor", "major"],
+          "additionalProperties": false,
+          "properties": {
+            "minor": { "type": "array", "items": { "type": "string", "minLength": 10 }, "minItems": 1 },
+            "major": { "type": "array", "items": { "type": "string", "minLength": 10 }, "minItems": 1 }
+          }
+        },
+        "params": { "$ref": "#/$defs/param_map" },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "pending_file": {
+      "type": "object",
+      "required": ["section", "note", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "pending" },
+        "note": { "$ref": "#/$defs/note" },
+        "items": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["owner", "kind", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "owner": { "type": "string", "pattern": "^(T[0-9]+|C[0-9]+|owner)$" },
+              "kind": { "enum": ["param", "derived", "entity"] },
+              "why": { "$ref": "#/$defs/why" },
+              "v": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+
+    "exceptions_file": {
+      "type": "object",
+      "required": ["section", "note", "exceptions"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "exceptions" },
+        "note": { "$ref": "#/$defs/note" },
+        "exceptions": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["entity", "field", "why", "src"],
+            "additionalProperties": false,
+            "properties": {
+              "entity": { "type": "string", "minLength": 2 },
+              "field": { "type": "string", "minLength": 2 },
+              "why": { "$ref": "#/$defs/why" },
+              "src": { "$ref": "#/$defs/src" }
+            }
+          }
+        }
+      }
+    },
+
+    "price_feed": {
+      "type": "object",
+      "required": ["stale_code", "twap_window_param", "staleness_param", "decay_param", "decay_direction", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "stale_code": { "$ref": "#/$defs/code_id" },
+        "twap_window_param": { "$ref": "#/$defs/id" },
+        "staleness_param": { "$ref": "#/$defs/id" },
+        "decay_param": { "$ref": "#/$defs/id" },
+        "decay_direction": { "type": "string", "minLength": 2 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      },
+      "description": "One external price input to the mint-rate path. L27 requires a state code, a TWAP window and a staleness limit; L29 requires a downward decay so a dead feed cannot hold a poisoned ceiling."
+    },
+    "economy_file": {
+      "type": "object",
+      "required": ["section", "params", "price_feeds", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "economy" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "price_feeds": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/price_feed" },
+          "minProperties": 1
+        },
+        "derived": { "$ref": "#/$defs/derived_map" },
+        "studio_eth_recipient": {
+          "type": "string",
+          "pattern": "^$|^0x[0-9a-fA-F]{40}$",
+          "description": "Cold EOA for the studio take from the prize DEX leg. Empty until the owner address is recorded. Not a contract."
+        }
+      }
+    },
+
+    "launch_file": {
+      "type": "object",
+      "required": ["section", "params", "derived", "deployed"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "launch" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "derived": { "$ref": "#/$defs/derived_map" },
+        "deployed": { "$ref": "#/$defs/launch_deployed" }
+      }
+    },
+    "launch_deployed": {
+      "type": "object",
+      "required": ["token", "curve", "pool", "hook", "tx"],
+      "additionalProperties": false,
+      "description": "Post-factum pons addresses. Empty until the signed launch lands. Partial fill is L279.",
+      "properties": {
+        "token": { "type": "string", "pattern": "^$|^0x[0-9a-fA-F]{40}$" },
+        "curve": { "type": "string", "pattern": "^$|^0x[0-9a-fA-F]{40}$" },
+        "pool": { "type": "string", "pattern": "^$|^0x[0-9a-fA-F]{40}$" },
+        "hook": { "type": "string", "pattern": "^$|^0x[0-9a-fA-F]{40}$" },
+        "tx": { "type": "string", "pattern": "^$|^0x[0-9a-fA-F]{64}$" }
+      }
+    },
+
+    "balance_file": {
+      "type": "object",
+      "required": ["section", "params", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "balance" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "research_file": {
+      "type": "object",
+      "required": ["section", "axes", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "research" },
+        "note": { "$ref": "#/$defs/note" },
+        "axes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["key", "sign", "tier", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "$ref": "#/$defs/id" },
+              "sign": { "type": "integer", "enum": [-1, 1] },
+              "tier": { "type": "integer", "minimum": 1, "maximum": 3 },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" }
+            }
+          }
+        },
+        "nodes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["key", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "$ref": "#/$defs/id" },
+              "effect_bps": { "type": "integer" },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" },
+              "cost_capital": { "type": "integer" },
+              "time_ticks": { "type": "integer" }
+            }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "schedule": {
+      "type": "object",
+      "required": ["open_hour", "close_hour", "closed_weekdays", "night_energy_premium", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "open_hour": { "type": "integer", "minimum": 0, "maximum": 24 },
+        "close_hour": { "type": "integer", "minimum": 0, "maximum": 24 },
+        "closed_weekdays": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 7 },
+          "uniqueItems": true
+        },
+        "night_energy_premium": { "type": "boolean" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "time_file": {
+      "type": "object",
+      "required": ["section", "params", "schedules", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "time" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "schedules": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/schedule" },
+          "minProperties": 1
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "district": {
+      "type": "object",
+      "required": ["ticker", "role", "beacon", "provides", "provides_kind", "color_token", "ramp", "playable_v1", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "ticker": { "$ref": "#/$defs/ticker" },
+        "role": { "type": "string", "minLength": 3 },
+        "beacon": { "$ref": "#/$defs/id" },
+        "provides": { "$ref": "#/$defs/id" },
+        "provides_kind": { "enum": ["resource", "modifier"] },
+        "color_token": { "type": "string", "pattern": "^--[a-z-]+$" },
+        "ramp": { "$ref": "#/$defs/id" },
+        "playable_v1": { "type": "boolean" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "district_stake": {
+      "type": "object",
+      "required": ["src", "why"],
+      "additionalProperties": false,
+      "description": "S_min is stored in tokens after a dated feed snapshot. Empty snapshot is honest: do not invent prices. S_ref is not stored; it equals S_min.",
+      "properties": {
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" },
+        "snapshot": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["at", "rpc", "chain_id", "src"],
+              "additionalProperties": false,
+              "properties": {
+                "at": { "type": "string", "minLength": 10 },
+                "rpc": { "type": "string", "minLength": 8 },
+                "chain_id": { "type": "integer" },
+                "src": { "$ref": "#/$defs/src" },
+                "feeds": { "type": "object" }
+              }
+            }
+          ]
+        },
+        "s_min": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/ticker" },
+          "additionalProperties": { "$ref": "#/$defs/param" }
+        }
+      }
+    },
+    "districts_file": {
+      "type": "object",
+      "required": ["section", "districts", "synergies", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "districts" },
+        "note": { "$ref": "#/$defs/note" },
+        "districts": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/district" }
+        },
+        "synergies": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["requires", "src"],
+            "additionalProperties": false,
+            "properties": {
+              "requires": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 2, "maxItems": 2 },
+              "src": { "$ref": "#/$defs/src" }
+            }
+          }
+        },
+        "stake": { "$ref": "#/$defs/district_stake" },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "building": {
+      "type": "object",
+      "required": ["tier", "contour", "contour_secondary", "schedule", "autonomous", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "tier": { "enum": ["base", "beacon", "synergy"] },
+        "district": { "$ref": "#/$defs/id" },
+        "contour": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+        "contour_secondary": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+        "accepts_any": { "type": "boolean" },
+        "schedule": { "$ref": "#/$defs/id" },
+        "sprite": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+        "output": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+        "autonomous": { "type": "boolean" },
+        "city_level_req": { "type": "integer", "minimum": 1 },
+        "prebuilt": { "type": "boolean" },
+        "cost_weight_bps": { "$ref": "#/$defs/param" },
+        "output_weight_bps": { "$ref": "#/$defs/param" },
+        "energy_base_per_tick": { "type": "integer", "minimum": 0 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "buildings_file": {
+      "type": "object",
+      "required": ["section", "buildings", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "buildings" },
+        "note": { "$ref": "#/$defs/note" },
+        "buildings": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/building" }
+        },
+        "filler": {
+          "type": "object",
+          "required": ["note", "kinds"],
+          "additionalProperties": false,
+          "properties": {
+            "note": { "$ref": "#/$defs/note" },
+            "kinds": {
+              "type": "object",
+              "propertyNames": { "$ref": "#/$defs/id" },
+              "additionalProperties": {
+                "type": "object",
+                "required": ["district", "src"],
+                "additionalProperties": false,
+                "properties": {
+                  "district": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+                  "sprite": { "$ref": "#/$defs/id" },
+                  "src": { "$ref": "#/$defs/src" }
+                }
+              }
+            }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "agents_file": {
+      "type": "object",
+      "required": ["section", "contours", "roles", "objectives", "traits", "params", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "agents" },
+        "note": { "$ref": "#/$defs/note" },
+        "contours": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["src", "why"],
+            "additionalProperties": false,
+            "properties": { "src": { "$ref": "#/$defs/src" }, "why": { "$ref": "#/$defs/why" } }
+          }
+        },
+        "roles": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["home_contours", "produces", "v1", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "home_contours": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1, "uniqueItems": true },
+              "produces": { "$ref": "#/$defs/id" },
+              "v1": { "type": "boolean" },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" }
+            }
+          }
+        },
+        "objectives": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["role", "is_default", "v1", "keys", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "role": { "$ref": "#/$defs/id" },
+              "is_default": { "type": "boolean" },
+              "v1": { "type": "boolean" },
+              "keys": { "$ref": "#/$defs/id_list" },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" }
+            }
+          }
+        },
+        "traits": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["keys", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "keys": { "$ref": "#/$defs/id_list" },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" }
+            }
+          }
+        },
+        "params": { "$ref": "#/$defs/param_map" },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "modifier_keys_file": {
+      "type": "object",
+      "required": ["section", "stacking_modes", "stages", "keys", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "modifier_keys" },
+        "note": { "$ref": "#/$defs/note" },
+        "stacking_modes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["formula", "why"],
+            "additionalProperties": false,
+            "properties": { "formula": { "type": "string", "minLength": 5 }, "why": { "$ref": "#/$defs/why" } }
+          }
+        },
+        "stages": {
+          "type": "object",
+          "required": ["note", "order"],
+          "additionalProperties": false,
+          "properties": {
+            "note": { "$ref": "#/$defs/note" },
+            "order": { "$ref": "#/$defs/id_list" }
+          }
+        },
+        "keys": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["u", "stacking", "stage", "scope_kind", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "u": { "$ref": "#/$defs/unit" },
+              "stacking": { "$ref": "#/$defs/id" },
+              "stage": { "$ref": "#/$defs/id" },
+              "scope_kind": { "enum": ["building", "city"] },
+              "cap": { "type": "integer" },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" }
+            }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "modifier_applies_when": {
+      "enum": ["always", "night", "affinity_home", "affinity_not_home"],
+      "description": "When a trait or objective row applies. Night premium and district efficiency are state, not rows."
+    },
+    "modifier_source_kind": {
+      "enum": ["trait", "objective", "research", "progression_node", "progression_dividend", "progression_merge", "companion"]
+    },
+    "modifier_row": {
+      "type": "object",
+      "required": ["source_kind", "source", "key", "magnitude_from", "applies_when", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "source_kind": { "$ref": "#/$defs/modifier_source_kind" },
+        "source": { "$ref": "#/$defs/id" },
+        "key": { "$ref": "#/$defs/id" },
+        "magnitude_from": { "type": "string", "minLength": 3, "pattern": "^[a-z][a-z0-9_]*$" },
+        "applies_when": { "$ref": "#/$defs/modifier_applies_when" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "modifier_cap_anchor": {
+      "type": "object",
+      "required": ["src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "max_from": { "type": "string", "minLength": 3 },
+        "max_section": { "$ref": "#/$defs/id" },
+        "min_from": { "enum": ["reciprocal"] },
+        "reduction_from": { "type": "string", "minLength": 3 },
+        "reduction_section": { "$ref": "#/$defs/id" },
+        "reduction_mode": { "enum": ["complement", "direct"] },
+        "second_source": { "type": "string", "minLength": 3 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "modifiers_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "cap_anchors", "rows", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "modifiers" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "cap_anchors": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/modifier_cap_anchor" },
+          "minProperties": 13,
+          "maxProperties": 13
+        },
+        "rows": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/modifier_row" }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "progression_axis": {
+      "type": "object",
+      "required": ["tier", "side", "key", "sign", "key_from", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "tier": { "type": "integer", "minimum": 1 },
+        "side": { "enum": ["a", "b"] },
+        "key": { "$ref": "#/$defs/id" },
+        "sign": { "type": "integer", "enum": [-1, 1] },
+        "key_from": { "enum": ["literal", "cost_key", "own_key"] },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "progression_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "axes", "selectors", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "progression" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "axes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/progression_axis" },
+          "minProperties": 1
+        },
+        "selectors": {
+          "type": "object",
+          "required": ["own_key", "cost_key", "countable_keys"],
+          "additionalProperties": false,
+          "properties": {
+            "own_key": {
+              "type": "object",
+              "required": ["from", "src", "why"],
+              "additionalProperties": false,
+              "properties": {
+                "from": { "enum": ["provides"] },
+                "src": { "$ref": "#/$defs/src" },
+                "why": { "$ref": "#/$defs/why" }
+              }
+            },
+            "cost_key": {
+              "type": "object",
+              "required": ["compute_provides", "compute_key", "default_key", "src", "why"],
+              "additionalProperties": false,
+              "properties": {
+                "compute_provides": { "$ref": "#/$defs/id" },
+                "compute_key": { "$ref": "#/$defs/id" },
+                "default_key": { "$ref": "#/$defs/id" },
+                "src": { "$ref": "#/$defs/src" },
+                "why": { "$ref": "#/$defs/why" }
+              }
+            },
+            "countable_keys": {
+              "type": "object",
+              "required": ["keys", "src", "why"],
+              "additionalProperties": false,
+              "properties": {
+                "keys": { "$ref": "#/$defs/id_list" },
+                "src": { "$ref": "#/$defs/src" },
+                "why": { "$ref": "#/$defs/why" }
+              }
+            }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "resources_file": {
+      "type": "object",
+      "required": ["section", "resources", "metrics", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "resources" },
+        "note": { "$ref": "#/$defs/note" },
+        "resources": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["consumable", "district", "base_source", "idle_code", "color_token", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "consumable": { "type": "boolean" },
+              "district": { "$ref": "#/$defs/id" },
+              "base_source": { "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+              "idle_code": { "$ref": "#/$defs/code_id" },
+              "color_token": { "type": "string", "pattern": "^--[a-z-]+$" },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" }
+            }
+          }
+        },
+        "materials": {
+          "type": "object",
+          "required": ["note"],
+          "additionalProperties": false,
+          "properties": { "note": { "$ref": "#/$defs/note" } }
+        },
+        "metrics": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["kind", "gates", "src", "why"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": { "enum": ["derived_metric", "multiplier", "ratio", "score", "money_flow", "money_stock"] },
+              "gates": { "type": "array", "items": { "type": "string" } },
+              "src": { "$ref": "#/$defs/src" },
+              "why": { "$ref": "#/$defs/why" }
+            }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "codes_file": {
+      "type": "object",
+      "required": ["section", "categories", "codes", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "codes" },
+        "note": { "$ref": "#/$defs/note" },
+        "categories": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "type": "string", "minLength": 24 }
+        },
+        "codes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/code_id" },
+          "additionalProperties": {
+            "type": "object",
+            "required": ["category", "slots", "src"],
+            "additionalProperties": false,
+            "properties": {
+              "category": { "$ref": "#/$defs/id" },
+              "slots": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
+              "src": { "$ref": "#/$defs/src" },
+              "http": { "type": "integer", "minimum": 100, "maximum": 599 }
+            }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "strings_file": {
+      "type": "object",
+      "required": ["lang", "strings"],
+      "additionalProperties": false,
+      "properties": {
+        "lang": { "type": "string", "pattern": "^[a-z]{2}$" },
+        "note": { "$ref": "#/$defs/note" },
+        "strings": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/code_id" },
+          "additionalProperties": { "type": "string", "minLength": 2 }
+        },
+        "templates": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "type": "string", "minLength": 2 },
+          "description": "Name and blurb templates. Not failure codes: L11 compares strings to codes only."
+        },
+        "ui": {
+          "type": "object",
+          "propertyNames": { "type": "string", "pattern": "^UI_[A-Z0-9_]+$" },
+          "additionalProperties": { "type": "string", "minLength": 2 },
+          "description": "Interface copy. Not failure codes: L11 compares strings to codes only. L146 checks screens labels against this map."
+        }
+      }
+    },
+
+    "fixture_t9_screens_file": {
+      "type": "object",
+      "required": ["note", "src", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "items": {
+          "type": "array",
+          "minItems": 13,
+          "maxItems": 13,
+          "items": {
+            "type": "object",
+            "required": ["id", "brief"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "brief": { "type": "string", "minLength": 2 },
+              "also": { "$ref": "#/$defs/id_list" }
+            }
+          }
+        }
+      }
+    },
+
+    "fixture_hud_screens_file": {
+      "type": "object",
+      "required": ["note", "src", "topbar", "left_panels", "right_panels", "center", "bottom_menu", "cut_v1", "never_cut"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "topbar": { "$ref": "#/$defs/hud_panel_ref" },
+        "left_panels": { "type": "array", "items": { "$ref": "#/$defs/hud_panel_ref" }, "minItems": 1 },
+        "right_panels": { "type": "array", "items": { "$ref": "#/$defs/hud_panel_ref" }, "minItems": 1 },
+        "center": { "type": "array", "items": { "$ref": "#/$defs/hud_panel_ref" }, "minItems": 1 },
+        "bottom_menu": {
+          "type": "object",
+          "required": ["id", "hud_ref", "items"],
+          "additionalProperties": false,
+          "properties": {
+            "id": { "$ref": "#/$defs/id" },
+            "hud_ref": { "type": "string", "minLength": 8 },
+            "items": { "$ref": "#/$defs/id_list" }
+          }
+        },
+        "cut_v1": { "type": "array", "items": { "$ref": "#/$defs/hud_panel_ref" } },
+        "never_cut": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "codes", "hud_ref"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "codes": { "type": "array", "items": { "$ref": "#/$defs/code_id" }, "minItems": 1 },
+              "hud_ref": { "type": "string", "minLength": 8 }
+            }
+          }
+        }
+      }
+    },
+
+    "hud_panel_ref": {
+      "type": "object",
+      "required": ["id", "hud_ref"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "hud_ref": { "type": "string", "minLength": 8 }
+      }
+    },
+
+    "screen_labelled": {
+      "type": "object",
+      "required": ["src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "hud_ref": { "type": "string", "minLength": 8 },
+        "ui_key": { "type": "string", "pattern": "^UI_[A-Z0-9_]+$" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+
+    "screens_file": {
+      "type": "object",
+      "required": ["section", "params", "client_allowed_sources", "mounts", "loading_kinds", "empty_kinds", "state_sources", "screens", "panels", "fields", "actions", "capabilities", "state_surfaces", "flows", "settings_rows", "retired_refusals", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "screens" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "client_allowed_sources": {
+          "type": "object",
+          "required": ["server", "client_clock", "client_format"],
+          "additionalProperties": false,
+          "properties": {
+            "server": { "$ref": "#/$defs/labelled_string" },
+            "client_clock": { "$ref": "#/$defs/labelled_string" },
+            "client_format": { "$ref": "#/$defs/labelled_string" }
+          }
+        },
+        "mounts": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_labelled" }
+        },
+        "loading_kinds": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_labelled" }
+        },
+        "empty_kinds": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_labelled" }
+        },
+        "state_sources": { "$ref": "#/$defs/state_source_map" },
+        "screens": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_row" }
+        },
+        "panels": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_panel" }
+        },
+        "fields": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_field" }
+        },
+        "actions": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_action" }
+        },
+        "capabilities": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_capability" }
+        },
+        "state_surfaces": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/code_id" },
+          "additionalProperties": { "$ref": "#/$defs/id_list" }
+        },
+        "flows": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["onboarding_demo", "offline_return"],
+          "properties": {
+            "onboarding_demo": { "$ref": "#/$defs/screen_flow" },
+            "offline_return": { "$ref": "#/$defs/screen_flow" }
+          }
+        },
+        "settings_rows": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_setting" }
+        },
+        "retired_refusals": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/code_id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_labelled" }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "screen_row": {
+      "type": "object",
+      "required": ["kind", "mount", "hud_ref", "doc_ref", "v1", "entry", "panels", "loading_kind", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["screen", "panel", "flow"] },
+        "mount": { "enum": ["topbar", "left_panel", "right_panel", "bottom_bar", "bottom_menu", "modal", "fullscreen", "overlay"] },
+        "hud_ref": { "type": "string", "minLength": 8 },
+        "doc_ref": { "type": "string", "minLength": 8 },
+        "v1": { "enum": ["live", "stub", "cut"] },
+        "entry": { "type": "string", "minLength": 1 },
+        "panels": { "$ref": "#/$defs/id_list" },
+        "loading_kind": { "$ref": "#/$defs/id" },
+        "empty_kind": { "$ref": "#/$defs/id" },
+        "empty_code": { "$ref": "#/$defs/code_id" },
+        "demo_flow": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+
+    "screen_panel": {
+      "type": "object",
+      "required": ["screen", "title_key", "fields", "src"],
+      "additionalProperties": false,
+      "properties": {
+        "screen": { "$ref": "#/$defs/id" },
+        "title_key": { "type": "string", "pattern": "^UI_[A-Z0-9_]+$" },
+        "fields": { "$ref": "#/$defs/id_list" },
+        "src": { "$ref": "#/$defs/src" }
+      }
+    },
+
+    "state_source_id": {
+      "type": "string",
+      "pattern": "^[a-z]+\\.[a-z][a-z0-9_]*$",
+      "description": "Owner registry key: family.leaf, not a stored magnitude."
+    },
+    "state_source_row": {
+      "type": "object",
+      "required": ["owner", "doc_ref", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "enum": ["T11", "T12"] },
+        "doc_ref": { "type": "string", "minLength": 8 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" },
+        "producer": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Tick or host function that produces this live magnitude. Required for owner T11 (L222 next wave)."
+        }
+      }
+    },
+    "state_source_map": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/state_source_id" },
+      "additionalProperties": { "$ref": "#/$defs/state_source_row" }
+    },
+    "screen_field": {
+      "type": "object",
+      "required": ["kind", "source", "src", "why", "value_kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["int", "bps", "ratio", "text", "badge", "bar", "list", "timer", "price", "interval"] },
+        "value_kind": { "enum": ["pack_derived", "live_state", "client_local"] },
+        "derived_from": { "type": "string", "minLength": 8 },
+        "state_source": { "$ref": "#/$defs/state_source_id" },
+        "source": { "enum": ["server", "client_clock", "client_format"] },
+        "si": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "unit": { "type": "string", "minLength": 1 },
+        "state_codes": { "type": "array", "items": { "$ref": "#/$defs/code_id" } },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      },
+      "oneOf": [
+        {
+          "required": ["value_kind", "derived_from"],
+          "properties": { "value_kind": { "const": "pack_derived" } },
+          "not": { "required": ["state_source"] }
+        },
+        {
+          "required": ["value_kind", "state_source"],
+          "properties": { "value_kind": { "const": "live_state" } },
+          "not": { "required": ["derived_from"] }
+        },
+        {
+          "required": ["value_kind"],
+          "properties": { "value_kind": { "const": "client_local" } },
+          "not": {
+            "anyOf": [
+              { "required": ["derived_from"] },
+              { "required": ["state_source"] }
+            ]
+          }
+        }
+      ]
+    },
+
+    "screen_action": {
+      "type": "object",
+      "required": ["screen", "kind", "label", "effect", "requires", "spend", "demo_blocked", "v1", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "screen": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["button", "row", "tab", "toggle", "tile", "link", "slider", "filter"] },
+        "label": { "type": "string", "pattern": "^(UI_[A-Z0-9_]+|[A-Z][A-Z0-9_]*)$" },
+        "effect": { "type": "string", "pattern": "^(navigate|commit|toggle|select|filter|external):[A-Za-z0-9_]+$" },
+        "requires": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "spend": { "enum": ["none", "capital", "corp"] },
+        "demo_blocked": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "v1": { "enum": ["live", "stub"] },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+
+    "screen_capability": {
+      "type": "object",
+      "required": ["code", "tier", "kind", "predicate", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "$ref": "#/$defs/code_id" },
+        "tier": { "type": "integer", "minimum": 1 },
+        "kind": { "enum": ["blocking", "warning"] },
+        "predicate": { "type": "string", "minLength": 8 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+
+    "screen_flow": {
+      "type": "object",
+      "required": ["steps"],
+      "additionalProperties": false,
+      "properties": {
+        "steps": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/screen_flow_step" }
+        }
+      }
+    },
+
+    "screen_flow_step": {
+      "type": "object",
+      "required": ["step", "teaches", "done_when", "blocked_codes", "src"],
+      "additionalProperties": false,
+      "properties": {
+        "step": { "type": "integer", "minimum": 1 },
+        "teaches": { "type": "string", "minLength": 8 },
+        "done_when": { "type": "string", "minLength": 8 },
+        "blocked_codes": { "type": "array", "items": { "$ref": "#/$defs/code_id" } },
+        "src": { "$ref": "#/$defs/src" }
+      }
+    },
+
+    "screen_setting": {
+      "type": "object",
+      "required": ["kind", "v1", "client_only", "label_key", "requires", "src"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["toggle", "select", "action"] },
+        "v1": { "enum": ["live", "stub"] },
+        "client_only": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "label_key": { "type": "string", "pattern": "^UI_[A-Z0-9_]+$" },
+        "requires": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "src": { "$ref": "#/$defs/src" }
+      }
+    },
+
+    "fixture_5_8_file": {
+      "type": "object",
+      "required": ["note", "legend", "roles", "matrix"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "legend": { "type": "object", "additionalProperties": { "type": "string" } },
+        "roles": { "$ref": "#/$defs/id_list" },
+        "matrix": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": {
+            "type": "array",
+            "items": { "enum": ["home", "neighbour", "accepted", "none"] },
+            "minItems": 5,
+            "maxItems": 5
+          }
+        }
+      }
+    },
+
+    "fixture_11_scope_file": {
+      "type": "object",
+      "required": ["note", "src", "districts_playable", "roles_playable", "buildings_playable"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "districts_playable": { "$ref": "#/$defs/id_list" },
+        "roles_playable": { "$ref": "#/$defs/id_list" },
+        "buildings_playable": { "$ref": "#/$defs/id_list" }
+      }
+    },
+
+    "fixture_kottara_launch_file": {
+      "type": "object",
+      "required": [
+        "note", "src", "supply", "phantom_quote_wei", "graduation_threshold_wei",
+        "first_buy_gross_wei", "first_buy_tokens", "curve_sold_tokens",
+        "fee_bps", "creator_tax_bps", "turnover_wei", "creator_tax_collected_wei"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "supply": { "type": "integer", "minimum": 1 },
+        "phantom_quote_wei": { "type": "integer", "minimum": 1 },
+        "graduation_threshold_wei": { "type": "integer", "minimum": 1 },
+        "first_buy_gross_wei": { "type": "integer", "minimum": 1 },
+        "first_buy_tokens": { "type": "integer", "minimum": 1 },
+        "curve_sold_tokens": { "type": "integer", "minimum": 1 },
+        "fee_bps": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "creator_tax_bps": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "turnover_wei": { "type": "integer", "minimum": 0 },
+        "creator_tax_collected_wei": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "justified_string": {
+      "type": "object",
+      "required": ["v", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "v": { "type": "string", "minLength": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "justified_id_list": {
+      "type": "object",
+      "required": ["v", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "v": { "$ref": "#/$defs/id_list" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "sim_archetype": {
+      "type": "object",
+      "required": [
+        "login_period_city_hours", "deposit_multiple_bps", "reinvest_share_bps",
+        "sell_share_bps", "bank_usage", "energy_headroom_bps", "upgrade_policy",
+        "districts_opened", "research_order"
+      ],
+      "additionalProperties": false,
+      "description": "One play-style row. A fourth archetype is a new key here; tick.py and sim.py iterate the map and do not name the three canon rows.",
+      "properties": {
+        "login_period_city_hours": { "$ref": "#/$defs/param" },
+        "deposit_multiple_bps": { "$ref": "#/$defs/param" },
+        "reinvest_share_bps": { "$ref": "#/$defs/param" },
+        "sell_share_bps": { "$ref": "#/$defs/param" },
+        "bank_usage": { "$ref": "#/$defs/param" },
+        "energy_headroom_bps": { "$ref": "#/$defs/param" },
+        "upgrade_policy": {
+          "type": "object",
+          "required": ["v", "src", "why"],
+          "additionalProperties": false,
+          "properties": {
+            "v": { "enum": ["width", "depth"] },
+            "src": { "$ref": "#/$defs/src" },
+            "why": { "$ref": "#/$defs/why" }
+          }
+        },
+        "districts_opened": { "$ref": "#/$defs/justified_id_list" },
+        "research_order": { "$ref": "#/$defs/justified_id_list" }
+      }
+    },
+    "sim_scenario": {
+      "type": "object",
+      "required": ["kind", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "$ref": "#/$defs/id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "bind": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 3 },
+          "description": "Maps a scenario field to an existing param path so T1/T2 numbers are not copied."
+        }
+      }
+    },
+    "sim_kind": {
+      "type": "object",
+      "required": ["src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "sim_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "archetypes", "scenarios", "kinds", "required_scenarios", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "sim" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "archetypes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/sim_archetype" },
+          "minProperties": 3
+        },
+        "scenarios": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/sim_scenario" },
+          "minProperties": 1
+        },
+        "kinds": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/sim_kind" },
+          "minProperties": 1
+        },
+        "required_scenarios": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/sim_kind" },
+          "minProperties": 1
+        },
+        "ast_whitelist": {
+          "type": "object",
+          "required": ["literals", "src", "why"],
+          "additionalProperties": false,
+          "properties": {
+            "literals": {
+              "type": "array",
+              "items": { "type": "integer" },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "src": { "$ref": "#/$defs/src" },
+            "why": { "$ref": "#/$defs/why" }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "ticker_param": {
+      "type": "object",
+      "required": ["v", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "v": { "$ref": "#/$defs/ticker" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+
+    "fragments_file": {
+      "type": "object",
+      "required": ["section", "params", "routes", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "fragments" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "routes": {
+          "type": "object",
+          "required": ["weth_quote_ticker"],
+          "additionalProperties": false,
+          "properties": {
+            "weth_quote_ticker": { "$ref": "#/$defs/ticker_param" }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "seasons_file": {
+      "type": "object",
+      "required": ["section", "params", "scope", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "seasons" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "scope": {
+          "type": "object",
+          "required": ["leaderboard_scope"],
+          "additionalProperties": false,
+          "properties": {
+            "leaderboard_scope": {
+              "type": "object",
+              "required": ["v", "src", "why"],
+              "additionalProperties": false,
+              "properties": {
+                "v": { "enum": ["wallet", "city"] },
+                "src": { "$ref": "#/$defs/src" },
+                "why": { "$ref": "#/$defs/why" }
+              }
+            }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "labelled_string": {
+      "type": "object",
+      "required": ["v", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "v": { "type": "string", "minLength": 2 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "companion_command_allowed": {
+      "type": "object",
+      "required": ["live", "effect", "reads", "journal_code", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "live": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "effect": { "type": "string", "minLength": 8 },
+        "reads": { "type": "string", "minLength": 3 },
+        "journal_code": { "$ref": "#/$defs/code_id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "companion_command_forbidden": {
+      "type": "object",
+      "required": ["reason_kind", "refusal_code", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "reason_kind": { "enum": ["spend", "wallet", "stake", "irreversible", "v1_1"] },
+        "refusal_code": { "$ref": "#/$defs/code_id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "companion_forbidden_key": {
+      "type": "object",
+      "required": ["owner", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "$ref": "#/$defs/id" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "companion_row": {
+      "type": "object",
+      "required": ["source_kind", "source", "key", "magnitude_from", "paid", "applies_when", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "source_kind": { "const": "companion" },
+        "source": { "$ref": "#/$defs/id" },
+        "key": { "$ref": "#/$defs/id" },
+        "magnitude_from": { "type": "string", "minLength": 3, "pattern": "^[a-z][a-z0-9_]*$" },
+        "paid": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "applies_when": { "$ref": "#/$defs/modifier_applies_when" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "companion_policy_row": {
+      "type": "object",
+      "required": ["priority", "condition", "command", "target_selector", "journal_code", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "priority": { "type": "integer", "minimum": 1 },
+        "condition": { "$ref": "#/$defs/id" },
+        "command": { "$ref": "#/$defs/id" },
+        "target_selector": { "$ref": "#/$defs/id" },
+        "journal_code": { "$ref": "#/$defs/code_id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "companion_file": {
+      "type": "object",
+      "required": ["section", "params", "policy_kind", "tie_break", "hold_stale_action", "nft_proceeds_sink", "commands", "keys", "rows", "policy", "llm", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "companion" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "policy_kind": { "$ref": "#/$defs/labelled_string" },
+        "tie_break": { "$ref": "#/$defs/labelled_string" },
+        "hold_stale_action": { "$ref": "#/$defs/labelled_string" },
+        "nft_proceeds_sink": { "$ref": "#/$defs/labelled_string" },
+        "commands": {
+          "type": "object",
+          "required": ["allowed", "forbidden"],
+          "additionalProperties": false,
+          "properties": {
+            "allowed": {
+              "type": "object",
+              "propertyNames": { "$ref": "#/$defs/id" },
+              "additionalProperties": { "$ref": "#/$defs/companion_command_allowed" }
+            },
+            "forbidden": {
+              "type": "object",
+              "propertyNames": { "$ref": "#/$defs/id" },
+              "additionalProperties": { "$ref": "#/$defs/companion_command_forbidden" }
+            }
+          }
+        },
+        "keys": {
+          "type": "object",
+          "required": ["allowed", "forbidden"],
+          "additionalProperties": false,
+          "properties": {
+            "allowed": { "$ref": "#/$defs/id_list" },
+            "forbidden": {
+              "type": "object",
+              "propertyNames": { "$ref": "#/$defs/id" },
+              "additionalProperties": { "$ref": "#/$defs/companion_forbidden_key" }
+            }
+          }
+        },
+        "rows": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/companion_row" }
+        },
+        "policy": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/companion_policy_row" }
+        },
+        "llm": {
+          "type": "object",
+          "required": ["advisor_calls_source", "cost_unit", "cost_usd_per_call_lo_8dec", "cost_usd_per_call_hi_8dec", "on_provider_fail"],
+          "additionalProperties": false,
+          "properties": {
+            "advisor_calls_source": { "type": "string", "minLength": 24 },
+            "cost_unit": { "const": "call" },
+            "cost_usd_per_call_lo_8dec": { "$ref": "#/$defs/param" },
+            "cost_usd_per_call_hi_8dec": { "$ref": "#/$defs/param" },
+            "on_provider_fail": { "$ref": "#/$defs/labelled_string" }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "phase_tint": {
+      "type": "object",
+      "required": [
+        "tint_ramp",
+        "tint_alpha_bps",
+        "sun_azimuth_bps",
+        "sun_elevation_bps",
+        "sun_intensity_bps",
+        "ambient_bps",
+        "src",
+        "why"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tint_ramp": { "type": "string", "pattern": "^[a-z]+$" },
+        "tint_alpha_bps": { "$ref": "#/$defs/param" },
+        "sun_azimuth_bps": { "$ref": "#/$defs/param" },
+        "sun_elevation_bps": { "$ref": "#/$defs/param" },
+        "sun_intensity_bps": { "$ref": "#/$defs/param" },
+        "ambient_bps": { "$ref": "#/$defs/param" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+
+    "placement_file": {
+      "type": "object",
+      "required": ["section", "params", "phases", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "placement" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "phases": {
+          "type": "object",
+          "required": ["dawn", "day", "dusk", "night"],
+          "additionalProperties": false,
+          "properties": {
+            "dawn": { "$ref": "#/$defs/phase_tint" },
+            "day": { "$ref": "#/$defs/phase_tint" },
+            "dusk": { "$ref": "#/$defs/phase_tint" },
+            "night": { "$ref": "#/$defs/phase_tint" }
+          }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+
+    "fixture_hud_layout_file": {
+      "type": "object",
+      "required": ["note", "src", "aspect_w", "aspect_h", "column_width_px", "topbar_height_px"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "aspect_w": { "type": "integer", "minimum": 1 },
+        "aspect_h": { "type": "integer", "minimum": 1 },
+        "column_width_px": { "type": "integer", "minimum": 1 },
+        "topbar_height_px": { "type": "integer", "minimum": 1 },
+        "stock_strip_height_px": { "type": ["integer", "null"] },
+        "bottom_menu_height_px": { "type": ["integer", "null"] },
+        "hud_refs": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 8 }
+        }
+      }
+    },
+
+    "fixture_authored_layout_file": {
+      "type": "object",
+      "required": ["note", "src", "placements"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "replace_placements": { "type": "integer", "enum": [0, 1] },
+        "replace_props": { "type": "integer", "enum": [0, 1] },
+        "placements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "lot_index"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "lot_index": { "type": "integer", "minimum": 0 },
+              "kind": { "type": "string", "enum": ["base", "beacon", "synergy", "filler"] },
+              "ox": { "type": "integer" },
+              "oy": { "type": "integer" },
+              "lift": { "type": "integer", "minimum": 0 },
+              "w_px": { "type": "integer", "minimum": 0 },
+              "h_px": { "type": "integer", "minimum": 0 },
+              "flip": { "type": "integer", "enum": [0, 1] }
+            }
+          }
+        },
+        "tiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["x", "y", "ch"],
+            "additionalProperties": false,
+            "properties": {
+              "x": { "type": "integer", "minimum": 0 },
+              "y": { "type": "integer", "minimum": 0 },
+              "ch": { "type": "string", "enum": [".", "k", "p", "s", "b", "r", "c", "m", "~"] }
+            }
+          }
+        },
+        "props": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "x", "y"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "x": { "type": "integer", "minimum": 0 },
+              "y": { "type": "integer", "minimum": 0 },
+              "ox": { "type": "integer" },
+              "oy": { "type": "integer" },
+              "lift": { "type": "integer", "minimum": 0 },
+              "w_px": { "type": "integer", "minimum": 0 },
+              "h_px": { "type": "integer", "minimum": 0 },
+              "flip": { "type": "integer", "enum": [0, 1] }
+            }
+          }
+        }
+      }
+    },
+
+    "fixture_t10_world_file": {
+      "type": "object",
+      "required": ["note", "src", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "brief", "world_section", "rule_or_derived"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "brief": { "type": "string", "minLength": 2 },
+              "world_section": { "type": "string", "minLength": 2 },
+              "rule_or_derived": { "type": "string", "minLength": 2 }
+            }
+          }
+        }
+      }
+    },
+
+    "tick_prng_stream": {
+      "type": "object",
+      "required": ["stream", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "stream": { "type": "string" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "tick_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "prng_streams", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "tick" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "prng_streams": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/tick_prng_stream" }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+    "attest_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "attest" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+    "render_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "render" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+    "fixture_t11_tick_file": {
+      "type": "object",
+      "required": ["note", "src", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "brief", "tick_section", "rule_or_derived"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "brief": { "type": "string", "minLength": 2 },
+              "tick_section": { "type": "string", "minLength": 2 },
+              "rule_or_derived": { "type": "string", "minLength": 2 }
+            }
+          }
+        }
+      }
+    },
+    "keccak_vector": {
+      "type": "object",
+      "required": ["id", "input_hex", "n", "digest_hex"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "input_hex": { "type": "string" },
+        "n": { "type": "integer", "minimum": 0 },
+        "digest_hex": { "type": "string", "minLength": 64, "maxLength": 64, "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "arch_src_why": {
+      "type": "object",
+      "required": ["src", "why"],
+      "properties": {
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_package": {
+      "type": "object",
+      "required": ["path", "layer", "root", "entrypoint", "preview_only", "allowed_deps", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "minLength": 8 },
+        "layer": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "root": { "enum": ["packages", "services", "apps"] },
+        "entrypoint": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "preview_only": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "allowed_deps": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_service": {
+      "type": "object",
+      "required": ["package", "fail_mode", "blocks_tick", "writes_player_money", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "package": { "$ref": "#/$defs/id" },
+        "fail_mode": { "enum": ["open", "closed"] },
+        "blocks_tick": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "writes_player_money": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_codegen_row": {
+      "type": "object",
+      "required": ["source", "artifact", "consumer", "command", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "type": "string", "minLength": 8 },
+        "artifact": { "type": "string", "minLength": 8 },
+        "consumer": { "$ref": "#/$defs/id" },
+        "command": { "type": "string", "minLength": 8 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_table": {
+      "type": "object",
+      "required": ["key", "holds", "storage", "money", "account_kind", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string", "minLength": 2 },
+        "holds": { "enum": ["none", "decision_record", "tick_input_header"] },
+        "storage": { "enum": ["canonical_bytes", "json"] },
+        "money": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "account_kind": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_basket_route": {
+      "type": "object",
+      "required": ["source", "allocation", "destination", "haircut_ref", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "source": { "$ref": "#/$defs/id" },
+        "allocation": { "enum": ["uniform", "by_demand"] },
+        "destination": { "$ref": "#/$defs/id" },
+        "haircut_ref": { "type": "string", "minLength": 16 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_custody": {
+      "type": "object",
+      "required": ["kettles", "return_fn", "depositor_key", "pool_in", "drain_forbidden", "refund_fn", "refund_root", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "kettles": {
+          "type": "array",
+          "items": { "enum": ["farm", "month"] },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "return_fn": { "const": "returnUnsettled" },
+        "depositor_key": { "$ref": "#/$defs/id" },
+        "pool_in": { "enum": ["measured"] },
+        "drain_forbidden": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 4,
+          "uniqueItems": true
+        },
+        "refund_fn": { "const": "refundPlayer" },
+        "refund_root": { "type": "integer", "minimum": 1, "maximum": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_port_group": {
+      "type": "object",
+      "required": ["design_10", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "design_10": { "type": "string", "minLength": 8 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_key_role": {
+      "type": "object",
+      "required": ["service", "client", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "service": { "$ref": "#/$defs/id" },
+        "client": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_metric": {
+      "type": "object",
+      "required": ["invariant", "service", "threshold_src", "observe_src", "alert_channel", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "invariant": { "type": "string", "minLength": 2 },
+        "service": { "$ref": "#/$defs/id" },
+        "threshold_src": { "type": "string", "minLength": 8 },
+        "observe_src": { "type": "string", "minLength": 8 },
+        "alert_channel": { "$ref": "#/$defs/id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_ops": {
+      "type": "object",
+      "required": ["channel", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "channel": { "$ref": "#/$defs/id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_incident": {
+      "type": "object",
+      "required": ["code", "sign", "owner", "runbook", "decides", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "minLength": 4 },
+        "sign": { "type": "string", "minLength": 8 },
+        "owner": { "$ref": "#/$defs/id" },
+        "runbook": { "$ref": "#/$defs/id" },
+        "decides": { "$ref": "#/$defs/id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_environment": {
+      "type": "object",
+      "required": ["migrations", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "migrations": { "enum": ["forward"] },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_postgres": {
+      "type": "object",
+      "required": ["port", "database", "user", "service", "password_env", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "database": { "$ref": "#/$defs/id" },
+        "user": { "$ref": "#/$defs/id" },
+        "service": { "$ref": "#/$defs/id" },
+        "password_env": { "type": "string", "minLength": 8, "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_listen": {
+      "type": "object",
+      "required": ["bind", "container_bind", "ports", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "bind": { "type": "string", "minLength": 7, "maxLength": 15, "pattern": "^[0-9.]+$" },
+        "container_bind": { "type": "string", "minLength": 7, "maxLength": 15, "pattern": "^[0-9.]+$" },
+        "ports": {
+          "type": "object",
+          "required": ["api", "sampler", "buyback", "attestor", "llm"],
+          "additionalProperties": false,
+          "properties": {
+            "api": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+            "sampler": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+            "buyback": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+            "attestor": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+            "llm": { "type": "integer", "minimum": 1024, "maximum": 65535 }
+          }
+        },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_ci_step": {
+      "type": "object",
+      "required": ["cmd", "catches", "red_input", "track", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "cmd": { "type": "string", "minLength": 8 },
+        "catches": { "type": "string", "minLength": 8 },
+        "red_input": { "type": "string", "minLength": 8 },
+        "track": { "enum": ["push", "nightly"] },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_image": {
+      "type": "object",
+      "required": ["pin", "runtime_python", "copy_content", "runtime_pglite", "pack_runtime_path", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "pin": { "type": "string", "minLength": 8 },
+        "runtime_python": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "copy_content": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "runtime_pglite": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "pack_runtime_path": { "type": "string", "minLength": 4 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_secret_role": {
+      "type": "object",
+      "required": ["env", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "env": { "type": "string", "minLength": 8, "pattern": "^[A-Z][A-Z0-9_]+$" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_secrets": {
+      "type": "object",
+      "required": ["src", "why", "roles"],
+      "additionalProperties": false,
+      "properties": {
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" },
+        "roles": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_secret_role" },
+          "minProperties": 1
+        }
+      }
+    },
+    "arch_backup": {
+      "type": "object",
+      "required": ["schedule_kind", "retention_src", "restore_cmd", "replay_witness", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "schedule_kind": { "enum": ["city_day"] },
+        "retention_src": { "type": "string", "minLength": 8 },
+        "restore_cmd": { "type": "string", "minLength": 8 },
+        "replay_witness": { "type": "string", "minLength": 8 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_rehearsal": {
+      "type": "object",
+      "required": ["pack_pin", "city_day_src", "tick_length_src", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "pack_pin": { "type": "string", "minLength": 4 },
+        "city_day_src": { "type": "string", "minLength": 8 },
+        "tick_length_src": { "type": "string", "minLength": 8 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_channel_rule": {
+      "type": "object",
+      "required": ["prefixes", "source_ids", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "prefixes": { "type": "array", "items": { "type": "string" } },
+        "source_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_toolchain_row": {
+      "type": "object",
+      "required": ["version", "kind", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": "string", "minLength": 1, "pattern": "^([0-9]+(\\.[0-9]+){0,3}(-[a-z0-9.]+)?|workspace:\\*)$" },
+        "kind": { "enum": ["runtime", "package", "database", "tool"] },
+        "npm": { "type": "string" },
+        "engines": { "type": "string", "minLength": 3 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_vector_class": {
+      "type": "object",
+      "required": ["src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_v11_lever": {
+      "type": "object",
+      "required": ["stage", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "stage": { "$ref": "#/$defs/id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_stage": {
+      "type": "object",
+      "required": ["goal", "gate_cmd", "ts_gate_cmd", "tests", "invariants", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "goal": { "type": "string", "minLength": 8 },
+        "gate_cmd": { "type": "string", "minLength": 8 },
+        "ts_gate_cmd": { "type": "string", "minLength": 8 },
+        "tests": { "type": "array", "items": { "type": "string", "minLength": 2 }, "minItems": 1 },
+        "construction_tests": { "type": "array", "items": { "type": "string", "minLength": 2 } },
+        "invariants": { "type": "array", "items": { "type": "string", "minLength": 2 }, "minItems": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_session": {
+      "type": "object",
+      "required": ["storage_table", "subject_kinds", "message_fields", "domain", "authorization_header", "authorization_scheme", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "storage_table": { "const": "sessions" },
+        "subject_kinds": {
+          "type": "array",
+          "items": { "enum": ["wallet", "demo"] },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "message_fields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 5
+        },
+        "domain": { "type": "string", "minLength": 1 },
+        "authorization_header": { "type": "string", "minLength": 8 },
+        "authorization_scheme": { "type": "string", "minLength": 1 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_audit_finding": {
+      "type": "object",
+      "required": ["severity", "status", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "severity": { "enum": ["critical", "high", "medium", "low", "note"] },
+        "status": { "enum": ["open", "closed_code", "accepted"] },
+        "construction": { "$ref": "#/$defs/id" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_audit": {
+      "type": "object",
+      "required": ["findings", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_audit_finding" },
+          "minProperties": 1
+        },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "toolchain", "packages", "services", "codegen", "schema_tables", "session", "port", "keys", "secrets", "metrics", "ops", "incidents", "environments", "listen", "postgres", "readiness", "channel_rules", "buyback_refs", "buyback_order", "basket_routes", "basket_order", "custody", "sampler_input_fields", "aggregation", "demo_transfer_edges", "vector_classes", "roadmap_order", "roadmap", "derived", "ci_steps", "image", "backup", "audit", "rehearsal"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "arch" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "toolchain": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_toolchain_row" },
+          "minProperties": 1
+        },
+        "packages": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_package" }
+        },
+        "services": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_service" }
+        },
+        "codegen": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_codegen_row" }
+        },
+        "schema_tables": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_table" }
+        },
+        "session": { "$ref": "#/$defs/arch_session" },
+        "port": {
+          "type": "object",
+          "required": ["implementations", "rpc_import_only", "groups", "src", "why"],
+          "additionalProperties": false,
+          "properties": {
+            "implementations": {
+              "type": "array",
+              "items": { "enum": ["mock", "rpc"] },
+              "minItems": 2,
+              "maxItems": 2,
+              "uniqueItems": true
+            },
+            "rpc_import_only": { "enum": ["rpc"] },
+            "groups": {
+              "type": "object",
+              "propertyNames": { "$ref": "#/$defs/id" },
+              "additionalProperties": { "$ref": "#/$defs/arch_port_group" }
+            },
+            "src": { "$ref": "#/$defs/src" },
+            "why": { "$ref": "#/$defs/why" }
+          }
+        },
+        "keys": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_key_role" }
+        },
+        "secrets": { "$ref": "#/$defs/arch_secrets" },
+        "metrics": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_metric" }
+        },
+        "environments": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_environment" }
+        },
+        "listen": { "$ref": "#/$defs/arch_listen" },
+        "postgres": { "$ref": "#/$defs/arch_postgres" },
+        "readiness": {
+          "type": "object",
+          "required": ["requires", "src", "why"],
+          "additionalProperties": false,
+          "properties": {
+            "requires": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 2 },
+            "src": { "$ref": "#/$defs/src" },
+            "why": { "$ref": "#/$defs/why" }
+          }
+        },
+        "channel_rules": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_channel_rule" }
+        },
+        "buyback_refs": {
+          "type": "object",
+          "required": ["cadence", "tranche_cap_bps", "min_batch_wei", "slippage_safety", "src", "why"],
+          "additionalProperties": false,
+          "properties": {
+            "cadence": { "type": "string", "minLength": 8 },
+            "tranche_cap_bps": { "type": "string", "minLength": 8 },
+            "min_batch_wei": { "type": "string", "minLength": 8 },
+            "slippage_safety": { "type": "string", "minLength": 8 },
+            "src": { "$ref": "#/$defs/src" },
+            "why": { "$ref": "#/$defs/why" }
+          }
+        },
+        "buyback_order": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 4
+        },
+        "basket_routes": {
+          "type": "object",
+          "required": ["month", "farm"],
+          "additionalProperties": false,
+          "properties": {
+            "month": { "$ref": "#/$defs/arch_basket_route" },
+            "farm": { "$ref": "#/$defs/arch_basket_route" }
+          }
+        },
+        "basket_order": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "custody": { "$ref": "#/$defs/arch_custody" },
+        "sampler_input_fields": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "minItems": 1
+        },
+        "aggregation": { "type": "string", "minLength": 8 },
+        "demo_transfer_edges": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "v11_levers": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_v11_lever" }
+        },
+        "vector_classes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_vector_class" },
+          "minProperties": 1
+        },
+        "roadmap_order": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1 },
+        "roadmap": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_stage" }
+        },
+        "derived": { "$ref": "#/$defs/derived_map" },
+        "ci_steps": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_ci_step" },
+          "minProperties": 1
+        },
+        "image": { "$ref": "#/$defs/arch_image" },
+        "backup": { "$ref": "#/$defs/arch_backup" },
+        "audit": { "$ref": "#/$defs/arch_audit" },
+        "rehearsal": { "$ref": "#/$defs/arch_rehearsal" },
+        "ops": { "$ref": "#/$defs/arch_ops" },
+        "incidents": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/arch_incident" },
+          "minProperties": 1
+        }
+      }
+    },
+    "api_path_rule": {
+      "type": "object",
+      "required": ["method", "template", "from", "prefix", "required_fields", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "enum": ["GET", "POST"] },
+        "template": { "type": "string", "minLength": 4 },
+        "from": { "type": "string" },
+        "prefix": { "type": "string" },
+        "required_fields": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "cache": { "enum": ["immutable"] },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "api_file": {
+      "type": "object",
+      "required": ["section", "note", "params", "path_rules", "envelope_ok_fields", "envelope_error_fields", "replay_code", "stale_time_code", "derived"],
+      "additionalProperties": false,
+      "properties": {
+        "section": { "const": "api" },
+        "note": { "$ref": "#/$defs/note" },
+        "params": { "$ref": "#/$defs/param_map" },
+        "path_rules": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/api_path_rule" }
+        },
+        "envelope_ok_fields": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1 },
+        "envelope_error_fields": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1 },
+        "replay_code": { "$ref": "#/$defs/code_id" },
+        "stale_time_code": { "$ref": "#/$defs/code_id" },
+        "derived": { "$ref": "#/$defs/derived_map" }
+      }
+    },
+    "fixture_t12_arch_file": {
+      "type": "object",
+      "required": ["note", "src", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "brief", "doc_section", "rule_or_derived"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "brief": { "type": "string", "minLength": 2 },
+              "doc_section": { "type": "string", "minLength": 2 },
+              "rule_or_derived": { "type": "string", "minLength": 2 }
+            }
+          }
+        }
+      }
+    },
+    "fixture_tick_aggregates_file": {
+      "type": "object",
+      "required": ["note", "src", "keccak_vectors", "happiness", "productivity"],
+      "additionalProperties": false,
+      "properties": {
+        "note": { "$ref": "#/$defs/note" },
+        "src": { "$ref": "#/$defs/src" },
+        "keccak_vectors": {
+          "type": "array",
+          "minItems": 5,
+          "items": { "$ref": "#/$defs/keccak_vector" }
+        },
+        "happiness": {
+          "type": "object",
+          "required": ["weight_housing_bps", "weight_parks_bps", "weight_energy_bps", "weight_payroll_bps", "weights_sum_bps", "full_city_bps", "empty_city_bps"],
+          "additionalProperties": false,
+          "properties": {
+            "weight_housing_bps": { "type": "integer" },
+            "weight_parks_bps": { "type": "integer" },
+            "weight_energy_bps": { "type": "integer" },
+            "weight_payroll_bps": { "type": "integer" },
+            "weights_sum_bps": { "type": "integer" },
+            "full_city_bps": { "type": "integer" },
+            "empty_city_bps": { "type": "integer" }
+          }
+        },
+        "productivity": {
+          "type": "object",
+          "required": ["identity_realized", "identity_nominal", "identity_bps"],
+          "additionalProperties": false,
+          "properties": {
+            "identity_realized": { "type": "integer" },
+            "identity_nominal": { "type": "integer" },
+            "identity_bps": { "type": "integer" }
+          }
+        }
+      }
+    }
+  },
+
+  "type": "object",
+  "description": "Root is never validated directly; lint.py picks the matching $defs entry per file. Kept as an object so the document itself stays a valid schema."
+}

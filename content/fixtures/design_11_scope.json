@@ -1,0 +1,26 @@
+{
+  "note": "Дословная выписка скоупа первой версии из DESIGN.md §11. Это эталон, а не источник: генератор build_v1_scope обязан воспроизвести его из playable_v1 районов, tier зданий и requires синергий. Расхождение — ошибка сборки (правило L21). В данных и в HUD присутствуют все 18 зданий и все шесть маяков; здесь перечислено то, что играбельно открывается.",
+  "src": "DESIGN.md §11",
+  "districts_playable": ["automation", "compute", "consumer", "energy", "finance", "logistics"],
+  "roles_playable": ["engineer", "logistician", "manager", "scientist", "trader"],
+  "buildings_playable": [
+    "agent_hub",
+    "ai_research_center",
+    "bank",
+    "city_hall",
+    "clearing_house",
+    "cloud_campus",
+    "data_center",
+    "drone_depot",
+    "energy_plant",
+    "exchange",
+    "finance_tower",
+    "flagship_store",
+    "fleet_yard",
+    "logistics_hub",
+    "power_node",
+    "retail_complex",
+    "robotics_lab",
+    "workshop"
+  ]
+}

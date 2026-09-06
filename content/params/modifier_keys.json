@@ -1,0 +1,134 @@
+{
+  "section": "modifier_keys",
+  "note": "Ядро дешёвого контента. Новый узел прогрессии, черта, синергия или уровень района — это строка, которая трогает один-два ключа из этого списка. Фича, не выразимая так, в v1 не входит. Величины и потолки по каждому ключу задаёт T5, здесь только структура: единица, режим сложения и стадия применения.",
+  "stacking_modes": {
+    "mul": {
+      "formula": "база × Π(1 + m_i / 10000)",
+      "why": "Множители безразмерны и композируются. Потолок по ключу ограничивает произведение"
+    },
+    "add": {
+      "formula": "база + Σ m_i",
+      "why": "Счётчики и часы дискретны: перемножать слоты или часы оффлайна бессмысленно"
+    },
+    "mul_remainder": {
+      "formula": "база × Π(1 − m_i / 10000)",
+      "why": "Снижения. Произведение остатков никогда не даёт ноль, поэтому два источника «минус простой» не могут сделать IDLE недостижимым"
+    }
+  },
+  "stages": {
+    "note": "Стадии соответствуют шагу 5 формулы тика DESIGN.md §5.3: выход = база × соответствие_роли × кривая(ур.агента) × E_района × Productivity × модификатор_задачи × дрожь. Порядок стадий фиксирован здесь и не меняется после первой записанной смены — иначе реплей старых записей даёт другой результат (§6.3).",
+    "order": ["base", "affinity", "agent_level", "district_efficiency", "productivity", "objective", "jitter", "post"]
+  },
+  "keys": {
+    "output_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "post",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5",
+      "why": "Множитель выхода тика. Самый частый ключ, поэтому потолок по нему в T5 самый жёсткий"
+    },
+    "energy_cost_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "base",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5, DESIGN.md §5.9",
+      "why": "Расход energy на тик. Применяется до проверки достаточности входов, иначе Overclock не смог бы вызывать IDLE"
+    },
+    "compute_cost_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "base",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5, DESIGN.md §5.9",
+      "why": "Расход compute на тик, симметрично energy"
+    },
+    "idle_reduction_bps": {
+      "u": "bps",
+      "stacking": "mul_remainder",
+      "stage": "base",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5, DESIGN.md §4.2",
+      "why": "Роль Throughput: не склад, а снижение простоя. Режим остатка гарантирует, что простой не обнуляется полностью"
+    },
+    "agent_slots": {
+      "u": "count",
+      "stacking": "add",
+      "stage": "post",
+      "scope_kind": "city",
+      "src": "docs/BRIEF.md T5, DESIGN.md §4.2",
+      "why": "Слоты агентов от ветки Automation. Жёсткий потолок slots_cap проверяется после сложения"
+    },
+    "offline_cap_hours": {
+      "u": "city_hours",
+      "stacking": "add",
+      "stage": "post",
+      "scope_kind": "city",
+      "src": "docs/BRIEF.md T5, DESIGN.md §3.2, §4.2",
+      "why": "Единственный ключ, который продаёт игроку время. База 12 часов лежит в time.json, ветка Automation прибавляет к ней"
+    },
+    "fund_share_bps": {
+      "u": "bps",
+      "stacking": "add",
+      "stage": "post",
+      "scope_kind": "city",
+      "src": "docs/BRIEF.md T5, DESIGN.md §4.2",
+      "why": "Доля города в фонде зарплат. Складывается, потому что это вес в пропорциональном делении, а не множитель выхода"
+    },
+    "fragment_rate_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "post",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5, T6",
+      "why": "Темп начисления сток-фрагментов. Отдельный ключ, потому что фрагменты не Capital и не проходят через фонд зарплат"
+    },
+    "build_cost_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "post",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5",
+      "why": "Стоимость стройки. Вне тика, но в той же таблице: скидка на стройку — такой же контент, как множитель выхода"
+    },
+    "upgrade_speed_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "post",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5",
+      "why": "Скорость апгрейда здания"
+    },
+    "xp_rate_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "post",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5, DESIGN.md §5.11",
+      "why": "Темп XP с валидного тика. Узел Handbook двигает именно его"
+    },
+    "population_conversion_bps": {
+      "u": "bps",
+      "stacking": "mul",
+      "stage": "post",
+      "scope_kind": "building",
+      "src": "docs/BRIEF.md T5, DESIGN.md §4.2",
+      "why": "Конверсия Population в Capital. Отдельный ключ, потому что это единственный контур дохода не от производства"
+    },
+    "jitter_bps": {
+      "u": "bps",
+      "stacking": "mul_remainder",
+      "stage": "jitter",
+      "scope_kind": "building",
+      "src": "DESIGN.md §5.3, §5.10",
+      "why": "Ширина дрожи тика. Черта Steady сужает её. Тринадцатый ключ: он был нужен, чтобы черта Steady выражалась строкой, а не кодом"
+    }
+  },
+  "derived": {
+    "key_count": "количество ключей",
+    "keys_by_stage": "группировка ключей по стадии применения",
+    "keys_by_stacking": "группировка по режиму сложения",
+    "keys_by_scope": "группировка по scope_kind: building или city"
+  }
+}

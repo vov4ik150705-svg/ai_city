@@ -1,0 +1,5 @@
+{
+  "note": "Sprite backlog closed in L5b. Empty assets is the closed state: L16 reads drawn ids from assets.json, L178 no longer needs a pending spec. Do not delete the file; WORLD.md §11 and content/build.py still load it.",
+  "src": "docs/CONTENT.md §8, docs/WORLD.md §11",
+  "assets": []
+}

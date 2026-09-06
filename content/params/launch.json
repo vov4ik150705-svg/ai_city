@@ -1,0 +1,150 @@
+{
+  "section": "launch",
+  "note": "Параметры запуска $CORP через pons V2 против ETH. Ставка creator_tax_bps живёт в economy.json и здесь не дублируется. Числа котировки — wei, прочитанные с getLaunchConfig(0). Массив launchConfigs на фабрике private: публичный читатель — getLaunchConfig.",
+  "params": {
+    "token_supply": {
+      "v": 1000000000000000000000000000,
+      "u": "tokens",
+      "src": "0x7ed598bc… getLaunchConfig(0) word0",
+      "why": "Полный миллиард с 18 знаками минтится в кривую целиком: аллокаций нет, резерва команды нет"
+    },
+    "eth_phantom_quote": {
+      "v": 1680000000000000000,
+      "u": "wei",
+      "src": "0x7ed598bc… getLaunchConfig(0) word2, raw 0x17508f1956a80000",
+      "why": "Виртуальный резерв кривой для ETH, 1.68 ETH. Хранится в LaunchConfig, не выводится из 0.4"
+    },
+    "eth_graduation_threshold": {
+      "v": 4200000000000000000,
+      "u": "wei",
+      "src": "0x7ed598bc… getLaunchConfig(0) word3, raw 0x3a4965bf58a40000",
+      "why": "Порог graduation в wei: 4.2 ETH. Вместе с phantomQuote даёт Q0/T = 0.4"
+    },
+    "eth_usd_8dec": {
+      "v": 250087000000,
+      "u": "usd_8dec",
+      "src": "Chainlink ETH/USD latestRoundData 2026-08-27T19:58:29Z, docs/LAUNCH.md §9",
+      "why": "Снимок курса для долларовых таблиц, не константа и не живой оракул. Живое значение пишется во вход тика"
+    },
+    "launch_buy_share_bps": {
+      "v": 0,
+      "u": "bps",
+      "src": "docs/LAUNCH.md §4, owner no-buy",
+      "why": "Owner launches with launchToken only: no seed bag, snipe hits the first public buyer, round-trip stays in the 1400-1600 band"
+    },
+    "buyback_cadence_city_hours": {
+      "v": 1,
+      "u": "city_hours",
+      "src": "DESIGN.md §2.1, docs/LAUNCH.md §5",
+      "why": "Фиксированный час города: факт выкупа предсказуем, размер порции — нет, и тик его не ждёт"
+    },
+    "buyback_tranche_cap_bps": {
+      "v": 33,
+      "u": "bps",
+      "src": "docs/LAUNCH.md §5, L22",
+      "why": "0.33% глубины: запас ×3 к ставке 2%, проскальзывание транша меньше собранного сбора"
+    },
+    "buyback_slippage_safety": {
+      "v": 3,
+      "u": "count",
+      "src": "docs/LAUNCH.md §5, L22",
+      "why": "Запас к ставке сбора: транш × 3 не превышает creator_tax_bps, иначе выкуп сжигает больше, чем принёс"
+    },
+    "buyback_min_batch_wei": {
+      "v": 8000000000000000,
+      "u": "wei",
+      "src": "docs/LAUNCH.md §5, eth_usd_8dec print",
+      "why": "0.008 ETH ≈ 20 $ на снимке курса: ниже газ съест выкуп, сбор копится до порога и в тик не входит"
+    },
+    "bank_daily_limit_pool_share_bps": {
+      "v": 100,
+      "u": "bps",
+      "src": "DESIGN.md §7.2, docs/LAUNCH.md §6",
+      "why": "1% текущей котировочной глубины, которую читает сервер. Абсолют не хранится: сид ≈ T, доливка хуком не запрещена, владелец сид не доливает"
+    },
+    "risk4_depth_half_eth_day_wei": {
+      "v": 50000000000000000000,
+      "u": "wei",
+      "src": "docs/LAUNCH.md §11 risk 4 table 0.5 ETH/day",
+      "why": "Глубина 50 ETH из таблицы риска 4, при которой дневной 1% даёт 0.5 ETH. T3 сверяет depth_needed сценария с этой строкой, число не копируется в sim.py"
+    },
+    "risk4_depth_two_eth_day_wei": {
+      "v": 200000000000000000000,
+      "u": "wei",
+      "src": "docs/LAUNCH.md §11 risk 4 table 2 ETH/day",
+      "why": "Глубина 200 ETH. Средняя строка таблицы долива; сверка окна N_bank, не новый потолок"
+    },
+    "risk4_depth_ten_eth_day_wei": {
+      "v": 1000000000000000000000,
+      "u": "wei",
+      "src": "docs/LAUNCH.md §11 risk 4 table 10 ETH/day",
+      "why": "Глубина 1000 ETH. Верхняя строка таблицы; T3 называет, какой строке соответствует depth_needed"
+    },
+    "revenue_scenario_low_usd": {
+      "v": 50000,
+      "u": "usd",
+      "src": "docs/LAUNCH.md §3, KOTS 27.7 ETH churn",
+      "why": "Низкий месячный оборот обеих сторон: тонкий DEX без хайпа, ниже чужого запуска KOTS"
+    },
+    "revenue_scenario_mid_usd": {
+      "v": 300000,
+      "u": "usd",
+      "src": "docs/LAUNCH.md §3",
+      "why": "Средний оборот: живой пул с регулярным churn, в несколько раз выше фазы кривой KOTS"
+    },
+    "revenue_scenario_hype_usd": {
+      "v": 2000000,
+      "u": "usd",
+      "src": "docs/LAUNCH.md §3",
+      "why": "Хайп-месяц: спекулятивный оборот щитка, не обещание, а верхняя калибровка фонда"
+    },
+    "churn_multiple_bps": {
+      "v": 65952,
+      "u": "bps",
+      "src": "KOTS 27.7 ETH / 4.2 ETH, docs/BRIEF.md §4",
+      "why": "Оборот к чистому притоку 6.595×: доход считается от оборота, не от порога graduation"
+    },
+    "kottara_model_tolerance_bps": {
+      "v": 50,
+      "u": "bps",
+      "src": "docs/LAUNCH.md §2, L24",
+      "why": "Допуск 0.5% к фикстуре KOTS: больше — модель кривой не та, сборка должна падать"
+    },
+    "snipe_tax_seconds": {
+      "v": 3,
+      "u": "count",
+      "src": "0x7ed598bc snipeTaxSeconds() 0x6783774b",
+      "why": "Живое окно снайп-налога на фабрике: 3 с, не 15 из комментария main. Владелец меняет; снимок в момент нашего launchToken"
+    },
+    "max_creator_tax_bps": {
+      "v": 1000,
+      "u": "bps",
+      "src": "docs/LAUNCH.md §1 maxCreatorTaxBps() 0x03e8",
+      "why": "Factory ceiling for creatorTaxBps; pack tax and DEX vitrine must stay at or below this or launchToken reverts"
+    }
+  },
+  "derived": {
+    "sold_at_grad_bps": "T / (Q0 + T) в bps; при Q0/T = 0.4 это 5/7 supply",
+    "q0_over_t_bps": "eth_phantom_quote × 10000 / eth_graduation_threshold",
+    "launch_buy_cost_wei": "Q0 × share / (1 − share), чистая котировка первой покупки",
+    "launch_buy_gross_wei": "cost × 10000 / (10000 − feeBps − creatorTaxBps)",
+    "launch_buy_tokens": "S × net / (Q0 + net) для выбранной доли",
+    "curve_phase_revenue_wei": "creator_tax_bps × churn_multiple_bps × T / 10^8",
+    "external_vs_internal_breakeven_bps": "round_trip_cost_bps × 10000 / (2 × creator_tax_fund_bps)",
+    "protocol_take_breakeven_bps": "round_trip_cost_bps × 10000 / (2 × creator_tax_bps)",
+    "pool_depth_quote_wei": "стартовая котировка сида ≈ T; абсолют для лимита банка считается от живой глубины",
+    "pool_token_amount": "S × Q0 × T / (Q0 + T)^2 = 10/49 supply при Q0/T = 0.4",
+    "bank_daily_limit_wei": "живая глубина × bank_daily_limit_pool_share_bps / 10000; на сиде глубина ≈ T",
+    "supply_share_costs": "таблица стоимости доли supply первым покупателем",
+    "revenue_scenarios": "доход протокола по трём оборотам при 50/100/200 bps",
+    "kottara_first_buy_tokens": "воспроизведение первой покупки KOTS из формулы",
+    "kottara_curve_sold_tokens": "S × T / (Q0 + T) по фикстуре KOTS, сверка с 5/7"
+  },
+  "deployed": {
+    "token": "",
+    "curve": "",
+    "pool": "",
+    "hook": "",
+    "tx": ""
+  }
+}

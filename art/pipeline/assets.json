@@ -1,0 +1,3335 @@
+{
+  "tile_w": 64,
+  "note": "V2 painterly registry. file is assets/<cat>/<id>_v2.png; foot_anchor is derived at pack as [w//2, h].",
+  "src": "TZ_ART.md §2, TZ_RENDER.md §3, D-V-12",
+  "assets": [
+    {
+      "id": "agent_hub",
+      "file": "assets/buildings/agent_hub_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "blue",
+        "highlight"
+      ]
+    },
+    {
+      "id": "ai_research_center",
+      "file": "assets/buildings/ai_research_center_v2.png",
+      "raw": "raw_ai_research_center.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "green",
+        "highlight"
+      ],
+      "sign_box": [
+        247,
+        186,
+        247,
+        233
+      ]
+    },
+    {
+      "id": "badge_occupancy",
+      "file": "assets/fx/badge_occupancy_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 20,
+      "ramps": [
+        "concrete",
+        "steel",
+        "highlight"
+      ]
+    },
+    {
+      "id": "badge_shortage",
+      "file": "assets/fx/badge_shortage_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 20,
+      "ramps": [
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "badge_verified",
+      "file": "assets/fx/badge_verified_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 20,
+      "ramps": [
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "bank",
+      "file": "assets/buildings/bank_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "blue",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "banner",
+      "file": "assets/decor/banner_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "barrier",
+      "file": "assets/decor/barrier_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 16
+    },
+    {
+      "id": "beach",
+      "file": "assets/terrain/beach_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "bench",
+      "file": "assets/decor/bench_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 18
+    },
+    {
+      "id": "bench_02",
+      "file": "assets/decor/bench_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 18
+    },
+    {
+      "id": "billboard_0",
+      "file": "assets/decor/billboard_0_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "billboard_1",
+      "file": "assets/decor/billboard_1_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "billboard_2",
+      "file": "assets/decor/billboard_2_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "billboard_3",
+      "file": "assets/decor/billboard_3_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "steel",
+        "blue",
+        "highlight"
+      ]
+    },
+    {
+      "id": "bird",
+      "file": "assets/fx/bird_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 12
+    },
+    {
+      "id": "boat_cabin",
+      "file": "assets/port/boat_cabin_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "boat_small",
+      "file": "assets/port/boat_small_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "boat_tug",
+      "file": "assets/port/boat_tug_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "boat_tug_02",
+      "file": "assets/port/boat_tug_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "boat_work",
+      "file": "assets/port/boat_work_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "boat_yacht",
+      "file": "assets/port/boat_yacht_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "buoy",
+      "file": "assets/port/buoy_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 32
+    },
+    {
+      "id": "buoy_02",
+      "file": "assets/port/buoy_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 32
+    },
+    {
+      "id": "bus_stop",
+      "file": "assets/decor/bus_stop_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 60
+    },
+    {
+      "id": "bush",
+      "file": "assets/decor/bush_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "bush_02",
+      "file": "assets/decor/bush_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "cargo_container",
+      "file": "assets/decor/cargo_container_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 36
+    },
+    {
+      "id": "city_hall",
+      "file": "assets/buildings/city_hall_v2.png",
+      "footprint": [
+        3,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "blue",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "clearing_house",
+      "file": "assets/buildings/clearing_house_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "blue",
+        "highlight"
+      ]
+    },
+    {
+      "id": "cliff_rock",
+      "file": "assets/terrain/cliff_rock_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "cloud_campus",
+      "file": "assets/buildings/cloud_campus_v2.png",
+      "raw": "raw_cloud_campus.png",
+      "footprint": [
+        3,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "blue",
+        "highlight",
+        "crimson",
+        "green",
+        "amber"
+      ],
+      "sign_box": [
+        323,
+        148,
+        323,
+        186
+      ]
+    },
+    {
+      "id": "cloud_large",
+      "file": "assets/fx/cloud_large_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 72
+    },
+    {
+      "id": "cloud_small",
+      "file": "assets/fx/cloud_small_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "crane_build",
+      "file": "assets/decor/crane_build_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 168
+    },
+    {
+      "id": "crosswalk",
+      "file": "assets/terrain/crosswalk_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "data_center",
+      "file": "assets/buildings/data_center_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "green",
+        "blue",
+        "highlight"
+      ]
+    },
+    {
+      "id": "district_billboard",
+      "file": "assets/decor/district_billboard_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 40,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "dock",
+      "file": "assets/port/dock_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "dock_02",
+      "file": "assets/port/dock_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "drone",
+      "file": "assets/vehicles/drone_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48,
+      "ramps": [
+        "navy",
+        "steel",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "drone_02",
+      "file": "assets/vehicles/drone_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48
+    },
+    {
+      "id": "drone_bob_0",
+      "file": "assets/vehicles/drone_bob_0_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48,
+      "ramps": [
+        "navy",
+        "steel",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "drone_bob_1",
+      "file": "assets/vehicles/drone_bob_1_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48,
+      "ramps": [
+        "navy",
+        "steel",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "drone_bob_2",
+      "file": "assets/vehicles/drone_bob_2_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48,
+      "ramps": [
+        "navy",
+        "steel",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "drone_bob_3",
+      "file": "assets/vehicles/drone_bob_3_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48,
+      "ramps": [
+        "navy",
+        "steel",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "drone_cargo",
+      "file": "assets/vehicles/drone_cargo_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48
+    },
+    {
+      "id": "drone_cargo_02",
+      "file": "assets/vehicles/drone_cargo_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48
+    },
+    {
+      "id": "drone_depot",
+      "file": "assets/buildings/drone_depot_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "amber",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "drone_white",
+      "file": "assets/vehicles/drone_white_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48
+    },
+    {
+      "id": "drone_yellow",
+      "file": "assets/vehicles/drone_yellow_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 48
+    },
+    {
+      "id": "energy_plant",
+      "file": "assets/buildings/energy_plant_v2.png",
+      "raw": "raw_energy_plant.png",
+      "footprint": [
+        3,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "amber",
+        "highlight"
+      ],
+      "sign_box": [
+        294,
+        195,
+        294,
+        243
+      ]
+    },
+    {
+      "id": "exchange",
+      "file": "assets/buildings/exchange_v2.png",
+      "footprint": [
+        3,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "finance_tower",
+      "file": "assets/buildings/finance_tower_v2.png",
+      "raw": "raw_finance_tower.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "blue",
+        "highlight"
+      ],
+      "sign_box": [
+        178,
+        191,
+        178,
+        239
+      ]
+    },
+    {
+      "id": "flag_0",
+      "file": "assets/decor/flag_0_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "crimson",
+        "navy",
+        "steel"
+      ]
+    },
+    {
+      "id": "flag_1",
+      "file": "assets/decor/flag_1_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "crimson",
+        "navy",
+        "steel"
+      ]
+    },
+    {
+      "id": "flag_2",
+      "file": "assets/decor/flag_2_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "crimson",
+        "navy",
+        "steel"
+      ]
+    },
+    {
+      "id": "flag_3",
+      "file": "assets/decor/flag_3_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "crimson",
+        "navy",
+        "steel"
+      ]
+    },
+    {
+      "id": "flagship_store",
+      "file": "assets/buildings/flagship_store_v2.png",
+      "raw": "raw_flagship_store.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "highlight",
+        "amber"
+      ],
+      "sign_box": [
+        338,
+        133,
+        338,
+        167
+      ]
+    },
+    {
+      "id": "fleet_yard",
+      "file": "assets/buildings/fleet_yard_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "amber",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "flower",
+      "file": "assets/decor/flower_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 16
+    },
+    {
+      "id": "flower_02",
+      "file": "assets/decor/flower_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 16
+    },
+    {
+      "id": "fountain",
+      "file": "assets/decor/fountain_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 72
+    },
+    {
+      "id": "glow_basin",
+      "file": "assets/fx/glow_basin_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_beam",
+      "file": "assets/fx/glow_beam_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_crystal",
+      "file": "assets/fx/glow_crystal_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_crystal_02",
+      "file": "assets/fx/glow_crystal_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_flame",
+      "file": "assets/fx/glow_flame_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_flare",
+      "file": "assets/fx/glow_flare_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_orb",
+      "file": "assets/fx/glow_orb_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_pad",
+      "file": "assets/fx/glow_pad_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_spark",
+      "file": "assets/fx/glow_spark_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "glow_tile",
+      "file": "assets/fx/glow_tile_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "hedge",
+      "file": "assets/foliage/hedge_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 22
+    },
+    {
+      "id": "island_block",
+      "file": "assets/terrain/island_block_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "island_block_03",
+      "file": "assets/terrain/island_block_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "island_block_04",
+      "file": "assets/terrain/island_block_04_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "island_block_earth",
+      "file": "assets/terrain/island_block_earth_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "island_cliff",
+      "file": "assets/terrain/island_cliff_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "island_cliff_earth",
+      "file": "assets/terrain/island_cliff_earth_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "island_dirt",
+      "file": "assets/terrain/island_dirt_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "island_dirt_earth",
+      "file": "assets/terrain/island_dirt_earth_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "kiosk",
+      "file": "assets/decor/kiosk_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "kiosk_ad",
+      "file": "assets/decor/kiosk_ad_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "kiosk_tall",
+      "file": "assets/decor/kiosk_tall_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "lantern",
+      "file": "assets/decor/lantern_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 1,
+      "sprite_h": 32,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "lantern_02",
+      "file": "assets/decor/lantern_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "lantern_03",
+      "file": "assets/decor/lantern_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "lantern_brass",
+      "file": "assets/decor/lantern_brass_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "lantern_ornate",
+      "file": "assets/decor/lantern_ornate_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "lantern_victorian",
+      "file": "assets/decor/lantern_victorian_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "lantern_victorian_02",
+      "file": "assets/decor/lantern_victorian_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 1,
+      "sprite_h": 32
+    },
+    {
+      "id": "lighthouse",
+      "file": "assets/port/lighthouse_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 120
+    },
+    {
+      "id": "logistics_hub",
+      "file": "assets/buildings/logistics_hub_v2.png",
+      "raw": "raw_logistics_hub.png",
+      "footprint": [
+        4,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "amber",
+        "brown",
+        "highlight"
+      ],
+      "sign_box": [
+        338,
+        174,
+        338,
+        218
+      ]
+    },
+    {
+      "id": "mini_island",
+      "file": "assets/terrain/island_block_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0,
+      "sprite_h": 40,
+      "ramps": [
+        "navy",
+        "green",
+        "brown",
+        "concrete"
+      ]
+    },
+    {
+      "id": "office_block",
+      "file": "assets/buildings/office_block_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "blue",
+        "highlight"
+      ]
+    },
+    {
+      "id": "overlay_antenna",
+      "file": "assets/fx/overlay_antenna_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 20,
+      "ramps": [
+        "steel",
+        "concrete",
+        "highlight"
+      ]
+    },
+    {
+      "id": "overlay_pip",
+      "file": "assets/fx/overlay_pip_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 20,
+      "ramps": [
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "park",
+      "file": "assets/buildings/park_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "green",
+        "brown",
+        "highlight"
+      ]
+    },
+    {
+      "id": "parking",
+      "file": "assets/terrain/parking_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "parking_sign",
+      "file": "assets/decor/parking_sign_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 52
+    },
+    {
+      "id": "phone_booth",
+      "file": "assets/decor/phone_booth_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 28
+    },
+    {
+      "id": "phone_booth_02",
+      "file": "assets/decor/phone_booth_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 28
+    },
+    {
+      "id": "phone_booth_red",
+      "file": "assets/decor/phone_booth_red_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 28
+    },
+    {
+      "id": "pier",
+      "file": "assets/port/pier_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "planter",
+      "file": "assets/decor/planter_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 16
+    },
+    {
+      "id": "plaza",
+      "file": "assets/buildings/plaza_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "highlight"
+      ]
+    },
+    {
+      "id": "plaza_tile",
+      "file": "assets/terrain/plaza_tile_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "masonry",
+      "file": "assets/terrain/plaza_tile_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "power_node",
+      "file": "assets/buildings/power_node_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "residential_block",
+      "file": "assets/buildings/residential_block_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "highlight",
+        "amber",
+        "brown"
+      ]
+    },
+    {
+      "id": "residential_block_02",
+      "file": "assets/buildings/residential_block_02_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0
+    },
+    {
+      "id": "residential_block_03",
+      "file": "assets/buildings/residential_block_03_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0
+    },
+    {
+      "id": "retail_complex",
+      "file": "assets/buildings/retail_complex_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "highlight",
+        "amber"
+      ]
+    },
+    {
+      "id": "road_cross",
+      "file": "assets/terrain/road_cross_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_e",
+      "file": "assets/terrain/road_e_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_end",
+      "file": "assets/terrain/road_end_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_esw",
+      "file": "assets/terrain/road_esw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_ew",
+      "file": "assets/terrain/road_ew_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_n",
+      "file": "assets/terrain/road_n_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_ne",
+      "file": "assets/terrain/road_ne_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_nes",
+      "file": "assets/terrain/road_nes_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_ns",
+      "file": "assets/terrain/road_ns_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_nsw",
+      "file": "assets/terrain/road_nsw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_nw",
+      "file": "assets/terrain/road_nw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_nwe",
+      "file": "assets/terrain/road_nwe_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_plaza",
+      "file": "assets/terrain/road_plaza_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_s",
+      "file": "assets/terrain/road_s_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_se",
+      "file": "assets/terrain/road_se_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_straight",
+      "file": "assets/terrain/road_straight_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_sw",
+      "file": "assets/terrain/road_sw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_turn",
+      "file": "assets/terrain/road_turn_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "road_w",
+      "file": "assets/terrain/road_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "road",
+      "emissive": 0
+    },
+    {
+      "id": "robot_gold",
+      "file": "assets/agents/robot_gold_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "robot_industrial",
+      "file": "assets/agents/robot_industrial_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "robot_industrial_02",
+      "file": "assets/agents/robot_industrial_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "robot_mecha",
+      "file": "assets/agents/robot_mecha_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "robot_quad",
+      "file": "assets/agents/robot_quad_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "robot_small",
+      "file": "assets/agents/robot_small_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "robot_tracked",
+      "file": "assets/agents/robot_tracked_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "robotics_lab",
+      "file": "assets/buildings/robotics_lab_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "satellite_dish",
+      "file": "assets/decor/satellite_dish_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 48
+    },
+    {
+      "id": "scaffold",
+      "file": "assets/decor/scaffold_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0
+    },
+    {
+      "id": "select_ring",
+      "file": "assets/fx/select_ring_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "sprite_h": 20,
+      "ramps": [
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "server_annex",
+      "file": "assets/buildings/server_annex_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "green",
+        "highlight"
+      ]
+    },
+    {
+      "id": "ship_cargo",
+      "file": "assets/port/ship_cargo_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "shore_wave_0",
+      "file": "assets/fx/shore_wave_0_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "highlight"
+      ]
+    },
+    {
+      "id": "shore_wave_1",
+      "file": "assets/fx/shore_wave_1_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "highlight"
+      ]
+    },
+    {
+      "id": "shore_wave_2",
+      "file": "assets/fx/shore_wave_2_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "highlight"
+      ]
+    },
+    {
+      "id": "shore_wave_3",
+      "file": "assets/fx/shore_wave_3_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "highlight"
+      ]
+    },
+    {
+      "id": "sidewalk",
+      "file": "assets/terrain/sidewalk_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_e",
+      "file": "assets/terrain/sidewalk_e_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_esw",
+      "file": "assets/terrain/sidewalk_esw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_ew",
+      "file": "assets/terrain/sidewalk_ew_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_n",
+      "file": "assets/terrain/sidewalk_n_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_ne",
+      "file": "assets/terrain/sidewalk_ne_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_nes",
+      "file": "assets/terrain/sidewalk_nes_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_nesw",
+      "file": "assets/terrain/sidewalk_nesw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_ns",
+      "file": "assets/terrain/sidewalk_ns_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_nsw",
+      "file": "assets/terrain/sidewalk_nsw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_nw",
+      "file": "assets/terrain/sidewalk_nw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_nwe",
+      "file": "assets/terrain/sidewalk_nwe_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_s",
+      "file": "assets/terrain/sidewalk_s_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_se",
+      "file": "assets/terrain/sidewalk_se_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_sw",
+      "file": "assets/terrain/sidewalk_sw_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sidewalk_w",
+      "file": "assets/terrain/sidewalk_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "sign_caution",
+      "file": "assets/decor/sign_caution_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 52
+    },
+    {
+      "id": "sign_post",
+      "file": "assets/decor/sign_post_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 52
+    },
+    {
+      "id": "silo_warehouse",
+      "file": "assets/buildings/silo_warehouse_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "amber",
+        "brown",
+        "highlight"
+      ]
+    },
+    {
+      "id": "smoke",
+      "file": "assets/fx/smoke_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0
+    },
+    {
+      "id": "smoke_02",
+      "file": "assets/fx/smoke_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0
+    },
+    {
+      "id": "smoke_03",
+      "file": "assets/fx/smoke_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0
+    },
+    {
+      "id": "smoke_04",
+      "file": "assets/fx/smoke_04_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0
+    },
+    {
+      "id": "smoke_05",
+      "file": "assets/fx/smoke_05_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0
+    },
+    {
+      "id": "smoke_06",
+      "file": "assets/fx/smoke_06_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "glyph",
+      "emissive": 0
+    },
+    {
+      "id": "solar_array",
+      "file": "assets/decor/solar_array_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 40
+    },
+    {
+      "id": "solar_panel",
+      "file": "assets/decor/solar_panel_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 28
+    },
+    {
+      "id": "solar_panel_02",
+      "file": "assets/decor/solar_panel_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 28
+    },
+    {
+      "id": "substation",
+      "file": "assets/buildings/substation_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "tesla_mark",
+      "file": "assets/decor/tesla_mark_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 36
+    },
+    {
+      "id": "traffic_cone",
+      "file": "assets/decor/traffic_cone_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 16
+    },
+    {
+      "id": "traffic_light",
+      "file": "assets/decor/traffic_light_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "trash_can",
+      "file": "assets/decor/trash_can_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 16
+    },
+    {
+      "id": "tree_autumn",
+      "file": "assets/foliage/tree_autumn_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "tree_bare",
+      "file": "assets/foliage/tree_bare_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "tree_dark",
+      "file": "assets/foliage/tree_dark_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "tree_green",
+      "file": "assets/foliage/tree_green_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56,
+      "ramps": [
+        "navy",
+        "green",
+        "brown",
+        "highlight"
+      ]
+    },
+    {
+      "id": "tree_green_02",
+      "file": "assets/foliage/tree_green_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "tree_green_03",
+      "file": "assets/foliage/tree_green_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "tree_green_04",
+      "file": "assets/foliage/tree_green_04_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "tree_pine",
+      "file": "assets/foliage/tree_pine_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "tree_pink",
+      "file": "assets/foliage/tree_pink_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56,
+      "ramps": [
+        "navy",
+        "green",
+        "brown",
+        "crimson",
+        "amber",
+        "highlight"
+      ]
+    },
+    {
+      "id": "tree_pink_02",
+      "file": "assets/foliage/tree_pink_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 56
+    },
+    {
+      "id": "turbine_blade_0",
+      "file": "assets/decor/turbine_blade_0_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "turbine_blade_1",
+      "file": "assets/decor/turbine_blade_1_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "turbine_blade_2",
+      "file": "assets/decor/turbine_blade_2_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "turbine_blade_3",
+      "file": "assets/decor/turbine_blade_3_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "turbine_blade_4",
+      "file": "assets/decor/turbine_blade_4_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "turbine_blade_5",
+      "file": "assets/decor/turbine_blade_5_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "turbine_blade_6",
+      "file": "assets/decor/turbine_blade_6_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "turbine_blade_7",
+      "file": "assets/decor/turbine_blade_7_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "utility_box",
+      "file": "assets/decor/utility_box_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 16
+    },
+    {
+      "id": "vehicle",
+      "file": "assets/vehicles/vehicle_car_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "vehicle_ambulance",
+      "file": "assets/vehicles/vehicle_ambulance_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_bus",
+      "file": "assets/vehicles/vehicle_bus_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_car",
+      "file": "assets/vehicles/vehicle_car_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_car_02",
+      "file": "assets/vehicles/vehicle_car_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_car_blue",
+      "file": "assets/vehicles/vehicle_car_blue_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_car_red",
+      "file": "assets/vehicles/vehicle_car_red_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_dir_e",
+      "file": "assets/vehicles/vehicle_dir_e_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "vehicle_dir_n",
+      "file": "assets/vehicles/vehicle_dir_n_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "vehicle_dir_s",
+      "file": "assets/vehicles/vehicle_dir_s_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "vehicle_dir_w",
+      "file": "assets/vehicles/vehicle_dir_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24,
+      "ramps": [
+        "navy",
+        "steel",
+        "amber",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "vehicle_forklift",
+      "file": "assets/vehicles/vehicle_forklift_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_pickup",
+      "file": "assets/vehicles/vehicle_pickup_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_pickup_02",
+      "file": "assets/vehicles/vehicle_pickup_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_police",
+      "file": "assets/vehicles/vehicle_police_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_rover",
+      "file": "assets/vehicles/vehicle_rover_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_school_bus",
+      "file": "assets/vehicles/vehicle_school_bus_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_shuttle",
+      "file": "assets/vehicles/vehicle_shuttle_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_suv",
+      "file": "assets/vehicles/vehicle_suv_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_truck",
+      "file": "assets/vehicles/vehicle_truck_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_van",
+      "file": "assets/vehicles/vehicle_van_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_van_02",
+      "file": "assets/vehicles/vehicle_van_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "vehicle_van_03",
+      "file": "assets/vehicles/vehicle_van_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 24
+    },
+    {
+      "id": "walker_cap",
+      "file": "assets/agents/walker_cap_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_cap_w",
+      "file": "assets/agents/walker_cap_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_civilian",
+      "file": "assets/agents/walker_civilian_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_civilian_02",
+      "file": "assets/agents/walker_civilian_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_civilian_02_w",
+      "file": "assets/agents/walker_civilian_02_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_civilian_03",
+      "file": "assets/agents/walker_civilian_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_civilian_03_w",
+      "file": "assets/agents/walker_civilian_03_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_civilian_w",
+      "file": "assets/agents/walker_civilian_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_exosuit",
+      "file": "assets/agents/walker_exosuit_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_exosuit_w",
+      "file": "assets/agents/walker_exosuit_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_guard",
+      "file": "assets/agents/walker_guard_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_guard_w",
+      "file": "assets/agents/walker_guard_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_hardhat",
+      "file": "assets/agents/walker_hardhat_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_hardhat_w",
+      "file": "assets/agents/walker_hardhat_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_hazmat",
+      "file": "assets/agents/walker_hazmat_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_hazmat_w",
+      "file": "assets/agents/walker_hazmat_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_human",
+      "file": "assets/agents/walker_human_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_human_w",
+      "file": "assets/agents/walker_human_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_jumpsuit",
+      "file": "assets/agents/walker_jumpsuit_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_jumpsuit_w",
+      "file": "assets/agents/walker_jumpsuit_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_office",
+      "file": "assets/agents/walker_office_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_office_w",
+      "file": "assets/agents/walker_office_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_robot",
+      "file": "assets/agents/walker_robot_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_robot_02",
+      "file": "assets/agents/walker_robot_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_robot_02_w",
+      "file": "assets/agents/walker_robot_02_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_robot_03",
+      "file": "assets/agents/walker_robot_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_robot_03_w",
+      "file": "assets/agents/walker_robot_03_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_robot_w",
+      "file": "assets/agents/walker_robot_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_suit",
+      "file": "assets/agents/walker_suit_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_suit_w",
+      "file": "assets/agents/walker_suit_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_worker",
+      "file": "assets/agents/walker_worker_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "walker_worker_w",
+      "file": "assets/agents/walker_worker_w_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "unit",
+      "emissive": 0,
+      "sprite_h": 20
+    },
+    {
+      "id": "water_tile",
+      "file": "assets/terrain/water_tile_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "water",
+      "emissive": 0
+    },
+    {
+      "id": "water_tile_02",
+      "file": "assets/terrain/water_tile_02_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "water",
+      "emissive": 0
+    },
+    {
+      "id": "water_tile_03",
+      "file": "assets/terrain/water_tile_03_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "water",
+      "emissive": 0
+    },
+    {
+      "id": "water_tile_04",
+      "file": "assets/terrain/water_tile_04_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "water",
+      "emissive": 0
+    },
+    {
+      "id": "water_tile_05",
+      "file": "assets/terrain/water_tile_05_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "water",
+      "emissive": 0
+    },
+    {
+      "id": "water_tower",
+      "file": "assets/decor/water_tower_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 128
+    },
+    {
+      "id": "waterfall",
+      "file": "assets/terrain/waterfall_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "waterfall_0",
+      "file": "assets/terrain/waterfall_0_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "waterfall_1",
+      "file": "assets/terrain/waterfall_1_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "waterfall_2",
+      "file": "assets/terrain/waterfall_2_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "waterfall_3",
+      "file": "assets/terrain/waterfall_3_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "tile",
+      "emissive": 0
+    },
+    {
+      "id": "wind_turbine",
+      "file": "assets/decor/wind_turbine_v2.png",
+      "footprint": [
+        1,
+        1
+      ],
+      "kind": "decor",
+      "emissive": 0,
+      "sprite_h": 140,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "crimson",
+        "highlight"
+      ]
+    },
+    {
+      "id": "workshop",
+      "file": "assets/buildings/workshop_v2.png",
+      "footprint": [
+        2,
+        2
+      ],
+      "kind": "building",
+      "emissive": 0,
+      "ramps": [
+        "navy",
+        "concrete",
+        "steel",
+        "amber",
+        "highlight"
+      ]
+    }
+  ]
+}

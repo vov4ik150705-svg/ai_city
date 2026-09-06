@@ -1,0 +1,32 @@
+LINE 1132
+OLD LEN 3094
+NEW LEN 118
+OLD HEAD
+    log(f"plaza tiles {n_tiles} holes {n_holes} faces {sum(1 for f in bm.faces if f.is_valid)}")
+        raw = [vert(p, 0) for p in _ensure_ccw(_dedupe_poly(poly))]
+        out: list[bmesh.types.BMVert] = []
+        for v in raw:
+            if not out or out[-1] is not v:
+                out.append(v)
+        if len(out) >= 2 and out[0] is out[-1]:
+            out.pop()
+        return out
+
+    n_tiles = 0
+    for poly in usable:
+        vs = poly_verts(poly)
+        if len(vs) < 3:
+            continue
+        stone = _cell_bin(poly)
+        try:
+            top = bm.faces.new(vs)
+            _mark_face(top, stone)
+            n_tiles += 1
+        except ValueError:
+            hx = sum(v.co.x for v in vs) / float(len(vs))
+            hy = sum(v.co.y for v in vs) / float(len(vs))
+        
+---NEW HEAD---
+    log(f"plaza tiles {n_tiles} holes {n_holes} faces {sum(1 for f in bm.faces if f.is_valid)}")
+
+    n_rim = len(rim)

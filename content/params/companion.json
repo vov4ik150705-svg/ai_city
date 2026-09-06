@@ -1,0 +1,345 @@
+{
+  "section": "companion",
+    "note": "T8 NFT companion. Product is attention: three non-spending commands, an advisor outside the tick, a journal, a personality. The only economic magnitude is idle_reduction_bps. Autopilot is a table of policy rows, not new code.",
+  "params": {
+    "companion_rows_live": {
+      "v": 1,
+      "u": "flag",
+      "src": "docs/BRIEF.md §2 T8 D1, PLAN_V11 G5, D-G-8",
+      "why": "Lifted at G5 with a window-A recount. L143 now allows 1 only while T2 returns sit in the envelope; a flag without that witness is still a silent T2 shift"
+    },
+    "companion_revenue_live": {
+      "v": 0,
+      "u": "flag",
+      "src": "docs/BRIEF.md §6 T8 D10, PLAN_V11 G6, D-G-9",
+      "why": "G6 closed the crane at zero. Lifting this flag would silence L128 on a pool tap; a share is a yield promise the protocol cannot hold"
+    },
+    "companion_carry_over": {
+      "v": 0,
+      "u": "flag",
+      "src": "DESIGN.md §5.3 T8 D11",
+      "why": "When the offline window ends the queue freezes. Carry would be a silent MSFT window extension"
+    },
+    "companion_calls_carry_over": {
+      "v": 0,
+      "u": "flag",
+      "src": "DESIGN.md §5.4 T8 D8",
+      "why": "Unused advisor calls do not stack. A burst on login would hide a rate-limit bypass"
+    },
+    "companion_replan_on_login": {
+      "v": 0,
+      "u": "flag",
+      "src": "DESIGN.md §6.3 T8 D11",
+      "why": "Catch-up applies recorded commands as recorded. Replanning backwards makes replay diverge"
+    },
+    "companion_commands_per_agent_per_tick": {
+      "v": 1,
+      "u": "count",
+      "src": "DESIGN.md §5.3 T8 D7",
+      "why": "The tick reads one (seat, objective) pair per agent. A second command in the same tick is a no-op by construction"
+    },
+    "companion_advisor_queue_depth": {
+      "v": 1,
+      "u": "count",
+      "src": "DESIGN.md §5.4 T8 D8",
+      "why": "One in-flight advisor request per holder. A second request while the first is live is COMPANION_QUEUE_FULL"
+    },
+    "demo_companion": {
+      "v": 0,
+      "u": "flag",
+      "src": "docs/BRIEF.md §2 demo T8 D12",
+      "why": "Demo city has no wallet and no NFT, so no autopilot. Same isolation as DEMO_NO_CLAIM and DEMO_NO_PRIZE"
+    },
+    "companion_idle_relief_bps": {
+      "v": 1000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §2 T8 D3, PLAN_V11 G5, D-G-8",
+      "why": "Two idle quanta, same skeleton as Route. Cap is 10000 minus residual_idle so mul_remainder cannot zero the floor; not a new key and not a new code path"
+    }
+  },
+  "policy_kind": {
+    "v": "deterministic",
+    "src": "DESIGN.md §5.1 T8 D5",
+    "why": "Autopilot is a pure function of recorded inputs. An LLM policy would put inference inside the tick"
+  },
+  "tie_break": {
+    "v": "lexicographic",
+    "src": "docs/PRIZES.md §6.4 T8 D5",
+    "why": "Ties break on (priority_index, building_id, agent_id). Random would make equal inputs hash differently"
+  },
+  "hold_stale_action": {
+    "v": "off",
+    "src": "DESIGN.md §2.3 T8 D13",
+    "why": "Stale NFT hold turns the autopilot off. Fail-open would give the player more when the chain read dies"
+  },
+  "nft_proceeds_sink": {
+    "v": "inference_bill",
+    "src": "COMPANION.md §10, PLAN_V11 G6, D-G-9",
+    "why": "NFT proceeds close the advisor inference bill first. The bill grows with holders; a pool share would promise yield"
+  },
+  "commands": {
+    "allowed": {
+      "seat_agent": {
+        "live": 1,
+        "effect": "reseat an already hired agent into an already built free slot",
+        "reads": "seat",
+        "journal_code": "COMPANION_ACTED",
+        "src": "DESIGN.md §5.6 T8 D6",
+        "why": "Reseat is instant and free. Not a build and not a hire, so it does not spend Capital"
+      },
+      "set_objective": {
+        "live": 1,
+        "effect": "change the agent objective, effective next tick",
+        "reads": "objective",
+        "journal_code": "COMPANION_ACTED",
+        "src": "DESIGN.md §5.9 T8 D6",
+        "why": "Objective swap costs only the row it selects. The companion does not pay Capital to flip a task"
+      },
+      "set_manager_focus": {
+        "live": 1,
+        "effect": "set the manager contour focus, effective next tick",
+        "reads": "objective",
+        "journal_code": "COMPANION_ACTED",
+        "src": "DESIGN.md §5.7 T8 D6, PLAN_V11 G5",
+        "why": "Manager focus picks a contour. No Capital and not a modifier row; live because Manager is live since G2"
+      }
+    },
+    "forbidden": {
+      "build": {
+        "reason_kind": "spend",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §5.6 T8 D6",
+        "why": "Building spends Capital. Autopilot must not grow the city while the holder is away"
+      },
+      "upgrade": {
+        "reason_kind": "spend",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §5.6 T8 D6",
+        "why": "Upgrade spends Capital and moves T2 payback. Companion does not buy growth"
+      },
+      "hire": {
+        "reason_kind": "spend",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §5.6 T8 D6",
+        "why": "Hire spends Capital and consumes a slot. Companion reseats, it does not recruit"
+      },
+      "fire": {
+        "reason_kind": "irreversible",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §5.6 T8 D6",
+        "why": "Fire has no refund. An away-from-keyboard fire is an irreversible loss of a paid slot"
+      },
+      "stake": {
+        "reason_kind": "stake",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §4.5 T8 D6",
+        "why": "Stake is a wallet act on a real stock token. Companion never touches the wallet"
+      },
+      "unstake": {
+        "reason_kind": "stake",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §4.5 T8 D6",
+        "why": "Unstake can freeze a district. Companion must not drop a holder's paper"
+      },
+      "deposit": {
+        "reason_kind": "wallet",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §2.2 T8 D6",
+        "why": "Deposit mints Capital through the vault. Companion does not mint and does not touch the vault"
+      },
+      "withdraw": {
+        "reason_kind": "wallet",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §2.6 T8 D6",
+        "why": "Withdraw is the bank exit. Companion must not move $CORP while the holder is away"
+      },
+      "buy_stock": {
+        "reason_kind": "wallet",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §4 T8 D6",
+        "why": "Buying a stock token is a wallet swap. Companion has no DEX rights"
+      },
+      "sell_stock": {
+        "reason_kind": "wallet",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §4 T8 D6",
+        "why": "Selling a stock token is a wallet swap. Companion has no DEX rights"
+      },
+      "claim_fragment": {
+        "reason_kind": "irreversible",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §2.9 T8 D6",
+        "why": "Claim spends a fragment requirement. An auto-claim would hide DEMO_NO_CLAIM and city-cap policy"
+      },
+      "claim_prize": {
+        "reason_kind": "irreversible",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "docs/PRIZES.md T7 T8 D6",
+        "why": "Prize claim is a $CORP payout. Companion must not collect a seasonal prize unattended"
+      },
+      "research_start": {
+        "reason_kind": "spend",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §5.11 T8 D6",
+        "why": "Research spends Compute and Capital-priced nodes. Companion does not start a tree walk"
+      },
+      "open_district": {
+        "reason_kind": "stake",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §4.5 T8 D6",
+        "why": "Opening a district requires a live stake. Companion does not stake"
+      },
+      "respec_node": {
+        "reason_kind": "irreversible",
+        "refusal_code": "COMPANION_REFUSED",
+        "src": "DESIGN.md §4.8 T8 D6",
+        "why": "Respec is forbidden in v1 even for the player. Companion must not bypass exclusive pairs"
+      }
+    }
+  },
+  "keys": {
+    "allowed": ["idle_reduction_bps"],
+    "forbidden": {
+      "output_bps": {
+        "owner": "building_level_trait",
+        "why": "Direct output multiplier is paid fund dilution under section 2.5, forbidden by BRIEF section 2"
+      },
+      "offline_cap_hours": {
+        "owner": "msft_automation",
+        "why": "The only branch that sells time. Companion fills the window and must not lengthen it, even at zero"
+      },
+      "agent_slots": {
+        "owner": "msft_automation",
+        "why": "Slots are the same Automation branch. Companion reseats existing agents, it does not buy seats"
+      },
+      "fund_share_bps": {
+        "owner": "coin_finance",
+        "why": "Weight in proportional payroll: a companion share literally takes payout from everyone else"
+      },
+      "fragment_rate_bps": {
+        "owner": "t6_district_stake",
+        "why": "Selling real-paper fragment tempo for cash is pay-to-earn on the stock token"
+      },
+      "energy_cost_bps": {
+        "owner": "tsla_frugal_overclock",
+        "why": "Cheaper energy is the same as more output. a_l77_energy_relief already dragged net payback under 240"
+      },
+      "compute_cost_bps": {
+        "owner": "nvda_frugal",
+        "why": "Cheaper compute is the energy relief vector with a different name"
+      },
+      "build_cost_bps": {
+        "owner": "research_nodes",
+        "why": "Buying city growth speed with cash moves the T2 return bands"
+      },
+      "upgrade_speed_bps": {
+        "owner": "research_nodes",
+        "why": "Faster upgrades are the same growth purchase as a build-cost discount"
+      },
+      "xp_rate_bps": {
+        "owner": "handbook",
+        "why": "Buying progression speed is Handbook territory, not an NFT perk"
+      },
+      "population_conversion_bps": {
+        "owner": "aapl_consumer",
+        "why": "Retail conversion is the Consumer axis. Companion has no right to another district's key"
+      },
+      "jitter_bps": {
+        "owner": "trait_steady",
+        "why": "Narrower jitter is a real edge and belongs to the Steady trait"
+      }
+    }
+  },
+  "rows": {
+    "companion_idle": {
+      "source_kind": "companion",
+      "source": "companion",
+      "key": "idle_reduction_bps",
+      "magnitude_from": "companion_idle_relief_bps",
+      "paid": 0,
+      "applies_when": "always",
+      "src": "docs/BRIEF.md §2 T8 D3",
+      "why": "Only allowed companion key. Magnitude is companion_idle_relief_bps, not a second authored rate"
+    }
+  },
+  "policy": {
+    "closed_schedule": {
+      "priority": 1,
+      "condition": "schedule_closed",
+      "command": "seat_agent",
+      "target_selector": "open_built_slot",
+      "journal_code": "COMPANION_ACTED",
+      "src": "DESIGN.md §5.8 T8 policy",
+      "why": "An agent on a closed schedule is idle by hours. Reseat into a built slot whose schedule is open"
+    },
+    "wrong_role": {
+      "priority": 2,
+      "condition": "idle_wrong_role",
+      "command": "seat_agent",
+      "target_selector": "home_contour_slot",
+      "journal_code": "COMPANION_ACTED",
+      "src": "DESIGN.md §5.8 T8 policy",
+      "why": "IDLE_WRONG_ROLE is a seating bug, not a resource shortage. Move the agent to a home-contour slot"
+    },
+    "drop_overclock": {
+      "priority": 3,
+      "condition": "energy_deficit_overclock",
+      "command": "set_objective",
+      "target_selector": "drop_overclock",
+      "journal_code": "COMPANION_ACTED",
+      "src": "DESIGN.md §5.9 T8 policy",
+      "why": "Projected energy deficit plus Overclock is idle-by-input. Drop Overclock so the tick can fire"
+    },
+    "restore_overclock": {
+      "priority": 4,
+      "condition": "energy_surplus_reserve",
+      "command": "set_objective",
+      "target_selector": "restore_overclock",
+      "journal_code": "COMPANION_ACTED",
+      "src": "DESIGN.md §5.9 T8 policy",
+      "why": "Energy surplus with reserve: restore Overclock. Companion does not invent a new energy number"
+    },
+    "logistics_idle": {
+      "priority": 5,
+      "condition": "logistics_input_idle",
+      "command": "set_objective",
+      "target_selector": "route_or_stockpile",
+      "journal_code": "COMPANION_ACTED",
+      "src": "DESIGN.md §5.9 T8 policy",
+      "why": "A logistician facing input idle flips Route or Stockpile. Magnitudes stay in modifiers.json"
+    }
+  },
+  "llm": {
+    "advisor_calls_source": "union of time.schedules open_hour and close_hour with efficiency_recalc_hour, hours taken modulo ticks_per_city_day",
+    "cost_unit": "call",
+    "cost_usd_per_call_lo_8dec": {
+      "v": 100000,
+      "u": "usd_8dec",
+      "src": "DESIGN.md §5.2 T8 D9",
+      "why": "Lower bound of the canon claim tens of dollars per ten thousand calls. Bounds of an assertion, not a measured provider price"
+    },
+    "cost_usd_per_call_hi_8dec": {
+      "v": 1000000,
+      "u": "usd_8dec",
+      "src": "DESIGN.md §5.2 T8 D9",
+      "why": "Exclusive upper bound of the same assertion. A point price waits on companion_llm_price_snapshot owned by T12"
+    },
+    "on_provider_fail": {
+      "v": "template",
+      "src": "DESIGN.md §5.4 T8 D9",
+      "why": "Provider failure substitutes a template. The economy does not notice. Code COMPANION_LLM_TEMPLATE"
+    }
+  },
+  "derived": {
+    "advisor_calls_per_city_day": "unique city hours among schedule open/close bounds union efficiency_recalc_hour",
+    "advisor_cooldown_city_hours": "ticks_per_city_day floor-div advisor_calls_per_city_day, at least 1",
+    "commands_per_city_day_bound": "ticks_per_city_day times slots_cap, an upper bound not a knob",
+    "llm_calls_per_holder_city_day": "equals advisor_calls_per_city_day; daily summary is city-wide not a holder cost",
+    "llm_cost_holder_city_day_range_8dec": "calls times per-call lo/hi interval",
+    "llm_cost_holder_season_range_8dec": "city-day range times season_city_days",
+    "llm_calls_at_10k_holders": "advisor calls times BPS as the ten-thousand holder probe, not a stored 10000",
+    "uptime_witness": "minimalist, companion, optimizer; companion equals minimalist at zero magnitude",
+    "command_counts": "live allowed count and forbidden count",
+    "forbidden_key_count": "modifier keys minus allowed, must cover the rest with owner and why"
+  }
+}

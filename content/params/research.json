@@ -1,0 +1,45 @@
+{
+  "section": "research",
+  "note": "Axes, not a node list. Effect is sign × key_unit(key) × tier; cost is fused_effect_cost at steps=0 so Grid Tools Handbook keep v1 prices. Time is payback × |effect| / 10000.",
+  "axes": {
+    "grid": {
+      "key": "energy_cost_bps",
+      "sign": -1,
+      "tier": 3,
+      "src": "DESIGN.md §5.11",
+      "why": "Power Node spends 15% less energy. Three quanta, minus, same key as the energy thrift family"
+    },
+    "tools": {
+      "key": "output_bps",
+      "sign": 1,
+      "tier": 2,
+      "src": "DESIGN.md §5.11",
+      "why": "Workshop +10% Capital per tick. Two quanta so the node costs 0.30 Workshop, matching its contribution"
+    },
+    "handbook": {
+      "key": "xp_rate_bps",
+      "sign": 1,
+      "tier": 2,
+      "src": "DESIGN.md §5.11, docs/BRIEF.md §6 T2",
+      "why": "XP on a valid tick +10%. Without this axis agent L5 is unreachable in a 90-day season"
+    },
+    "circuits": {
+      "key": "compute_cost_bps",
+      "sign": -1,
+      "tier": 2,
+      "src": "DESIGN.md §5.11",
+      "why": "Compute thrift, the second consumable. Two quanta minus; Grid already owns energy, this axis does not restate output"
+    },
+    "lathe": {
+      "key": "upgrade_speed_bps",
+      "sign": 1,
+      "tier": 2,
+      "src": "DESIGN.md §5.11",
+      "why": "Faster upgrades, not output, not offline_cap_hours. Two quanta; paid row, so L77 free-stack window does not move"
+    }
+  },
+  "derived": {
+    "research_node_cost": "fused_effect_cost(workshop_l1, research_cost_per_effect_bps, effect, cost_growth_bps, 0)",
+    "research_node_time_ticks": "normalization_payback_ticks × |effect_bps| / 10000"
+  }
+}

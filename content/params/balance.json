@@ -1,0 +1,232 @@
+{
+  "section": "balance",
+  "note": "T2 owns these numbers. They are the normalisation point, growth curves and cohort targets; wide tables are generated, never authored. Do not copy a value that another file already stores.",
+  "params": {
+    "normalization_payback_ticks": {
+      "v": 240,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T2",
+      "why": "Точка нормировки: Workshop L1 с агентом L1 отбивает постройку за 240 тиков брутто. 240 тиков = 10 суток города, под горизонтом фонда 14 суток из DESIGN.md §2.5"
+    },
+    "energy_capex_share_bps": {
+      "v": 3300,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T2, DESIGN.md §2.5",
+      "why": "Капитал, отвлечённый в производство энергии, на единицу капитала производственного здания. Даёт нетто-окупаемость 319 тиков = 13.29 суток города, строго под горизонтом фонда 14 суток"
+    },
+    "night_energy_premium_bps": {
+      "v": 2000,
+      "u": "bps",
+      "src": "DESIGN.md §3.2",
+      "why": "Ночью energy дороже на 20%. Ночь — половина суток, поэтому размеренный под пик узел даёт +10% к капексу энергии в среднем; сам узел калибруется на ночной пик, не на среднее"
+    },
+    "cost_growth_bps": {
+      "v": 25000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T2",
+      "why": "Стоимость уровня растёт геометрически: каждый следующий уровень стоит 2.5× предыдущего, чтобы глубина не была дешёвым обходом ширины"
+    },
+    "output_growth_bps": {
+      "v": 18000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T2",
+      "why": "Выход подлинейный: ROI уровня 0.72 предыдущего, output ∝ cost^0.642. Ширина побеждает глубину — два L1 лучше одного L2 по выходу на капитал"
+    },
+    "energy_growth_bps": {
+      "v": 16000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T2",
+      "why": "Ниже роста выхода: апгрейд покупает энергоэффективность. Это компенсация за худший ROI уровня, а не скрытая доплата Capital за юнит energy"
+    },
+    "build_time_growth_bps": {
+      "v": 16000,
+      "u": "bps",
+      "src": "DESIGN.md §3.2, docs/BRIEF.md §6 T2",
+      "why": "Максимальное время постройки 11 тиков у синергии L3, под потолком оффлайна 12 часов города. Иначе игрок не увидит готовое здание, вернувшись в окно оффлайна"
+    },
+    "building_level_max": {
+      "v": 3,
+      "u": "count",
+      "src": "docs/CONTENT.md §4, docs/BRIEF.md §3 T0",
+      "why": "Три уровня. Оверлеи на базовом спрайте, не новые спрайты. Четвёртый уровень упёрся бы в потолок оффлайна по времени стройки"
+    },
+    "reference_deposit_usd_8dec": {
+      "v": 10000000000,
+      "u": "usd_8dec",
+      "src": "DESIGN.md §12, docs/LAUNCH.md §6",
+      "why": "100 $: середина полосы 50–150 $. Дневной лимит банка на сиде 105 $ на всех игроков не даёт депозиту быть выше без того, чтобы очередь на выход стала связывающим ограничением вместо экономики"
+    },
+    "starter_city_cost_share_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "DESIGN.md §5.12",
+      "why": "Половина чистого депозита покупает минимальный рабочий город, половина остаётся запасом на первый апгрейд. Иначе стартовый набор съедает весь вход и апгрейд откладывается до первой смены"
+    },
+    "hire_cost_share_bps": {
+      "v": 1500,
+      "u": "bps",
+      "src": "DESIGN.md §2.8, §5.12",
+      "why": "Первый агент — 15% Workshop. Связка здание+агент есть единица: агент не может быть бесплатным, иначе бот ставит дома и уходит без найма"
+    },
+    "hire_growth_bps": {
+      "v": 11200,
+      "u": "bps",
+      "src": "DESIGN.md §5.6, §12",
+      "why": "Двадцатый агент стоит 8.6× первого; полный ростер 20 стоит 10.8 Workshop-эквивалента, около двух третей стоимости зданий L1 стартового набора. При 11500 ростер стоил бы дороже города, и счёт за персонал превысил бы счёт за застройку"
+    },
+    "agent_level_max": {
+      "v": 5,
+      "u": "count",
+      "src": "DESIGN.md §5.7",
+      "why": "Титулы Senior/Chief — функция уровня, не шестая роль. Пять ступеней закрывают кривую за сезон 90 суток с узлом Handbook"
+    },
+    "agent_level_gain_bps": {
+      "v": 1500,
+      "u": "bps",
+      "src": "DESIGN.md §5.7",
+      "why": "L5 даёт ×1.60, и affinity_neighbour_bps × 1.60 = 0.96 < 1.0: прокачка никогда не делает чужую посадку лучше свежего родного агента"
+    },
+    "xp_growth_bps": {
+      "v": 16000,
+      "u": "bps",
+      "src": "DESIGN.md §5.11, docs/BRIEF.md §6 T2",
+      "why": "L5 требует 2221 валидного тика против 2160 в идеальном сезоне 90 суток, то есть требует узла Handbook +10% XP. Без роста XP пятый уровень был бы бесплатным за сезон"
+    },
+    "jitter_width_bps": {
+      "v": 500,
+      "u": "bps",
+      "src": "DESIGN.md §5.3, §5.10",
+      "why": "Заметно в логе одного тика, но 2 × 500 < agent_level_gain_bps: дрожь не может перевернуть порядок двух соседних уровней агента. Черта Steady сужает вдвое"
+    },
+    "research_cost_per_effect_bps": {
+      "v": 30000,
+      "u": "bps",
+      "src": "DESIGN.md §5.11",
+      "why": "3.0 Workshop за 100% эффекта. Tools +10% выходит в 0.30 Workshop, что равно добавлению 0.1 Workshop к городу из трёх — цена узла равна его вкладу в город v1"
+    },
+    "population_per_job": {
+      "v": 50,
+      "u": "count",
+      "src": "DESIGN.md §8",
+      "why": "Population — производная от жилья и рабочих мест. Одно рабочее место содержит домохозяйство; без этого уровня города 2 ждал бы открытия AAPL"
+    },
+    "city_level_population_base": {
+      "v": 400,
+      "u": "count",
+      "src": "DESIGN.md §8, §12",
+      "why": "8 стартовых слотов агентов × 50: второй уровень города берётся полностью укомплектованным стартовым набором, без жилья AAPL"
+    },
+    "city_level_population_growth_bps": {
+      "v": 15000,
+      "u": "bps",
+      "src": "DESIGN.md §7.2, §8",
+      "why": "L7 требует 3037 против 1000, доступных с рабочих мест при потолке 20 агентов: верхние уровни города структурно требуют жилья AAPL"
+    },
+    "bank_level_gain_bps": {
+      "v": 2500,
+      "u": "bps",
+      "src": "DESIGN.md §7.1, §7.2",
+      "why": "Насыщающаяся лестница доли пула, никогда не достигающая потолка 10000 bps. L23 держится конструктивно: даже на последней ступени личный лимит — доля от уже урезанного 1% глубины"
+    },
+    "district_stake_usd_target_8dec": {
+      "v": 10000000000,
+      "u": "usd_8dec",
+      "src": "DESIGN.md §12, §4.5",
+      "why": "Открытие любого района стоит примерно одинаково в живых деньгах, порядка 50–150 $. Равенство с депозитом 100 $ делает открытие района решением того же веса, что вход в игру, при том что стейк возвращается, а депозит тратится"
+    },
+    "residual_idle_bps": {
+      "v": 500,
+      "u": "bps",
+      "src": "DESIGN.md §5.8",
+      "why": "Остаточный простой управляемого города: дрожь тика и стыки расписаний. Даже оптимизатор не держит 100% аптайма, и это входит в полосы возврата, а не списывается на игрока"
+    },
+    "fund_amplification_target_bps": {
+      "v": 14000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T2, docs/SIMULATION.md 6.4",
+      "why": "Цель усиления фонда: резервная капля и внешний сбор вместе, не только внешний. Прежнее имя fund_external_amplification_target_bps врало, когда резерв дал больше 5% от A−10000"
+    },
+    "season_city_days": {
+      "v": 90,
+      "u": "days",
+      "src": "docs/BRIEF.md §6 T2, T3",
+      "why": "Сезон 90 суток города. Длина сезона для призов — T7, но горизонт возврата депозита и достижимость агента L5 фиксирует T2"
+    },
+    "energy_plant_efficiency_bps": {
+      "v": 20000,
+      "u": "bps",
+      "src": "DESIGN.md §4.2, §7.2",
+      "why": "Energy дешевле за юнит в районе Tesla. Плита даёт вдвое больше энергии на единицу капитала, чем Power Node — иначе маяк не окупает стейк относительно базового узла"
+    },
+    "tier_cost_weight_base_bps": {
+      "v": 10000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T2",
+      "why": "Workshop — референс стоимости по определению точки нормировки. Базовый тир весит 1.0 Workshop, пока архетип не объявит отклонение"
+    },
+    "tier_cost_weight_beacon_bps": {
+      "v": 25000,
+      "u": "bps",
+      "src": "DESIGN.md §12, docs/BRIEF.md §6 T2",
+      "why": "Маяк района — 2.5 Workshop: около 56 $ при референсном депозите 100 $, то есть открытие района это решение сверх стейка, а не сдача после порога"
+    },
+    "tier_cost_weight_synergy_bps": {
+      "v": 40000,
+      "u": "bps",
+      "src": "DESIGN.md §4.4, §7.3",
+      "why": "Синергия требует двух районов и даёт фичу, которой нет ни у одного маяка — 4 Workshop. Дешевле маяка пара районов открылась бы «в нагрузку», дороже — синергия не строится"
+    }
+  },
+  "derived": {
+    "deposit_to_capital_bps": "(10000 − creator_tax_bps) × (10000 − vault_fee_bps) / 10000",
+    "fund_contribution_bps": "deposit_to_capital_bps × spend_fund_bps / 10000",
+    "bank_exit_return_bps": "10000 × 10000 / (10000 + bank_markup_bps) × (10000 − creator_tax_bps) / 10000",
+    "return_at_unit_capture_bps": "fund_contribution_bps × bank_exit_return_bps / 10000: потолок замкнутой системы при захвате ровно своего взноса",
+    "uptime_optimizer_bps": "10000 − residual_idle_bps",
+    "uptime_minimalist_bps": "offline_cap_city_hours_base × 10000 / ticks_per_city_day × (10000 − residual_idle_bps) / 10000",
+    "capture_min_bps": "2 × A × uptime_min / (uptime_min + uptime_opt)",
+    "capture_opt_bps": "2 × A × uptime_opt / (uptime_min + uptime_opt)",
+    "return_min_bps": "return_at_unit_capture_bps × 2 × A × uptime_min / ((uptime_min + uptime_opt) × 10000)",
+    "return_opt_bps": "return_at_unit_capture_bps × 2 × A × uptime_opt / ((uptime_min + uptime_opt) × 10000)",
+    "amplification_window_lo_bps": "наименьшее A, при котором обе полосы возврата выполняются",
+    "amplification_window_hi_bps": "наибольшее A, при котором обе полосы возврата выполняются",
+    "deposit_capital_gross": "reference_deposit_usd_8dec / capital_unit_usd",
+    "deposit_capital_net": "deposit_capital_gross × (10000 − vault_fee_bps) / 10000",
+    "starter_city_cost": "deposit_capital_net × starter_city_cost_share_bps / 10000",
+    "starter_weight_bps": "cost_weight(workshop)+cost_weight(power_node)+cost_weight(agent_hub)+hire_weight(1)+hire_weight(2)",
+    "workshop_cost_l1": "starter_city_cost × 10000 / starter_weight_bps",
+    "starter_set_remainder": "starter_city_cost − сумма пяти позиций стартового набора; остаток целочисленного деления",
+    "payback_gross_ticks": "normalization_payback_ticks",
+    "payback_net_ticks": "normalization_payback_ticks × (10000 + energy_capex_share_bps) / 10000",
+    "payback_net_city_days_bps": "payback_net_ticks × 10000 / ticks_per_city_day",
+    "power_node_cost_weight_bps": "равен energy_capex_share_bps, не хранится на архетипе",
+    "power_node_output_per_tick": "workshop_energy_per_tick_l1 × (10000 + night_energy_premium_bps) / 10000",
+    "energy_plant_output_per_tick": "выход Power Node, масштабированный весом стоимости плиты и energy_plant_efficiency_bps",
+    "energy_plant_vs_nodes_bps": "выход плиты / выход той же цены в Power Node; обязан превышать 10000",
+    "hire_cost": "workshop_cost_l1 × hire_cost_share_bps / 10000 × hire_growth_bps^(N−1) / 10000^(N−1), N=1..slots_cap",
+    "hire_roster_workshop_weight_bps": "сумма hire_weight(1..slots_cap) в долях Workshop",
+    "agent_level_mult_bps": "10000 + (L − 1) × agent_level_gain_bps",
+    "xp_to_next": "normalization_payback_ticks × xp_growth_bps^(L−1) / 10000^(L−1)",
+    "xp_total": "сумма xp_to_next(1..L−1)",
+    "season_ticks": "season_city_days × ticks_per_city_day",
+    "handbook_season_ticks": "season_ticks × (10000 + handbook_effect_bps) / 10000",
+    "population_threshold": "city_level_population_base × growth^(L−2) / 10000^(L−2) для L ≥ 2",
+    "build_slots": "slots_at_city_level(L) + число играбельных автономных архетипов",
+    "city_level_max": "уровень, на котором slots_at_city_level упирается в slots_cap",
+    "bank_level_share_bps": "10000 − (10000 − bank_level_gain_bps)^L / 10000^(L−1)",
+    "bank_level_max": "1 + building_level_max: Bank L1 плюс уровни Finance Tower",
+    "bank_daily_limit_wei_by_level": "live_depth × pool_share / 10000 × bank_level_share(L) / 10000",
+    "stake_bonus_bps": "stake_bonus_max_bps × (stake − S_min) / (stake − S_min + S_ref); S_ref = S_min",
+    "s_min_capital_band_lo_bps": "10000 × 10000 / (10000 + anchor_band_bps): нижняя цена Capital в долларах относительно номинала",
+    "s_min_capital_band_hi_bps": "10000 + anchor_band_bps: верхняя цена Capital в полосе",
+    "s_min_capital_ratchet_days": "суток города, пока храповик держит нижнюю границу при росте на краю полосы",
+    "jitter_bps": "10000 + (hash(city_id, tick_index, agent_id) mod (2×width+1)) − width",
+    "jitter_lo_bps": "10000 − jitter_width_bps",
+    "jitter_hi_bps": "10000 + jitter_width_bps",
+    "tick_length_real_seconds": "city_day_real_hours × 3600 / ticks_per_city_day",
+    "reference_deposit_wei": "reference_deposit_usd_8dec × 10^18 / eth_usd_8dec, производная снимка",
+    "robotics_lab_output_weight_bps": "равен affinity_neighbour_bps: автономный слот как неродной работник, который не спит",
+    "level_energy": "energy_base(a) × energy_growth_bps^(L−1) / 10000^(L−1)",
+    "upgrade_roi_lmax_over_l1_bps": "(output_growth_bps / cost_growth_bps)^(building_level_max−1) в bps"
+  }
+}

@@ -1,0 +1,497 @@
+{
+  "section": "sim",
+  "note": "T3 owns the season run. Archetypes are rows, scenarios are rules. Measured A, N_min, N_max and N_bank are generated into content/out/SIM.md, never stored here.",
+  "params": {
+    "wei_decimals": {
+      "v": 18,
+      "u": "count",
+      "src": "docs/LAUNCH.md §1 token 18",
+      "why": "Знаков $CORP. WEI = 10^это; в tick.py нет литерала 10^18, только степень из параметра"
+    },
+    "turnover_scenario_period_real_days": {
+      "v": 30,
+      "u": "days",
+      "src": "docs/LAUNCH.md §3",
+      "why": "В каноне «месяц» не определён. Таблица дохода T1 — за 30 реальных дней; период нельзя выдумать молча, иначе оборот на тик поедет"
+    },
+    "real_day_seconds": {
+      "v": 86400,
+      "u": "seconds",
+      "src": "docs/LAUNCH.md §3 civil day",
+      "why": "Секунд в гражданских сутках, чтобы перевести месячный оборот T1 в оборот на тик через tick_length_real_seconds"
+    },
+    "mix_minimalist_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T3 mix 50/50",
+      "why": "Половина когорты для окна A и N_bank: ориентир архитектора по банку дан при смеси 50/50, кит в эту смесь не входит"
+    },
+    "mix_optimizer_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T3 mix 50/50",
+      "why": "Вторая половина смеси 50/50. Сумма mix_* обязана дать 10000, иначе веса когорт — не доли"
+    },
+    "mix_whale_bps": {
+      "v": 0,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T3 N_bank mix",
+      "why": "Ноль в смеси окна A: кит проверяется отдельным прогоном L53, а не размывает 50/50"
+    },
+    "reference_n_cities": {
+      "v": 200,
+      "u": "count",
+      "src": "docs/LAUNCH.md §6 seed depth",
+      "why": "Точка таблиц по дням, не N_bank. Около сидового потолка банка, чтобы очередь была видна, а окно A искалось бисекцией"
+    },
+    "n_search_lo": {
+      "v": 1,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T3 N=1",
+      "why": "Нижняя граница бисекции. N=1 обязан отчитаться как выход из окна A, а не проглотиться"
+    },
+    "n_search_hi": {
+      "v": 400000,
+      "u": "count",
+      "src": "docs/LAUNCH.md §3 hype window",
+      "why": "Верх бисекции с запасом над ориентиром хайпа ~73877, чтобы N_max не упирался в потолок поиска"
+    },
+    "bisection_iters": {
+      "v": 32,
+      "u": "count",
+      "src": "docs/SIMULATION.md N window",
+      "why": "Шагов бисекции: 2^-32 от диапазона поиска меньше одного города"
+    },
+    "jitter_probe_cities": {
+      "v": 100,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T3 jitter",
+      "why": "Разных city_id одного архетипа, чтобы назвать разброс сезонного возврата числом и показать, что полосы не переворачиваются"
+    },
+    "ema_city_days": {
+      "v": 30,
+      "u": "days",
+      "src": "DESIGN.md §2.3 EMA_30d",
+      "why": "Окно rate_ref. Простое среднее целых суточных rate_raw, не float-EMA"
+    },
+    "turnover_decay_bps_per_city_day": {
+      "v": 800,
+      "u": "bps",
+      "src": "DESIGN.md §2.5 налог просох",
+      "why": "Экспонента оборота: 8%/сутки города, за две недели остаётся ~30%, налог просыхает внутри сезона, не на горизонте лет"
+    },
+    "turnover_step_div": {
+      "v": 10,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T3 collapse 10x",
+      "why": "Кратность обвала оборота. Делитель, не bps: оборот падает в десять раз, не на 10%"
+    },
+    "turnover_step_at_city_day": {
+      "v": 15,
+      "u": "days",
+      "src": "docs/BRIEF.md §6 T3 collapse 10x",
+      "why": "День обвала: после двухнедельного пика запуска, внутри горизонта фонда 14 суток плюс один день"
+    },
+    "outage_from_city_day": {
+      "v": 8,
+      "u": "days",
+      "src": "DESIGN.md §2.3 STALE_PRICE",
+      "why": "Молчание с 8-х суток: храповик успел бы взять полосу за 8 суток удержания, мёртвый фид обязан не дать ему это сделать"
+    },
+    "depth_keep_bps": {
+      "v": 2500,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T3 depth_collapse",
+      "why": "После шока остаётся четверть ETH-резерва. Дневной лимит банка падает вместе с живой глубиной, цена сохраняется (оба резерва режутся одинаково)"
+    },
+    "depth_shock_at_city_day": {
+      "v": 20,
+      "u": "days",
+      "src": "docs/BRIEF.md §6 T3 depth_collapse",
+      "why": "Шок после того, как выкуп успел чуть углубить пул, чтобы падение лимита было видно на живой, не только сидовой, глубине"
+    },
+    "mass_exit_at_city_day": {
+      "v": 10,
+      "u": "days",
+      "src": "docs/BRIEF.md §6 T3 mass_exit_band_floor",
+      "why": "Выход после того, как курс уже на нижней границе полосы: непокрытие 6.1 проявляется на хвосте очереди, не в первый тик"
+    },
+    "spend_halt_at_city_day": {
+      "v": 21,
+      "u": "days",
+      "src": "DESIGN.md §2.4 spend_stop",
+      "why": "Стоп трат с 21-х суток: три недели наполнения, затем слив 5%/неделю должен обогнать ноль наполнения внутри сезона"
+    },
+    "stock_shock_bps": {
+      "v": 3000,
+      "u": "bps",
+      "src": "DESIGN.md §4.5 gate in tokens",
+      "why": "±30% к цене бумаги в пробе: гейт района в токенах, приток фонда не должен сдвинуться"
+    },
+    "return_match_remainder_bps": {
+      "v": 1,
+      "u": "bps",
+      "src": "docs/BALANCE.md §6 fused floor",
+      "why": "Допуск калибровки к T2: один bps остатка fused mulDiv, не процент «похоже»"
+    },
+    "a_match_remainder_bps": {
+      "v": 1,
+      "u": "bps",
+      "src": "docs/BALANCE.md §6 A window",
+      "why": "Допуск калибровки A_measured к цели из balance: тот же остаток деления, не подгонка оборота"
+    },
+    "city_week_days": {
+      "v": 7,
+      "u": "days",
+      "src": "DESIGN.md §3.2 week",
+      "why": "Дней в неделе города. Нужен tick.py, чтобы литерал 7 не жил в движке: L45"
+    },
+    "bps_per_percent": {
+      "v": 100,
+      "u": "bps",
+      "src": "docs/CONTENT.md §1 bps",
+      "why": "100 bps = 1%. Форматтер SIM.md читает это, а не литерал 100 в sim.py"
+    },
+    "sim_cohort_shared_epoch": {
+      "v": 1,
+      "u": "flag",
+      "src": "docs/TICK.md §6, D5",
+      "why": "T3 cohort shares one tick_index. Personal city_time is the engine model; rewriting T3 would recount bands"
+    }
+  },
+  "ast_whitelist": {
+    "literals": [0, 1, 2, 3, 8, 10, 16],
+    "src": "docs/SIMULATION.md L45",
+    "why": "Технические литералы: знаки, базы хеша и десятичная степень. Экономические величины из params/, иначе L45"
+  },
+  "archetypes": {
+    "minimalist": {
+      "login_period_city_hours": {
+        "v": 24,
+        "u": "city_hours",
+        "src": "docs/BRIEF.md §6 T3 minimalist",
+        "why": "Заходит раз в сутки города. Аптайм упирается в offline_cap, не в желание оптимизировать"
+      },
+      "deposit_multiple_bps": {
+        "v": 10000,
+        "u": "bps",
+        "src": "docs/BALANCE.md §2 reference deposit",
+        "why": "Один референсный депозит. Деньги не покупают доходность: кратность 1× против кита"
+      },
+      "reinvest_share_bps": {
+        "v": 0,
+        "u": "bps",
+        "src": "docs/BRIEF.md §6 T3 minimalist",
+        "why": "Ничего не оптимизирует, заработанное не возвращает в стройку. Калибровка T2 требует ноль у всех"
+      },
+      "sell_share_bps": {
+        "v": 10000,
+        "u": "bps",
+        "src": "docs/LAUNCH.md §6 bank exit",
+        "why": "Продаёт весь полученный $CORP: не держит токен, глубина пула мелеет на его выходе"
+      },
+      "bank_usage": {
+        "v": 0,
+        "u": "count",
+        "src": "docs/BRIEF.md §6 T3 minimalist",
+        "why": "Окно банка не ловит: вывод в любой открытый час, без ожидания. 0/1, не доля"
+      },
+      "energy_headroom_bps": {
+        "v": 0,
+        "u": "bps",
+        "src": "docs/BRIEF.md §6 T3 minimalist",
+        "why": "Запас узлов не держит. Ночной простой — его простой, не дыра нормировки"
+      },
+      "upgrade_policy": {
+        "v": "width",
+        "src": "DESIGN.md §2.7 funnel",
+        "why": "Ширина, если вообще строит: глубина ему не нужна, он и стартовый набор едва смотрит"
+      },
+      "districts_opened": {
+        "v": [],
+        "src": "DESIGN.md §4.5",
+        "why": "Районы не открывает. Пустой список — валидная строка, не отсутствие поля"
+      },
+      "research_order": {
+        "v": [],
+        "src": "DESIGN.md §5.11",
+        "why": "Узлы не берёт. Минималист не оптимизирует выход"
+      }
+    },
+    "optimizer": {
+      "login_period_city_hours": {
+        "v": 1,
+        "u": "city_hours",
+        "src": "docs/BRIEF.md §6 T3 optimizer",
+        "why": "Смотрит каждый тик. Аптайм 10000 − residual_idle_bps, не 100%"
+      },
+      "deposit_multiple_bps": {
+        "v": 10000,
+        "u": "bps",
+        "src": "docs/BALANCE.md §2 reference deposit",
+        "why": "Тот же референс, что у минималиста: разница возврата — аптайм, не кошелёк"
+      },
+      "reinvest_share_bps": {
+        "v": 2000,
+        "u": "bps",
+        "src": "DESIGN.md §2.7 live city",
+        "why": "Пятая часть заработка обратно в город. Не 100%: иначе возврат падает, A растёт, и калибровка T2 ломается"
+      },
+      "sell_share_bps": {
+        "v": 5000,
+        "u": "bps",
+        "src": "docs/LAUNCH.md §6 live depth",
+        "why": "Продаёт половину: держит $CORP, меньше мелит пул, чем минималист на том же выводе"
+      },
+      "bank_usage": {
+        "v": 1,
+        "u": "count",
+        "src": "docs/BRIEF.md §6 T3 optimizer",
+        "why": "Ловит часы банка. 1 = только в открытое окно, иначе IDLE_BANK_CLOSED"
+      },
+      "energy_headroom_bps": {
+        "v": 2000,
+        "u": "bps",
+        "src": "DESIGN.md §5.3 energy",
+        "why": "Запас узлов +20%: ночь с надбавкой не ставит завод. Иначе аптайм 95% врёт"
+      },
+      "upgrade_policy": {
+        "v": "width",
+        "src": "DESIGN.md §2.7, docs/BALANCE.md §4",
+        "why": "Ширина побеждает глубину: два L1 лучше одного L2 по выходу на капитал"
+      },
+      "districts_opened": {
+        "v": [],
+        "src": "DESIGN.md §4.5",
+        "why": "Стейк не обязателен для полосы оптимизатора T2: районы — скорость кита, не доходность"
+      },
+      "research_order": {
+        "v": ["grid", "tools"],
+        "src": "DESIGN.md §5.11",
+        "why": "Grid затем Tools: сначала снимает energy, потом +выход. Handbook не нужен полосе 70–90%"
+      }
+    },
+    "whale": {
+      "login_period_city_hours": {
+        "v": 1,
+        "u": "city_hours",
+        "src": "docs/BRIEF.md §6 T3 whale",
+        "why": "Онлайн как оптимизатор: сравнивать относительный возврат иначе нельзя"
+      },
+      "deposit_multiple_bps": {
+        "v": 100000,
+        "u": "bps",
+        "src": "docs/BRIEF.md §6 T3 whale",
+        "why": "Депозит ×10 к референсу. L53: относительный возврат всё равно не выше оптимизатора"
+      },
+      "reinvest_share_bps": {
+        "v": 2000,
+        "u": "bps",
+        "src": "DESIGN.md §2.7",
+        "why": "Та же доля реинвеста, что у оптимизатора: иначе L53 ловит разницу политики, а не кошелька"
+      },
+      "sell_share_bps": {
+        "v": 10000,
+        "u": "bps",
+        "src": "docs/LAUNCH.md §6 bank as bind",
+        "why": "Продаёт весь $CORP: крупный выход мелит глубину и бьёт в глобальный лимит банка"
+      },
+      "bank_usage": {
+        "v": 1,
+        "u": "count",
+        "src": "docs/BRIEF.md §6 T3 whale",
+        "why": "Окно банка знает. Очередь его всё равно режет пропорционально"
+      },
+      "energy_headroom_bps": {
+        "v": 2000,
+        "u": "bps",
+        "src": "DESIGN.md §5.3",
+        "why": "Тот же запас energy, что у оптимизатора: ночь не должна быть скрытой платой за размер"
+      },
+      "upgrade_policy": {
+        "v": "depth",
+        "src": "DESIGN.md §4.5, docs/BALANCE.md §4",
+        "why": "Глубина и районы за деньги: ROI уровня хуже ширины, поэтому относительный возврат не покупается"
+      },
+      "districts_opened": {
+        "v": ["compute", "energy", "finance"],
+        "src": "DESIGN.md §4.2, §4.5",
+        "why": "Три играбельных района v1. Стоимость открытия — замороженный S_min, калиброванный на district_stake_usd_target 100 $"
+      },
+      "research_order": {
+        "v": ["grid", "tools", "handbook"],
+        "src": "DESIGN.md §5.11",
+        "why": "Все три узла: Handbook нужен L5, кит его покупает, это скорость, не полоса доходности"
+      }
+    }
+  },
+  "kinds": {
+    "constant_turnover": {
+      "src": "docs/LAUNCH.md §3",
+      "why": "Постоянный месячный оборот обеих сторон. Три сценария T1 — три id с одним kind"
+    },
+    "exponential_decay": {
+      "src": "DESIGN.md §2.5",
+      "why": "Оборот максимален в первые дни и падает. Налог просох — тезис фонда, не отдельная механика"
+    },
+    "step_down": {
+      "src": "docs/BRIEF.md §6 T3",
+      "why": "Ступень вниз в заданный день. Кратность — turnover_step_div, не набитый ряд"
+    },
+    "hold_band_top": {
+      "src": "DESIGN.md §2.3 ratchet",
+      "why": "Манипулятор держит TWAP на верхней границе полосы много суток: храповик обязан зажать"
+    },
+    "feed_outage": {
+      "src": "DESIGN.md §2.3 STALE_PRICE",
+      "why": "Молчание фида дольше price_staleness_max: деградация только вниз, код STALE_PRICE"
+    },
+    "depth_shock": {
+      "src": "docs/LAUNCH.md §6 live depth",
+      "why": "Резервы пула режутся одинаково: цена стоит, дневной лимит банка падает"
+    },
+    "mass_exit": {
+      "src": "docs/BRIEF.md §6 T3 mass_exit_band_floor",
+      "why": "Все выводят, когда курс на нижней границе полосы. Непокрытие 6.1 — монитор, не инвариант"
+    },
+    "spend_halt": {
+      "src": "DESIGN.md §2.4, docs/BRIEF.md §6 T3",
+      "why": "Траты прекращаются: наполнение резерва 0.4× трат, слив 0.05× баланса"
+    },
+    "calibration": {
+      "src": "docs/BALANCE.md §6 T2 stitch",
+      "why": "Постоянная цена, реинвест 0, A подгоняется к цели из balance, не к литералу в симуляторе"
+    },
+    "endogenous_twap": {
+      "src": "docs/TICK.md §7, D12, R-T3-20",
+      "why": "Live CORP/ETH TWAP from pool reserves each tick. Beside frozen seed, never a recount of A_t2=14011"
+    }
+  },
+  "required_scenarios": {
+    "baseline_low": {
+      "src": "docs/LAUNCH.md §3 low",
+      "why": "Низкий оборот T1. Отсутствие — ошибка сборки L49"
+    },
+    "baseline_mid": {
+      "src": "docs/LAUNCH.md §3 mid",
+      "why": "Средний оборот T1. Отсутствие — ошибка сборки L49"
+    },
+    "baseline_hype": {
+      "src": "docs/LAUNCH.md §3 hype",
+      "why": "Хайп-оборот T1. Отсутствие — ошибка сборки L49"
+    },
+    "turnover_decay": {
+      "src": "DESIGN.md §2.5",
+      "why": "Налог просох. Обязательный сценарий формы, не ряда"
+    },
+    "turnover_collapse_10x": {
+      "src": "docs/BRIEF.md §6 T3",
+      "why": "Обвал оборота в десять раз. Обязательный сценарий формы"
+    },
+    "poisoned_ema": {
+      "src": "docs/BRIEF.md §6 T3 floating",
+      "why": "Отравленная EMA. Один из четырёх обязательных плавающих прогонов"
+    },
+    "feed_silence": {
+      "src": "docs/BRIEF.md §6 T3 floating",
+      "why": "Молчание фида. Один из четырёх обязательных плавающих прогонов"
+    },
+    "depth_collapse": {
+      "src": "docs/BRIEF.md §6 T3 floating",
+      "why": "Падение глубины. Один из четырёх обязательных плавающих прогонов"
+    },
+    "mass_exit_band_floor": {
+      "src": "docs/BRIEF.md §6 T3 floating",
+      "why": "Массовый выход на дне полосы. Один из четырёх обязательных плавающих прогонов"
+    },
+    "spend_stop": {
+      "src": "docs/BRIEF.md §6 T3 reserve",
+      "why": "Стоп трат. Обязателен, чтобы назвать долю игроков, при которой резерв выпивается"
+    }
+  },
+  "scenarios": {
+    "baseline_low": {
+      "kind": "constant_turnover",
+      "src": "docs/LAUNCH.md §3",
+      "why": "Низкий месячный оборот DEX. Число оборота не копируется: bind на launch.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_low_usd" }
+    },
+    "baseline_mid": {
+      "kind": "constant_turnover",
+      "src": "docs/LAUNCH.md §3",
+      "why": "Средний месячный оборот DEX. Bind на launch, не дубль 300000.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_mid_usd" }
+    },
+    "baseline_hype": {
+      "kind": "constant_turnover",
+      "src": "docs/LAUNCH.md §3",
+      "why": "Хайп-месяц. Bind на launch, не дубль 2000000.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_hype_usd" }
+    },
+    "turnover_decay": {
+      "kind": "exponential_decay",
+      "src": "DESIGN.md §2.5",
+      "why": "Старт с хайп-оборота T1, дальше экспонента turnover_decay_bps_per_city_day.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_hype_usd" }
+    },
+    "turnover_collapse_10x": {
+      "kind": "step_down",
+      "src": "docs/BRIEF.md §6 T3",
+      "why": "Средний оборот T1, затем деление на turnover_step_div в turnover_step_at_city_day.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_mid_usd" }
+    },
+    "poisoned_ema": {
+      "kind": "hold_band_top",
+      "src": "DESIGN.md §2.3",
+      "why": "TWAP на верхней границе полосы каждый тик. Храповик целыми сутками, не спот.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_mid_usd" }
+    },
+    "feed_silence": {
+      "kind": "feed_outage",
+      "src": "DESIGN.md §2.3 STALE_PRICE",
+      "why": "После outage_from_city_day сэмпл не приходит. Курс не растёт ни на 1 bps.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_mid_usd" }
+    },
+    "depth_collapse": {
+      "kind": "depth_shock",
+      "src": "docs/LAUNCH.md §6",
+      "why": "В depth_shock_at_city_day оба резерва × depth_keep_bps. Лимит банка — от живой глубины.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_mid_usd" }
+    },
+    "mass_exit_band_floor": {
+      "kind": "mass_exit",
+      "src": "docs/BRIEF.md §6 T3",
+      "why": "Курс зажат на нижней границе, с mass_exit_at_city_day все подают на вывод.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_mid_usd" }
+    },
+    "spend_stop": {
+      "kind": "spend_halt",
+      "src": "DESIGN.md §2.4",
+      "why": "С spend_halt_at_city_day траты = 0. Резерв капает по спросу, наполнение останавливается.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_low_usd" }
+    },
+    "endogenous_corp_eth": {
+      "kind": "endogenous_twap",
+      "src": "docs/TICK.md §7, D12, R-T3-20",
+      "why": "Same hype turnover as baseline_hype, but corp_eth is the live pool TWAP. Calibration numbers stay frozen.",
+      "bind": { "turnover_usd": "launch.params.revenue_scenario_hype_usd" }
+    },
+    "calibration": {
+      "kind": "calibration",
+      "src": "docs/BALANCE.md §6",
+      "why": "Сшивка T2: цель A читается из fund_amplification_target_bps (бывшее fund_external_amplification_target_bps), реинвест принудительно 0.",
+      "bind": {
+        "turnover_usd": "launch.params.revenue_scenario_mid_usd",
+        "target_a_bps": "balance.params.fund_amplification_target_bps"
+      }
+    }
+  },
+    "derived": {
+    "archetype_ids": "ключи archetypes; четвёртый архетип — новый ключ без правки tick.py",
+    "scenario_ids": "ключи scenarios",
+    "kind_ids": "ключи kinds, известные генератору рядов",
+    "required_scenario_ids": "ключи required_scenarios; отсутствие id в scenarios — L49",
+    "mix_total_bps": "mix_minimalist_bps + mix_optimizer_bps + mix_whale_bps, обязан быть 10000",
+    "turnover_per_tick_usd_8dec": "месячный оборот × 10^8 × tick_length_real_seconds / (period_days × real_day_seconds); величина сценария, не константа пака"
+  }
+}

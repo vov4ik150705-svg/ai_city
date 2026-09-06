@@ -1,0 +1,74 @@
+LINE 1129
+OLD LEN 1122
+NEW LEN 3174
+OLD HEAD
+    up0 = [vert(p, 0) for p in ring_pts]
+    n_ring = len(up0)
+    rings: list[list[bmesh.types.BMVert]] = [up0]
+    for step in range(8, 0, -1):
+        t = step / 9.0
+        layer = [
+            vert((cx + (p[0] - cx) * t, cy + (p[1] - cy) * t), 0) for p in ring_pts
+        ]
+        rings.append(layer)
+    hub = vert((cx, cy), 0)
+    for ra, rb in zip(rings, rings[1:]):
+        for i in range(n_ring):
+            _quad(bm, ra[i], ra[(i + 1) % n_ring], rb[(i + 1) % n_ring], rb[i], 0)
+    inner = rings[-1]
+    for i in range(n_ring):
+        _tri(bm, hub, inner[i], inner[(i + 1) % n_ring], 0)
+    for f in bm.faces:
+        if not f.is_valid:
+            continue
+        c = f.calc_center_median()
+        bin_i = _stone_bin(c.x, c.y)
+        for poly in usable:
+            if _pip((c.x, 
+---NEW HEAD---
+    up0 = [vert(p, 0) for p in ring_pts]
+    n_ring = len(up0)
+
+    def poly_verts(poly: list[tuple[float, float]]) -> list[bmesh.types.BMVert]:
+        raw = [vert(p, 0) for p in _ensure_ccw(_dedupe_poly(poly))]
+        out: list[bmesh.types.BMVert] = []
+        for v in raw:
+            if not out or out[-1] is not v:
+                out.append(v)
+        if len(out) >= 2 and out[0] is out[-1]:
+            out.pop()
+        return out
+
+    n_tiles = 0
+    for poly in usable:
+        vs = poly_verts(poly)
+        if len(vs) < 3:
+            continue
+        stone = _cell_bin(poly)
+        try:
+            top = bm.faces.new(vs)
+            _mark_face(top, stone)
+            n_tiles += 1
+        except ValueError:
+            hx = sum(v.co.x for v in vs) / float(len(vs))
+            hy = sum(v.co.y for v in vs) / float(len(vs))
+            h = vert((hx, hy), 0)
+            before = len(bm.faces)
+            for i, tv in enumerate(vs):
+                _tri(bm, h, tv, vs[(i + 1) % len(vs)], stone)
+            if len(bm.faces) > before:
+                n_tiles += 1
+    plaza_vs = [v for v in bm.verts if v.is_valid]
+    if plaza_vs:
+        bmesh.ops.remove_doubles(bm, verts=plaza_vs, dist=0.6)
+    tile_fs = [f for f in bm.faces if f.is_valid]
+    if tile_fs:
+        bmesh.ops.triangulate(bm, faces=tile_fs)
+    bm.edges.ensure_lookup_table()
+    seen_e: set[int] = set()
+    hole_loops: list[list[bmesh.types.BMVert]] = []
+    for e0 in bm.edges:
+        if not e0.is_boundary or id(e0) in seen_e:
+            continue
+        vs_loop: list[bmesh.types.BMVert] = []
+        cur = e0

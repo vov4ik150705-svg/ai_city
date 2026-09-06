@@ -1,0 +1,18 @@
+{
+  "note": "Literal BRIEF.md §6 T12 inventory. ARCHITECTURE.md, API.md and ROADMAP.md must cover every item. Edit only together with BRIEF.",
+  "src": "docs/BRIEF.md §6 T12",
+  "items": [
+    { "id": "monorepo_layout", "brief": "структура монорепо", "doc_section": "§2", "rule_or_derived": "L226 L227 derived.layer_order" },
+    { "id": "package_bounds", "brief": "границы пакетов", "doc_section": "§2", "rule_or_derived": "L228 L229 L230" },
+    { "id": "data_schema", "brief": "схема данных", "doc_section": "§5", "rule_or_derived": "L251 L252 L253 L254 L255 derived.record_field_homes" },
+    { "id": "rest_ws", "brief": "контракт REST и WebSocket", "doc_section": "§3", "rule_or_derived": "L232 L235 L236 derived.command_endpoints" },
+    { "id": "error_codes", "brief": "коды ошибок", "doc_section": "§5", "rule_or_derived": "L247 L248" },
+    { "id": "asset_port", "brief": "порт для активов с моком и реальной реализацией", "doc_section": "§6", "rule_or_derived": "L256 L257" },
+    { "id": "contract_ifaces", "brief": "интерфейсы контрактов на будущее", "doc_section": "§6", "rule_or_derived": "L256 derived.record_field_homes" },
+    { "id": "deploy", "brief": "деплой", "doc_section": "§9", "rule_or_derived": "L260" },
+    { "id": "observability", "brief": "наблюдаемость", "doc_section": "§8", "rule_or_derived": "L259 derived.invariant_metrics" },
+    { "id": "sampler", "brief": "сэмплер цены", "doc_section": "§7", "rule_or_derived": "L239 L241 L242 L243" },
+    { "id": "buyback", "brief": "конвейер выкупа", "doc_section": "§7", "rule_or_derived": "L244 L245" },
+    { "id": "outside_tick", "brief": "оба живут снаружи тика и не имеют права его блокировать", "doc_section": "§3", "rule_or_derived": "L246 derived.layer_order" }
+  ]
+}

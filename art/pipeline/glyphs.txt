@@ -1,0 +1,8 @@
+# Scene glyph list. TZ_ART.md §5. Read by font.py; not a literal in the script.
+0123456789
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+.,:;!?%+-/()#$@·−
+ 
+АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ
+абвгдеёжзийклмнопрстуфхцчшщъыьэюя

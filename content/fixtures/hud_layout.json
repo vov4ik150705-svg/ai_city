@@ -1,0 +1,17 @@
+{
+  "note": "Literal HUD.md §2 geometry. Not a pack param: duplicating these numbers in placement.json is a defect. Strip heights closed in T12 (D15).",
+  "src": "HUD.md §2",
+  "aspect_w": 16,
+  "aspect_h": 9,
+  "column_width_px": 260,
+  "topbar_height_px": 56,
+  "stock_strip_height_px": 40,
+  "bottom_menu_height_px": 48,
+  "hud_refs": {
+    "aspect": "HUD.md §2 three columns on 16:9",
+    "columns": "HUD.md §2 left and right 260px fixed",
+    "topbar": "HUD.md §2 topbar 56px",
+    "stock_strip": "HUD.md §6.2 STOCK MARKET strip; two number rows, 40px, T12 D15",
+    "bottom_menu": "HUD.md §6.3 bottom menu; seven items one row, 48px, T12 D15"
+  }
+}

@@ -1,0 +1,149 @@
+# GENERATED from pack e45cd45df5a471712127b7de094cb615d5609fff1427f981471d120b8520620f; do not edit
+services:
+  postgres:
+    profiles:
+      - prod
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: corporator
+      POSTGRES_DB: corporator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U corporator"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  migrate:
+    profiles:
+      - prod
+    image: corporator:${PACK_HASH}
+    env_file:
+      - .env
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/pack.json
+      DATABASE_URL: postgres://corporator:${POSTGRES_PASSWORD}@postgres:5432/corporator
+    command: ["node", "services/api/dist/migrate_main.js"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    profiles:
+      - prod
+    image: corporator:${PACK_HASH}
+    env_file:
+      - .env
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7460"
+      DATABASE_URL: postgres://corporator:${POSTGRES_PASSWORD}@postgres:5432/corporator
+    command: ["node", "services/api/dist/main.js"]
+    ports:
+      - "7460:7460"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7460/ready').then(r=>process.exit(r.ok?0:1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  attestor:
+    profiles:
+      - prod
+    image: corporator:${PACK_HASH}
+    env_file:
+      - .env
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7463"
+    command: ["node", "services/attestor/dist/main.js"]
+    ports:
+      - "7463:7463"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7463/ready').then(r=>process.exit(r.ok?0:1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  buyback:
+    profiles:
+      - prod
+    image: corporator:${PACK_HASH}
+    env_file:
+      - .env
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7462"
+    command: ["node", "services/buyback/dist/main.js"]
+    ports:
+      - "7462:7462"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7462/ready').then(r=>process.exit(r.ok?0:1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  llm:
+    profiles:
+      - prod
+    image: corporator:${PACK_HASH}
+    env_file:
+      - .env
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7464"
+    command: ["node", "services/llm/dist/main.js"]
+    ports:
+      - "7464:7464"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7464/ready').then(r=>process.exit(r.ok?0:1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  sampler:
+    profiles:
+      - prod
+    image: corporator:${PACK_HASH}
+    env_file:
+      - .env
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7461"
+    command: ["node", "services/sampler/dist/main.js"]
+    ports:
+      - "7461:7461"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7461/ready').then(r=>process.exit(r.ok?0:1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      migrate:
+        condition: service_completed_successfully

@@ -1,0 +1,275 @@
+{
+  "section": "modifiers",
+  "note": "T5 owns magnitudes, caps and stage order. This file stores only anchors and authored quanta. Magnitudes, caps, content_floor and the fused stack are generated. A stored cap is a build error (L71).",
+  "params": {
+    "trait_relief_share_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "DESIGN.md §5.10",
+      "why": "Steady and Night Owl each relieve half of the named penalty: jitter width halves, night premium is multiplied by one half. Not an authored cap — the cap for jitter is this same quantum so L36 stays checkable"
+    },
+    "specialist_home_gain_bps": {
+      "v": 1500,
+      "u": "bps",
+      "src": "DESIGN.md §5.10",
+      "why": "The only authored trait number: 1.0 → 1.15 on a home seat. Away is the symmetric mul remainder of the same quantum, not a second authored rate"
+    },
+    "witness_x": {
+      "v": 3,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T5 law C",
+      "why": "Non-commutativity witness base. Stepwise mulDiv of 3×1.5×1.3 depends on order; fused does not. Not a game rate"
+    },
+    "witness_a_bps": {
+      "v": 15000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T5 law C",
+      "why": "First witness multiplier 1.50. Pair with witness_b_bps. If a equals b the stepwise probe goes mute and L75 must fail"
+    },
+    "witness_b_bps": {
+      "v": 13000,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T5 law C",
+      "why": "Second witness multiplier 1.30. Stepwise 3 then 1.5 then 1.3 floors to 5; reverse floors to 4; fused floors to 5"
+    }
+  },
+  "cap_anchors": {
+    "output_bps": {
+      "max_from": "output_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "docs/BALANCE.md §4",
+      "why": "One building-level step of output growth. A content stack must not replace a level"
+    },
+    "energy_cost_bps": {
+      "max_from": "energy_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "docs/BALANCE.md §4",
+      "why": "One building-level step of energy growth. Same skeleton as the level curve"
+    },
+    "compute_cost_bps": {
+      "max_from": "energy_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "docs/BALANCE.md §4",
+      "why": "Compute has no own growth curve: the energy curve is reused so a compute stack cannot outrun an energy stack of the same depth"
+    },
+    "build_cost_bps": {
+      "max_from": "cost_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "docs/BALANCE.md §4",
+      "why": "One building-level step of cost growth. A discount stack must not erase the width-beats-depth curve"
+    },
+    "upgrade_speed_bps": {
+      "max_from": "build_time_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "docs/BALANCE.md §4",
+      "why": "One building-level step of build-time growth. Faster upgrades stay inside the same skeleton"
+    },
+    "xp_rate_bps": {
+      "max_from": "xp_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "docs/BALANCE.md §7",
+      "why": "One agent-level step of XP growth. Handbook plus content must not skip a title"
+    },
+    "fragment_rate_bps": {
+      "max_from": "output_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "docs/BRIEF.md §6 T6",
+      "why": "Paper twin of Capital output: the same growth step. Pool and claim window stay T6"
+    },
+    "population_conversion_bps": {
+      "max_from": "output_growth_bps",
+      "max_section": "balance",
+      "min_from": "reciprocal",
+      "src": "DESIGN.md §4.2",
+      "why": "Retail Capital is still output. Same cap as workshop output so AAPL cannot outrun the production curve"
+    },
+    "idle_reduction_bps": {
+      "reduction_from": "residual_idle_bps",
+      "reduction_section": "balance",
+      "reduction_mode": "complement",
+      "src": "docs/BALANCE.md §6",
+      "why": "Even an optimizer keeps residual_idle. Cap is 10000 minus that floor so two sources cannot reach 100 percent uptime"
+    },
+    "jitter_bps": {
+      "reduction_from": "trait_relief_share_bps",
+      "reduction_section": "modifiers",
+      "reduction_mode": "direct",
+      "src": "DESIGN.md §5.10, docs/BALANCE.md §12",
+      "why": "Maximum jitter shrink is one Steady. Wider relief would zero the band and L36 would stop being checkable"
+    },
+    "agent_slots": {
+      "max_from": "slots_span",
+      "max_section": "agents",
+      "src": "DESIGN.md §12",
+      "why": "slots_cap minus slots_start. City-level ladder already walks this span; the key must not overshoot the hard clip"
+    },
+    "offline_cap_hours": {
+      "max_from": "sum_tiers_countable",
+      "max_section": "progression",
+      "src": "DESIGN.md §4.2",
+      "why": "countable_unit times 1+2+3. Base 12 plus this cap is the named 18. Merge extra hours clip; the named 18 is not rewritten"
+    },
+    "fund_share_bps": {
+      "max_from": "sum_tiers_bps",
+      "max_section": "progression",
+      "second_source": "progression_merge",
+      "src": "DESIGN.md §2.5, §4.2",
+      "why": "Finance branch 500 times 1+2+3, plus one merge of the same key. Section 2.5 has no other weight cap in proportional payroll, so a second source must raise the cap or the merge would clip silently"
+    }
+  },
+  "rows": {
+    "overclock_output": {
+      "source_kind": "objective",
+      "source": "overclock",
+      "key": "output_bps",
+      "magnitude_from": "overclock_out",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9",
+      "why": "Two quanta of output. Paid in energy on the same objective so slot-bound Overclock cannot print payback"
+    },
+    "overclock_energy": {
+      "source_kind": "objective",
+      "source": "overclock",
+      "key": "energy_cost_bps",
+      "magnitude_from": "overclock_energy",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9, docs/BALANCE.md §1",
+      "why": "Energy delta is ceil of output times capex_trade_ratio, quantized up. Floor would improve net payback"
+    },
+    "frugal_output": {
+      "source_kind": "trait",
+      "source": "frugal",
+      "key": "output_bps",
+      "magnitude_from": "frugal_out",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.10, docs/BALANCE.md §1",
+      "why": "Minus one quantum of output. The input relief is floored so Frugal cannot be a free lunch"
+    },
+    "frugal_energy": {
+      "source_kind": "trait",
+      "source": "frugal",
+      "key": "energy_cost_bps",
+      "magnitude_from": "frugal_input",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.10",
+      "why": "Energy relief floored against capex_trade_ratio. Ceil would over-save and beat the normalisation point"
+    },
+    "frugal_compute": {
+      "source_kind": "trait",
+      "source": "frugal",
+      "key": "compute_cost_bps",
+      "magnitude_from": "frugal_input",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.10",
+      "why": "Compute relief mirrors energy. Same floor, same quantum, no second authored rate"
+    },
+    "night_owl_energy": {
+      "source_kind": "trait",
+      "source": "night_owl",
+      "key": "energy_cost_bps",
+      "magnitude_from": "night_owl_energy",
+      "applies_when": "night",
+      "src": "DESIGN.md §5.10",
+      "why": "Multiplicative half of the night premium. Effective premium is not half because the premium itself is additive; named as R-T5-night-mul"
+    },
+    "steady_jitter": {
+      "source_kind": "trait",
+      "source": "steady",
+      "key": "jitter_bps",
+      "magnitude_from": "steady_jitter",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.10, docs/BALANCE.md §12",
+      "why": "Remainder share equal to trait_relief. Width 500 becomes 250, band [9750, 10250]"
+    },
+    "specialist_home": {
+      "source_kind": "trait",
+      "source": "specialist",
+      "key": "output_bps",
+      "magnitude_from": "specialist_home",
+      "applies_when": "affinity_home",
+      "src": "DESIGN.md §5.10",
+      "why": "Home seat 1.00 to 1.15. The only authored trait magnitude"
+    },
+    "specialist_away": {
+      "source_kind": "trait",
+      "source": "specialist",
+      "key": "output_bps",
+      "magnitude_from": "specialist_away",
+      "applies_when": "affinity_not_home",
+      "src": "DESIGN.md §5.10",
+      "why": "Away seat is the symmetric remainder of the same 1500 bps: 0.85. Not a second authored rate"
+    },
+    "route_idle": {
+      "source_kind": "objective",
+      "source": "route",
+      "key": "idle_reduction_bps",
+      "magnitude_from": "route_idle",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9",
+      "why": "Default logistician: two quanta of idle remainder. Local energy idle is the v1 job"
+    },
+    "stockpile_idle": {
+      "source_kind": "objective",
+      "source": "stockpile",
+      "key": "idle_reduction_bps",
+      "magnitude_from": "stockpile_idle",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9",
+      "why": "Route plus two more quanta. Break-even idle versus Route is generated, not stored"
+    },
+    "stockpile_output": {
+      "source_kind": "objective",
+      "source": "stockpile",
+      "key": "output_bps",
+      "magnitude_from": "stockpile_out",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9",
+      "why": "Minus one quantum of current output. The buffer is paid for; a zero penalty would make Stockpile dominate Route"
+    },
+    "train_xp": {
+      "source_kind": "objective",
+      "source": "train",
+      "key": "xp_rate_bps",
+      "magnitude_from": "train_xp",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9, §11",
+      "why": "Two quanta of XP, same skeleton as Overclock output. Paid in compute on the same objective so Train cannot print titles"
+    },
+    "train_compute": {
+      "source_kind": "objective",
+      "source": "train",
+      "key": "compute_cost_bps",
+      "magnitude_from": "train_compute",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9, §11",
+      "why": "Compute delta is ceil of XP quanta times capex_trade_ratio, quantized up. Energy curve reused so a compute stack cannot outrun energy"
+    },
+    "research_compute": {
+      "source_kind": "objective",
+      "source": "research",
+      "key": "compute_cost_bps",
+      "magnitude_from": "research_compute",
+      "applies_when": "always",
+      "src": "DESIGN.md §5.9, §11",
+      "why": "Same paid-input ceil as Train. Alternative to Train on the same scientist: one objective, not both"
+    }
+  },
+  "derived": {
+    "capex_trade_ratio_bps": "10000 plus energy_capex_share_bps, over energy_capex_share_bps, in bps. Not stored",
+    "modifier_caps": "thirteen caps from anchors: mul reciprocal pair, remainder complement, add structural",
+    "modifier_rows": "union of authored trait/objective rows plus research plus progression nodes, dividends and merges",
+    "modifier_content_floor": "per-key composition of rows that can legally coexist on one recipient",
+    "modifier_stack_probe": "free stack, paid stack, net_payback, bit width, non-commutativity witness",
+    "night_owl_effective_premium_bps": "additive premium after the multiplicative Night Owl row",
+    "stockpile_breakeven_idle_bps": "idle rate I-star at which Stockpile equals Route",
+    "fused_division_count": "keys with a cap plus one fused product; independent of row count",
+    "worst_numerator_bits": "bit length of the fused numerator at max caps and max base output"
+  }
+}

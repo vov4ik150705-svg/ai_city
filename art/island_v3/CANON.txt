@@ -1,0 +1,5 @@
+Canon island mass: snapshots/canon_2026-09-06_island/ (plaza + hull, no buildings).
+Live working copy: island.blend / island.glb (may include buildings).
+Builder re-exports this mesh and does not regenerate the hull.
+7200 x 7200 m polar triangle grid. 4130 faces.
+xy -5000.4..5105.7 / -5118.3..4922.0 z -2517.2..0.1

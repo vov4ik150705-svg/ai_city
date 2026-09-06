@@ -1,0 +1,14 @@
+{
+  "off_x": 2024,
+  "off_y": 114,
+  "half_w": 32,
+  "half_h": 16,
+  "tile_w": 64,
+  "tile_h": 32,
+  "drop": 0,
+  "pad": 40,
+  "width": 4112,
+  "height": 2181,
+  "land": 2680,
+  "objects": 669
+}

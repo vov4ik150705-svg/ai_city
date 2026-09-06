@@ -1,0 +1,3210 @@
+{
+  "section": "arch",
+  "note": "T12 architecture as data. Layers, services, schema, port, metrics, deploy. Wire enumerations stay in the pack sections that already own them; this file holds pointers and flags.",
+  "params": {
+    "llm_worker_concurrency": {
+      "v": 1,
+      "u": "count",
+      "src": "D16, DESIGN.md §5.4",
+      "why": "Our worker count, not a guessed provider quota. Overflow already carries COMPANION_QUEUE_FULL; raising this without a measured bill is a silent second queue"
+    },
+    "attest_lag_alert_ticks": {
+      "v": 2,
+      "u": "count",
+      "src": "D13, DESIGN.md §6.4",
+      "why": "Alert after two sealed ticks without a root so fail-open stays visible as SERVICE_DEGRADED before a city day of unattested records sits in the outbox"
+    },
+    "price_day_published": {
+      "v": 1,
+      "u": "flag",
+      "src": "D8, DESIGN.md §6.2",
+      "why": "The raw sample row is a public object; a header TWAP without a CID is an unverifiable declaration, not a price"
+    },
+    "property_runs": {
+      "v": 64,
+      "u": "count",
+      "src": "D-C-5, PLAN_CODE D-C-13",
+      "why": "fast-check runs per property test. Authored once so vitest and the oracle do not pick two different budgets"
+    },
+    "client_bundle_max_bytes": {
+      "v": 2500000,
+      "u": "count",
+      "src": "PLAN_LIVE L3, R-C-12, docs/reports/GATE_PERF.md",
+      "why": "Ceiling for apps/client dist-web JS. Animation and shaders stay closed until a measured bundle sits under this cap"
+    }
+  },
+  "packages": {
+    "engine": {
+      "path": "packages/engine",
+      "layer": 0,
+      "root": "packages",
+      "entrypoint": 0,
+      "preview_only": 0,
+      "allowed_deps": [],
+      "src": "D1, docs/TICK.md §2",
+      "why": "Pure tick. A dependency here would drag HTTP or RPC into the public verifier"
+    },
+    "protocol": {
+      "path": "packages/protocol",
+      "layer": 1,
+      "root": "packages",
+      "entrypoint": 0,
+      "preview_only": 0,
+      "allowed_deps": [],
+      "src": "D1, D2, T12",
+      "why": "Generated literals only. Depending on engine would invert the wire and the function"
+    },
+    "contentpack": {
+      "path": "packages/contentpack",
+      "layer": 1,
+      "root": "packages",
+      "entrypoint": 0,
+      "preview_only": 0,
+      "allowed_deps": [
+        "protocol"
+      ],
+      "src": "D1, D2, T12",
+      "why": "Loads a pack by hash and serves sections. Protocol types only"
+    },
+    "chainport": {
+      "path": "packages/chainport",
+      "layer": 2,
+      "root": "packages",
+      "entrypoint": 0,
+      "preview_only": 0,
+      "allowed_deps": [
+        "protocol"
+      ],
+      "src": "D1, D12, T12",
+      "why": "AssetPort interface. Engine stays free of RPC so a verifier never imports a provider"
+    },
+    "render": {
+      "path": "packages/render",
+      "layer": 2,
+      "root": "packages",
+      "entrypoint": 0,
+      "preview_only": 0,
+      "allowed_deps": [
+        "protocol",
+        "contentpack"
+      ],
+      "src": "D-V-9, PLAN_VISUAL V3",
+      "why": "Visual v3 Three.js island; Pixi V12 is archive. Does not see engine, chainport, DB or services. Does not write state or call tick"
+    },
+    "api": {
+      "path": "services/api",
+      "layer": 3,
+      "root": "services",
+      "entrypoint": 1,
+      "preview_only": 0,
+      "allowed_deps": [
+        "engine",
+        "protocol",
+        "contentpack",
+        "chainport"
+      ],
+      "src": "D1, D3, T12",
+      "why": "Sole writer of player money tables. Host of commands and the state snapshot"
+    },
+    "sampler": {
+      "path": "services/sampler",
+      "layer": 3,
+      "root": "services",
+      "entrypoint": 1,
+      "preview_only": 0,
+      "allowed_deps": [
+        "engine",
+        "protocol",
+        "contentpack",
+        "chainport"
+      ],
+      "src": "D1, D8, T12",
+      "why": "Writes price samples into tick inputs. Must not depend on another service"
+    },
+    "buyback": {
+      "path": "services/buyback",
+      "layer": 3,
+      "root": "services",
+      "entrypoint": 1,
+      "preview_only": 0,
+      "allowed_deps": [
+        "engine",
+        "protocol",
+        "contentpack",
+        "chainport"
+      ],
+      "src": "D1, D9, T12",
+      "why": "Buyback transport. Tranche numbers live in launch.json, not here"
+    },
+    "attestor": {
+      "path": "services/attestor",
+      "layer": 3,
+      "root": "services",
+      "entrypoint": 1,
+      "preview_only": 0,
+      "allowed_deps": [
+        "engine",
+        "protocol",
+        "contentpack",
+        "chainport"
+      ],
+      "src": "D1, D10, T12",
+      "why": "Outbox and lag. Must not call into api; shared state lives in packages"
+    },
+    "llm": {
+      "path": "services/llm",
+      "layer": 3,
+      "root": "services",
+      "entrypoint": 1,
+      "preview_only": 0,
+      "allowed_deps": [
+        "protocol",
+        "contentpack"
+      ],
+      "src": "D1, DESIGN.md §5.4",
+      "why": "Advisor and daily summary live outside the tick. No engine import on this host"
+    },
+    "client": {
+      "path": "apps/client",
+      "layer": 4,
+      "root": "apps",
+      "entrypoint": 1,
+      "preview_only": 1,
+      "allowed_deps": [
+        "protocol",
+        "engine",
+        "contentpack",
+        "render"
+      ],
+      "src": "D1, HUD.md §8, D-C-12, D-V-9",
+      "why": "Browser. Engine import is preview_only. contentpack loads pack bytes bigint-safe; render draws the island and does not write state"
+    }
+  },
+  "services": {
+    "api": {
+      "package": "api",
+      "fail_mode": "open",
+      "blocks_tick": 0,
+      "writes_player_money": 1,
+      "src": "D1, D10, T12",
+      "why": "Command host. Degraded sampler or attestor must not stop a payout"
+    },
+    "sampler": {
+      "package": "sampler",
+      "fail_mode": "open",
+      "blocks_tick": 0,
+      "writes_player_money": 0,
+      "src": "D8, docs/TICK.md §7",
+      "why": "Silence writes feed_live=0. The tick uses the last stored sample and a code"
+    },
+    "buyback": {
+      "package": "buyback",
+      "fail_mode": "open",
+      "blocks_tick": 0,
+      "writes_player_money": 0,
+      "src": "D9, DESIGN.md §2.3",
+      "why": "Two legs, one host: fund mint after vault deposit; month basket hop fail-open. Does not debit a player"
+    },
+    "attestor": {
+      "package": "attestor",
+      "fail_mode": "open",
+      "blocks_tick": 0,
+      "writes_player_money": 0,
+      "src": "D10, DESIGN.md §6.4",
+      "why": "IPFS or RPC failure leaves payout in state and records in the outbox"
+    },
+    "llm": {
+      "package": "llm",
+      "fail_mode": "open",
+      "blocks_tick": 0,
+      "writes_player_money": 0,
+      "src": "DESIGN.md §5.4",
+      "why": "Provider refusal becomes a template. The economic tick does not wait"
+    },
+    "pack_gate": {
+      "package": "engine",
+      "fail_mode": "closed",
+      "blocks_tick": 1,
+      "writes_player_money": 0,
+      "src": "D10, docs/TICK.md §2",
+      "why": "The only closed contour: unknown pack_hash must not price a shift"
+    }
+  },
+  "codegen": {
+    "codes": {
+      "source": "codes.json",
+      "artifact": "packages/protocol/src/codes.ts",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D2, codes.json",
+      "why": "Transport and domain codes are generated from the pack, never retyped"
+    },
+    "screens": {
+      "source": "screens.json",
+      "artifact": "packages/protocol/src/screens.ts",
+      "consumer": "client",
+      "command": "python content/codegen.py",
+      "src": "D2, D3, T12",
+      "why": "Capabilities and commit effects come from screens.json"
+    },
+    "modifier_keys": {
+      "source": "modifier_keys.json",
+      "artifact": "packages/protocol/src/modifier_keys.ts",
+      "consumer": "engine",
+      "command": "python content/codegen.py",
+      "src": "D2, docs/PROGRESSION.md",
+      "why": "Key ids on the wire match the T5 table"
+    },
+    "districts": {
+      "source": "districts.json",
+      "artifact": "packages/protocol/src/districts.ts",
+      "consumer": "client",
+      "command": "python content/codegen.py",
+      "src": "D2, DESIGN.md §4",
+      "why": "District ids are pack entities, not a second client enum"
+    },
+    "buildings": {
+      "source": "buildings.json",
+      "artifact": "packages/protocol/src/buildings.ts",
+      "consumer": "client",
+      "command": "python content/codegen.py",
+      "src": "D2, DESIGN.md §7",
+      "why": "Building ids follow the contour generator"
+    },
+    "units": {
+      "source": "schema/$defs.unit",
+      "artifact": "packages/protocol/src/units.ts",
+      "consumer": "protocol",
+      "command": "python content/codegen.py",
+      "src": "D2, schema unit enum",
+      "why": "The unit enum is the schema, not a handwritten TypeScript union"
+    },
+    "versions": {
+      "source": "meta.json",
+      "artifact": "packages/protocol/src/versions.ts",
+      "consumer": "contentpack",
+      "command": "python content/codegen.py",
+      "src": "D2, docs/CONTENT.md §5",
+      "why": "rules_version and pack_version come from meta, not a client constant"
+    },
+    "schema_ddl": {
+      "source": "arch.schema_tables",
+      "artifact": "services/api/migrations/001_from_pack.sql",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-C-7, D-C-9, docs/ARCHITECTURE.md §5",
+      "why": "DDL is generated from the pack. A hand-written migration would be a second schema"
+    },
+    "command_routes": {
+      "source": "derived.command_endpoints",
+      "artifact": "packages/protocol/src/routes.ts",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-C-7, docs/API.md §2",
+      "why": "REST paths equal commit effects. A handwritten router would fork the bijection"
+    },
+    "layer_cruiser": {
+      "source": "arch.packages",
+      "artifact": ".dependency-cruiser.cjs",
+      "consumer": "engine",
+      "command": "python content/codegen.py",
+      "src": "D-C-8, docs/ARCHITECTURE.md §2",
+      "why": "Layer graph is data. Cruiser config is generated so a second inventory cannot exist"
+    },
+    "ws_channels": {
+      "source": "arch.channel_rules",
+      "artifact": "packages/protocol/src/channels.ts",
+      "consumer": "client",
+      "command": "python content/codegen.py",
+      "src": "D-C-7, HUD.md §8",
+      "why": "WS channels partition state_sources. Client must not author a second map"
+    },
+    "tsconfig_refs": {
+      "source": "arch.packages",
+      "artifact": "tsconfig.json",
+      "consumer": "engine",
+      "command": "python content/codegen.py",
+      "src": "D-C-8, docs/ARCHITECTURE.md §2",
+      "why": "Project references equal the layer table. A handwritten list would be a second graph"
+    },
+    "listen": {
+      "source": "arch.listen",
+      "artifact": "packages/protocol/src/listen.ts",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-L-3, PLAN_LIVE L2",
+      "why": "Bind and ports are pack keys. A handwritten listen constant would be a second number"
+    },
+    "dockerfile": {
+      "source": "arch.image",
+      "artifact": "deploy/Dockerfile",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-C-1, PLAN_CODE C9",
+      "why": "Runtime image pins pack_hash and must not ship Python or the content tree"
+    },
+    "compose": {
+      "source": "arch.postgres",
+      "artifact": "deploy/compose.yaml",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-L-6, PLAN_LIVE L4",
+      "why": "Compose lists entrypoint services and Postgres from the pack. A handwritten yaml would be a second port table"
+    },
+    "compose_prod": {
+      "source": "arch.image",
+      "artifact": "deploy/compose.prod.yaml",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-P-8, PLAN_RELEASE P4",
+      "why": "Prod profile is a built image with no source mount. A handwritten overlay would bring back volumes"
+    },
+    "env_example": {
+      "source": "arch.secrets",
+      "artifact": "deploy/.env.example",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-P-8, PLAN_RELEASE P4",
+      "why": "Names without values. A value here would be a key in git"
+    },
+    "restore_sh": {
+      "source": "arch.backup",
+      "artifact": "deploy/restore.sh",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-P-11, PLAN_RELEASE P4",
+      "why": "Restore command is pack data. A second script would fork the witness"
+    },
+    "ci_runner": {
+      "source": "arch.ci_steps",
+      "artifact": "scripts/ci.mjs",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "R-C-4, D-P-6, PLAN_RELEASE P2",
+      "why": "Commit gate is the push track. Full attack.py lives on nightly, not this runner"
+    },
+    "ci_workflow": {
+      "source": "arch.ci_steps",
+      "artifact": ".github/workflows/ci.yml",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "Workflow is one-way from the step table. A hand patch would put the full attack on push"
+    },
+    "env_manifests": {
+      "source": "arch.environments",
+      "artifact": "deploy/environments.json",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "D14, PLAN_CODE C9",
+      "why": "dev staging prod manifests are pack data. A handwritten deploy list would fork the pin"
+    },
+    "foundry_toml": {
+      "source": "arch.toolchain",
+      "artifact": "contracts/foundry.toml",
+      "consumer": "chainport",
+      "command": "python content/codegen.py",
+      "src": "D-L-8, PLAN_LIVE L7",
+      "why": "solc pin lives once in toolchain; a handwritten foundry.toml would fork the compiler"
+    },
+    "pack_constants": {
+      "source": "economy.json",
+      "artifact": "contracts/test/PackConstants.sol",
+      "consumer": "chainport",
+      "command": "python content/codegen.py",
+      "src": "D-L-8, PLAN_LIVE L7",
+      "why": "creator tax, vault cap and voucher TTL enter Solidity from the pack, not as a second table"
+    }
+  },
+  "schema_tables": {
+    "accounts": {
+      "key": "account_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D11, docs/BRIEF.md §2",
+      "why": "Demo versus wallet lives on the account row so a join cannot invent a transfer"
+    },
+    "cities": {
+      "key": "city_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D11, DESIGN.md §3",
+      "why": "Clock anchor and city level sit with the owning account_kind"
+    },
+    "tick_inputs": {
+      "key": "city_id, city_time",
+      "holds": "tick_input_header",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 0,
+      "src": "D11, docs/TICK.md §8",
+      "why": "Header bytes plus hash. tick_index is computed, city_time is the truth"
+    },
+    "records": {
+      "key": "city_id, city_time, agent_id",
+      "holds": "decision_record",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D11, DESIGN.md §6.1",
+      "why": "Layout v1 bytes that went into the merkle leaf, plus their hash"
+    },
+    "state_snapshots": {
+      "key": "city_id, city_time",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 1,
+      "src": "D11, docs/TICK.md §6",
+      "why": "Day-boundary snapshot. Period is ticks_per_city_day, not a second clock"
+    },
+    "outbox": {
+      "key": "id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 0,
+      "src": "D10, docs/TICK.md §9",
+      "why": "Leaves and roots waiting for attestation. Fail-open keeps this non-empty"
+    },
+    "attest_roots": {
+      "key": "root_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 0,
+      "src": "D10, DESIGN.md §6.2",
+      "why": "Minute root and daily aggregate CID. Live chain submit stays v1.1"
+    },
+    "price_samples": {
+      "key": "sampled_at",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 0,
+      "src": "D8, DESIGN.md §6.2",
+      "why": "Global sample row. One object per city day, CID referenced from the aggregate"
+    },
+    "buyback_batches": {
+      "key": "batch_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D9, DESIGN.md §2.3",
+      "why": "Four timestamps: collection, buy, confirmed deposit, mint. Mint earlier than deposit is I1"
+    },
+    "vouchers": {
+      "key": "nonce",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D12, DESIGN.md §10.1",
+      "why": "One-use bank voucher. TTL is one city hour so the daily limit still holds"
+    },
+    "intents": {
+      "key": "city_id, intent_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D7, T12 TZ",
+      "why": "Idempotent command results. A lost withdraw must not run twice"
+    },
+    "fragments_ledger": {
+      "key": "city_id, ticker, window",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D11, docs/PRIZES.md T6",
+      "why": "Ledger, not a recompute on read. Demo isolation is account_kind"
+    },
+    "seasons": {
+      "key": "city_id, season_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D11, docs/PRIZES.md T7",
+      "why": "Influence integral storage. Prize payout stays v1.1"
+    },
+    "prize_pools": {
+      "key": "period_id, kettle, asset",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D-M-13, PLAN_MONEY M3",
+      "why": "farm and month kettles stay unmixed; demo CHECK is account_kind"
+    },
+    "prize_payouts": {
+      "key": "period_id, kettle, asset, wallet",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D-M-7, PLAN_MONEY M3",
+      "why": "Settled row is money; demo cannot appear (account_kind)"
+    },
+    "basket_batches": {
+      "key": "batch_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D-M-9, PLAN_MONEY M4",
+      "why": "Four stamps: eth_split, quote_swapped, stock_bought, custody_confirmed. Hop failure keeps ETH"
+    },
+    "prize_returns": {
+      "key": "return_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 1,
+      "account_kind": 1,
+      "src": "D-M-13, PLAN_MONEY M5",
+      "why": "returnUnsettled writes asset atoms kettle and city_time; settled rows are not in this table"
+    },
+    "schema_migrations": {
+      "key": "version",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 0,
+      "src": "D-C-9, docs/ARCHITECTURE.md §9",
+      "why": "Forward-only applied version. readiness compares this row to the GEN file set"
+    },
+    "sessions": {
+      "key": "session_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 1,
+      "src": "D-P-3, PLAN_RELEASE P1",
+      "why": "Opaque session and one-shot nonce rows. Demo versus wallet is account_kind; not money"
+    },
+    "city_owners": {
+      "key": "subject",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 1,
+      "src": "D-P-4, PLAN_RELEASE P1",
+      "why": "address to city_id lives here, not in the tick. Island seed is stored once at city creation"
+    },
+    "command_rates": {
+      "key": "city_id, tick_index",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 0,
+      "src": "D-P-5, PLAN_RELEASE P1",
+      "why": "Atomic command counter per session city and tick. A process map would reset on restart"
+    },
+    "tick_locks": {
+      "key": "city_id",
+      "holds": "none",
+      "storage": "canonical_bytes",
+      "money": 0,
+      "account_kind": 0,
+      "src": "D-P-8, PLAN_RELEASE P4",
+      "why": "Single tick writer lease. A replica without the row serves reads and does not step the city"
+    }
+  },
+  "session": {
+    "storage_table": "sessions",
+    "subject_kinds": ["wallet", "demo"],
+    "message_fields": ["domain", "address", "nonce", "pack_hash", "expires_city_time"],
+    "domain": "Corporator",
+    "authorization_header": "Authorization",
+    "authorization_scheme": "Bearer",
+    "src": "D-P-3, PLAN_RELEASE P1",
+    "why": "Canonical sign payload is pack field order, not a client-formatted string. Header carries the opaque session id"
+  },
+  "port": {
+    "implementations": [
+      "mock",
+      "rpc"
+    ],
+    "rpc_import_only": "rpc",
+    "groups": {
+      "corp_token": {
+        "design_10": "token $CORP with creator fee in the pool",
+        "src": "DESIGN.md §10 on-chain",
+        "why": "Maps the $CORP token line. A third group here would be an extra pool"
+      },
+      "vault": {
+        "design_10": "vault deposit mints Capital, withdraw via signed voucher",
+        "src": "DESIGN.md §10 on-chain",
+        "why": "Deposit then mint, voucher on exit. Order is I1"
+      },
+      "stake_registry": {
+        "design_10": "stock staking contract",
+        "src": "DESIGN.md §10 on-chain",
+        "why": "District gates read a recorded snapshot, not a live RPC inside the tick"
+      },
+      "merkle_roots": {
+        "design_10": "merkle root registry",
+        "src": "DESIGN.md §10 on-chain",
+        "why": "Root registry. Live submit is v1.1; the port exists so the host can land later"
+      },
+      "prize_treasury": {
+        "design_10": "prize treasury for farm and month stock kettles",
+        "src": "DESIGN.md §10 on-chain, D-M-13",
+        "why": "Fifth group holds prize stocks; vault fund and reserve stay out of returnUnsettled"
+      }
+    },
+    "src": "D12, DESIGN.md §10",
+    "why": "Exactly two implementations. RPC library import is illegal outside rpc"
+  },
+  "keys": {
+    "voucher_signer": {
+      "service": "api",
+      "client": 0,
+      "src": "D12, DESIGN.md §10.1",
+      "why": "Bank voucher key lives with the command host, never in the client, never in buyback"
+    },
+    "buyback_executor": {
+      "service": "buyback",
+      "client": 0,
+      "src": "D12, D9, T12",
+      "why": "Buyback sender is a separate role so a stolen voucher key cannot spend the tranche"
+    },
+    "prize_payer": {
+      "service": "buyback",
+      "client": 0,
+      "src": "D-M-9, PLAN_MONEY M4",
+      "why": "Pays settled stock prizes; a stolen buyback_executor key cannot sign payouts"
+    },
+    "guardian": {
+      "service": "api",
+      "client": 0,
+      "src": "D-M-13, D-M-14, PLAN_MONEY M5",
+      "why": "Pauses vault and prize treasury; cannot sign refunds or returnUnsettled"
+    },
+    "signer": {
+      "service": "api",
+      "client": 0,
+      "src": "D-M-14, PLAN_MONEY M5",
+      "why": "Hot refund signer; guardian proposes rotation, this key accepts; not the buyback bot"
+    },
+    "pending_signer": {
+      "service": "api",
+      "client": 0,
+      "src": "D-M-14, PLAN_MONEY M5",
+      "why": "Two-step signer rotation; setSigner in one call would let one stolen key swap itself"
+    }
+  },
+  "secrets": {
+    "src": "D-P-8, PLAN_RELEASE P4",
+    "why": "One env name per key role. Values stay out of the repo and out of the image layer",
+    "roles": {
+      "voucher_signer": {
+        "env": "CORPORATOR_VOUCHER_SIGNER",
+        "src": "D12, PLAN_RELEASE P4",
+        "why": "Bank voucher key. Named once; compose injects it, Dockerfile does not"
+      },
+      "buyback_executor": {
+        "env": "CORPORATOR_BUYBACK_EXECUTOR",
+        "src": "D9, PLAN_RELEASE P4",
+        "why": "Buyback sender. A second name in yaml would split the role"
+      },
+      "prize_payer": {
+        "env": "CORPORATOR_PRIZE_PAYER",
+        "src": "D-M-9, PLAN_RELEASE P4",
+        "why": "Settled prize payer. Not the buyback executor"
+      },
+      "guardian": {
+        "env": "CORPORATOR_GUARDIAN",
+        "src": "D-M-13, PLAN_RELEASE P4",
+        "why": "Pause key. Address values are owner P7; the name is the pack"
+      },
+      "signer": {
+        "env": "CORPORATOR_SIGNER",
+        "src": "D-M-14, PLAN_RELEASE P4",
+        "why": "Hot refund signer. Not listed in the Dockerfile"
+      },
+      "pending_signer": {
+        "env": "CORPORATOR_PENDING_SIGNER",
+        "src": "D-M-14, PLAN_RELEASE P4",
+        "why": "Two-step rotation pending slot"
+      }
+    }
+  },
+  "backup": {
+    "schedule_kind": "city_day",
+    "retention_src": "economy.params.payroll_daily_divisor",
+    "restore_cmd": "deploy/restore.sh",
+    "replay_witness": "restore_replay_matches_origin",
+    "src": "D-P-11, PLAN_RELEASE P4 A-P-19",
+    "why": "A dump without a replay witness is not a restore. Period is a city day; retention follows the farm window divisor, not a stored cron"
+  },
+  "rehearsal": {
+    "pack_pin": "prod",
+    "city_day_src": "time.params.city_day_real_hours",
+    "tick_length_src": "time.params.tick_length_city_hours",
+    "src": "D-P-9, PLAN_RELEASE P5",
+    "why": "Rehearsal uses the prod pack; a second pack with a shorter city day is a different economy"
+  },
+  "metrics": {
+    "vault_cover": {
+      "invariant": "I1_I3",
+      "service": "api",
+      "threshold_src": "economy.params.capital_anchor",
+      "observe_src": "state.capital_outstanding",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §2.3 I1 I3",
+      "why": "Capital outstanding versus CORP in vault times the ceiling. A silent mint is a printer"
+    },
+    "friction_budget": {
+      "invariant": "L13_L14",
+      "service": "api",
+      "threshold_src": "meta.params.round_trip_floor_bps",
+      "observe_src": "generated.economy.round_trip_cost_bps",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §2.6 L13 L14",
+      "why": "Round trip stays in the authored band. Entry cheaper than exit"
+    },
+    "payroll_ratio": {
+      "invariant": "payroll_proportional",
+      "service": "api",
+      "threshold_src": "time.derived.ticks_per_city_day",
+      "observe_src": "state.payroll_ratio_bps",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §2.5",
+      "why": "Daily budget is fund/14. Trim is proportional; a silent zero is a trust bug"
+    },
+    "i5_reserve_drain": {
+      "invariant": "I5",
+      "service": "api",
+      "threshold_src": "economy.params.reserve_weekly_drain_bps",
+      "observe_src": "state.week_drained_virgin",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §2.4 I5",
+      "why": "Virgin drip cannot exceed the weekly drain cap even if cork inflates the stock"
+    },
+    "i7_exit_cover": {
+      "invariant": "I7",
+      "service": "api",
+      "threshold_src": "pending.items.exit_uncovered_at_band_floor",
+      "observe_src": "state.vault_corp",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §2.3 I7",
+      "why": "Vault cover versus exit queue. Uncovered bps is a state code, not a raise"
+    },
+    "i11_flow": {
+      "invariant": "I11",
+      "service": "api",
+      "threshold_src": "generated.balance.fund_contribution_bps",
+      "observe_src": "generated.economy.creator_tax_fund_bps",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §2 I11",
+      "why": "Reserve cannot exceed burn plus fee identity. Calibration assert stays live"
+    },
+    "tick_determinism": {
+      "invariant": "tick_pure",
+      "service": "engine",
+      "threshold_src": "tick.params.layout_version",
+      "observe_src": "state.tick_index",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §6.3 L208",
+      "why": "No network, clock, or unseeded random on the tick path. Lag of a host is not an input"
+    },
+    "catchup_eq_replay": {
+      "invariant": "catchup_eq_replay",
+      "service": "api",
+      "threshold_src": "time.params.offline_cap_city_hours_base",
+      "observe_src": "state.last_live_tick",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §6.3 D8",
+      "why": "N ticks in one catch-up equal N online ticks. A second clock would desync the verifier"
+    },
+    "layout_v1_bytes": {
+      "invariant": "layout_v1_bytes",
+      "service": "attestor",
+      "threshold_src": "tick.params.layout_version",
+      "observe_src": "generated.tick.record_spec.fields",
+      "alert_channel": "ops_log",
+      "src": "DESIGN.md §6.1",
+      "why": "Canonical bytes of a record do not depend on key order. JSON columns would drift the root"
+    },
+    "demo_barrier": {
+      "invariant": "demo_isolated",
+      "service": "api",
+      "threshold_src": "screens.params.demo_isolated",
+      "observe_src": "generated.arch.demo_transfer_edges",
+      "alert_channel": "ops_log",
+      "src": "docs/BRIEF.md §2",
+      "why": "No demo to wallet path. Capital is not minted for demo and progress does not move"
+    }
+  },
+  "ops": {
+    "channel": "ops_log",
+    "src": "D-P-10, PLAN_RELEASE P6",
+    "why": "One ops log is the addressee of every metric alert and every incident. Splitting channels splits the page the on-call reads"
+  },
+  "incidents": {
+    "rpc_silence": {
+      "code": "SERVICE_DEGRADED",
+      "sign": "rpc_transport_status_silence",
+      "owner": "ops",
+      "runbook": "rpc_silence",
+      "decides": "ops",
+      "src": "PLAN_RELEASE P6",
+      "why": "RPC silence degrades the port; the tick does not wait. Ops sees SERVICE_DEGRADED and lag"
+    },
+    "stale_sample": {
+      "code": "STALE_PRICE",
+      "sign": "sample_age_at_or_above_alert",
+      "owner": "ops",
+      "runbook": "stale_sample",
+      "decides": "ops",
+      "src": "PLAN_RELEASE P6 D-P-10",
+      "why": "Age alert fires before staleness decays the mint rate. A silent green lamp here is R-P-5"
+    },
+    "attest_lag": {
+      "code": "SERVICE_DEGRADED",
+      "sign": "attest_lag_at_or_above_alert_ticks",
+      "owner": "ops",
+      "runbook": "attest_lag",
+      "decides": "ops",
+      "src": "DESIGN.md §6.4 PLAN_RELEASE P6",
+      "why": "Attestor fail-open; lag grows and SERVICE_DEGRADED is visible before a city day of unattested records"
+    },
+    "ipfs_pin_fail": {
+      "code": "SERVICE_DEGRADED",
+      "sign": "ipfs_publish_flag_false",
+      "owner": "ops",
+      "runbook": "ipfs_pin_fail",
+      "decides": "ops",
+      "src": "PLAN_RELEASE P6",
+      "why": "Pin failure grows the outbox. Pay continues. The tick does not block"
+    },
+    "llm_refuse": {
+      "code": "COMPANION_LLM_TEMPLATE",
+      "sign": "provider_fail_template_substituted",
+      "owner": "ops",
+      "runbook": "llm_refuse",
+      "decides": "ops",
+      "src": "DESIGN.md §5.4 PLAN_RELEASE P6",
+      "why": "Provider refusal substitutes the pack template. The economy does not notice"
+    },
+    "uncovered_claim": {
+      "code": "PRIZE_CLAIM_UNCOVERED",
+      "sign": "pool_in_below_owed_on_settled_row",
+      "owner": "ops",
+      "runbook": "uncovered_claim",
+      "decides": "ops",
+      "src": "D-M-13 PLAN_RELEASE P6",
+      "why": "Leaderboard shows empty pool or uncovered claim. Not an owner-withdraw notice"
+    },
+    "signer_compromise": {
+      "code": "SERVICE_DEGRADED",
+      "sign": "voucher_signer_key_untrusted",
+      "owner": "guardian",
+      "runbook": "signer_compromise",
+      "decides": "guardian",
+      "src": "R-M-17 PLAN_RELEASE P6",
+      "why": "Guardian pauses. refundPlayer only up to backingOf. Nothing beyond. No forever-lock copy"
+    }
+  },
+  "environments": {
+    "dev": {
+      "migrations": "forward",
+      "src": "D14, T12 TZ",
+      "why": "Local image pins pack_hash. Rebuild is a new hash, not an in-place edit"
+    },
+    "staging": {
+      "migrations": "forward",
+      "src": "D14, T12 TZ",
+      "why": "Same pin rule as prod so a staging replay matches the pack the shifts named"
+    },
+    "prod": {
+      "migrations": "forward",
+      "src": "D14, T12 TZ",
+      "why": "Rollback is the previous image with its pinned hash, never a rebuilt pack"
+    }
+  },
+  "listen": {
+    "bind": "127.0.0.1",
+    "container_bind": "0.0.0.0",
+    "ports": {
+      "api": 7460,
+      "sampler": 7461,
+      "buyback": 7462,
+      "attestor": 7463,
+      "llm": 7464
+    },
+    "src": "D-L-3, PLAN_LIVE L2",
+    "why": "One listen table for every entrypoint service. A port in src or Dockerfile would be a second number"
+  },
+  "postgres": {
+    "port": 5432,
+    "database": "corporator",
+    "user": "corporator",
+    "service": "postgres",
+    "password_env": "POSTGRES_PASSWORD",
+    "src": "D-C-9, PLAN_LIVE L4",
+    "why": "One DSN table for compose and openPg. A port in yaml and in the driver would be a second number"
+  },
+  "readiness": {
+    "requires": [
+      "pack_hash",
+      "migration_version"
+    ],
+    "src": "D14, docs/CONTENT.md §5",
+    "why": "A ready service without a pinned pack would price a shift on a foreign balance"
+  },
+  "channel_rules": {
+    "tick": {
+      "prefixes": [
+        "tick."
+      ],
+      "source_ids": [
+        "wallet.stake_tokens"
+      ],
+      "src": "D5, HUD.md §8",
+      "why": "Sealed tick: Capital, stocks, agents, buildings, recorded stake snapshot"
+    },
+    "aggregate": {
+      "prefixes": [
+        "aggregate.",
+        "seasons.",
+        "fragments."
+      ],
+      "source_ids": [],
+      "src": "D5, HUD.md §8",
+      "why": "Once per tick: GDP, Happiness, Stability, Payroll, season rank, fragment ledger"
+    },
+    "price": {
+      "prefixes": [],
+      "source_ids": [
+        "oracle.stock_price",
+        "wallet.corp_balance",
+        "wallet.chain",
+        "wallet.protocol_eth_in_flight",
+        "wallet.protocol_vault_corp",
+        "wallet.protocol_studio_eth"
+      ],
+      "src": "D5, D8, T12",
+      "why": "New sampler sample. Wallet $CORP, chain id, and protocol pots are RPC, not the economic tick"
+    },
+    "efficiency": {
+      "prefixes": [],
+      "source_ids": [
+        "oracle.district_efficiency"
+      ],
+      "src": "D5, HUD.md §8",
+      "why": "District efficiency on the 06:00 branch and on login"
+    },
+    "log": {
+      "prefixes": [
+        "log."
+      ],
+      "source_ids": [],
+      "src": "D5, HUD.md §8",
+      "why": "Event and companion journal stream, pushed on event"
+    }
+  },
+  "buyback_refs": {
+    "cadence": "launch.params.buyback_cadence_city_hours",
+    "tranche_cap_bps": "launch.params.buyback_tranche_cap_bps",
+    "min_batch_wei": "launch.params.buyback_min_batch_wei",
+    "slippage_safety": "launch.params.buyback_slippage_safety",
+    "src": "D9, launch.json",
+    "why": "Host is transport. A second tranche number here would be a second calibration"
+  },
+  "buyback_order": [
+    "eth_collected",
+    "corp_bought",
+    "deposit_confirmed",
+    "mint"
+  ],
+  "basket_routes": {
+    "month": {
+      "source": "dex_prize_leg",
+      "allocation": "uniform",
+      "destination": "prize_month",
+      "haircut_ref": "fragments.params.fragment_hop_haircut_bps",
+      "src": "D-M-5, D-M-9, PLAN_MONEY M4",
+      "why": "Equal ETH budget per district ticker. Thin pools keep leftover; leftover does not move"
+    },
+    "farm": {
+      "source": "spend_protocol",
+      "allocation": "by_demand",
+      "destination": "prize_farm",
+      "haircut_ref": "fragments.params.fragment_hop_haircut_bps",
+      "src": "D-M-16, docs/PRIZES.md T6",
+      "why": "Spend tenth hop already exists; this row is the reference, not a second haircut"
+    }
+  },
+  "basket_order": [
+    "eth_split",
+    "quote_swapped",
+    "stock_bought",
+    "custody_confirmed"
+  ],
+  "custody": {
+    "kettles": ["farm", "month"],
+    "return_fn": "returnUnsettled",
+    "depositor_key": "buyback_executor",
+    "pool_in": "measured",
+    "drain_forbidden": ["vault", "fund", "reserve", "fragments"],
+    "refund_fn": "refundPlayer",
+    "refund_root": 1,
+    "src": "D-M-13, D-M-14, PLAN_MONEY M5",
+    "why": "Prize stocks return unsliced to the bot; vault refunds at most backingOf; burn reserve is not this function"
+  },
+  "sampler_input_fields": [
+    "corp_eth_wei_per_whole",
+    "eth_usd_8dec",
+    "feed_live",
+    "price_sample_city_time"
+  ],
+  "aggregation": "twap_from_samples",
+  "demo_transfer_edges": [],
+  "v11_levers": {
+    "offline_cap_hours": {
+      "stage": "districts_live",
+      "src": "D-G-5, DESIGN.md §4.2",
+      "why": "Automation dividend stretches the offline cap from the base twelve hours to eighteen and moves T2 return bands"
+    },
+    "fund_share_bps": {
+      "stage": "districts_live",
+      "src": "D-G-5, docs/PROGRESSION.md",
+      "why": "Finance dividend and nodes raise the wage-fund share; proportional payroll division changes once COIN is playable"
+    },
+    "xp_rate_bps": {
+      "stage": "archetypes_live",
+      "src": "D-G-5, D-G-7",
+      "why": "Scientist train spends compute for XP; cohort output rises and the T2 bands must be recounted"
+    },
+    "idle_reduction_bps": {
+      "stage": "companion_live",
+      "src": "D-G-5, D-G-8",
+      "why": "Companion idle relief cuts residual_idle and reopens window A; lifting the flag without a recount is L143"
+    }
+  },
+  "roadmap_order": [
+    "pack_gate",
+    "code_form",
+    "engine_from_spec",
+    "protocol_loader",
+    "host_db_replay",
+    "port_mock",
+    "client_on_mock",
+    "sampler",
+    "buyback",
+    "attestor_no_chain",
+    "observability_ci",
+    "chain_v1_1",
+    "seasons_prizes_v1_1",
+    "live_form",
+    "prize_claim_live",
+    "process_hosts",
+    "client_on_host",
+    "pg_compose",
+    "art_ground",
+    "art_sprites",
+    "owner_freeze",
+    "contracts",
+    "rpc_live",
+    "pons_launch",
+    "money_form",
+    "fee_split",
+    "prize_period",
+    "prize_basket",
+    "basket_conveyor",
+    "prize_treasury",
+    "vault_safety",
+    "prize_surface",
+    "launch_freeze",
+    "v11_form",
+    "districts_live",
+    "archetypes_live",
+    "research_tree",
+    "synergy_buildings",
+    "companion_live",
+    "companion_revenue",
+    "rebalance_close",
+    "release_form",
+    "player_identity",
+    "ci_tracks",
+    "contract_audit",
+    "prod_image",
+    "time_rehearsal",
+    "ops_watch",
+    "visual_form",
+    "art_atlas",
+    "art_content",
+    "render_ground",
+    "render_sprites",
+    "render_light",
+    "render_camera",
+    "render_motion",
+    "hud_shell",
+    "hud_screens",
+    "companion_screen",
+    "attest_live",
+    "visual_close",
+    "visual3_form",
+    "visual3_engine",
+    "visual3_assets",
+    "visual3_light",
+    "visual3_input",
+    "visual3_units",
+    "visual3_world",
+    "visual3_close",
+    "mainnet_launch",
+    "season_one"
+  ],
+  "roadmap": {
+    "pack_gate": {
+      "goal": "Pack and lint gate already ship; keep them green",
+      "gate_cmd": "python content/lint.py",
+      "tests": [
+        "L01",
+        "L13",
+        "vault_cover"
+      ],
+      "invariants": [
+        "I1_I3",
+        "L13_L14",
+        "I5",
+        "I7"
+      ],
+      "src": "D17, docs/CONTENT.md §6",
+      "why": "Without a green pack the rest of the map is a speech",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "construction_tests": []
+    },
+    "engine_from_spec": {
+      "goal": "packages/engine is the tick spec, byte-stable layout v1",
+      "gate_cmd": "python content/attack.py --since-rule L196",
+      "tests": [
+        "L208",
+        "layout_v1_bytes",
+        "catchup_eq_replay"
+      ],
+      "invariants": [
+        "tick_pure",
+        "layout_v1_bytes",
+        "catchup_eq_replay"
+      ],
+      "src": "D17, docs/TICK.md",
+      "why": "Verifier must import the engine without a database",
+      "ts_gate_cmd": "pnpm --filter @corporator/engine run gate",
+      "construction_tests": [
+        "layout_v1_bytes",
+        "catchup_eq_replay",
+        "tick_deterministic",
+        "catchup_equals_replay",
+        "payroll_trim_proportional",
+        "no_float_in_bytes",
+        "record_key_order_irrelevant",
+        "merkle_odd_level_not_duplicated"
+      ]
+    },
+    "host_db_replay": {
+      "goal": "Host with forward-only migrations and byte replay from storage",
+      "gate_cmd": "python content/attack.py --construction-only",
+      "tests": [
+        "replay_from_storage",
+        "snapshot_tail_equals_full_replay"
+      ],
+      "invariants": [
+        "catchup_eq_replay",
+        "layout_v1_bytes"
+      ],
+      "src": "D17, D11",
+      "why": "Schema is only real if replay from stored bytes matches genesis",
+      "ts_gate_cmd": "pnpm --filter @corporator/api run gate",
+      "construction_tests": [
+        "replay_from_storage",
+        "snapshot_tail_equals_full_replay",
+        "intent_replay_once",
+        "stale_expected_city_time",
+        "rate_limit_derived",
+        "endpoint_bijection",
+        "refusal_matrix_matches_t9",
+        "stub_endpoint_no_spend",
+        "channels_partition_state_sources",
+        "clock_has_no_channel",
+        "readiness_requires_pack",
+        "invariants_all_metered",
+        "services_do_not_block_tick"
+      ]
+    },
+    "port_mock": {
+      "goal": "AssetPort mock covers DESIGN.md §10; voucher is single-use",
+      "gate_cmd": "python content/attack.py --only L256,L257,L258",
+      "tests": [
+        "port_two_implementations",
+        "voucher_single_use"
+      ],
+      "invariants": [
+        "I1_I3"
+      ],
+      "src": "D17, D12",
+      "why": "Client and api can land on mock before any RPC",
+      "ts_gate_cmd": "pnpm --filter @corporator/chainport run gate",
+      "construction_tests": [
+        "port_two_implementations",
+        "voucher_single_use"
+      ]
+    },
+    "client_on_mock": {
+      "goal": "Client talks protocol plus mock port; never writes engine preview",
+      "gate_cmd": "python content/lint.py",
+      "tests": [
+        "L158",
+        "demo_barrier_holds"
+      ],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D17, HUD.md §8",
+      "why": "Client must not count the economy and must not see chainport",
+      "ts_gate_cmd": "pnpm --filter @corporator/client run gate",
+      "construction_tests": [
+        "demo_barrier_holds",
+        "client_strings_from_pack",
+        "client_preview_is_readonly",
+        "client_sees_no_chainport",
+        "hud_safe_rect_positive"
+      ]
+    },
+    "sampler": {
+      "goal": "Sampler writes TWAP inputs; tick never waits; row is public",
+      "gate_cmd": "python content/attack.py --only L239,L241,L242,L243",
+      "tests": [
+        "sampler_twap_recompute",
+        "sampler_twap_sensitive",
+        "sampler_silence_keeps_age"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D17, D8, T12",
+      "why": "Price is checkable. A second mean would fork the header from the row",
+      "ts_gate_cmd": "pnpm --filter @corporator/sampler run gate",
+      "construction_tests": [
+        "sampler_twap_recompute",
+        "sampler_twap_sensitive",
+        "sampler_silence_keeps_age",
+        "sampler_period_divides_tick"
+      ]
+    },
+    "buyback": {
+      "goal": "Buyback host respects launch.json and deposit-before-mint",
+      "gate_cmd": "python content/attack.py --only L244,L245",
+      "tests": [
+        "mint_after_deposit_only",
+        "buyback_tranche_at_three_depths",
+        "buyback_below_min_batch_waits"
+      ],
+      "invariants": [
+        "I1_I3",
+        "I11"
+      ],
+      "src": "D17, D9, T12",
+      "why": "Mint before deposit is Capital without backing",
+      "ts_gate_cmd": "pnpm --filter @corporator/buyback run gate",
+      "construction_tests": [
+        "mint_after_deposit_only",
+        "buyback_tranche_at_three_depths",
+        "buyback_below_min_batch_waits"
+      ]
+    },
+    "attestor_no_chain": {
+      "goal": "Attestor host fail-open; live root remains v1.1",
+      "gate_cmd": "python content/attack.py --only L246,L207",
+      "tests": [
+        "attestor_down_pay_continues",
+        "pack_hash_mismatch_halts"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D17, D10",
+      "why": "Payout does not wait for IPFS. Pack hash is the closed gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/attestor run gate",
+      "construction_tests": [
+        "attestor_down_pay_continues",
+        "cid_matches_oracle"
+      ]
+    },
+    "chain_v1_1": {
+      "goal": "Live merkle root submit, still v1.1",
+      "gate_cmd": "python content/lint.py",
+      "tests": [
+        "L204",
+        "L205"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D17, DESIGN.md §11 R-T11-10",
+      "why": "Chain submit is a later image of the same bytes, not a new layout",
+      "ts_gate_cmd": "pnpm --filter @corporator/chainport run gate",
+      "construction_tests": [
+        "rpc_parity_with_mock",
+        "rpc_silence_is_open",
+        "stake_snapshot_is_recorded_input"
+      ]
+    },
+    "seasons_prizes_v1_1": {
+      "goal": "Season prizes pay after season_prizes_live flips with a recount",
+      "gate_cmd": "python content/lint.py",
+      "tests": [
+        "L115",
+        "L220"
+      ],
+      "invariants": [
+        "payroll_proportional"
+      ],
+      "src": "D17, DESIGN.md §11",
+      "why": "Prizes are v1.1. Turning them on without a recount would mint CORP as yield",
+      "ts_gate_cmd": "pnpm --filter @corporator/api run gate",
+      "construction_tests": [
+        "season_prize_distribution_proportional"
+      ]
+    },
+    "code_form": {
+      "goal": "Workspace, vector oracle, one-way codegen",
+      "gate_cmd": "python content/vectors.py && python content/codegen.py --check",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L267",
+        "L268",
+        "L269",
+        "L270",
+        "L271",
+        "L272"
+      ],
+      "construction_tests": [
+        "toolchain_matches_manifests",
+        "vectors_bytes_stable",
+        "codegen_check_catches_hand_edit",
+        "engine_eslint_rejects_date_now",
+        "engine_eslint_rejects_magic_number"
+      ],
+      "invariants": [
+        "tick_pure",
+        "layout_v1_bytes"
+      ],
+      "src": "R-C-1, PLAN_CODE C0",
+      "why": "pack_gate stays green, but C0 is not done until vectors, codegen --check and the TS gate exist"
+    },
+    "protocol_loader": {
+      "goal": "Generated protocol and bigint-safe pack loader",
+      "gate_cmd": "python content/codegen.py --check",
+      "ts_gate_cmd": "pnpm --filter @corporator/protocol --filter @corporator/contentpack run gate",
+      "tests": [
+        "pack_hash_mismatch_halts",
+        "record_fields_have_homes",
+        "loader_rejects_float",
+        "loader_keeps_bigint",
+        "loader_rejects_duplicate_key",
+        "pack_by_hash_is_immutable"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "R-C-1, PLAN_CODE C2",
+      "why": "No T12 roadmap row for protocol and loader. C2 would close on a Python command without this line",
+      "construction_tests": [
+        "pack_hash_mismatch_halts",
+        "record_fields_have_homes",
+        "loader_rejects_float",
+        "loader_keeps_bigint",
+        "loader_rejects_duplicate_key",
+        "pack_by_hash_is_immutable"
+      ]
+    },
+    "observability_ci": {
+      "goal": "Metered invariants, pinned image, one CI gate",
+      "gate_cmd": "python content/lint.py",
+      "ts_gate_cmd": "pnpm -w run ci",
+      "tests": [
+        "image_pins_pack_hash",
+        "image_has_no_python",
+        "llm_refusal_falls_back_to_template",
+        "ci_step_has_red_run"
+      ],
+      "invariants": [
+        "tick_pure",
+        "I1_I3"
+      ],
+      "src": "R-C-1, PLAN_CODE C9",
+      "why": "Observability and deploy had no roadmap row. A green lint.py must not close C9",
+      "construction_tests": [
+        "image_pins_pack_hash",
+        "image_has_no_python",
+        "llm_refusal_falls_back_to_template",
+        "ci_step_has_red_run"
+      ]
+    },
+    "live_form": {
+      "goal": "Register live-phase stages in the pack without listening",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L262,L268",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L262",
+        "L268",
+        "live_stage_keys_exist",
+        "code_phase_rule_not_always"
+      ],
+      "construction_tests": [
+        "live_stage_keys_exist",
+        "code_phase_rule_not_always"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-L-1, PLAN_LIVE L0",
+      "why": "Without pack keys an L-stage is a second roadmap and L268 cannot bind its tests"
+    },
+    "prize_claim_live": {
+      "goal": "Align HUD claim with C11: CORP prize live, missions stay stub",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L162,L165,L155",
+      "ts_gate_cmd": "pnpm --filter @corporator/api --filter @corporator/client run test -- -t stub_endpoint_no_spend -t demo_barrier_holds",
+      "tests": [
+        "L162",
+        "L165",
+        "stub_endpoint_no_spend",
+        "demo_barrier_holds"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D-L-5, PLAN_LIVE L1",
+      "why": "Engine already pays Zipf; a stub claim button is a lying screen after the C11 recount"
+    },
+    "process_hosts": {
+      "goal": "Five services and api listen; tick runs on city_time",
+      "gate_cmd": "pnpm -w run gate && pnpm --filter @corporator/api run test -- -t process_listens -t services_do_not_block_tick",
+      "ts_gate_cmd": "pnpm --filter @corporator/api run gate",
+      "tests": [
+        "process_listens",
+        "ws_heartbeat_derived",
+        "tick_scheduler_uses_city_time",
+        "services_do_not_block_tick",
+        "pack_hash_mismatch_halts",
+        "attestor_down_pay_continues"
+      ],
+      "construction_tests": [
+        "process_listens",
+        "ws_heartbeat_derived",
+        "tick_scheduler_uses_city_time"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D-L-2, PLAN_LIVE L2",
+      "why": "Libraries cannot host a city; a process that calls tick is the first live runtime"
+    },
+    "client_on_host": {
+      "goal": "Browser reads the snapshot and posts commands; preview stays readonly",
+      "gate_cmd": "pnpm --filter @corporator/client run gate && pnpm --filter @corporator/client run test -- -t client_boot_requires_city_time -t client_preview_is_readonly",
+      "ts_gate_cmd": "pnpm --filter @corporator/client run gate",
+      "tests": [
+        "client_boot_requires_city_time",
+        "command_posts_intent",
+        "client_preview_is_readonly",
+        "demo_barrier_holds"
+      ],
+      "construction_tests": [
+        "client_boot_requires_city_time",
+        "command_posts_intent"
+      ],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D-L-4, PLAN_LIVE L3",
+      "why": "Boot without server city_time is a readiness code, not Date.now and an empty snapshot"
+    },
+    "pg_compose": {
+      "goal": "Postgres in the image; PGlite remains the test driver",
+      "gate_cmd": "pnpm --filter @corporator/api run migrate:check && pnpm --filter @corporator/api run test -- -t replay_from_storage -t image_has_no_python",
+      "ts_gate_cmd": "pnpm --filter @corporator/api run gate",
+      "tests": [
+        "replay_from_storage",
+        "image_has_no_python",
+        "readiness_requires_pack"
+      ],
+      "construction_tests": [
+        "postgres_replay_matches_pglite",
+        "compose_from_pack"
+      ],
+      "invariants": [
+        "catchup_eq_replay"
+      ],
+      "src": "D-L-6, PLAN_LIVE L4",
+      "why": "PGlite is a harness; production replay must match the same bytes on Postgres"
+    },
+    "art_ground": {
+      "goal": "Water tiles wrap and the island has a shore without expanding the palette",
+      "gate_cmd": "python art/pipeline/tiles.py && python art/pipeline/layout.py && python art/pipeline/scene.py && python art/pipeline/tiles_probe.py && python content/lint.py",
+      "ts_gate_cmd": "python art/pipeline/tiles_probe.py",
+      "tests": [
+        "L16",
+        "L178",
+        "L184"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-L-9, PLAN_LIVE L5a",
+      "why": "Water was a generator defect, not taste; sprites cannot be drawn until the ground is honest"
+    },
+    "art_sprites": {
+      "goal": "Close pending sprites and the tile-refusal string",
+      "gate_cmd": "python art/pipeline/pixelize.py --report && python content/lint.py",
+      "ts_gate_cmd": "python art/pipeline/pixelize.py --report",
+      "tests": [
+        "L16",
+        "L178",
+        "L184",
+        "L273"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-L-9, PLAN_LIVE L5b",
+      "why": "Nineteen silhouettes and a missing refusal string are T10 leftovers, not a new mechanic"
+    },
+    "owner_freeze": {
+      "goal": "Write six S_min and the LLM price from a dated snapshot",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L39",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L39",
+        "L41",
+        "smin_frozen_in_tokens"
+      ],
+      "construction_tests": [
+        "smin_frozen_in_tokens"
+      ],
+      "invariants": [
+        "I5"
+      ],
+      "src": "D-L-10, PLAN_LIVE L6",
+      "why": "Invented S_min would gate districts on a number the feed never said"
+    },
+    "contracts": {
+      "goal": "Four DESIGN.md section 10 contract groups; bank stays off-chain",
+      "gate_cmd": "forge test --root contracts && pnpm --filter @corporator/chainport run test -- -t rpc_parity_with_mock",
+      "ts_gate_cmd": "pnpm --filter @corporator/chainport run gate",
+      "tests": [
+        "port_two_implementations",
+        "voucher_single_use",
+        "vault_deposit_then_mint",
+        "bank_not_onchain"
+      ],
+      "construction_tests": [
+        "vault_deposit_then_mint",
+        "bank_not_onchain"
+      ],
+      "invariants": [
+        "I1_I3"
+      ],
+      "src": "D-L-8, PLAN_LIVE L7",
+      "why": "A fifth contract would be a new mechanic; the bank clock is a server rule"
+    },
+    "rpc_live": {
+      "goal": "RpcTransport calls Robinhood Chain; silence is open and does not block tick",
+      "gate_cmd": "python content/attack.py --only L246,L257,L278 && pnpm --filter @corporator/chainport --filter @corporator/attestor run test -- -t rpc_silence_is_open",
+      "ts_gate_cmd": "pnpm --filter @corporator/chainport run gate",
+      "tests": [
+        "rpc_silence_is_open",
+        "attestor_down_pay_continues",
+        "rpc_http_eth_methods",
+        "attestor_putroot_retries",
+        "client_bundle_has_no_keys"
+      ],
+      "construction_tests": [
+        "rpc_http_eth_methods",
+        "attestor_putroot_retries",
+        "client_bundle_has_no_keys"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D-L-7, PLAN_LIVE L8",
+      "why": "Fixture parity is not a network; silence must degrade without pausing payout"
+    },
+    "pons_launch": {
+      "goal": "launchToken uses pack tax and zero buy, not a new calibration",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L24,L13,L14,L279",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L24",
+        "L13",
+        "L14",
+        "L279"
+      ],
+      "construction_tests": [
+        "deployed_tax_matches_pack",
+        "launch_no_buy",
+        "launch_raw_tx_has_zero_value"
+      ],
+      "invariants": [
+        "L13_L14"
+      ],
+      "src": "PLAN_LIVE L9, docs/LAUNCH.md, owner no-buy",
+      "why": "A buy at launch or a recalibration would reprint the treasury bag and the round-trip band"
+    },
+    "money_form": {
+      "goal": "Register money-phase stages in the pack without changing rates",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L262,L268",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L262",
+        "L268",
+        "money_stage_keys_exist",
+        "launch_precondition_not_launched"
+      ],
+      "construction_tests": [
+        "money_stage_keys_exist",
+        "launch_precondition_not_launched"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-M-1, PLAN_MONEY M0",
+      "why": "Without pack keys an M-stage is a second roadmap and L268 cannot bind its tests"
+    },
+    "fee_split": {
+      "goal": "Raise creator tax to 200 bps and cut vault entry so the round-trip stays in band",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/codegen.py --check && python content/sim.py && python content/attack.py --only L13,L14,L22,L24,L32,L33,L48,L147,L279,L280,L290",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L13",
+        "L14",
+        "L22",
+        "L24",
+        "L32",
+        "L33",
+        "L48",
+        "L220",
+        "L280",
+        "L281",
+        "L290",
+        "L295",
+        "L296"
+      ],
+      "construction_tests": [
+        "round_trip_after_tax_two_percent",
+        "fund_tax_floor_holds",
+        "dex_visible_fee_under_ceiling"
+      ],
+      "invariants": [
+        "L13_L14"
+      ],
+      "src": "D-M-2, D-M-12, PLAN_MONEY M1",
+      "why": "Tax 200 without vault compensation exits the 1400-1600 band; studio take must not cut the fund floor"
+    },
+    "prize_period": {
+      "goal": "Derive the monthly prize period from the season; keep ninety days as the T2 horizon",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/attack.py --only L282,L106,L107,L121,L220",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L106",
+        "L107",
+        "L121",
+        "L220",
+        "L282"
+      ],
+      "construction_tests": [
+        "prize_period_divides_season",
+        "influence_integral_per_period",
+        "qualify_days_from_period"
+      ],
+      "invariants": [
+        "I7"
+      ],
+      "src": "D-M-4, PLAN_MONEY M2",
+      "why": "Storing a second season length would fork T2 and silently shrink qualify_days"
+    },
+    "prize_basket": {
+      "goal": "Monthly board is six stocks without CORP; spend tenth feeds the farm kettle",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/codegen.py --check && python content/attack.py --only L283,L284,L291,L292,L294,L304,L90,L93,L107,L112",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L90",
+        "L93",
+        "L107",
+        "L112",
+        "L283",
+        "L284",
+        "L291",
+        "L292",
+        "L294",
+        "L304"
+      ],
+      "construction_tests": [
+        "basket_covers_all_district_tickers",
+        "per_asset_payout_within_pool",
+        "prize_share_cap_binds_farm",
+        "demo_takes_no_basket_asset"
+      ],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D-M-11, D-M-16, PLAN_MONEY M3",
+      "why": "CORP in Zipf or a T7 CORP prize would reprint salary as a leaderboard payout"
+    },
+    "basket_conveyor": {
+      "goal": "Uniform stock buyback as a second buyback leg; studio ETH taken before swap",
+      "gate_cmd": "python content/lint.py && python content/codegen.py --check && python content/attack.py --only L285,L286,L22",
+      "ts_gate_cmd": "pnpm --filter @corporator/buyback run test",
+      "tests": [
+        "L22",
+        "L285",
+        "L286",
+        "L295",
+        "L296",
+        "services_do_not_block_tick",
+        "basket_failure_does_not_block_tick"
+      ],
+      "construction_tests": [
+        "basket_uniform_budget_per_ticker",
+        "thin_pool_throttles_not_reallocates",
+        "basket_failure_does_not_block_tick",
+        "basket_leg_floor_favours_fund"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D-M-5, D-M-9, PLAN_MONEY M4",
+      "why": "A sixth process or a copied haircut would desync cadence and invent a second haircut param"
+    },
+    "prize_treasury": {
+      "goal": "Fifth port group is the prize treasury; farm and month kettles stay unmixed",
+      "gate_cmd": "python content/lint.py && python content/codegen.py --check && python content/attack.py --only L287,L288,L289,L297,L298,L112",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L112",
+        "L287",
+        "L288",
+        "L289",
+        "L297",
+        "L298"
+      ],
+      "construction_tests": [
+        "vault_and_fund_not_drainable",
+        "return_unsettled_skips_settled",
+        "pool_in_is_measured_not_accumulated",
+        "settled_claim_uncovered_is_reported"
+      ],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D-M-13, PLAN_MONEY M5",
+      "why": "Unsettled stocks return through the treasury bot; vault, fund and reserve stay out of drain"
+    },
+    "vault_safety": {
+      "goal": "Vault refunds at most backingOf; guardian is not the signer",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L299,L303,L300,L301,L305",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L299",
+        "L303",
+        "L300",
+        "L301",
+        "L305"
+      ],
+      "construction_tests": [
+        "refund_player_capped_by_backing",
+        "bot_refund_not_whole_vault",
+        "guardian_not_signer",
+        "recover_wrong_token_skips_own",
+        "no_burn_reserve_rescue"
+      ],
+      "invariants": [
+        "I1_I3"
+      ],
+      "src": "D-M-14, PLAN_MONEY M5",
+      "why": "refundPlayer on the buyback bot must not empty player deposits; burn reserve has no vault selector (R-M-17)"
+    },
+    "prize_surface": {
+      "goal": "HUD shows city Capital apart from protocol pots; no drain or pause buttons",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L155,L162,L165,L302",
+      "ts_gate_cmd": "pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L155",
+        "L162",
+        "L165",
+        "L302",
+        "client_strings_from_pack",
+        "channels_partition_state_sources"
+      ],
+      "construction_tests": [
+        "leaderboard_shows_basket_composition",
+        "drain_notice_visible_on_leaderboard",
+        "claim_returns_every_asset"
+      ],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D-M-15, PLAN_MONEY M6",
+      "why": "A drain button or forever-locked copy would lie about a public-chain rescue"
+    },
+    "launch_freeze": {
+      "goal": "Sign launchToken at pack tax only after M1; fill deployed from the chain fact",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L24,L13,L14,L279,L293",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L13",
+        "L14",
+        "L24",
+        "L279",
+        "L293"
+      ],
+      "construction_tests": [
+        "pack_tax_equals_deploy_rate",
+        "vitrine_under_factory_ceiling"
+      ],
+      "invariants": [
+        "L13_L14"
+      ],
+      "src": "D-M-10, PLAN_MONEY M7",
+      "why": "creator_tax_bps is immutable after launchToken; signing before M1 freezes the current rate"
+    },
+    "v11_form": {
+      "goal": "Pack carries the eight v1.1 stages; rules_version 0.20.0; the levers to recount are listed",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L262,L268,L306",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L262",
+        "L268",
+        "L306"
+      ],
+      "construction_tests": [
+        "v11_stage_keys_exist",
+        "rules_minor_is_twenty",
+        "live_flags_inventoried"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-G-1, D-G-3, PLAN_V11 G0",
+      "why": "A stage without a roadmap row makes every new it() red on L268"
+    },
+    "districts_live": {
+      "goal": "Three districts flip playable; nodes, merges and dividends live by rule; bands recounted",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/sim.py && python content/builds.py && python content/attack.py --only L58,L59,L60,L66,L69,L307",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L58",
+        "L59",
+        "L60",
+        "L66",
+        "L69",
+        "L307"
+      ],
+      "construction_tests": [
+        "six_districts_playable",
+        "offline_cap_reaches_eighteen",
+        "fund_share_reaches_cap",
+        "merge_active_cap_is_three",
+        "window_a_in_envelope"
+      ],
+      "invariants": [
+        "L13_L14",
+        "I1_I3",
+        "payroll_proportional"
+      ],
+      "src": "D-G-4, D-G-5, PLAN_V11 G1",
+      "why": "The tree of six districts is already generated; the flag gates which are live, and two of four levers move here"
+    },
+    "archetypes_live": {
+      "goal": "Scientist and Manager go live with real magnitudes; compute gets its second consumer",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/sim.py && python content/attack.py --only L70,L72,L73,L85,L86,L308",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L70",
+        "L72",
+        "L73",
+        "L85",
+        "L86",
+        "L308"
+      ],
+      "construction_tests": [
+        "five_roles_live",
+        "scientist_spends_compute",
+        "manager_focus_picks_contour",
+        "train_grants_xp",
+        "window_a_in_envelope_after_archetypes"
+      ],
+      "invariants": [
+        "L13_L14",
+        "tick_pure"
+      ],
+      "src": "D-G-7, D-G-5, PLAN_V11 G2",
+      "why": "The canon already holds these objectives at an honest zero so v1.1 lifts the zero with a row, not a branch"
+    },
+    "research_tree": {
+      "goal": "Research widens past three nodes; the research objective opens nodes for compute",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/attack.py --only L61,L62,L68,L71,L309",
+      "ts_gate_cmd": "pnpm --filter @corporator/engine run gate",
+      "tests": [
+        "L61",
+        "L62",
+        "L68",
+        "L71",
+        "L309"
+      ],
+      "construction_tests": [
+        "research_wider_than_three",
+        "research_cost_derived",
+        "research_objective_opens_node"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D-G-6, PLAN_V11 G3",
+      "why": "Three nodes were the v1 floor; v1.1 widens the tree the same way progression is generated, not by hand"
+    },
+    "synergy_buildings": {
+      "goal": "The five remaining synergy buildings open by rule; affinity matrix matches the canon",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L05,L07,L08,L66,L310",
+      "ts_gate_cmd": "pnpm --filter @corporator/engine run gate",
+      "tests": [
+        "L05",
+        "L07",
+        "L08",
+        "L66",
+        "L310"
+      ],
+      "construction_tests": [
+        "six_synergies_open",
+        "affinity_matrix_matches_canon",
+        "autonomous_slot_present"
+      ],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D-G-10, PLAN_V11 G4",
+      "why": "Robotics Lab was v1 by rule, not by taste; the other five open the same way once their districts are playable"
+    },
+    "companion_live": {
+      "goal": "Companion idle relief goes non-zero with a window-A recount; set_manager_focus becomes allowed",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/sim.py && python content/attack.py --only L77,L140,L143,L311",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L77",
+        "L140",
+        "L143",
+        "L311"
+      ],
+      "construction_tests": [
+        "companion_relief_non_zero",
+        "manager_focus_allowed",
+        "residual_idle_floor_held",
+        "window_a_in_envelope_after_companion"
+      ],
+      "invariants": [
+        "payroll_proportional",
+        "demo_isolated"
+      ],
+      "src": "D-G-8, D-G-5, PLAN_V11 G5",
+      "why": "L143 locks the flag at zero precisely so lifting it goes through a recount, not silently"
+    },
+    "companion_revenue": {
+      "goal": "NFT revenue covers inference first; crane shares stay zero unless the owner ratifies",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L143,L280,L312",
+      "ts_gate_cmd": "pnpm --filter @corporator/api run gate",
+      "tests": [
+        "L143",
+        "L280",
+        "L312"
+      ],
+      "construction_tests": [
+        "nft_crane_zero_by_default",
+        "revenue_not_in_pool_without_ratification",
+        "inference_account_present"
+      ],
+      "invariants": [
+        "I11"
+      ],
+      "src": "D-G-9, PLAN_V11 G6",
+      "why": "Directing NFT revenue into a pool is a yield promise the protocol will not hold"
+    },
+    "rebalance_close": {
+      "goal": "All levers settle together; dominance re-proven on the full set; window A ratified; pack published",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/codegen.py --check && python content/sim.py && python content/builds.py && python content/attack.py --jobs 8",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L13",
+        "L14",
+        "L45",
+        "L47",
+        "L63",
+        "L64",
+        "L65",
+        "L313"
+      ],
+      "construction_tests": [
+        "friction_budget_held",
+        "no_dominant_no_dead_no_mandatory",
+        "window_a_ratified"
+      ],
+      "invariants": [
+        "L13_L14",
+        "I1_I3",
+        "I5",
+        "I7",
+        "I11",
+        "payroll_proportional"
+      ],
+      "src": "D-G-11, PLAN_V11 G7",
+      "why": "Four levers moved the same bands; the phase closes only when they settle together, not one at a time"
+    },
+    "release_form": {
+      "goal": "Pack carries the nine release stages; no key material lives in the repo",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L262,L268,L314",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L262",
+        "L268",
+        "L314"
+      ],
+      "construction_tests": [
+        "release_stage_keys_exist",
+        "no_key_material_in_repo"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-P-1, PLAN_RELEASE P0",
+      "why": "A stage without a roadmap row makes every new it() red on L268"
+    },
+    "player_identity": {
+      "goal": "A mutating command needs a session; city_id comes from the session, never from the body",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/codegen.py --check && python content/attack.py --only L232,L235,L247,L248,L249,L250,L251,L255,L315,L316,L317,L318",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L232",
+        "L235",
+        "L247",
+        "L248",
+        "L249",
+        "L250",
+        "L251",
+        "L255",
+        "L315",
+        "L316",
+        "L317",
+        "L318"
+      ],
+      "construction_tests": [
+        "command_without_session_refused",
+        "city_id_comes_from_session",
+        "demo_session_has_no_address",
+        "identity_absent_from_record_bytes",
+        "rate_limit_survives_restart"
+      ],
+      "invariants": [
+        "demo_isolated",
+        "layout_v1_bytes"
+      ],
+      "src": "D-P-3, D-P-4, D-P-5, PLAN_RELEASE P1",
+      "why": "Today any caller spends any city by naming its id in the body"
+    },
+    "ci_tracks": {
+      "goal": "Step track is fast and narrow; the full attack regression runs nightly",
+      "gate_cmd": "python content/lint.py && python content/codegen.py --check && python content/attack.py --only L259,L260,L319",
+      "ts_gate_cmd": "node scripts/ci.mjs",
+      "tests": [
+        "L259",
+        "L260",
+        "L319"
+      ],
+      "construction_tests": [
+        "nightly_track_has_full_attack",
+        "push_track_has_no_full_attack",
+        "workflow_matches_pack_steps"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "Without a nightly regression the full run creeps into every step and costs an hour each"
+    },
+    "contract_audit": {
+      "goal": "Five contracts audited before the signature; ERC-20 quirks accounted by balance delta",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L277,L297,L298,L299,L300,L301,L303,L305,L320,L321",
+      "ts_gate_cmd": "pnpm --filter @corporator/chainport run gate",
+      "tests": [
+        "L277",
+        "L297",
+        "L298",
+        "L299",
+        "L300",
+        "L301",
+        "L303",
+        "L305",
+        "L320",
+        "L321"
+      ],
+      "construction_tests": [
+        "erc20_return_value_checked",
+        "balance_delta_accounting",
+        "audit_findings_closed"
+      ],
+      "invariants": [
+        "I1_I3"
+      ],
+      "src": "D-P-7, PLAN_RELEASE P3",
+      "why": "After launchToken the rate is frozen; an audit after the signature audits what cannot be fixed"
+    },
+    "prod_image": {
+      "goal": "Production runs a built image with a pinned pack, stored secrets and a proven restore",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/codegen.py --check && python content/attack.py --only L259,L260,L314,L322,L323,L324",
+      "ts_gate_cmd": "pnpm --filter @corporator/api run gate",
+      "tests": [
+        "L259",
+        "L260",
+        "L314",
+        "L322",
+        "L323",
+        "L324"
+      ],
+      "construction_tests": [
+        "prod_profile_has_no_source_mount",
+        "image_pins_pack_hash",
+        "restore_replay_matches_origin",
+        "two_replicas_tick_once"
+      ],
+      "invariants": [
+        "catchup_eq_replay"
+      ],
+      "src": "D-P-8, D-P-11, PLAN_RELEASE P4",
+      "why": "Today the prod profile mounts the repo and every replica ticks the city"
+    },
+    "time_rehearsal": {
+      "goal": "Ninety city days on a local chain and three real days on a testnet, same image, same pack hash",
+      "gate_cmd": "python content/lint.py && python content/vectors.py && python content/attack.py --only L285,L286,L291,L292,L304,L325",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L285",
+        "L286",
+        "L291",
+        "L292",
+        "L304",
+        "L325"
+      ],
+      "construction_tests": [
+        "rehearsal_pack_hash_equals_prod",
+        "farm_window_settles_at_fourteen",
+        "prize_period_settles_at_thirty",
+        "chain_silence_does_not_block_tick"
+      ],
+      "invariants": [
+        "catchup_eq_replay",
+        "tick_pure",
+        "demo_isolated"
+      ],
+      "src": "D-P-9, PLAN_RELEASE P5",
+      "why": "A month of real waiting is impossible and compressing the city day would rehearse a different economy"
+    },
+    "ops_watch": {
+      "goal": "Every metric is measured, every threshold has a channel, every incident has a runbook",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L259,L302,L326,L327",
+      "ts_gate_cmd": "pnpm --filter @corporator/api run gate",
+      "tests": [
+        "L259",
+        "L302",
+        "L326",
+        "L327"
+      ],
+      "construction_tests": [
+        "metric_observed_is_measured",
+        "alert_fires_before_decay_cuts_rate",
+        "incident_has_runbook_and_code"
+      ],
+      "invariants": [
+        "I1_I3",
+        "I5",
+        "I7",
+        "I11"
+      ],
+      "src": "D-P-10, PLAN_RELEASE P6",
+      "why": "Observed equal to threshold is ten green lamps wired to nothing"
+    },
+    "visual_form": {
+      "goal": "Pack carries visual-phase keys, the render section, and the client reads the scene from the pack",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L306,L329,L347,L348,L353",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L306",
+        "L329",
+        "L347",
+        "L348",
+        "L353"
+      ],
+      "construction_tests": [
+        "visual_stage_keys_exist",
+        "scene_comes_from_pack",
+        "code_phase_rule_still_single",
+        "missions_stay_stubbed",
+        "visual_flag_inventory_holds"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-2, D-V-11, PLAN_VISUAL V0",
+      "why": "Without a render section every picture number becomes a literal and a new it() goes red on L268"
+    },
+    "art_atlas": {
+      "goal": "Deterministic painterly atlas: RGBA, glow mask, manifest with foot_anchor",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L330,L331,L332,L178,L359",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L330",
+        "L331",
+        "L332",
+        "L178",
+        "L359"
+      ],
+      "construction_tests": [
+        "atlas_pack_is_deterministic",
+        "atlas_key_fully_removed",
+        "atlas_bytes_under_cap",
+        "sprite_fits_footprint_width"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-5, PLAN_VISUAL V1",
+      "why": "Packer sorts by id, keys magenta into alpha, and keeps city.png plus glow under atlas_max_bytes"
+    },
+    "art_content": {
+      "goal": "Mockup-density art: cube ground, plaza, layered cliff, district identity, decor rebalance",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L169,L174,L184,L186,L187,L189,L190,L191,L354,L355,L360,L361 && python art/pipeline/layout.py",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L169",
+        "L174",
+        "L184",
+        "L186",
+        "L187",
+        "L189",
+        "L190",
+        "L191",
+        "L354",
+        "L355",
+        "L360",
+        "L361"
+      ],
+      "construction_tests": [
+        "new_ground_kinds_registered",
+        "decor_share_within_band",
+        "beacon_has_logo_and_ticker",
+        "district_fabric_not_glued",
+        "decor_follows_tile_tag"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-24, PLAN_VISUAL V2",
+      "why": "Cube ground kinds, plaza, sidewalk and beacon sign_box are registered; decor share stays in band"
+    },
+    "render_ground": {
+      "goal": "Two-tier cube ground, shore, cliff, island shadow, animated water in PixiJS",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L333,L334,L339,L340,L352,L362 && pnpm --filter @corporator/render run gate && pnpm --filter @corporator/client run gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L333",
+        "L334",
+        "L339",
+        "L340",
+        "L352",
+        "L362",
+        "L226",
+        "L227",
+        "L228",
+        "L229",
+        "L230"
+      ],
+      "construction_tests": [
+        "ground_matches_python_scene",
+        "water_phase_from_city_time",
+        "chunk_seam_has_no_gap",
+        "water_plane_not_tiled_cubes"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-9, D-V-24, PLAN_VISUAL V3",
+      "why": "The render package is born on V3; cube ground, water phase from city_time, no-GPU code"
+    },
+    "render_sprites": {
+      "goal": "Pre-placed buildings, decor and units as atlas sprites on cube foot_anchor",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L180,L181,L345,L356 && pnpm --filter @corporator/render run gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate",
+      "tests": [
+        "L180",
+        "L181",
+        "L345",
+        "L356"
+      ],
+      "construction_tests": [
+        "sprite_sits_on_foot_anchor",
+        "painter_order_matches_python",
+        "level_overlay_from_pack",
+        "shortage_badge_on_scene"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-22, PLAN_VISUAL V4",
+      "why": "Sprite order, foot_anchor, overlays and shortage badges land with V4 on the packed scene"
+    },
+    "render_light": {
+      "goal": "Four day phases as a color grade plus window and lantern glow from the mask",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L179,L331,L335,L336 && pnpm --filter @corporator/render run gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate",
+      "tests": [
+        "L179",
+        "L331",
+        "L335",
+        "L336"
+      ],
+      "construction_tests": [
+        "frame_has_no_magenta_leak",
+        "lights_off_at_day",
+        "phase_blend_is_monotonic"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-4, PLAN_VISUAL V5",
+      "why": "Grade and emissive land with V5; phase hours already come from time.json under L179"
+    },
+    "render_camera": {
+      "goal": "Player camera: pan, pack zoom levels, clamps, tile click to stake or card",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L185,L337 && pnpm --filter @corporator/render run gate && pnpm --filter @corporator/client run gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L185",
+        "L337"
+      ],
+      "construction_tests": [
+        "zoom_levels_from_pack",
+        "camera_clamped_to_bounds",
+        "click_maps_to_tile"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-22, PLAN_VISUAL V6",
+      "why": "Zoom already lives in the pack under L185; click-to-stake is V6 work, not a dangling L id"
+    },
+    "render_motion": {
+      "goal": "City motion from city_time: vehicles, drones, turbines, FX that do not invent numbers",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L190,L338,L357 && pnpm --filter @corporator/render run gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate",
+      "tests": [
+        "L190",
+        "L338",
+        "L357"
+      ],
+      "construction_tests": [
+        "motion_is_pure_of_city_time",
+        "no_wall_clock_in_render",
+        "background_units_hold_no_lot"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D-V-8, PLAN_VISUAL V7",
+      "why": "Motion is a pure function of city_time and the layout seed; FX popup amounts come from the server snapshot"
+    },
+    "hud_shell": {
+      "goal": "Mockup-density HUD shell: columns, GDP, six districts, stock bar, tokens, font",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L146,L341,L342,L343,L344 && pnpm --filter @corporator/client run gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L146",
+        "L341",
+        "L342",
+        "L343",
+        "L344"
+      ],
+      "construction_tests": [
+        "hud_geometry_from_fixture",
+        "bank_plaque_always_present",
+        "payroll_row_appears_when_trimmed",
+        "stock_bar_shows_two_numbers"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V-20, PLAN_VISUAL V8",
+      "why": "Shell geometry, never-cut surfaces, no Cyrillic in components, and a vendored OFL font are V8 work"
+    },
+    "hud_screens": {
+      "goal": "Fifteen screens and eleven panels live, with empty, loading and refusal codes",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L145,L148,L150,L151,L358 && pnpm --filter @corporator/client run gate",
+      "ts_gate_cmd": "pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L145",
+        "L148",
+        "L150",
+        "L151",
+        "L358"
+      ],
+      "construction_tests": [
+        "every_screen_has_empty_and_loading",
+        "refusal_shows_one_blocking_code",
+        "no_cyrillic_in_components"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "PLAN_VISUAL V9, D-V-22",
+      "why": "Screen components land with V9; empty and loading already sit under L145; L358 is the bijection"
+    },
+    "companion_screen": {
+      "goal": "Companion screen and live autopilot toggle, with no NFT share promised",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L128,L163,L311,L312,L346",
+      "ts_gate_cmd": "pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L128",
+        "L163",
+        "L311",
+        "L312",
+        "L346"
+      ],
+      "construction_tests": [
+        "autopilot_toggle_is_live",
+        "companion_journal_filters_codes",
+        "nft_crane_still_zero"
+      ],
+      "invariants": [
+        "demo_isolated"
+      ],
+      "src": "D-V-17, PLAN_VISUAL V10",
+      "why": "Live toggle writes journal codes; demo isolation is DEMO_NO_COMPANION; NFT cranes stay zero under L128 and L312"
+    },
+    "attest_live": {
+      "goal": "Shifts go to testnet fail-open: minute root, day CID, Verified only with both",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L349,L350",
+      "ts_gate_cmd": "pnpm --filter @corporator/attestor run gate && pnpm --filter @corporator/api run gate",
+      "tests": [
+        "L349",
+        "L350"
+      ],
+      "construction_tests": [
+        "verified_badge_needs_root_and_cid",
+        "attest_failure_keeps_payout"
+      ],
+      "invariants": [
+        "tick_pure"
+      ],
+      "src": "D-V-19, PLAN_VISUAL V11",
+      "why": "Submit after COMMIT is fail-open; Verified needs root and CID; contract address is env CORPORATOR_MERKLE_ROOTS"
+    },
+    "visual_close": {
+      "goal": "Close the visual phase with numbers: full attack, sim, goldens, pack publish",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --jobs 8 && python content/sim.py",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L351",
+        "L13",
+        "L14"
+      ],
+      "construction_tests": [
+        "visual_budgets_measured",
+        "golden_frames_match"
+      ],
+      "invariants": [
+        "L13_L14",
+        "I1_I3",
+        "layout_v1_bytes"
+      ],
+      "src": "PLAN_VISUAL V12, D-V-15, L351",
+      "why": "Phase close: measured budgets in GATE_VISUAL.md, four-phase goldens, full attack and sim. --jobs 8 belongs here (A-V-26)"
+    },
+    "visual3_form": {
+      "goal": "Pack carries eight visual3 keys between visual_close and mainnet_launch",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L370,L348,L353",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L370",
+        "L348",
+        "L353"
+      ],
+      "construction_tests": [
+        "visual3_stage_keys_exist"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V3-11, PLAN_VISUAL_V3 V3-0, L370",
+      "why": "Without eight v3 keys a new 3D it() goes red on L268 and P7 could start before the orbital city exists"
+    },
+    "visual3_engine": {
+      "goal": "Three.js island from the pack legend, orbit camera, RENDER_NO_GPU",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L370,L348,L371,L372,L373",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L370",
+        "L348",
+        "L371",
+        "L372",
+        "L373"
+      ],
+      "construction_tests": [
+        "visual3_island_from_legend",
+        "visual3_orbit_from_pack",
+        "visual3_no_gpu_stays"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V3-3, D-V3-5, PLAN_VISUAL_V3 V3-1",
+      "why": "Pixi rhombi are not the v3 frame; the engine mounts the same legend on an XZ grid"
+    },
+    "visual3_assets": {
+      "goal": "Eighteen hero GLB files with LOD sit on lots by building id",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L370,L372,L374,L375",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L370",
+        "L372",
+        "L374",
+        "L375"
+      ],
+      "construction_tests": [
+        "visual3_heroes_by_building_id",
+        "visual3_lod_lighter_than_high",
+        "visual3_plant_on_lot"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V3-6, PLAN_VISUAL_V3 V3-2",
+      "why": "Catalog keys equal buildings.json ids; commit:build still plants a lot, not a spawned mesh"
+    },
+    "visual3_light": {
+      "goal": "City-time sun and window emission; no baked sun on albedo",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L370,L372,L376,L377",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L370",
+        "L372",
+        "L376",
+        "L377"
+      ],
+      "construction_tests": [
+        "visual3_sun_from_city_time",
+        "visual3_windows_emissive",
+        "visual3_no_baked_sun"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "PLAN_VISUAL_V3 V3-3, assets/_STYLE_V3.txt",
+      "why": "Night is the native phase; day keeps the city on but kills signage; Date is banned in render"
+    },
+    "visual3_input": {
+      "goal": "Ray picks a grid tile; BUILD catalog; closed stock is stake; HUD is not a hole",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L370,L372,L378,L379",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L370",
+        "L372",
+        "L378",
+        "L379"
+      ],
+      "construction_tests": [
+        "visual3_ray_hits_tile",
+        "visual3_empty_opens_build",
+        "visual3_hud_not_a_hole"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V3-15, PLAN_VISUAL_V3 V3-4",
+      "why": "Empty tile opens the catalog, water stays BUILD_TILE_ILLEGAL, click through HUD is a defect"
+    },
+    "visual3_units": {
+      "goal": "Shift walkers as billboards or simple meshes, not an RPG crowd",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L370,L372,L380,L381",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L370",
+        "L372",
+        "L380",
+        "L381"
+      ],
+      "construction_tests": [
+        "visual3_walkers_from_pack",
+        "visual3_units_billboard_or_mesh",
+        "visual3_units_not_lootable"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V3-7, PLAN_VISUAL_V3 V3-5",
+      "why": "Motion stays a pure function of city_time; agents are employees on shift, not lootable mobs"
+    },
+    "visual3_world": {
+      "goal": "Decor, water and fill light without physics",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L370,L372,L382,L383",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L370",
+        "L372",
+        "L382",
+        "L383"
+      ],
+      "construction_tests": [
+        "visual3_water_one_plane",
+        "visual3_decor_instanced",
+        "visual3_fill_light_no_physics"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "D-V3-5, D-V3-6, PLAN_VISUAL_V3 V3-6",
+      "why": "Water and decor are presentation of the same legend; a physics solver would break tick determinism"
+    },
+    "visual3_close": {
+      "goal": "Close visual v3 with numbers: full attack, sim, goldens, pack publish",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --jobs 8 && python content/sim.py",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L370",
+        "L384",
+        "L351",
+        "L13",
+        "L14"
+      ],
+      "construction_tests": [
+        "visual3_budgets_measured",
+        "visual3_golden_frames_match"
+      ],
+      "invariants": [
+        "L13_L14",
+        "I1_I3",
+        "layout_v1_bytes"
+      ],
+      "src": "PLAN_VISUAL_V3 V3-7, D-V3-1, D-V3-16",
+      "why": "Phase close: measured v3 budgets, full attack and sim. --jobs 8 belongs here; P7 starts after this passport"
+    },
+    "mainnet_launch": {
+      "goal": "Sign launchToken at 200 bps, deploy four groups, open deposits in 20 min; pack fact that evening",
+      "gate_cmd": "python content/build.py && python content/lint.py && python content/attack.py --only L13,L14,L24,L279,L293",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L13",
+        "L14",
+        "L24",
+        "L279",
+        "L293"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "L13_L14",
+        "I1_I3"
+      ],
+      "src": "D-P-2, D-P-12, D-P-14, PLAN_RELEASE P7",
+      "why": "creator_tax_bps is immutable after the signature; a half-filled address block talks to two worlds at once"
+    },
+    "season_one": {
+      "goal": "First farm window and first prize period settle on mainnet and reach a player claim",
+      "gate_cmd": "python content/lint.py && python content/attack.py --only L282,L283,L284,L289,L291,L292,L294,L304",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L282",
+        "L283",
+        "L284",
+        "L289",
+        "L291",
+        "L292",
+        "L294",
+        "L304"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "demo_isolated",
+        "I7",
+        "I11"
+      ],
+      "src": "PLAN_RELEASE P8",
+      "why": "A launch is not proven by uptime but by a player holding a settled prize"
+    }
+  },
+  "derived": {
+    "state_snapshot_every_ticks": "ticks_per_city_day; one boundary with the IPFS city-day aggregate",
+    "companion_queue_capacity": "companion_advisor_queue_depth times llm_worker_concurrency",
+    "sampler_age_alert_city_hours": "price_staleness_max_city_hours floor-div 2; alert before decay cuts the rate",
+    "command_endpoints": "distinct commit:* effects from screens.json as POST /command/X",
+    "endpoint_refusals": "capability codes of the element, order (tier, token) from T9",
+    "snapshot_sections": "one snapshot section per state_source",
+    "channel_map": "each state_source in exactly one HUD.md §8 channel",
+    "layer_order": "topological sort of packages; engine has zero deps",
+    "record_field_homes": "every layout v1 and header field maps to a schema table",
+    "invariant_metrics": "D13 invariant to metric to service to threshold_src",
+    "codegen_artifacts": "every arch.codegen artifact path; codegen.py writes exactly this set",
+    "vector_class_ids": "vector_classes plus idle_* from codes idle category",
+    "toolchain_engines": "toolchain.node.engines copied into every package.json engines.node",
+    "basket_conveyor_witness": "uniform ETH budget per district ticker; thin pool capped; leftover stays; hop fail spends zero",
+    "treasury_safety_witness": "five port groups; returnUnsettled skips settled; refundPlayer capped; bot is not the whole vault"
+  },
+  "toolchain": {
+    "node": {
+      "version": "24.13.1",
+      "kind": "runtime",
+      "engines": ">=24.0.0",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Node LTS on the C0 machine. engines is the range copied into every manifest"
+    },
+    "pnpm": {
+      "version": "11.24.0",
+      "kind": "runtime",
+      "npm": "pnpm",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Workspace installer. packageManager in every manifest equals this pin"
+    },
+    "python": {
+      "version": "3.12",
+      "kind": "tool",
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "Pack oracle and attack.py run on CPython. The workflow pin must match the gate machine"
+    },
+    "typescript": {
+      "version": "5.9.3",
+      "kind": "package",
+      "npm": "typescript",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "typescript-eslint peers TypeScript below 6.1; 5.9.3 is the last 5.x line"
+    },
+    "vitest": {
+      "version": "4.1.11",
+      "kind": "package",
+      "npm": "vitest",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Pin lives in the pack so a developer machine and the CI image cannot silently diverge for the workspace test runner"
+    },
+    "fast_check": {
+      "version": "4.9.0",
+      "kind": "package",
+      "npm": "fast-check",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Property tests for tick determinism. Run count is arch.params.property_runs"
+    },
+    "dependency_cruiser": {
+      "version": "18.2.0",
+      "kind": "package",
+      "npm": "dependency-cruiser",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Layer graph is data. Cruiser config is generated, this pin runs it"
+    },
+    "eslint": {
+      "version": "9.39.5",
+      "kind": "package",
+      "npm": "eslint",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Flat config. Paired with eslint_js at the same 9.39.5 so the plugin set cannot split"
+    },
+    "eslint_js": {
+      "version": "9.39.5",
+      "kind": "package",
+      "npm": "@eslint/js",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Must match eslint. A split here is a silent second lint stack"
+    },
+    "typescript_eslint": {
+      "version": "8.68.0",
+      "kind": "package",
+      "npm": "typescript-eslint",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Typed lint for engine bans. Peer range forbids TypeScript 7, which is why typescript stays 5.9.3"
+    },
+    "vite": {
+      "version": "8.2.2",
+      "kind": "package",
+      "npm": "vite",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Client bundler pin. Unused in C0 stubs, still authored so C5 cannot pick another"
+    },
+    "pixijs": {
+      "version": "8.20.1",
+      "kind": "package",
+      "npm": "pixi.js",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md, R-V-77",
+      "why": "PixiJS v8 stays the V12 archive renderer. Version is pack data; it is not the v3 frame"
+    },
+    "threejs": {
+      "version": "0.185.1",
+      "kind": "package",
+      "npm": "three",
+      "src": "D-V3-3, PLAN_VISUAL_V3 V3-1, L267",
+      "why": "Three.js is the v3 island engine in packages/render. Pin matches package.json so the frame cannot drift"
+    },
+    "react": {
+      "version": "19.2.8",
+      "kind": "package",
+      "npm": "react",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "HUD is React. Pin matches react_dom so the pair cannot drift"
+    },
+    "react_dom": {
+      "version": "19.2.8",
+      "kind": "package",
+      "npm": "react-dom",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Must equal react. A second React on the client would be a second renderer"
+    },
+    "types_react": {
+      "version": "19.2.8",
+      "kind": "package",
+      "npm": "@types/react",
+      "src": "D-C-14, PLAN_CODE C5",
+      "why": "React 19.2.8 npm tarball has no types; the pin matches react so HUD types cannot drift"
+    },
+    "types_react_dom": {
+      "version": "19.2.5",
+      "kind": "package",
+      "npm": "@types/react-dom",
+      "src": "D-C-14, PLAN_CODE C5",
+      "why": "Latest 19.2 types for react-dom 19.2.8. A second React types package would fork JSX"
+    },
+    "pg": {
+      "version": "8.23.0",
+      "kind": "package",
+      "npm": "pg",
+      "src": "D-C-14, PLAN_LIVE L4",
+      "why": "Postgres driver for openPg. No ORM. Pin so L4 does not pull a second client"
+    },
+    "postgres": {
+      "version": "16",
+      "kind": "database",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Server image major. Not an npm package; L267 ignores it in manifests"
+    },
+    "embedded_postgres": {
+      "version": "18.4.0-beta.17",
+      "kind": "package",
+      "npm": "embedded-postgres",
+      "src": "D-L-6, PLAN_LIVE L4",
+      "why": "Starts a real Postgres for the L4 replay gate when Docker is absent. Runtime image does not ship it"
+    },
+    "prettier": {
+      "version": "3.9.6",
+      "kind": "package",
+      "npm": "prettier",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Format is not discussed. One pin so CI and the editor rewrite the same bytes"
+    },
+    "types_node": {
+      "version": "24.13.3",
+      "kind": "package",
+      "npm": "@types/node",
+      "src": "D-C-14, docs/reports/PLAN_CODE.md",
+      "why": "Types follow Node 24. A 26-line of types on a 24 runtime would lie about APIs"
+    },
+    "corporator_protocol": {
+      "version": "workspace:*",
+      "kind": "package",
+      "npm": "@corporator/protocol",
+      "src": "D-C-8, PLAN_CODE C2",
+      "why": "Workspace protocol literals. Contentpack is the C2 consumer; the pin is the workspace, not a published tarball, so L267 can allow the layer-legal import"
+    },
+    "corporator_engine": {
+      "version": "workspace:*",
+      "kind": "package",
+      "npm": "@corporator/engine",
+      "src": "D-C-9, PLAN_CODE C3",
+      "why": "Workspace tick. Api is the C3 consumer; the pin is the workspace so L267 allows the layer-legal import"
+    },
+    "corporator_contentpack": {
+      "version": "workspace:*",
+      "kind": "package",
+      "npm": "@corporator/contentpack",
+      "src": "D-C-9, PLAN_CODE C3",
+      "why": "Workspace pack loader. Api serves GET /pack by hash; the pin is the workspace, not a published tarball"
+    },
+    "corporator_chainport": {
+      "version": "workspace:*",
+      "kind": "package",
+      "npm": "@corporator/chainport",
+      "src": "D-C-10, PLAN_CODE C4 C7",
+      "why": "AssetPort mock and rpc. Buyback talks to vault; attestor submits the merkle root; sampler reads wallet price"
+    },
+    "corporator_render": {
+      "version": "workspace:*",
+      "kind": "package",
+      "npm": "@corporator/render",
+      "src": "D-V-9, PLAN_VISUAL V3",
+      "why": "Workspace island renderer. Client is the V3 consumer; the pin is the workspace so L267 allows the layer-legal import"
+    },
+    "electric_sql_pglite": {
+      "version": "0.5.7",
+      "kind": "package",
+      "npm": "@electric-sql/pglite",
+      "src": "D-C-9, PLAN_CODE C3",
+      "why": "In-process Postgres for the C3 gate and local host. Production replay is openPg; this pin stays a test driver"
+    },
+    "foundry": {
+      "version": "1.8.1",
+      "kind": "tool",
+      "src": "D-L-8, PLAN_LIVE L7",
+      "why": "Forge runs the four contract groups locally. Hardhat would pull an ethers stack into the workspace before L8"
+    },
+    "solc": {
+      "version": "0.8.28",
+      "kind": "tool",
+      "src": "D-L-8, PLAN_LIVE L7",
+      "why": "Single compiler pin for foundry.toml and pragma. A caret range would let two machines compile different bytecode"
+    },
+    "noble_secp256k1": {
+      "version": "2.3.0",
+      "kind": "package",
+      "npm": "@noble/secp256k1",
+      "src": "D-P-3, PLAN_RELEASE P1",
+      "why": "Pure secp256k1 recover for session signatures. No network and no viem; the client never imports this pin"
+    }
+  },
+  "vector_classes": {
+    "empty_tick": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "Tick with no agents: empty record list, header is still merkle leaf zero"
+    },
+    "payroll_trim": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "Fund trim publishes payroll_ratio_bps and keeps every positive request nonzero"
+    },
+    "day_boundary": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "Hour zero freezes budget, steps EMA and ratchet, does not rerun hour-six events"
+    },
+    "feed_dead": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "feed_live zero writes STALE_PRICE, decays down only, a zero sample mints zero"
+    },
+    "stack_nonempty": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "Non-empty modifier stack records stage_bps base and post, not a silent identity"
+    },
+    "cyrillic": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "Cyrillic in strings uses ensure_ascii false so keccak sees the same UTF-8 as Python"
+    },
+    "over_2_53": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "Integer above 2 to the 53 must survive canonical print without becoming a float"
+    },
+    "layout_v1_edge": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "Empty reason, empty building, zero fragment delta: layout v1 still encodes"
+    },
+    "keccak_l202": {
+      "src": "L202, content/keccak.py",
+      "why": "Pinned keccak vectors empty, abc, and three block-boundary lengths"
+    },
+    "merkle_shapes": {
+      "src": "D-C-5, docs/reports/PLAN_CODE.md",
+      "why": "One leaf equals root, odd level is not duplicated, leaves sort by agent_id UTF-8"
+    },
+    "cid_city_day": {
+      "src": "D-C-5, DESIGN.md §6.2, docs/TICK.md §9, R-C-6",
+      "why": "City-day CID of canonical city_id, city_day, root; codes from attest.params.cid_*"
+    }
+  },
+  "ci_steps": {
+    "pack_lint": {
+      "cmd": "python content/lint.py",
+      "catches": "schema, derived, friction, L259 L260",
+      "red_input": "drop vault_fee_bps.why so L01 refuses the file",
+      "track": "push",
+      "src": "R-C-4, PLAN_CODE C9",
+      "why": "Pack gate stays on every commit. A silent schema break must not reach the image"
+    },
+    "pack_build": {
+      "cmd": "python content/build.py",
+      "catches": "canon mismatch, pack hash, round-trip",
+      "red_input": "corrupt DESIGN.md 5.8 fixture so L05 fails the build",
+      "track": "push",
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "The step track rebuilds the pack. A silent formula drift must not wait for night"
+    },
+    "codegen_check": {
+      "cmd": "python content/codegen.py --check",
+      "catches": "hand-edited generated files, missing artifacts",
+      "red_input": "edit packages/protocol/src/codes.ts by hand",
+      "track": "push",
+      "src": "D-C-7, PLAN_CODE C9",
+      "why": "Generated bytes are one-way. A hand patch would fork the wire from the pack"
+    },
+    "vector_oracle": {
+      "cmd": "python content/vectors.py",
+      "catches": "python oracle drift, missing vector class",
+      "red_input": "corrupt content/out/vectors/empty_tick.json bytes",
+      "track": "push",
+      "src": "D-C-5, PLAN_CODE C9",
+      "why": "TS parity is against oracle bytes. A stale vector file must fail before merge"
+    },
+    "install_frozen": {
+      "cmd": "pnpm -w install --frozen-lockfile",
+      "catches": "lockfile drift, undeclared dependency",
+      "red_input": "change pnpm-lock.yaml without a matching package.json",
+      "track": "push",
+      "src": "D-C-14, PLAN_CODE C9",
+      "why": "Toolchain pins live in the pack. An unlocked install would silently pick another tarball"
+    },
+    "workspace_gate": {
+      "cmd": "pnpm -w run gate",
+      "catches": "tsc, eslint, depcruise, vitest construction names",
+      "red_input": "add an it() name missing from construction_tests",
+      "track": "push",
+      "src": "L268, PLAN_CODE C9",
+      "why": "Typecheck and the 1:1 vitest map close the stage. Nested pnpm ci is forbidden here"
+    },
+    "attack_full": {
+      "cmd": "python content/attack.py --jobs 8",
+      "catches": "a lint rule that never fires, construction that never fails",
+      "red_input": "add attack.py --jobs 8 to a push track cmd",
+      "track": "nightly",
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "Full attack lives only at night. On a step it costs an hour and the discipline dies"
+    },
+    "sim": {
+      "cmd": "python content/sim.py",
+      "catches": "window A drift, return bands, bank measure",
+      "red_input": "put content/sim.py on a push track cmd",
+      "track": "nightly",
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "Season simulation is the nightly envelope check. A step must not wait on it"
+    },
+    "forge_test": {
+      "cmd": "forge test --root contracts",
+      "catches": "solc pin drift, vault invariant, pause path",
+      "red_input": "drop forge_test from the nightly track",
+      "track": "nightly",
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "Contract tests run at night. Push does not compile Solidity"
+    },
+    "image_smoke": {
+      "cmd": "docker build -f deploy/Dockerfile --build-arg PACK_HASH=ci -t corporator:ci-smoke .",
+      "catches": "image without PACK_HASH, root user, python in runtime",
+      "red_input": "drop USER node from deploy/Dockerfile",
+      "track": "nightly",
+      "src": "D-P-6, PLAN_RELEASE P2",
+      "why": "Smoke the generated image. Prod has no source mount after P4"
+    }
+  },
+  "image": {
+    "pin": "pack_hash",
+    "runtime_python": 0,
+    "copy_content": 0,
+    "runtime_pglite": 0,
+    "pack_runtime_path": "pack.json",
+    "src": "D-C-1, D-P-8, PLAN_RELEASE P4",
+    "why": "Runtime ships Node and a baked pack.json. Python, the content/ tree, and pglite stay off the image"
+  },
+  "audit": {
+    "src": "D-P-7, PLAN_RELEASE P3, docs/AUDIT.md",
+    "why": "Every finding has a status in the pack. Markdown is the human copy; L321 reads this table",
+    "findings": {
+      "prize_deposit_requested_amount": {
+        "severity": "high",
+        "status": "closed_code",
+        "construction": "balance_delta_accounting",
+        "src": "PLAN_RELEASE P3 A-P-10",
+        "why": "PrizeTreasury.deposit credited the requested amount; a fee-on-transfer stock would inflate unsliced and slice more than arrived"
+      },
+      "stake_credits_requested_amount": {
+        "severity": "high",
+        "status": "closed_code",
+        "construction": "balance_delta_accounting",
+        "src": "PLAN_RELEASE P3 A-P-10",
+        "why": "StakeRegistry.stake credited the requested amount; a fee-on-transfer stock would overstate the snapshot the tick reads"
+      },
+      "vault_deposit_requested_amount": {
+        "severity": "high",
+        "status": "closed_code",
+        "construction": "balance_delta_accounting",
+        "src": "PLAN_RELEASE P3 A-P-10",
+        "why": "Vault.deposit credited the requested $CORP; pending and backing follow the measured balance delta"
+      },
+      "bare_erc20_transfer": {
+        "severity": "high",
+        "status": "closed_code",
+        "construction": "erc20_return_value_checked",
+        "src": "PLAN_RELEASE P3 L320",
+        "why": "Every ERC-20 transfer and transferFrom in callers sits inside require; a bare call would ignore a false return"
+      },
+      "stock_decimals_eighteen": {
+        "severity": "high",
+        "status": "closed_code",
+        "construction": "erc20_return_value_checked",
+        "src": "PLAN_RELEASE P3 A-P-11",
+        "why": "PrizeTreasury and StakeRegistry do not assume decimals equals 18; atoms are credited as received"
+      },
+      "deployed_blocks_open_critical": {
+        "severity": "note",
+        "status": "closed_code",
+        "construction": "audit_findings_closed",
+        "src": "PLAN_RELEASE P3 L321 A-P-1",
+        "why": "An open critical finding cannot coexist with a nonempty launch.deployed row; the table is the lock"
+      },
+      "constructor_unpause_delay": {
+        "severity": "medium",
+        "status": "accepted",
+        "src": "PLAN_RELEASE §9, pending.pause_ready_delay",
+        "why": "unpauseDelay must be greater than zero; the owner seconds are not invented here and stay PENDING until P7"
+      },
+      "constructor_guardian_signer": {
+        "severity": "medium",
+        "status": "accepted",
+        "src": "PLAN_RELEASE §9, L300",
+        "why": "Guardian and signer addresses are constructor args from env at PlayerReady; they are not invented in the pack"
+      },
+      "no_reentrancy_guard": {
+        "severity": "note",
+        "status": "accepted",
+        "src": "PLAN_RELEASE P3 static, Rev-A",
+        "why": "Deposit pulls then credits; prize stocks are ERC-20 without hooks. A guard would be a new pattern, not a listed fix"
+      },
+      "usdt_void_return": {
+        "severity": "low",
+        "status": "accepted",
+        "src": "PLAN_RELEASE P3 token checklist",
+        "why": "Callers require a bool return; Robinhood stock tokens return bool. A low-level call to an arbitrary token is forbidden"
+      },
+      "outbound_token_fee": {
+        "severity": "note",
+        "status": "accepted",
+        "src": "PLAN_RELEASE P3 A-P-10",
+        "why": "Outbound claim and returnUnsettled send the owed or unsliced amount and check the return; a token tax on send is the issuer, not a second kettle"
+      },
+      "external_audit_vendor": {
+        "severity": "note",
+        "status": "accepted",
+        "src": "PLAN_RELEASE P3 calendar, §9",
+        "why": "External vendor and budget stay owner; P4 may run while that calendar waits. No open critical on the five contracts"
+      },
+      "tx_origin_delegatecall_absent": {
+        "severity": "note",
+        "status": "accepted",
+        "src": "PLAN_RELEASE P3 static, L297 A-P-21",
+        "why": "src has no tx.origin, delegatecall, or proxy. A repair must not add them. L297 already fails those strings"
+      }
+    }
+  }
+}

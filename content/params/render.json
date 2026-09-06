@@ -1,0 +1,622 @@
+{
+  "section": "render",
+  "note": "Visual-phase picture numbers. Runtime reads these; packages/render may not invent literals. Ceilings started as PLAN_VISUAL §7 / R-V-3 and were retuned from V3-7 GATE_VISUAL measurements, not from the V12 sprite-chunk copy.",
+  "params": {
+    "fps_target": {
+      "v": 60,
+      "u": "count",
+      "src": "PLAN_VISUAL §7, R-V-3",
+      "why": "Target frames per second for the island scene. Frame budget is derived; raising this without a V12 measurement is a silent perf lie"
+    },
+    "draw_calls_max": {
+      "v": 4096,
+      "u": "count",
+      "src": "PLAN_VISUAL_V3 V3-7, GATE_VISUAL.md",
+      "why": "Ceiling of GPU draw calls on a static v3 frame after measurement. The V12 sprite-chunk cap of 96 would fail L351 on the Three.js land-cell graph; observe stays strictly below this number"
+    },
+    "sprite_instances_max": {
+      "v": 1024,
+      "u": "count",
+      "src": "PLAN_VISUAL §7, R-V-3",
+      "why": "Ceiling of simultaneous sprite instances. The packed scene is hundreds of objects; a second atlas page is a later measurement"
+    },
+    "atlas_max_bytes": {
+      "v": 4194304,
+      "u": "bytes",
+      "src": "PLAN_VISUAL §7, R-V-3",
+      "why": "Sum of visible RGBA plus glow-mask atlas bytes. Over this cap the download is a second island the phone cannot hold"
+    },
+    "texture_bytes_max": {
+      "v": 67108864,
+      "u": "bytes",
+      "src": "PLAN_VISUAL §7, R-V-3",
+      "why": "GPU texture memory ceiling including ground chunks. Crossing it is a swap storm, not a prettier city"
+    },
+    "atlas_page_px": {
+      "v": 2048,
+      "u": "px",
+      "src": "PLAN_VISUAL §7, TZ_RENDER §3",
+      "why": "Atlas page side; guaranteed WebGL2 minimum. A larger page is a later measurement, not a literal in the packer"
+    },
+    "golden_pixel_delta_bps": {
+      "v": 50,
+      "u": "bps",
+      "src": "PLAN_VISUAL §7, D-V-15",
+      "why": "Full-golden: at most this share of pixels may differ when the channel delta is inside golden_channel_delta. Byte-equal GPU frames are not required"
+    },
+    "golden_channel_delta": {
+      "v": 2,
+      "u": "count",
+      "src": "PLAN_VISUAL §7, D-V-15",
+      "why": "Per-channel probe tolerance. Wider than this and a magenta leak or a day-phase grade miss would still look green"
+    },
+    "atlas_padding_px": {
+      "v": 2,
+      "u": "px",
+      "src": "TZ_RENDER.md §3.3",
+      "why": "Gap between packed frames and from the page edge. Zero lets a neighbour bleed at fractional zoom"
+    },
+    "glow_window": {
+      "v": 200,
+      "u": "count",
+      "src": "TZ_RENDER.md §3.4",
+      "why": "Glow-mask value for window pixels. Zero leaves night buildings dark; 255 is reserved for signs"
+    },
+    "glow_sign": {
+      "v": 255,
+      "u": "count",
+      "src": "TZ_RENDER.md §3.4",
+      "why": "Glow-mask value for sign boxes and emissive ids. Windows stay below this so signs read brighter"
+    },
+    "water_steps_per_tick": {
+      "v": 1,
+      "u": "count",
+      "src": "TZ_RENDER.md §4.3, L334",
+      "why": "Water animation steps per city tick. Phase is (tx + city_time × this) mod atlas frames, never a frame delta"
+    },
+    "island_shadow_offset_px": {
+      "v": 7,
+      "u": "px",
+      "src": "TZ_RENDER.md §4.4",
+      "why": "Island contact shadow offset down-right (light is top-left). Packed so the render src does not invent 7"
+    },
+    "cliff_depth_px": {
+      "v": 11,
+      "u": "px",
+      "src": "TZ_ART.md §2, R-V-52",
+      "why": "Shore cliff strip under the diamond. Packed so packages/render does not invent 11"
+    },
+    "snap_lut_side": {
+      "v": 32,
+      "u": "count",
+      "src": "TZ_RENDER.md §3, R-V-51",
+      "why": "Packed 32³ snap LUT side. Runtime reads this; GLSL uSide is not a TS literal"
+    },
+    "level_pip_step_px": {
+      "v": 6,
+      "u": "px",
+      "src": "TZ_RENDER.md §5.2",
+      "why": "Vertical gap between level pips above the front vertex. Zero stacks pips into one pixel"
+    },
+    "level_pip_offset_px": {
+      "v": 12,
+      "u": "px",
+      "src": "TZ_RENDER.md §5.2",
+      "why": "Lift of the first pip above the cube top. Zero sits the pip inside the roof silhouette"
+    },
+    "badge_pulse_city_minutes": {
+      "v": 4,
+      "u": "count",
+      "src": "TZ_RENDER.md §5.3, D-V-8",
+      "why": "Shortage badge alpha period in city ticks. Render pulses from city_time, never from a frame delta"
+    },
+    "hover_outline_px": {
+      "v": 1,
+      "u": "px",
+      "src": "TZ_RENDER.md §5.4",
+      "why": "Footprint diamond stroke on hover. Zero makes the hover ring invisible on the scene"
+    },
+    "hover_outline_alpha_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "TZ_RENDER.md §5.4",
+      "why": "Hover diamond alpha in bps of opaque. Packed so the outline is not a silent full-white box"
+    },
+    "contact_shadow_alpha_bps": {
+      "v": 2800,
+      "u": "bps",
+      "src": "TZ_RENDER.md §1 layer 5, R-V-47",
+      "why": "Object contact ellipse alpha. Half-opaque diamond read as a sticker; this is AO on the pad"
+    },
+    "contact_shadow_inset_bps": {
+      "v": 7500,
+      "u": "bps",
+      "src": "TZ_RENDER.md §1 layer 5, R-V-47",
+      "why": "Ellipse size vs footprint diamond, in bps of grade. 10000 fills the rhombus; inset keeps the contact under the mass"
+    },
+    "select_lift_px": {
+      "v": 4,
+      "u": "px",
+      "src": "TZ_RENDER.md §5.4",
+      "why": "Selected sprite rises this many pixels. Zero leaves selection as outline-only"
+    },
+    "label_min_zoom_num": {
+      "v": 1,
+      "u": "count",
+      "src": "TZ_RENDER.md §5.5, L345",
+      "why": "Numerator of the zoom at which building plaques appear. Zero would draw labels at every zoom and mash the 1/8 frame"
+    },
+    "label_min_zoom_den": {
+      "v": 2,
+      "u": "count",
+      "src": "TZ_RENDER.md §5.5, L345",
+      "why": "Denominator of the label zoom threshold. With num 1 this is half scale; below it plaques stay off"
+    },
+    "phase_blend_city_minutes": {
+      "v": 120,
+      "u": "count",
+      "src": "TZ_RENDER.md §6, D-V-4, L335",
+      "why": "Blend window into the next day phase, in city minutes. Zero would snap the grade on the hour; hours are not literals in render src"
+    },
+    "city_minutes_per_hour": {
+      "v": 60,
+      "u": "count",
+      "src": "TZ_RENDER.md §6, L335, L340",
+      "why": "City minutes in one city hour so phaseBlendBps can scale hoursLeft without a 60 in packages/render/src"
+    },
+    "emissive_gain_bps": {
+      "v": 8000,
+      "u": "bps",
+      "src": "TZ_RENDER.md §6, D-V-4",
+      "why": "Glow-layer alpha in bps of opaque when the current phase has lights. Below 10000 so night windows are not neon"
+    },
+    "grade_bps": {
+      "v": 10000,
+      "u": "bps",
+      "src": "TZ_RENDER.md §6, L335, L340",
+      "why": "Denominator for tint mix and glow gain. Packed so render src does not invent 10000"
+    },
+    "pan_deadzone_px": {
+      "v": 8,
+      "u": "px",
+      "src": "TZ_RENDER.md §7.2, L337",
+      "why": "Pointer move below this is not a pan. Zero would select a tile on every touch scroll"
+    },
+    "tap_max_move_px": {
+      "v": 10,
+      "u": "px",
+      "src": "TZ_RENDER.md §7.2, L337",
+      "why": "Pointer move at or below this is a tap. Wider than pan_deadzone so a tap is not also a pan"
+    },
+    "pinch_step_bps": {
+      "v": 1500,
+      "u": "bps",
+      "src": "TZ_RENDER.md §7.2, L337",
+      "why": "Pinch scale delta in bps of previous distance before zoom steps one packed level. Below this the scale would sit between zoom_levels"
+    },
+    "zoom_step_ms": {
+      "v": 120,
+      "u": "ms",
+      "src": "TZ_RENDER.md §7.1, L337",
+      "why": "Packed duration of a zoom step. Render snaps the scale to the target level; the client may lerp position using city/wall clock, never Date in render src"
+    },
+    "pan_inertia_ms": {
+      "v": 240,
+      "u": "ms",
+      "src": "TZ_RENDER.md §7.2, L337",
+      "why": "Packed pan coast window. Inertia must end on a whole world pixel; V6 snaps the clamp and does not invent a frame delta inside render"
+    },
+    "double_tap_ms": {
+      "v": 280,
+      "u": "ms",
+      "src": "TZ_RENDER.md §7.2, L337",
+      "why": "Window that counts a second tap as zoom-toward. Client compares wallNowMs from clock.ts, not Date in render"
+    },
+    "pan_tiles_per_city_second": {
+      "v": 4,
+      "u": "count",
+      "src": "TZ_RENDER.md §7.2, L337",
+      "why": "Keyboard pan step in tiles. Packed so WASD does not invent a stride in render src"
+    },
+    "vehicle_tiles_per_city_minute": {
+      "v": 1,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.1, L338",
+      "why": "Vehicle speed along roads in tiles per city minute. Phase is city_time, never a frame delta"
+    },
+    "vehicle_prng_stride": {
+      "v": 65536,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.1",
+      "why": "K in world_prng(layout_seed, vehicle, index*K+step) so two cars do not share a turn draw"
+    },
+    "drone_tiles_per_city_minute": {
+      "v": 1,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.2, L338",
+      "why": "Drone speed around its block perimeter in tiles per city minute"
+    },
+    "drone_altitude_px": {
+      "v": 24,
+      "u": "px",
+      "src": "TZ_RENDER.md §8.2",
+      "why": "Base drone height above the cube top. Shadow alpha falls as this plus bob grows"
+    },
+    "drone_bob_px": {
+      "v": 4,
+      "u": "px",
+      "src": "TZ_RENDER.md §8.2",
+      "why": "Drone bob amplitude. Zero would sit the drone at a dead altitude"
+    },
+    "drone_bob_city_minutes": {
+      "v": 8,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.2, D-V-8",
+      "why": "Bob period in city minutes. Triangle from city_time, not a frame delta"
+    },
+    "turbine_frames": {
+      "v": 8,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.3, TZ_ART.md §4.5",
+      "why": "Atlas frames for wind_turbine blades (turbine_blade_0..7)"
+    },
+    "turbine_period_city_minutes": {
+      "v": 4,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.3, L338",
+      "why": "Minutes of city time per turbine frame step"
+    },
+    "smoke_frames": {
+      "v": 6,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.3, TZ_ART.md §4.5",
+      "why": "Smoke atlas frames smoke plus smoke_02..06. Phase is city_time mod this count"
+    },
+    "flag_frames": {
+      "v": 4,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.3, TZ_ART.md §4.5",
+      "why": "Four-frame atlas sets: flag_*, billboard_*, waterfall_*, shore_wave_*, drone_bob_*"
+    },
+    "billboard_period_city_minutes": {
+      "v": 30,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.3",
+      "why": "Minutes between district_billboard frame steps"
+    },
+    "birds_per_city_day": {
+      "v": 3,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.3",
+      "why": "Bird flights per city day. Pose is city_time; sprite is bird_v2 append-only (D-V-12)"
+    },
+    "world_prng_bytes": {
+      "v": 8,
+      "u": "count",
+      "src": "TZ_RENDER.md §8, content/world.py world_prng",
+      "why": "Bytes taken from sha256 for layout PRNG; must match Python digest[:8]"
+    },
+    "fx_popup_ms": {
+      "v": 800,
+      "u": "ms",
+      "src": "TZ_RENDER.md §8.4, L357",
+      "why": "Wall duration of a tick popup. Client converts via clock.ts; render never invents the amount"
+    },
+    "fx_popup_rise_px": {
+      "v": 16,
+      "u": "px",
+      "src": "TZ_RENDER.md §8.4",
+      "why": "Popup rise in pixels over its city-time life"
+    },
+    "fx_tick_glow_bps": {
+      "v": 2000,
+      "u": "bps",
+      "src": "TZ_RENDER.md §8.4",
+      "why": "Brief uEmissive boost on a valid tick, inside grade_bps. Settings tick_animation can zero the FX layer"
+    },
+    "fx_popup_alpha_steps": {
+      "v": 4,
+      "u": "count",
+      "src": "TZ_RENDER.md §8.4, L340",
+      "why": "Stepped popup alpha denominator so render src does not invent a fade table"
+    },
+    "hud_si_min": {
+      "v": 10000,
+      "u": "count",
+      "src": "HUD.md §3, TZ_HUD.md §4",
+      "why": "Capital, GDP and Treasury switch to SI display at this magnitude; the exact integer stays in the tooltip"
+    },
+    "hud_si_base": {
+      "v": 1000,
+      "u": "count",
+      "src": "HUD.md §3 SI suffixes k/M/G",
+      "why": "SI grouping for hud formatSi; Value.tsx must not invent 1000"
+    },
+    "hud_clock_interval_ms": {
+      "v": 1000,
+      "u": "ms",
+      "src": "HUD.md §8, TZ_HUD.md §10",
+      "why": "Local clock and bank plaque refresh; Date.now stays in clock.ts"
+    },
+    "building_min_sprite_h": {
+      "v": 0,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, docs/WORLD.md §6, R-V-46",
+      "why": "Uniform packed-height floor retired. A shared floor stretched width with height and made a 2x2 lot overflow; class heights sprite_h_* set the silhouette instead"
+    },
+    "sprite_overhang_bps": {
+      "v": 400,
+      "u": "bps",
+      "src": "TZ_ART.md §9 item 6, R-V-53",
+      "why": "Allowed eaves past lot width after pixelize. Zero clipped canopies; more than this paints the neighbour asphalt"
+    },
+    "sprite_overhang_tree_bps": {
+      "v": 500,
+      "u": "bps",
+      "src": "TZ_ART.md §1.3, R-V-46, R-V-58",
+      "why": "Kept for the pack key; packed width of 1x1 decor is tile_w. Canopy over foreign r is the column mask, not a second lot"
+    },
+    "sprite_h_bench": {
+      "v": 18,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-58",
+      "why": "Packed height for benches. Below a person; above a planter"
+    },
+    "sprite_h_booth": {
+      "v": 28,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-58",
+      "why": "Packed height for phone booths. Taller than a person, shorter than a lantern"
+    },
+    "sprite_h_lantern": {
+      "v": 32,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-58",
+      "why": "Packed height for street lanterns. Slightly shorter than a tree"
+    },
+    "sprite_h_tree": {
+      "v": 56,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-58, R-V-59",
+      "why": "Packed height for trees. Above a person and a lantern, below a 2x2 shop so the house stays the module"
+    },
+    "sprite_h_kiosk": {
+      "v": 56,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-46",
+      "why": "Packed height for kiosks and shop_row. One storey of street fabric, not a house"
+    },
+    "sprite_h_furniture": {
+      "v": 16,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-58",
+      "why": "Packed height for bins, planters and barriers. Street furniture, not a booth"
+    },
+    "sprite_h_unit": {
+      "v": 20,
+      "u": "px",
+      "src": "TZ_ART.md §12, R-V-58",
+      "why": "Packed height for walkers and robots. People stay small so buildings read large"
+    },
+    "sprite_h_hedge": {
+      "v": 22,
+      "u": "px",
+      "src": "TZ_ART.md §12, R-V-58",
+      "why": "Packed height for hedges. A low lot marker, not a fence as tall as a kiosk"
+    },
+    "sprite_h_vehicle": {
+      "v": 24,
+      "u": "px",
+      "src": "TZ_ART.md §12, R-V-58",
+      "why": "Packed height for cars. Fits the road diamond; below a tree"
+    },
+    "sprite_h_residential": {
+      "v": 128,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-46",
+      "why": "Height ceiling for a house. Uniform scale; never a vertical stretch (R-V-48)"
+    },
+    "sprite_h_office": {
+      "v": 176,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-46",
+      "why": "Height ceiling for office, campus and store. Uniform scale (R-V-48)"
+    },
+    "sprite_h_civic": {
+      "v": 192,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-46",
+      "why": "Height ceiling for City Hall, bank and exchange. Uniform scale (R-V-48)"
+    },
+    "sprite_h_factory": {
+      "v": 152,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-46",
+      "why": "Height ceiling for silos, plant, annex and yard. Uniform scale (R-V-48)"
+    },
+    "sprite_h_tower": {
+      "v": 320,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-46",
+      "why": "Height ceiling for finance_tower and research. Uniform scale (R-V-48)"
+    },
+    "sprite_h_hub": {
+      "v": 180,
+      "u": "px",
+      "src": "TZ_ART.md §1.3, R-V-46",
+      "why": "Height ceiling for logistics_hub. Uniform scale (R-V-48)"
+    },
+    "road_band_half_bps": {
+      "v": 4000,
+      "u": "bps",
+      "src": "TZ_ART.md §3, R-V-59",
+      "why": "Kept as the old in-tile band. Carriageway width is road_span_tiles: each diamond is one lane (R-V-66)"
+    },
+    "road_span_tiles": {
+      "v": 2,
+      "u": "count",
+      "src": "docs/WORLD.md §5, R-V-66",
+      "why": "Diamonds per carriageway. One cube is one lane, the median sits on the seam, the next cube is the other lane. Studio brush stamps this many. Generator mask matches"
+    },
+    "visual3_frame_live": {
+      "v": 1,
+      "u": "flag",
+      "src": "D-V3-9, PLAN_VISUAL_V3 V3-1, R-V-78",
+      "why": "Three.js is the shipped v3 frame after the engine mounts the pack legend. Pixi rhombi are archive, not a fallback"
+    },
+    "orbit_tilt_min_bps": {
+      "v": 2777,
+      "u": "bps",
+      "src": "D-V3-5, PLAN_VISUAL_V3 V3-1, R-V-83",
+      "why": "Lower polar tilt as a share of a right angle from zenith. Packed so render src does not invent the floor of the orbit"
+    },
+    "orbit_tilt_max_bps": {
+      "v": 6889,
+      "u": "bps",
+      "src": "D-V3-5, PLAN_VISUAL_V3 V3-1, R-V-83",
+      "why": "Upper polar tilt as a share of a right angle from zenith. Stays below the horizon so the camera never becomes first-person flight"
+    },
+    "orbit_azimuth_bps": {
+      "v": 1250,
+      "u": "bps",
+      "src": "D-V3-5, PLAN_VISUAL_V3 V3-1, R-V-83",
+      "why": "Default yaw as a share of a full turn. Not an iso zoom_levels row; packed so the start pose is not a TypeScript literal"
+    },
+    "orbit_distance_min_tiles": {
+      "v": 41,
+      "u": "count",
+      "src": "D-V3-5, PLAN_VISUAL_V3 V3-1, R-V-83",
+      "why": "Nearest orbit distance in tile units. Independent of V12 iso zoom_levels so a copied pixel scale cannot drive the camera"
+    },
+    "orbit_distance_max_tiles": {
+      "v": 97,
+      "u": "count",
+      "src": "D-V3-5, PLAN_VISUAL_V3 V3-1, R-V-83",
+      "why": "Farthest orbit distance in tile units. Wider than min so zoom is a distance, not a packed iso fraction"
+    },
+    "orbit_fov_deg": {
+      "v": 49,
+      "u": "count",
+      "src": "D-V3-5, PLAN_VISUAL_V3 V3-1, L340",
+      "why": "Perspective fov in degrees. Packed so packages/render does not invent a Three.js default"
+    },
+    "orbit_drag_bps_per_px": {
+      "v": 17,
+      "u": "bps",
+      "src": "D-V3-5, PLAN_VISUAL_V3 V3-1, L340",
+      "why": "Azimuth and tilt change per dragged pixel in packed bps. Sensitivity lives in the pack, not in the pointer handler"
+    },
+    "hero_lod_high_quads": {
+      "v": 30000,
+      "u": "count",
+      "src": "D-V3-6, assets/_STYLE_V3.txt, R-V-86",
+      "why": "Meshy high-LOD remesh target in quads. Packed so a silent 30k clone cannot drift; placeholder GLB stay lighter until Meshy lands"
+    },
+    "hero_lod_low_quads": {
+      "v": 5000,
+      "u": "count",
+      "src": "D-V3-6, assets/_STYLE_V3.txt, R-V-86",
+      "why": "Meshy low-LOD remesh target in quads. Must stay lighter than high; packed so a mid LOD that is not lighter cannot hide"
+    },
+    "hero_texture_px": {
+      "v": 2048,
+      "u": "px",
+      "src": "D-V3-6, assets/_STYLE_V3.txt",
+      "why": "Hero albedo and emission side in pixels. Packed so 2K is not a TypeScript literal and a 1K drop cannot sneak in"
+    },
+    "hero_lod_near_tiles": {
+      "v": 53,
+      "u": "count",
+      "src": "D-V3-6, D-V3-5, L340",
+      "why": "Orbit distance at or below which the high LOD mesh is shown. Packed so render src does not invent a switch"
+    },
+    "sun_distance_tiles": {
+      "v": 89,
+      "u": "count",
+      "src": "PLAN_VISUAL_V3 V3-3, D-V3-5, L340",
+      "why": "Directional sun distance from the island centre in tile units. Packed so render src does not invent a light rig; independent of orbit_distance_* so camera zoom cannot hide the sun"
+    },
+    "unit_height_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "PLAN_VISUAL_V3 V3-5, TZ_ART.md §1.3, D-V3-8",
+      "why": "World height of a walker as a share of one tile (grade_bps). Iso sprite_h_unit stays the V12 pixel ceiling; orbit needs a packed world height so people stay small but readable (L340)"
+    },
+    "unit_shift_period_city_minutes": {
+      "v": 8,
+      "u": "count",
+      "src": "PLAN_VISUAL_V3 V3-5, D-V3-7, L338",
+      "why": "Sidewalk shuffle period in city minutes. Triangle from city_time, not a frame delta and not RPG pathfinding"
+    },
+    "unit_shift_span_bps": {
+      "v": 4000,
+      "u": "bps",
+      "src": "PLAN_VISUAL_V3 V3-5, D-V3-7, TZ_ART.md §4.7",
+      "why": "Shuffle amplitude as a share of one tile. Stays inside the sidewalk cell so a walker never occupies a lot"
+    },
+    "decor_height_bps": {
+      "v": 2800,
+      "u": "bps",
+      "src": "PLAN_VISUAL_V3 V3-6, D-V3-6, D-V3-8",
+      "why": "World height of instanced street furniture as a share of one tile. Packed so benches are not a TypeScript 1x1 leftover"
+    },
+    "lantern_height_bps": {
+      "v": 7500,
+      "u": "bps",
+      "src": "PLAN_VISUAL_V3 V3-6, WORLD.md §6, D-V3-8",
+      "why": "World height of an instanced lantern. Packed so the lamp is taller than furniture without a render literal"
+    },
+    "canopy_height_bps": {
+      "v": 6200,
+      "u": "bps",
+      "src": "PLAN_VISUAL_V3 V3-6, D-V3-6, D-V3-8",
+      "why": "World height of instanced plants (flower/bush/tree). Packed so canopy is not a cloned lantern stem"
+    },
+    "vehicle_height_bps": {
+      "v": 3500,
+      "u": "bps",
+      "src": "PLAN_VISUAL_V3 V3-6, D-V3-7, D-V3-8",
+      "why": "World height of a background car. Packed so vehicles are not leftover 1x1 cubes"
+    },
+    "drone_hover_height_bps": {
+      "v": 9000,
+      "u": "bps",
+      "src": "PLAN_VISUAL_V3 V3-6, TZ_RENDER.md §8.2, D-V3-8",
+      "why": "World hover of a drone as a share of one tile. Iso drone_altitude_px stays the V12 pixel ceiling; orbit needs a packed world height"
+    }
+  },
+  "derived": {
+    "frame_budget_us": "1000000 // fps_target; microseconds available for one frame at the target rate",
+    "atlas_sha256": "sha256 of concatenated atlas page bytes plus canonical city.json without the sha256 field",
+    "atlas_bytes": "sum of city.png, city_glow.png, extra pages, and font.png bytes",
+    "atlas_page_count": "number of atlas pages packed at atlas_page_px",
+    "atlas_frame_count": "number of registry ids present as frames in city.json",
+    "palette_sha256": "sha256 of art/palette/corporator.hex; orienter, not a frame lock",
+    "atlas_opaque_magenta_px": "count of opaque #FF00FF pixels in the visible atlas; must be 0",
+    "atlas_glow_building_count": "building frames whose glow mask has at least one G>0 pixel",
+    "ground_chunk_tiles": "equals placement.params.road_period_tiles so the chunk seam lies on a road axis (L333)",
+    "tile_cube_h": "0: flat diamonds, no cube drop (R-V-52)",
+    "building_footprints": "id → [cols, rows] from assets.json for commit:build occupancy",
+    "lut_phases": "filename of lut_phases.png in the atlas dir",
+    "lut_snap": "filename of lut_snap.png in the atlas dir",
+    "water_frame_count": "atlas city.json water.frames_x × water.frames_y; phase modulus (L334)",
+    "water_strip": "atlas water.strip ids for shallow phase; deep is water.deep (R-V-24)",
+    "road_autotile": "16 NESW road cube ids from tiles.ROAD_AUTOTILE; runtime pick, not legend chars",
+    "sidewalk_autotile": "16 NESW sidewalk cube ids from tiles.SIDEWALK_AUTOTILE; curb faces road",
+    "ground_sprites": "char → top-cube sprite id from tiles.GROUND_KINDS, packed so render src has no second legend",
+    "cube_dirt": "lower-stack interior cube id from tiles.CUBE_DIRT (earth, R-V-41)",
+    "cube_cliff": "lower-stack shore cube id from tiles.CUBE_CLIFF (earth, R-V-41)",
+    "cube_rock": "waterfall lower cube id from tiles.CUBE_ROCK",
+    "lot_pad": "unused plaza id kept for skip lists; occupied grass stays the land diamond (R-V-53)",
+    "lot_pad_skip": "building ids that keep grass: park and plaza greenery, tiles.LOT_PAD_SKIP",
+    "hud_font_pixel_sha256": "sha256 of art/fonts pixel woff2 from manifest.json",
+    "hud_font_log_sha256": "sha256 of art/fonts log woff2 from manifest.json",
+    "hud_font_pixel_family": "pixel family name from art/fonts/manifest.json",
+    "hud_font_log_family": "log family name from art/fonts/manifest.json",
+    "hud_font_pixel_file": "pixel woff2 filename from art/fonts/manifest.json",
+    "hud_font_log_file": "log woff2 filename from art/fonts/manifest.json",
+    "orbit_distance_default_tiles": "(orbit_distance_min_tiles + orbit_distance_max_tiles) // 2; start distance, not a zoom_levels row",
+    "hero_catalog": "building id → lod files, quad counts, material, sha; keys equal buildings.json (D-V3-6)",
+    "hero_sha256": "sha256 of sorted id:sha_high:sha_low from the written GLB catalog"
+  }
+}

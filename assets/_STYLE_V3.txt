@@ -1,0 +1,51 @@
+Corporator visual v3 — STYLE LOCK (read before every Meshy / concept / GLB pass)
+
+LIVE WORK
+  Island = art/island_v3 + models/*.glb (PLAN_ISLAND.md).
+  Do not rebuild the pack-grid island. Do not add required drones, cars, walkers,
+  agents, housing quotas, or "N buildings per district" on the mesh.
+
+WHAT "STYLE" MEANS
+  Same WORLD, not the same BUILDING.
+  Shared language: chunky toy volume, neon in windows, readable silhouette from orbit.
+  NOT photoreal. NOT pixelize. NOT a clone of the NVIDIA research brick on every house.
+
+CAMERA (shared)
+  High orbit around the island. Limited tilt. No first-person fly. No vanishing-point street.
+  Object reads as a diorama piece on the XZ lot, not a 2D rhombus sticker.
+
+LIGHT (shared)
+  Night and neon are the native phase. Day keeps the city on but kills signage.
+  Remove baked sun from albedo (Meshy: Remove Lighting ON).
+  Windows MUST glow via a separate emission map. Do not paint sun onto walls.
+
+FINISH (shared language, unique material)
+  One language: toy scale, hard edges, neon slits.
+  Different material per building: granite, enamel, glass, steel, tile, concrete —
+  pick what the FUNCTION needs. Do not paint every hero as dark NVIDIA brick + green eye.
+  NVIDIA dark brick + green eye is legal ONLY on the AI Research Center.
+
+UNIQUENESS (mandatory — fail the asset if it looks like a sibling)
+  Different footprint/silhouette from every other hero already on disk.
+  Different roof language.
+  Accent from the job or district, NOT from one hero:
+    compute/NVDA  — green glow, dark tech (research center only)
+    energy/TSLA   — crimson, industrial
+    logistics/AMZN — ochre/amber warehouse
+    consumer/AAPL — pale glass, retail
+    automation/MSFT — cool metal campus
+    finance/COIN  — deep stone, gold slit
+    civic core    — granite / enamel / civic glass; not district brick
+
+BACKGROUND
+  No HUD. No LV badge. No ground plane painted into the hero GLB
+  (the island mesh is the ground). No rust as a default weathering pass.
+
+LOD / TEXTURE (pipeline, not taste)
+  Hero remesh: Quad 30k + 5k. Do not ship a mid LOD that is not lighter than 30k.
+  All textures 2K. Decor ~3k with instancing.
+  Catalog keys = building ids from content/params/buildings.json.
+
+ARCHIVE
+  assets/_STYLE_LOCK.txt remains the V12 pixelize identity lock.
+  Do not feed v2 PNG through pixelize as the v3 game frame.

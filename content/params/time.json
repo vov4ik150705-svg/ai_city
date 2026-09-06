@@ -1,0 +1,106 @@
+{
+  "section": "time",
+  "params": {
+    "city_day_real_hours": {
+      "v": 25,
+      "u": "real_hours",
+      "src": "DESIGN.md §3.1",
+      "why": "Сутки города длиннее реальных, чтобы фаза уползала и никто не был заперт вне банка навсегда. Разница 4% незаметна в ощущении часа"
+    },
+    "tick_length_city_hours": {
+      "v": 1,
+      "u": "city_hours",
+      "src": "DESIGN.md §5.2",
+      "why": "Таблица §5.2 считает 24 тика на сутки города, значит тик равен часу города. Здесь это зафиксировано явно, как требует T2"
+    },
+    "anchor_weekday": {
+      "v": 1,
+      "u": "weekday_iso",
+      "src": "DESIGN.md §3",
+      "why": "Понедельник. У всех одинаковый старт, часовых поясов в игре нет вообще"
+    },
+    "anchor_hour": {
+      "v": 12,
+      "u": "city_hours",
+      "src": "DESIGN.md §3",
+      "why": "Первый заход ставит часы на полдень: банк открыт, первая сессия не начинается с закрытой двери"
+    },
+    "anchor_day_index": {
+      "v": 1,
+      "u": "day",
+      "src": "DESIGN.md §3",
+      "why": "Нумерация дней города с единицы"
+    },
+    "offline_cap_city_hours_base": {
+      "v": 12,
+      "u": "city_hours",
+      "src": "DESIGN.md §1, §3.2",
+      "why": "База потолка оффлайна. Не заходил три дня — получил одни 12 часов, не 72. Поднимается только ветка Automation через модификатор offline_cap_hours"
+    },
+    "bank_open_hour": {
+      "v": 8,
+      "u": "city_hours",
+      "src": "DESIGN.md §3.2, §5.8",
+      "why": "Банк открывается в 08:00 по личному времени города"
+    },
+    "bank_close_hour": {
+      "v": 20,
+      "u": "city_hours",
+      "src": "DESIGN.md §3.2, §5.8",
+      "why": "Банк закрывается в 20:00"
+    },
+    "bank_closed_weekday": {
+      "v": 7,
+      "u": "weekday_iso",
+      "src": "DESIGN.md §3.2",
+      "why": "Воскресенье города — банк не работает. С реальными выходными рынка намеренно не совпадает (§3.3)"
+    },
+    "efficiency_recalc_hour": {
+      "v": 6,
+      "u": "city_hours",
+      "src": "DESIGN.md §4.6",
+      "why": "Пересчёт efficiency один раз в сутки города в 06:00 по данным на закрытие предыдущих суток: внутридневное движение не снайпится"
+    }
+  },
+  "schedules": {
+    "always": {
+      "open_hour": 0,
+      "close_hour": 24,
+      "closed_weekdays": [],
+      "night_energy_premium": true,
+      "src": "DESIGN.md §5.8",
+      "why": "Сутки напролёт, ночью energy дороже. Производство и логистика"
+    },
+    "market": {
+      "open_hour": 8,
+      "close_hour": 20,
+      "closed_weekdays": [7],
+      "night_energy_premium": false,
+      "src": "DESIGN.md §5.8",
+      "why": "Банк и биржа. Трейдер, оставленный на ночь, не «чуть качает» — он стоит, и это видно в логе"
+    },
+    "retail": {
+      "open_hour": 9,
+      "close_hour": 21,
+      "closed_weekdays": [],
+      "night_energy_premium": false,
+      "src": "DESIGN.md §5.8",
+      "why": "Ритейл работает и в воскресенье — именно поэтому трейдера на выходные сажают в магазин, а не в кассу"
+    },
+    "office": {
+      "open_hour": 8,
+      "close_hour": 20,
+      "closed_weekdays": [7],
+      "night_energy_premium": false,
+      "src": "DESIGN.md §5.8",
+      "why": "Канцелярия: ратуша, найм, кампус, финансовая башня"
+    }
+  },
+  "derived": {
+    "city_time_rate_bps": "24 × 10000 / city_day_real_hours",
+    "ticks_per_city_day": "24 / tick_length_city_hours",
+    "offline_cap_ticks_base": "offline_cap_city_hours_base / tick_length_city_hours",
+    "phase_rotation_days": "24 / (city_day_real_hours − 24)",
+    "bank_open_hours_per_week": "(bank_close_hour − bank_open_hour) × (7 − количество closed_weekdays)"
+  }
+}

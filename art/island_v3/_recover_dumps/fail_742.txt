@@ -1,0 +1,74 @@
+LINE 1128
+OLD LEN 1396
+NEW LEN 2678
+OLD HEAD
+    n_tiles = 0
+    for poly in usable:
+        vs = poly_verts(poly)
+        if len(vs) < 3:
+            continue
+        stone = _cell_bin(poly)
+        try:
+            top = bm.faces.new(vs)
+            _mark_face(top, stone)
+            n_tiles += 1
+        except ValueError:
+            hx = sum(v.co.x for v in vs) / float(len(vs))
+            hy = sum(v.co.y for v in vs) / float(len(vs))
+            h = vert((hx, hy), 0)
+            before = len(bm.faces)
+            for i, tv in enumerate(vs):
+                _tri(bm, h, tv, vs[(i + 1) % len(vs)], stone)
+            if len(bm.faces) > before:
+                n_tiles += 1
+    tile_fs = [f for f in bm.faces if f.is_valid and f not in polar_faces]
+    if tile_fs:
+        bmesh.ops.triangulate(bm, faces=tile_fs)
+    kill = [
+        f
+
+---NEW HEAD---
+    n_tiles = 0
+    for poly in usable:
+        vs = poly_verts(poly)
+        if len(vs) < 3:
+            continue
+        stone = _cell_bin(poly)
+        try:
+            top = bm.faces.new(vs)
+            _mark_face(top, stone)
+            n_tiles += 1
+        except ValueError:
+            hx = sum(v.co.x for v in vs) / float(len(vs))
+            hy = sum(v.co.y for v in vs) / float(len(vs))
+            h = vert((hx, hy), 0)
+            before = len(bm.faces)
+            for i, tv in enumerate(vs):
+                _tri(bm, h, tv, vs[(i + 1) % len(vs)], stone)
+            if len(bm.faces) > before:
+                n_tiles += 1
+    plaza_vs = [v for v in bm.verts if abs(v.co.z - PLAZA_Z) < 0.2]
+    if plaza_vs:
+        bmesh.ops.remove_doubles(bm, verts=plaza_vs, dist=1.2)
+    polar_faces = {f for f in polar_faces if f.is_valid}
+    tile_fs = [f for f in bm.faces if f.is_valid and f not in polar_faces]
+    if tile_fs:
+        bmesh.ops.triangulate(bm, faces=tile_fs)
+    polar_faces = {f for f in polar_faces if f.is_valid}
+    if polar_faces:
+        bmesh.ops.delete(bm, geom=list(polar_faces), context="FACES_ONLY")
+    bm.edges.ensure_lookup_table()
+    seen_e: set[int] = set()
+    hole_loops: list[list[bmesh.types.BMVert]] = []
+    for e0 in bm.edges:
+        if not e0.is_boundary or id(e0) in seen_e:
+            continue
+        vs_loop: list[bmesh.types.BMVert] = []
+        cur = e0
+        v = e0.verts[0]
+        for _ in range(4096):
+            seen_e.add(id(cur))
+            vs_loop.append(v)
+            v = cur.other_vert(v)
+            nxt = None
+            for e

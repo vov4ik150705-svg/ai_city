@@ -1,0 +1,25 @@
+{
+  "note": "Дословная транскрипция таблицы DESIGN.md §5.8 «Кто сидит в каком здании». Это эталон, а не источник: генератор build_affinity обязан воспроизвести её из полей contour и contour_secondary в buildings.json плюс home_contours в agents.json. Расхождение хотя бы в одной клетке — ошибка сборки (правило L05).",
+  "legend": { "home": "родной", "neighbour": "сосед", "none": "слот такую роль не берёт" },
+  "roles": ["engineer", "logistician", "trader", "scientist", "manager"],
+  "matrix": {
+    "city_hall":          ["none",     "none",     "none",     "none",     "home"],
+    "workshop":           ["home",     "neighbour","none",     "none",     "none"],
+    "agent_hub":          ["none",     "none",     "none",     "neighbour","none"],
+    "power_node":         ["home",     "neighbour","none",     "none",     "none"],
+    "bank":               ["none",     "none",     "home",     "none",     "neighbour"],
+    "exchange":           ["none",     "none",     "home",     "none",     "none"],
+    "ai_research_center": ["neighbour","none",     "none",     "home",     "none"],
+    "energy_plant":       ["home",     "neighbour","none",     "none",     "none"],
+    "logistics_hub":      ["neighbour","home",     "none",     "none",     "none"],
+    "flagship_store":     ["none",     "neighbour","home",     "none",     "none"],
+    "cloud_campus":       ["none",     "none",     "none",     "neighbour","home"],
+    "finance_tower":      ["none",     "none",     "home",     "none",     "neighbour"],
+    "robotics_lab":       ["neighbour","none",     "none",     "none",     "none"],
+    "drone_depot":        ["none",     "home",     "none",     "none",     "none"],
+    "data_center":        ["neighbour","none",     "none",     "home",     "none"],
+    "fleet_yard":         ["neighbour","home",     "none",     "none",     "none"],
+    "retail_complex":     ["none",     "neighbour","home",     "none",     "none"],
+    "clearing_house":     ["none",     "none",     "neighbour","none",     "home"]
+  }
+}

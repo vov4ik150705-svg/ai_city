@@ -1,0 +1,75 @@
+{
+  "section": "resources",
+  "note": "Расходуемых ресурсов ровно два. Три и больше превращают экономику в электронную таблицу, которую никто не читает (DESIGN.md §4.2). Всё остальное — множители и лимиты, они живут в modifier_keys.json, а не здесь.",
+  "resources": {
+    "energy": {
+      "consumable": true,
+      "district": "energy",
+      "base_source": "power_node",
+      "idle_code": "IDLE_NO_ENERGY",
+      "color_token": "--accent-energy",
+      "src": "DESIGN.md §1, §4.2",
+      "why": "Есть с первого дня без стока: Power Node слабый и дорогой, район Energy делает энергию дешёвой"
+    },
+    "compute": {
+      "consumable": true,
+      "district": "compute",
+      "base_source": null,
+      "idle_code": "IDLE_NO_COMPUTE",
+      "color_token": "--accent-ai",
+      "src": "DESIGN.md §4.2, §7.2",
+      "why": "Базового источника нет сознательно: Compute появляется только со стейком NVDA, и это то, что делает первый район событием"
+    }
+  },
+  "materials": {
+    "note": "DecisionRecord §6.1 содержит поле inputs.materials. В v1 материалов как отдельного склада нет: поле присутствует в записи ради байт-точной совместимости формата с первого дня (§6.4) и всегда равно нулю. Расхождение R3 в docs/CONTENT.md."
+  },
+  "metrics": {
+    "population": {
+      "kind": "derived_metric",
+      "gates": ["city_level", "build_slots"],
+      "src": "DESIGN.md §8",
+      "why": "Производная от жилья и рабочих мест. Гейтит уровень города и лимит слотов застройки"
+    },
+    "productivity": {
+      "kind": "multiplier",
+      "gates": [],
+      "src": "DESIGN.md §8, §5.3",
+      "why": "Множитель выхода, входит в формулу тика отдельной стадией"
+    },
+    "happiness": {
+      "kind": "derived_metric",
+      "gates": ["productivity"],
+      "src": "DESIGN.md §8",
+      "why": "Ниже порога даёт штраф к Productivity. Зависит от жилья против населения, парков, профицита energy и невыплаченных смен"
+    },
+    "stability": {
+      "kind": "ratio",
+      "gates": [],
+      "src": "DESIGN.md §8",
+      "why": "Доля валидных тиков за 24 часа города. Честный ответ на вопрос «работал ли твой город»"
+    },
+    "influence": {
+      "kind": "score",
+      "gates": ["leaderboard"],
+      "src": "DESIGN.md §8",
+      "why": "Интеграл четырёх интенсивностей за сезон (GDP/капекс, stability, efficiency к нейтрали 10000, покрытие playable). Не тратится. Числа — docs/PRIZES.md"
+    },
+    "gdp_per_day": {
+      "kind": "money_flow",
+      "gates": [],
+      "src": "DESIGN.md §8",
+      "why": "Capital за сутки города. Денежный показатель, а не множитель: ни на что не влияет, но именно его игрок сравнивает с депозитом"
+    },
+    "treasury": {
+      "kind": "money_stock",
+      "gates": [],
+      "src": "DESIGN.md §8",
+      "why": "Баланс Capital города. Запас, а не поток: входит в левую часть инварианта кассы §2.3 вместе с фондом зарплат"
+    }
+  },
+  "derived": {
+    "consumable_count": "количество ресурсов с consumable = true, обязано равняться 2",
+    "resources_without_producer": "ресурсы, у которых нет ни base_source, ни открытого района-источника"
+  }
+}

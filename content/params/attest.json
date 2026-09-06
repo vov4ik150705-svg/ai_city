@@ -1,0 +1,55 @@
+{
+  "section": "attest",
+  "note": "T11 attestation params. Merkle domain bytes and the wall-clock root period. IPFS grouping is city-day, never wall hour. Live chain send stays v1.1; format is canonical from day one.",
+  "params": {
+    "attest_root_period_s": {
+      "v": 60,
+      "u": "seconds",
+      "src": "docs/BRIEF.md §6 T11, D1",
+      "why": "One merkle root per wall minute across all cities. An hourly root would leave an hour of paid-but-unattested shifts"
+    },
+    "merkle_leaf_domain_byte": {
+      "v": 0,
+      "u": "count",
+      "src": "docs/TICK.md §9, D3",
+      "why": "Prefix byte of a leaf hash so a leaf cannot pose as a node. Value is a pack param, not a literal in record.py"
+    },
+    "merkle_node_domain_byte": {
+      "v": 1,
+      "u": "count",
+      "src": "docs/TICK.md §9, D3",
+      "why": "Prefix byte of an interior node. Must differ from the leaf byte or a proof can mix layers"
+    },
+    "cid_version": {
+      "v": 1,
+      "u": "count",
+      "src": "docs/TICK.md §9, DESIGN.md §6.2, R-C-6",
+      "why": "CIDv1 version nibble. Pack param so the attestor does not hardcode the prefix"
+    },
+    "cid_codec": {
+      "v": 85,
+      "u": "count",
+      "src": "docs/TICK.md §9, DESIGN.md §6.2, R-C-6",
+      "why": "CIDv1 multicodec for raw bytes. Pack param so a second codec cannot fork city-day objects"
+    },
+    "cid_mh_code": {
+      "v": 18,
+      "u": "count",
+      "src": "docs/TICK.md §9, DESIGN.md §6.2, R-C-6",
+      "why": "CIDv1 multihash code for sha2. Pack param; digest itself is hashlib.sha256 in the oracle"
+    },
+    "cid_mh_length": {
+      "v": 32,
+      "u": "count",
+      "src": "docs/TICK.md §9, DESIGN.md §6.2, R-C-6",
+      "why": "Multihash length; must equal hashlib.sha256 digest_size so a truncated CID cannot match the oracle"
+    }
+  },
+  "derived": {
+    "attest_roots_per_day": "real_day_seconds // attest_root_period_s; wall-clock roots, not city-day roots",
+    "ipfs_aggregate_key": "pair (city_id, city_day); CID load is cities per day, not cities times 1440",
+    "merkle_leaf_order": "header is leaf 0; records 1..n sorted by agent_id UTF-8 bytes",
+    "attest_failure_mode": "IPFS/RPC drop open: payout already in state, records in outbox, HUD logged not Verified",
+    "attest_params": "generated table matching GEN:tick.attest_params"
+  }
+}

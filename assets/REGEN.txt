@@ -1,0 +1,40 @@
+Corporator art regen — unique sprites, shared lighting
+Lock: iso ~30°, sun UPPER LEFT, magenta #FF00FF, painterly RAW then pixelize (53 colors).
+  Shared = camera + light + finish. NOT Hall cream/cobalt/cupola. Each id unique.
+  Old pixel originals = identity only, not 1:1 copies. Game frames = art/out.
+Full text: assets/_STYLE_LOCK.txt
+Key script: assets/_regen_key.py
+Originals deleted. Working set is *_v2.png only (plus preview_hall_on_block.png).
+
+DONE (25)
+  buildings: 7 mockup v2 + unique from-scratch:
+             workshop, agent_hub, power_node, bank,
+             flagship_store (AAPL), cloud_campus (MSFT)
+  terrain:   island_block (+03/04 grass-dirt, not masonry), water_tile,
+             water_tile_02, roads, road_plaza
+  foliage:   tree_pink (+_02), tree_green 02–04, tree_pine, tree_autumn, tree_dark
+  grass:     island_block_v2 is turf+dirt; 03/04 same language (no stone walls)
+             island_dirt_v2 = packed earth all faces (lower tier)
+             island_cliff_v2 = dirt+strata cube (cliff face)
+  port:      boats, buoys, docks, lighthouse + pier, ship_cargo; dock_v2 solid
+  fx:        glow_* + smoke (v2 pack)
+  decor:     37 v2 — parent 5 (wind_turbine, lantern, fountain, solar_array,
+             tesla_mark) + 32 from remaining pack (benches, bushes, flowers,
+             lanterns, kiosks, signs, booths, solar panels, …)
+  vehicles:  vehicle_truck, drone, +22 fleet v2 (cars, vans, buses, drones)
+  agents:    walker_robot, walker_human, +21 from subagent pack
+             (robot_* and walker_* v2 — see assets/agents/*_v2.png)
+
+DELETED pixel originals (756 png): mockup sources, hud labels, inbox,
+  _sliced/_sheets/_discard/_iso3d, city_hall_v2_pixel*.
+  art/raw and art/out NOT touched (pipeline, append-only).
+
+REMAINING
+  skip sheets: island_cluster
+  world uniques: all have *_v2.png (buildings, terrain, foliage, port, fx, vehicles, agents, decor)
+  TZ_ART extras v2: pier, ship_cargo, dock (hole closed), hedge, tree_bare,
+                    traffic_light, cargo_container, scaffold, crane_build,
+                    water_tower
+  synergies v2: drone_depot, data_center, fleet_yard, retail_complex, clearing_house
+  fillers v2:  residential_block (+02 brick walk-up, +03 clapboard cottage),
+               office_block, silo_warehouse, substation, server_annex, park, plaza

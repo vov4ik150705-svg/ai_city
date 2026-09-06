@@ -1,0 +1,112 @@
+{
+  "section": "api",
+  "note": "T12 API as rules, not a handwritten path list. Commands come from screens.json commit:* effects. Codes live in codes.json. Cadences are derived from the pack.",
+  "params": {
+    "sampler_samples_per_tick": {
+      "v": 75,
+      "u": "count",
+      "src": "D8, HUD.md §8",
+      "why": "Samples per city hour. Period is derived and must divide tick_length_real_seconds and stay at or under one minute"
+    },
+    "ws_heartbeat_s": {
+      "v": 15,
+      "u": "seconds",
+      "src": "D5, D8, T12",
+      "why": "Three pulses inside one sampler period so a dead socket is seen before the next price"
+    },
+    "sampler_period_max_s": {
+      "v": 60,
+      "u": "seconds",
+      "src": "HUD.md §8, D8",
+      "why": "HUD promises stock prices on a minute cadence; a slower sampler cannot keep that row"
+    },
+    "domain_conflict_http": {
+      "v": 409,
+      "u": "count",
+      "src": "D6, T12 TZ",
+      "why": "A player-action refusal is a conflict with the current city. The client branches on code, not on a second HTTP per refusal"
+    }
+  },
+  "path_rules": {
+    "command": {
+      "method": "POST",
+      "template": "/command/{effect}",
+      "from": "screens.elements.effect",
+      "prefix": "commit:",
+      "required_fields": ["intent_id", "expected_city_time"],
+      "src": "D3, D7, T12",
+      "why": "One commit effect, one path. Required fields make a lost withdraw replay-safe"
+    },
+    "state": {
+      "method": "GET",
+      "template": "/city/{city_id}/state",
+      "from": "screens.state_sources",
+      "prefix": "",
+      "required_fields": [],
+      "src": "D4, T12 TZ",
+      "why": "One snapshot. A path that names a screen_id would make the server own the HUD"
+    },
+    "pack": {
+      "method": "GET",
+      "template": "/pack/{pack_hash}",
+      "from": "meta.derived.pack_hash",
+      "prefix": "",
+      "required_fields": [],
+      "cache": "immutable",
+      "src": "D2, docs/CONTENT.md §5",
+      "why": "Immutable pack by hash. An old shift finds its pack from the tick header, not latest"
+    },
+    "ready": {
+      "method": "GET",
+      "template": "/ready",
+      "from": "arch.readiness",
+      "prefix": "",
+      "required_fields": [],
+      "src": "D14, PLAN_LIVE L2",
+      "why": "Readiness is pack_hash plus migration_version. A listening socket without a pin would price a foreign pack"
+    },
+    "ws": {
+      "method": "GET",
+      "template": "/city/{city_id}/ws",
+      "from": "arch.channel_rules",
+      "prefix": "",
+      "required_fields": [],
+      "src": "D5, HUD.md §8",
+      "why": "One socket per city. Heartbeat cadence is ws_heartbeat_s so three pulses fit inside one sampler period"
+    },
+    "auth_nonce": {
+      "method": "POST",
+      "template": "/auth/nonce",
+      "from": "arch.session",
+      "prefix": "",
+      "required_fields": ["address"],
+      "src": "D-P-3, PLAN_RELEASE P1",
+      "why": "One-shot nonce for a claimed address. Auth is not a commit effect so L232 bijection stays closed"
+    },
+    "auth_session": {
+      "method": "POST",
+      "template": "/auth/session",
+      "from": "arch.session",
+      "prefix": "",
+      "required_fields": [],
+      "src": "D-P-3, PLAN_RELEASE P1",
+      "why": "Wallet session needs address nonce signature; demo session has no address. Required fields stay empty so both kinds share one pack route"
+    }
+  },
+  "envelope_ok_fields": ["city_time", "tick_index", "pack_hash", "rules_version"],
+  "envelope_error_fields": ["code", "slots", "city_time"],
+  "replay_code": "API_INTENT_REPLAY",
+  "stale_time_code": "API_PACK_STALE",
+  "derived": {
+    "sampler_period_s": "tick_length_real_seconds floor-div sampler_samples_per_tick",
+    "price_channel_period_s": "equals sampler_period_s; the price channel fires on a new sample",
+    "samples_per_twap_window": "twap_window_city_hours times ticks_per_city_hour times sampler_samples_per_tick",
+    "command_rate_limit_per_city_tick": "two times agents.params.slots_cap",
+    "session_ttl_s": "ticks_per_city_day times tick_length_real_seconds; one city day in real seconds",
+    "nonce_ttl_s": "tick_length_real_seconds; one city hour, the same window as a voucher",
+    "voucher_ttl_s": "tick_length_real_seconds; one city hour, the window the daily limit still covers",
+    "ws_heartbeat_ms": "ws_heartbeat_s times milliseconds in one second",
+    "sampler_period_ms": "sampler_period_s times milliseconds in one second",
+    "tick_length_real_ms": "tick_length_real_seconds times milliseconds in one second"
+  }
+}

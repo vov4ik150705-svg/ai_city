@@ -1,0 +1,40 @@
+import { type PortAmount, type PortErr, type PortResult, type RpcOutcome, type StakeRow } from "../values.js";
+export declare const rpcMethod: {
+    readonly balanceOf: "corp_token_balanceOf";
+    readonly transfer: "corp_token_transfer";
+    readonly vaultCorp: "vault_vaultCorp";
+    readonly capitalOf: "vault_capitalOf";
+    readonly deposit: "vault_deposit";
+    readonly mintCapital: "vault_mintCapital";
+    readonly issueVoucher: "vault_issueVoucher";
+    readonly presentVoucher: "vault_presentVoucher";
+    readonly stake: "stake_registry_stake";
+    readonly snapshot: "stake_registry_snapshot";
+    readonly putRoot: "merkle_roots_putRoot";
+    readonly getRoot: "merkle_roots_getRoot";
+    readonly chainId: "eth_chainId";
+};
+export declare function silence(): PortErr;
+export declare function dec(value: bigint): string;
+export declare function parseDec(raw: string): bigint | undefined;
+export declare function parseBody(body: string): unknown;
+export declare function decodeOutcome(outcome: RpcOutcome): unknown;
+export declare function decodeResult(outcome: RpcOutcome): PortResult;
+export declare function decodeAmount(outcome: RpcOutcome): PortAmount;
+export declare function decodeRoot(outcome: RpcOutcome): {
+    readonly ok: true;
+    readonly root: string;
+} | PortErr;
+export declare function decodeSnapshot(outcome: RpcOutcome): {
+    readonly ok: true;
+    readonly rows: readonly StakeRow[];
+} | PortErr;
+export declare function decodeChain(outcome: RpcOutcome): string | undefined;
+export declare function encodeOk(): string;
+export declare function encodeErr(code: string): string;
+export declare function encodeAmount(amount: bigint): string;
+export declare function encodeRoot(root: string): string;
+export declare function encodeChain(chain: string): string;
+export declare function encodeSnapshot(rows: readonly StakeRow[]): string;
+export declare function encodeResult(result: PortResult): string;
+export declare function encodeAmountResult(result: PortAmount): string;

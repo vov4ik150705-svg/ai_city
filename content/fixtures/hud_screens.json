@@ -1,0 +1,55 @@
+{
+  "note": "Literal HUD.md extract: topbar, columns, center, bottom menu, v1 cut, never-cut. Not a source: the screens registry must reproduce panels and never-cut codes.",
+  "src": "HUD.md §2",
+  "topbar": { "id": "topbar", "hud_ref": "HUD.md §3" },
+  "left_panels": [
+    { "id": "overview", "hud_ref": "HUD.md §4.1" },
+    { "id": "active_events", "hud_ref": "HUD.md §4.2" },
+    { "id": "districts_panel", "hud_ref": "HUD.md §4.3" }
+  ],
+  "right_panels": [
+    { "id": "city_card", "hud_ref": "HUD.md §5.1" },
+    { "id": "agents_panel", "hud_ref": "HUD.md §5.2" },
+    { "id": "log_panel", "hud_ref": "HUD.md §5.3" },
+    { "id": "district_overview", "hud_ref": "HUD.md §5.4" }
+  ],
+  "center": [
+    { "id": "scene", "hud_ref": "HUD.md §6.1" },
+    { "id": "stock_bar", "hud_ref": "HUD.md §6.2" }
+  ],
+  "bottom_menu": {
+    "id": "bottom_menu",
+    "hud_ref": "HUD.md §6.3",
+    "items": ["build", "agents", "districts", "research", "bank", "missions", "leaderboard"]
+  },
+  "cut_v1": [
+    { "id": "agent_log_tab", "hud_ref": "HUD.md §9" },
+    { "id": "verified_badge", "hud_ref": "HUD.md §9" },
+    { "id": "missions_stub", "hud_ref": "HUD.md §9" },
+    { "id": "sparklines", "hud_ref": "HUD.md §9" },
+    { "id": "district_overview_fill", "hud_ref": "HUD.md §9" }
+  ],
+  "never_cut": [
+    { "id": "bank_plaque", "codes": ["BANK_CLOSED", "BANK_SUNDAY"], "hud_ref": "HUD.md §9" },
+    { "id": "payroll", "codes": ["PAYROLL_TRIMMED"], "hud_ref": "HUD.md §9" },
+    {
+      "id": "idle_reasons",
+      "codes": [
+        "IDLE_NO_ENERGY",
+        "IDLE_NO_COMPUTE",
+        "IDLE_NO_MATERIALS",
+        "IDLE_WRONG_ROLE",
+        "IDLE_BANK_CLOSED",
+        "IDLE_OUT_OF_HOURS",
+        "IDLE_DISTRICT_FROZEN",
+        "IDLE_UNDER_CONSTRUCTION",
+        "IDLE_NO_AGENT",
+        "IDLE_OFFLINE_CAP_REACHED"
+      ],
+      "hud_ref": "HUD.md §9"
+    },
+    { "id": "stock_bar_dual", "codes": ["STALE_PRICE", "ORACLE_STALE", "ORACLE_DECAYING"], "hud_ref": "HUD.md §9" },
+    { "id": "stale_price", "codes": ["STALE_PRICE"], "hud_ref": "HUD.md §9" },
+    { "id": "bank_daily_limit", "codes": ["BANK_DAILY_LIMIT_REACHED"], "hud_ref": "HUD.md §9" }
+  ]
+}

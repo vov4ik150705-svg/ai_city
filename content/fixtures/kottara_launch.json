@@ -1,0 +1,14 @@
+{
+  "note": "Замеренные факты запуска KOTS на кривой 0xc8fb56548137a77b2d51f4c3cbb879a96a0ab6bb. Прямой источник контроля ETH-кривой: L24 сверяет с ней Q0, T, первую покупку и чистую продажу. Расхождение больше допуска роняет сборку.",
+  "src": "eth_getLogs CurveBuy/SnipeTaxCharged, mint block 46603053, getLaunchConfig(0)",
+  "supply": 1000000000000000000000000000,
+  "phantom_quote_wei": 1680000000000000000,
+  "graduation_threshold_wei": 4200000000000000000,
+  "first_buy_gross_wei": 51400000000000000,
+  "first_buy_tokens": 29110503406203983883234356,
+  "curve_sold_tokens": 714285714285714285714285714,
+  "fee_bps": 100,
+  "creator_tax_bps": 100,
+  "turnover_wei": 27700000000000000000,
+  "creator_tax_collected_wei": 279000000000000000
+}

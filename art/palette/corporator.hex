@@ -1,0 +1,78 @@
+; Corporator master palette - every sprite in the game is quantised to these colours.
+; Lines beginning ';=' open a named ramp; assets.json picks which ramps an asset may use,
+; which stops a bright green highlight from snapping into the amber ramp.
+; The 'outline' ramp is always included and its first entry is the silhouette colour.
+
+;= outline
+0d0f18
+141a26
+
+;= navy
+1b2436
+24314a
+2f3f5e
+3b4f73
+4a648c
+
+;= concrete
+3a3f4d
+4a5266
+5c667c
+707b92
+8994a8
+a3aec2
+c2cbdb
+
+;= steel
+2b303b
+40465a
+646b78
+8a92a1
+
+;= green
+0f3d1f
+1a6b30
+2fa348
+5fd167
+9bf58a
+d4ffb8
+; olive bridge, keeps yellow-greens out of the amber ramp
+2e3a16
+4d6320
+79992c
+a8c845
+
+;= amber
+5c3410
+8f5312
+c47a1a
+e8a52c
+ffc857
+ffe9a8
+
+;= crimson
+3d1016
+6b1a22
+9e2530
+c9333c
+e85561
+ff8a92
+
+;= blue
+12203f
+1b3a6b
+2a5a9e
+3f86d1
+6fb4f0
+aadcff
+
+;= brown
+3a2a18
+5c4426
+8a6636
+b5893f
+d9ab5c
+
+;= highlight
+e6ecf5
+ffffff

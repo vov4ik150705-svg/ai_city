@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Corporator — island</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #9ec8e0;
+        font-family: system-ui, sans-serif;
+      }
+      model-viewer {
+        width: 100%;
+        height: 100%;
+        --poster-color: transparent;
+      }
+      .hint {
+        position: fixed;
+        left: 16px;
+        bottom: 16px;
+        margin: 0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: rgba(12, 18, 28, 0.55);
+        color: #eef4fa;
+        font-size: 13px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <model-viewer
+      src="island.glb?v=grid"
+      alt="Floating island"
+      camera-controls
+      touch-action="pan-y"
+      exposure="1.15"
+      shadow-intensity="0"
+      environment-image="neutral"
+      camera-orbit="40deg 62deg 2200m"
+      camera-target="0m 160m 0m"
+      min-camera-orbit="auto 8deg 800m"
+      max-camera-orbit="auto 89deg 44000m"
+      interpolation-decay="80"
+    ></model-viewer>
+    <p class="hint">ЛКМ — вращать · колёсико — зум · ПКМ — сдвиг · отъезжайте, чтобы увидеть весь остров</p>
+  </body>
+</html>

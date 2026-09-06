@@ -1,0 +1,142 @@
+{
+  "section": "progression",
+  "note": "Six axis rows, tier rules, merge rules, selectors. Thirty-six district nodes, nine merge pairs, costs, merge_active_cap, key caps and S_min are generated, never stored. T5 owns modifier_caps.",
+  "params": {
+    "node_effect_base_bps": {
+      "v": 500,
+      "u": "bps",
+      "src": "DESIGN.md §5.3, buildings.json energy 5%",
+      "why": "Quantum of a node. Must beat tick jitter and the canon floor that energy modifiers are not thinner than 5%. Compared to jitter_width_bps by L61, not copied from it"
+    },
+    "tier_count": {
+      "v": 3,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T4",
+      "why": "Three tiers per district. The player picks one node per tier from a mutually exclusive pair"
+    },
+    "sides_per_tier": {
+      "v": 2,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T4",
+      "why": "Two mutually exclusive sides per tier. Taking A locks B for that tier"
+    },
+    "merge_min_tier": {
+      "v": 2,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T4",
+      "why": "A merge requires both districts at this tier or higher. Growth exponent of merge cost equals this gate"
+    },
+    "stake_mult_step": {
+      "v": 1,
+      "u": "count",
+      "src": "DESIGN.md §4.5",
+      "why": "Stake gate is t times this step times S_min. The step is not S_min: the gate stays checkable when the feed snapshot is missing"
+    },
+    "countable_unit": {
+      "v": 1,
+      "u": "count",
+      "src": "DESIGN.md §4.2 offline 12 to 18",
+      "why": "Hours and slots add one times t, not the bps quantum. Automation dividends 1+2+3 hours are the 12 to 18 canon"
+    },
+    "respec_allowed": {
+      "v": 0,
+      "u": "count",
+      "src": "docs/BRIEF.md §6 T4 exclusive pair",
+      "why": "Zero: a taken side stays taken. Allowing a rebuild would bypass the mutually exclusive pair without a named exception"
+    }
+  },
+  "axes": {
+    "scale": {
+      "tier": 1,
+      "side": "a",
+      "key": "output_bps",
+      "sign": 1,
+      "key_from": "literal",
+      "src": "docs/BRIEF.md §6 T4",
+      "why": "Tier-1 growth: more output per valid tick. Opposite of thrift on the same tier"
+    },
+    "thrift": {
+      "tier": 1,
+      "side": "b",
+      "key": "cost_key",
+      "sign": -1,
+      "key_from": "cost_key",
+      "src": "docs/BRIEF.md §6 T4",
+      "why": "Tier-1 thrift: cheapens the district cost_key. Compute cheapens compute, everyone else cheapens energy"
+    },
+    "depth": {
+      "tier": 2,
+      "side": "a",
+      "key": "upgrade_speed_bps",
+      "sign": 1,
+      "key_from": "literal",
+      "src": "docs/BALANCE.md §4 sublinear",
+      "why": "Faster upgrades. Wins when the city is already against the slot cap and width cannot grow"
+    },
+    "breadth": {
+      "tier": 2,
+      "side": "b",
+      "key": "build_cost_bps",
+      "sign": -1,
+      "key_from": "literal",
+      "src": "docs/BALANCE.md §4 width beats depth",
+      "why": "Cheaper construction. Wins while slots are still free, because output growth is sublinear in cost"
+    },
+    "capital": {
+      "tier": 3,
+      "side": "a",
+      "key": "output_bps",
+      "sign": 1,
+      "key_from": "literal",
+      "src": "docs/BRIEF.md §6 T4",
+      "why": "Tier-3 cash: more Capital per tick. Opposite of the fragment paper side"
+    },
+    "paper": {
+      "tier": 3,
+      "side": "b",
+      "key": "fragment_rate_bps",
+      "sign": 1,
+      "key_from": "literal",
+      "src": "docs/BRIEF.md §6 T6 proxy",
+      "why": "Tier-3 paper: faster fragments of this district stock. Accrual is produced × fragment stack; the pool is DESIGN.md §2.9"
+    }
+  },
+  "selectors": {
+    "own_key": {
+      "from": "provides",
+      "src": "DESIGN.md §4.2 district roles",
+      "why": "Dividend key is the district provides field. Resource roles map to a cost key with minus; modifier roles keep their key with plus. No authored district-to-key table"
+    },
+    "cost_key": {
+      "compute_provides": "compute",
+      "compute_key": "compute_cost_bps",
+      "default_key": "energy_cost_bps",
+      "src": "DESIGN.md §4.2 two consumables",
+      "why": "A district cheapens its own resource. Districts that do not produce a resource cheapen energy, the universal input of the base city"
+    },
+    "countable_keys": {
+      "keys": ["offline_cap_hours", "agent_slots"],
+      "src": "DESIGN.md §4.2, modifier_keys add",
+      "why": "Additive hours and slots use countable_unit times t. Every other key uses node_effect_base_bps times t"
+    }
+  },
+  "derived": {
+    "progression_nodes": "cartesian 6 districts x 3 tiers x 2 sides from axes, never stored",
+    "progression_dividends": "one row per district per tier: own_key from provides, magnitude unit times t",
+    "progression_merges": "complement of districts.synergies in C(6,2), never stored as a pair list",
+    "tier_gates": "city_level_req fused from city_level_max and building_level_max; stake_mult t times stake_mult_step",
+    "tier_cost": "fused research formula, zero at t=1, effect_bps = node_effect_base_bps times 2 times t",
+    "merge_cost": "same fused formula, effect_bps = node_effect_base_bps times 2, growth steps = merge_min_tier",
+    "merge_pairs": "uncovered synergy pairs, sorted ids",
+    "merge_active_cap": "size of a maximum matching of the uncovered graph, never a param",
+    "merge_matching_count": "number of matchings of the uncovered graph including empty",
+    "builds_raw": "sum over T of t_ge2^|T| times t_lt2^(n-|T|) times matchings of G[T]",
+    "builds_raw_v1": "same sum restricted to playable_v1 districts",
+    "builds_terminal": "each district closed or tier 3, matching maximal by inclusion",
+    "node_count": "len(progression_nodes)",
+    "merge_count": "len(progression_merges)",
+    "v1_node_count": "nodes whose district is playable_v1",
+    "v1_merge_count": "merges whose both districts are playable_v1",
+    "v1_merge_active_cap": "maximum matching size of the v1 induced uncovered graph"
+  }
+}

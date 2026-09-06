@@ -1,0 +1,116 @@
+# GENERATED from pack e45cd45df5a471712127b7de094cb615d5609fff1427f981471d120b8520620f; do not edit
+services:
+  postgres:
+    profiles:
+      - dev
+      - prod
+      - staging
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: corporator
+      POSTGRES_DB: corporator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U corporator"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    profiles:
+      - dev
+      - staging
+    image: node:24-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: ["node", "--experimental-strip-types", "services/api/src/main.ts"]
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/content/out/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7460"
+      DATABASE_URL: postgres://corporator:${POSTGRES_PASSWORD}@postgres:5432/corporator
+    ports:
+      - "7460:7460"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  attestor:
+    profiles:
+      - dev
+      - staging
+    image: node:24-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: ["node", "--experimental-strip-types", "services/attestor/src/main.ts"]
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/content/out/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7463"
+    ports:
+      - "7463:7463"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  buyback:
+    profiles:
+      - dev
+      - staging
+    image: node:24-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: ["node", "--experimental-strip-types", "services/buyback/src/main.ts"]
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/content/out/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7462"
+    ports:
+      - "7462:7462"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  llm:
+    profiles:
+      - dev
+      - staging
+    image: node:24-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: ["node", "--experimental-strip-types", "services/llm/src/main.ts"]
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/content/out/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7464"
+    ports:
+      - "7464:7464"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  sampler:
+    profiles:
+      - dev
+      - staging
+    image: node:24-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: ["node", "--experimental-strip-types", "services/sampler/src/main.ts"]
+    environment:
+      PACK_HASH: ${PACK_HASH}
+      PACK_PATH: /app/content/out/pack.json
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7461"
+    ports:
+      - "7461:7461"
+    depends_on:
+      postgres:
+        condition: service_healthy

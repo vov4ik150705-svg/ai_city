@@ -1,0 +1,50 @@
+{
+  "note": "Pinned keccak vectors and Happiness/Productivity witnesses for T11. Digests are computed by content/keccak.py, not invented. Happiness weights are the pack equal split BPS/4.",
+  "src": "docs/TICK.md §9, §11, D3 D7",
+  "keccak_vectors": [
+    {
+      "id": "empty",
+      "input_hex": "",
+      "n": 0,
+      "digest_hex": "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+    },
+    {
+      "id": "abc",
+      "input_hex": "616263",
+      "n": 3,
+      "digest_hex": "4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45"
+    },
+    {
+      "id": "rate_minus_one",
+      "input_hex": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dce3eaf1f8ff060d141b222930373e454c535a61686f767d848b9299a0a7aeb5bcc3cad1d8dfe6edf4fb020910171e252c333a41484f565d646b727980878e959ca3aab1b8bfc6cdd4dbe2e9f0f7fe050c131a21282f363d444b525960676e757c838a91989fa6ad",
+      "n": 135,
+      "digest_hex": "00ef96af9cf4b24c7f269d922294444a197d0a33638c2e56634c57e892103a8f"
+    },
+    {
+      "id": "rate_exact",
+      "input_hex": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dce3eaf1f8ff060d141b222930373e454c535a61686f767d848b9299a0a7aeb5bcc3cad1d8dfe6edf4fb020910171e252c333a41484f565d646b727980878e959ca3aab1b8bfc6cdd4dbe2e9f0f7fe050c131a21282f363d444b525960676e757c838a91989fa6adb4",
+      "n": 136,
+      "digest_hex": "742061bcad767ed4c4f5883b1dcb1aad11afdcc140dc469d953759b127b9f9ed"
+    },
+    {
+      "id": "rate_plus_one",
+      "input_hex": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dce3eaf1f8ff060d141b222930373e454c535a61686f767d848b9299a0a7aeb5bcc3cad1d8dfe6edf4fb020910171e252c333a41484f565d646b727980878e959ca3aab1b8bfc6cdd4dbe2e9f0f7fe050c131a21282f363d444b525960676e757c838a91989fa6adb4bb",
+      "n": 137,
+      "digest_hex": "e3371f61e770abf254c34239c3b0099ad90594507415bc81dd0a10b9692bbf2a"
+    }
+  ],
+  "happiness": {
+    "weight_housing_bps": 2500,
+    "weight_parks_bps": 2500,
+    "weight_energy_bps": 2500,
+    "weight_payroll_bps": 2500,
+    "weights_sum_bps": 10000,
+    "full_city_bps": 10000,
+    "empty_city_bps": 0
+  },
+  "productivity": {
+    "identity_realized": 24,
+    "identity_nominal": 24,
+    "identity_bps": 10000
+  }
+}

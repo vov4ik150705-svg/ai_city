@@ -1,0 +1,266 @@
+{
+  "section": "buildings",
+  "note": "Матрица «кто сидит в каком здании» (DESIGN.md §5.8) здесь НЕ хранится. Она выводится из полей contour и contour_secondary генератором build_affinity и сверяется с фикстурой content/fixtures/design_5_8.json. Стоимости, время постройки и база выхода по уровням задаются в T2 через кривые, а не перечислением.",
+  "buildings": {
+    "city_hall": {
+      "tier": "base",
+      "contour": "work_admin",
+      "contour_secondary": null,
+      "schedule": "office",
+      "sprite": "city_hall",
+      "output": null,
+      "autonomous": true,
+      "prebuilt": true,
+      "src": "DESIGN.md §7.1, §5.8",
+      "why": "Стол основателя существует с первого захода. Кривой стоимости нет, уровень равен уровню города. Vault работает без агента"
+    },
+    "workshop": {
+      "tier": "base",
+      "contour": "work_production",
+      "contour_secondary": "work_logistics",
+      "schedule": "always",
+      "sprite": "workshop",
+      "output": "capital",
+      "autonomous": false,
+      "output_weight_bps": {
+        "v": 10000,
+        "u": "bps",
+        "src": "docs/BRIEF.md §6 T2",
+        "why": "По определению нормировки: выход L1 за тик равен стоимости постройки, делённой на 240. Другое число сдвинуло бы точку нормировки"
+      },
+      "energy_base_per_tick": 100,
+      "src": "DESIGN.md §7.1, §5.8",
+      "why": "Первое дело и обязательный sink на старте. energy_base_per_tick = 100 — единица счёта: все энергетические модификаторы канона не тоньше 5%. inputs выводятся из забора, не хранятся"
+    },
+    "agent_hub": {
+      "tier": "base",
+      "contour": null,
+      "contour_secondary": "work_research",
+      "schedule": "office",
+      "sprite": "agent_hub",
+      "output": null,
+      "autonomous": true,
+      "cost_weight_bps": {
+        "v": 5000,
+        "u": "bps",
+        "src": "DESIGN.md §5.12, §7.1",
+        "why": "Предпосылка всех агентов, половина Workshop. Дороже — стартовый набор не собирается из половины депозита; дешевле — хаб перестаёт быть решением"
+      },
+      "src": "DESIGN.md §7.1, §5.8",
+      "why": "Найм — действие игрока, слот не обязателен. Родной роли нет ни у кого, учёный принимается как сосед за обучение"
+    },
+    "power_node": {
+      "tier": "base",
+      "contour": "work_production",
+      "contour_secondary": "work_logistics",
+      "schedule": "always",
+      "sprite": "power_node",
+      "output": "energy",
+      "autonomous": false,
+      "src": "DESIGN.md §7.1, §5.8",
+      "why": "Слабый дорогой источник energy, чтобы базовая игра работала без Tesla"
+    },
+    "bank": {
+      "tier": "base",
+      "contour": "work_finance",
+      "contour_secondary": "work_admin",
+      "schedule": "market",
+      "sprite": "bank",
+      "output": "spread",
+      "autonomous": false,
+      "cost_weight_bps": {
+        "v": 15000,
+        "u": "bps",
+        "src": "DESIGN.md §14, §7.1",
+        "why": "Единственный выход. «Банка ещё нет, вывести нельзя» должно стоить денег: полтора Workshop, дороже хаба, дешевле маяка"
+      },
+      "src": "DESIGN.md §7.1, §5.8",
+      "why": "Единственный выход Capital → $CORP"
+    },
+    "exchange": {
+      "tier": "base",
+      "contour": "work_finance",
+      "contour_secondary": null,
+      "schedule": "market",
+      "sprite": "exchange",
+      "output": "hop_quality",
+      "autonomous": false,
+      "city_level_req": 2,
+      "cost_weight_bps": {
+        "v": 12000,
+        "u": "bps",
+        "src": "DESIGN.md §7.1",
+        "why": "Гейтится уровнем города 2, стоит дороже хаба и дешевле банка: биржа — расширение, не замена кассы"
+      },
+      "src": "DESIGN.md §7.1, §5.8",
+      "why": "Покупка стока за $CORP и стейк. Открывается на втором уровне города"
+    },
+    "ai_research_center": {
+      "tier": "beacon",
+      "district": "compute",
+      "contour": "work_research",
+      "contour_secondary": "work_production",
+      "schedule": "always",
+      "sprite": "ai_research_center",
+      "output": "compute",
+      "autonomous": false,
+      "src": "DESIGN.md §7.2, §5.8",
+      "why": "Появляется Compute. В v1 крутит Engineer как сосед: ресурс есть, учёного ещё нет"
+    },
+    "energy_plant": {
+      "tier": "beacon",
+      "district": "energy",
+      "contour": "work_production",
+      "contour_secondary": "work_logistics",
+      "schedule": "always",
+      "sprite": "energy_plant",
+      "output": "energy",
+      "autonomous": false,
+      "src": "DESIGN.md §7.2, §5.8",
+      "why": "Energy в масштабе и дешевле, чем Power Node"
+    },
+    "logistics_hub": {
+      "tier": "beacon",
+      "district": "logistics",
+      "contour": "work_logistics",
+      "contour_secondary": "work_production",
+      "schedule": "always",
+      "sprite": "logistics_hub",
+      "output": "idle_reduction",
+      "autonomous": false,
+      "src": "DESIGN.md §7.2, §5.8",
+      "why": "Режет простой по всей цепочке"
+    },
+    "flagship_store": {
+      "tier": "beacon",
+      "district": "consumer",
+      "contour": "work_retail",
+      "contour_secondary": "work_logistics",
+      "schedule": "retail",
+      "sprite": "flagship_store",
+      "output": "capital_from_population",
+      "autonomous": false,
+      "src": "DESIGN.md §7.2, §5.8",
+      "why": "Capital от Population, а не от уровня здания"
+    },
+    "cloud_campus": {
+      "tier": "beacon",
+      "district": "automation",
+      "contour": "work_admin",
+      "contour_secondary": "work_research",
+      "schedule": "office",
+      "sprite": "cloud_campus",
+      "output": "slots_and_offline",
+      "autonomous": false,
+      "src": "DESIGN.md §7.2, §5.8",
+      "why": "Больше слотов агентов и длиннее оффлайн"
+    },
+    "finance_tower": {
+      "tier": "beacon",
+      "district": "finance",
+      "contour": "work_finance",
+      "contour_secondary": "work_admin",
+      "schedule": "office",
+      "sprite": "finance_tower",
+      "output": "bank_level",
+      "autonomous": false,
+      "src": "DESIGN.md §7.2, §5.8",
+      "why": "Банк выше первого уровня: дневной лимит, спред, доля в фонде"
+    },
+    "robotics_lab": {
+      "tier": "synergy",
+      "contour": null,
+      "contour_secondary": "work_production",
+      "schedule": "always",
+      "sprite": "robotics_lab",
+      "output": "capital",
+      "autonomous": true,
+      "src": "DESIGN.md §7.3, §5.8, §4.4",
+      "why": "Слот работает без агента, поэтому родной роли нет. Забор compute выводится из веса стоимости тем же mulDiv, что energy; производители compute его не расходуют. output_weight не хранится — равен affinity_neighbour_bps"
+    },
+    "drone_depot": {
+      "tier": "synergy",
+      "contour": "work_logistics",
+      "contour_secondary": null,
+      "schedule": "always",
+      "sprite": "drone_depot",
+      "output": "idle_reduction",
+      "autonomous": false,
+      "src": "DESIGN.md §7.3, §5.8",
+      "why": "Простой цепочки почти в ноль. Инженер сюда не садится: узкая специализация"
+    },
+    "data_center": {
+      "tier": "synergy",
+      "contour": "work_research",
+      "contour_secondary": "work_production",
+      "schedule": "always",
+      "sprite": "data_center",
+      "output": "compute",
+      "autonomous": false,
+      "src": "DESIGN.md §7.3, §5.8",
+      "why": "Compute масштабом и дешевле за юнит"
+    },
+    "fleet_yard": {
+      "tier": "synergy",
+      "contour": "work_logistics",
+      "contour_secondary": "work_production",
+      "schedule": "always",
+      "sprite": "fleet_yard",
+      "output": "idle_reduction",
+      "autonomous": false,
+      "src": "DESIGN.md §7.3, §5.8",
+      "why": "Логистика почти не жрёт energy"
+    },
+    "retail_complex": {
+      "tier": "synergy",
+      "contour": "work_retail",
+      "contour_secondary": "work_logistics",
+      "schedule": "retail",
+      "sprite": "retail_complex",
+      "output": "capital_from_population",
+      "autonomous": false,
+      "src": "DESIGN.md §7.3, §5.8",
+      "why": "Population → Capital в масштабе"
+    },
+    "clearing_house": {
+      "tier": "synergy",
+      "contour": "work_admin",
+      "contour_secondary": "work_finance",
+      "schedule": "office",
+      "sprite": "clearing_house",
+      "output": "fund_share",
+      "autonomous": false,
+      "src": "DESIGN.md §7.3, §5.8",
+      "why": "Выше доля в фонде и дневной лимит вывода. Контуры обратны банку: родной — управленец, трейдер сосед"
+    }
+  },
+  "filler": {
+    "note": "Процедурный заполнитель по DESIGN.md §7.4. Ставится генератором, не игроком, красится в палитру района. Правила плотности и размещения — docs/WORLD.md.",
+    "kinds": {
+      "residential_block": { "district": "consumer", "sprite": "residential_block", "src": "DESIGN.md §7.4" },
+      "shop_row": { "district": "consumer", "sprite": "retail_complex", "src": "DESIGN.md §7.4, R-V-46" },
+      "office_block": { "district": "automation", "sprite": "office_block", "src": "DESIGN.md §7.4" },
+      "silo_warehouse": { "district": "logistics", "sprite": "silo_warehouse", "src": "DESIGN.md §7.4" },
+      "substation": { "district": "energy", "sprite": "fleet_yard", "src": "DESIGN.md §7.4, R-V-46" },
+      "server_annex": { "district": "compute", "sprite": "server_annex", "src": "DESIGN.md §7.4" },
+      "finance_annex": { "district": "finance", "sprite": "office_block", "src": "DESIGN.md §7.4, R-V-46" },
+      "park": { "district": null, "sprite": "park", "src": "DESIGN.md §7.4" },
+      "plaza": { "district": null, "sprite": "plaza", "src": "DESIGN.md §7.4" },
+      "district_billboard": { "district": "any", "sprite": "district_billboard", "src": "DESIGN.md §7.4" },
+      "street_light": { "district": null, "sprite": "lantern", "src": "DESIGN.md §7.4" },
+      "tree": { "district": null, "sprite": "tree_green", "src": "DESIGN.md §7.4" },
+      "vehicle": { "district": null, "sprite": "vehicle", "src": "DESIGN.md §7.4" },
+      "drone": { "district": null, "sprite": "drone", "src": "DESIGN.md §7.4" }
+    }
+  },
+  "derived": {
+    "affinity_matrix": "для каждой пары (роль, здание): home если home_contours роли содержит building.contour, neighbour если содержит contour_secondary, accepted если building.accepts_any, иначе отказ IDLE_WRONG_ROLE",
+    "buildings_by_tier": "группировка по tier",
+    "buildings_without_home_role": "здания с contour = null; каждое обязано иметь autonomous = true",
+    "buildings_playable_v1": "base играбельно всегда; маяк — если playable_v1 его района; синергия — если играбельны все районы из requires. Ручного списка скоупа нет, он сверяется с фикстурой design_11_scope.json",
+    "level_cost": "workshop_cost_l1 × cost_weight_bps(a) / 10000 × cost_growth_bps^(L−1) / 10000^(L−1); city_hall предпостроен, кривой нет",
+    "level_output": "output(a,1) × output_growth_bps^(L−1), где output(a,1) = cost(a,1) × output_weight / 10000 / 240; считать от cost(a,1), не от cost(a,L)",
+    "level_build_time": "ceil(cost_weight_bps(a) × build_time_growth_bps^(L−1) / 10000^L), минимум 1",
+    "building_inputs": "energy если выведенный забор energy за тик > 0; compute если выведенный забор compute за тик > 0. Не хранится"
+  }
+}

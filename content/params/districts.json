@@ -1,0 +1,149 @@
+{
+  "section": "districts",
+  "note": "Роли фиксированы, тикеры сменные (DESIGN.md §4.3). S_min заморожен в атомах токена со снимка фида 2026-08-29. S_ref не хранится.",
+  "districts": {
+    "compute": {
+      "ticker": "NVDA",
+      "role": "AI / Compute",
+      "beacon": "ai_research_center",
+      "provides": "compute",
+      "provides_kind": "resource",
+      "color_token": "--accent-ai",
+      "ramp": "green",
+      "playable_v1": true,
+      "src": "DESIGN.md §4.2, §7.2",
+      "why": "Единственный источник Compute. Без района лаборатории и учёные стоят"
+    },
+    "energy": {
+      "ticker": "TSLA",
+      "role": "Energy",
+      "beacon": "energy_plant",
+      "provides": "energy",
+      "provides_kind": "resource",
+      "color_token": "--accent-energy",
+      "ramp": "crimson",
+      "playable_v1": true,
+      "src": "DESIGN.md §4.2, §7.2",
+      "why": "Energy в масштабе и дешевле. Без района город живёт на слабом Power Node и упирается в свет"
+    },
+    "logistics": {
+      "ticker": "AMZN",
+      "role": "Logistics",
+      "beacon": "logistics_hub",
+      "provides": "idle_reduction_bps",
+      "provides_kind": "modifier",
+      "color_token": "--accent-logi",
+      "ramp": "amber",
+      "playable_v1": true,
+      "src": "DESIGN.md §4.2, §7.2, §11",
+      "why": "Throughput — множитель, не склад. Режет простой по всей цепочке"
+    },
+    "consumer": {
+      "ticker": "AAPL",
+      "role": "Consumer",
+      "beacon": "flagship_store",
+      "provides": "population_conversion_bps",
+      "provides_kind": "modifier",
+      "color_token": "--accent-cons",
+      "ramp": "highlight",
+      "playable_v1": true,
+      "src": "DESIGN.md §4.2, §7.2",
+      "why": "Единственный контур, где Capital капает от жителей, а не от завода. Правило §2.8 при этом не ломается: ритейлу тоже нужен агент в слоте"
+    },
+    "automation": {
+      "ticker": "MSFT",
+      "role": "Automation",
+      "beacon": "cloud_campus",
+      "provides": "offline_cap_hours",
+      "provides_kind": "modifier",
+      "color_token": "--accent-auto",
+      "ramp": "navy",
+      "playable_v1": true,
+      "src": "DESIGN.md §4.2, §7.2, §11",
+      "why": "Единственная ветка, которая покупает игроку время, а не деньги. Тянет потолок оффлайна с базовых 12 часов"
+    },
+    "finance": {
+      "ticker": "COIN",
+      "role": "Finance",
+      "beacon": "finance_tower",
+      "provides": "fund_share_bps",
+      "provides_kind": "modifier",
+      "color_token": "--accent-fin",
+      "ramp": "blue",
+      "playable_v1": true,
+      "src": "DESIGN.md §4.2, §4.3, §7.2",
+      "why": "Шестой сток — COIN, не GOOGL: от Finance зависит весь вывод денег. Без роли банк навсегда остаётся кассой первого уровня"
+    }
+  },
+  "synergies": {
+    "robotics_lab": { "requires": ["compute", "energy"], "src": "DESIGN.md §4.4, §7.3" },
+    "drone_depot": { "requires": ["compute", "logistics"], "src": "DESIGN.md §4.4, §7.3" },
+    "data_center": { "requires": ["compute", "automation"], "src": "DESIGN.md §4.4, §7.3" },
+    "fleet_yard": { "requires": ["energy", "logistics"], "src": "DESIGN.md §4.4, §7.3" },
+    "retail_complex": { "requires": ["consumer", "logistics"], "src": "DESIGN.md §4.4, §7.3" },
+    "clearing_house": { "requires": ["automation", "finance"], "src": "DESIGN.md §4.4, §7.3" }
+  },
+  "stake": {
+    "src": "DESIGN.md §4.5, §12",
+    "why": "Порог заморожен в атомах бумаги (18 dec), не в долларах. S_min = district_stake_usd_target_8dec × 10^18 // answer снимка; S_ref не хранится и равен S_min",
+    "snapshot": {
+      "at": "2026-08-29T23:19:30Z",
+      "rpc": "https://rpc.mainnet.chain.robinhood.com",
+      "chain_id": 4663,
+      "src": "docs/LAUNCH.md §9 Chainlink latestRoundData",
+      "feeds": {
+        "NVDA": { "proxy": "0x379EC4f7C378F34a1B47E4F3cbeBCbAC3E8E9F15", "answer": 21815545000, "decimals": 8, "updated_at": 1787946989 },
+        "TSLA": { "proxy": "0x4A1166a659A55625345e9515b32adECea5547C38", "answer": 34836125000, "decimals": 8, "updated_at": 1787946889 },
+        "AMZN": { "proxy": "0xD5a1508ceD74c084eBf3cBe853e2C968fB2a651C", "answer": 26608500000, "decimals": 8, "updated_at": 1787945433 },
+        "AAPL": { "proxy": "0x6B22A786bAa607d76728168703a39Ea9C99f2cD0", "answer": 31971273059, "decimals": 8, "updated_at": 1787938651 },
+        "MSFT": { "proxy": "0x45C3C877C15E6BA2EBB19eA114Ea508d14C1Af2E", "answer": 51296000000, "decimals": 8, "updated_at": 1787945573 },
+        "COIN": { "proxy": "0xA3a468A452940B7D6b69991207B508c609a98Ef2", "answer": 17771685000, "decimals": 8, "updated_at": 1787947341 }
+      }
+    },
+    "s_min": {
+      "NVDA": {
+        "v": 458388731521490753,
+        "u": "tokens",
+        "src": "docs/LAUNCH.md §9 NVDA latestRoundData 2026-08-28T19:56:29Z",
+        "why": "Frozen $100 target times 10^18 floor-div feed answer; atoms, not a live dollar gate"
+      },
+      "TSLA": {
+        "v": 287058333841665799,
+        "u": "tokens",
+        "src": "docs/LAUNCH.md §9 TSLA latestRoundData 2026-08-28T19:54:49Z",
+        "why": "Frozen $100 target times 10^18 floor-div feed answer; atoms, not a live dollar gate"
+      },
+      "AMZN": {
+        "v": 375819756844617321,
+        "u": "tokens",
+        "src": "docs/LAUNCH.md §9 AMZN latestRoundData 2026-08-28T19:30:33Z",
+        "why": "Frozen $100 target times 10^18 floor-div feed answer; atoms, not a live dollar gate"
+      },
+      "AAPL": {
+        "v": 312780788601878113,
+        "u": "tokens",
+        "src": "docs/LAUNCH.md §9 AAPL latestRoundData 2026-08-28T17:37:31Z",
+        "why": "Frozen $100 target times 10^18 floor-div feed answer; atoms, not a live dollar gate"
+      },
+      "MSFT": {
+        "v": 194946974422956955,
+        "u": "tokens",
+        "src": "docs/LAUNCH.md §9 MSFT latestRoundData 2026-08-28T19:32:53Z",
+        "why": "Frozen $100 target times 10^18 floor-div feed answer; atoms, not a live dollar gate"
+      },
+      "COIN": {
+        "v": 562692845388605526,
+        "u": "tokens",
+        "src": "docs/LAUNCH.md §9 COIN latestRoundData 2026-08-28T20:02:21Z",
+        "why": "Frozen $100 target times 10^18 floor-div feed answer; atoms, not a live dollar gate"
+      }
+    }
+  },
+  "derived": {
+    "district_count": "количество ключей в districts",
+    "playable_v1_count": "количество районов с playable_v1 = true",
+    "synergy_pair_coverage": "какие из 15 возможных пар районов покрыты синергиями",
+    "stake_bonus_bps": "целочисленная гипербола stake_bonus_max_bps × (stake − S_min) / (stake − S_min + S_ref); S_ref = S_min",
+    "district_stake_reference": "S_ref равен S_min по каждому тикеру и не хранится отдельным полем"
+  }
+}

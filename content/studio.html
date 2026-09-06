@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Corporator — студия карты</title>
+  <style>
+    :root {
+      --bg: #0c1016; --panel: #161b24; --line: #2a3140; --text: #e8e4d8;
+      --muted: #8b93a7; --warn: #e8b86d; --bad: #e36b6b; --ok: #7dbe8a; --acc: #3d6ea8;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 "Segoe UI", sans-serif; }
+    header {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--panel);
+    }
+    header h1 { font-size: 14px; margin: 0 8px 0 0; }
+    header .meta { color: var(--muted); }
+    button {
+      background: #2c3344; color: var(--text); border: 1px solid var(--line);
+      padding: 6px 10px; cursor: pointer; border-radius: 4px;
+    }
+    button.primary { background: var(--acc); border-color: #4d82c4; }
+    button.danger { background: #5a3030; }
+    button.on { outline: 2px solid #fff; }
+    .wrap { display: grid; grid-template-columns: 1fr 360px; height: calc(100% - 92px); }
+    .map-wrap {
+      overflow: hidden; position: relative; background: #071018; cursor: grab;
+      touch-action: none; user-select: none; overscroll-behavior: none;
+    }
+    .map-wrap.space, .map-wrap.drag { cursor: grabbing; }
+    #stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 0; }
+    #iso, #floorCv, #spriteCv { display: block; position: absolute; left: 0; top: 0; }
+    #iso { image-rendering: pixelated; max-width: none; visibility: hidden; -webkit-user-drag: none; user-select: none; }
+    #iso.ready { visibility: visible; }
+    #floorCv, #spriteCv { pointer-events: none; image-rendering: pixelated; }
+    #spriteCv.hidden { opacity: 0; }
+    #spriteCv.v2 { image-rendering: auto; }
+    #sel {
+      position: absolute; pointer-events: none; border: 1px solid #fff;
+      box-shadow: 0 0 0 1px #000; display: none; z-index: 5;
+    }
+    #sel .h {
+      position: absolute; width: 8px; height: 8px; background: #3d6ea8; border: 1px solid #fff;
+      pointer-events: auto; z-index: 6; box-shadow: 0 0 0 1px #000;
+    }
+    #sel .h.se {
+      right: -9px; bottom: -9px; width: 10px; height: 10px; cursor: nwse-resize;
+      border-radius: 1px; font-size: 0;
+    }
+    #sel .h.e { right: -9px; top: 50%; margin-top: -4px; cursor: ew-resize; }
+    #sel .h.s { bottom: -9px; left: 50%; margin-left: -4px; cursor: ns-resize; }
+    #sel.tiny .h.e, #sel.tiny .h.s { display: none; }
+    header .size-btns { display: flex; gap: 4px; margin-left: 4px; }
+    header .size-btns button { min-width: 88px; background: #3d6ea8; border-color: #4d82c4; }
+    header .turn-btns { display: flex; gap: 4px; margin-left: 4px; }
+    header .turn-btns button { min-width: 88px; }
+    .gpal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 6px 0; }
+    .gpal button { padding: 4px; height: 64px; }
+    .gpal .dia {
+      width: 36px; height: 18px; margin: 8px auto 4px;
+      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    }
+    .gpal .lab { font-size: 10px; color: var(--muted); }
+    #tileMark {
+      position: absolute; pointer-events: none; width: 64px; height: 32px;
+      background: rgba(61, 110, 168, 0.35);
+      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+      display: none;
+    }
+    .side { border-left: 1px solid var(--line); background: var(--panel); overflow: auto; padding: 12px; }
+    .side h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 14px 0 6px; }
+    .side h2:first-child { margin-top: 0; }
+    select, input[type=number], input[type=search] {
+      width: 100%; background: #12141a; color: var(--text); border: 1px solid var(--line); padding: 6px;
+    }
+    .insp { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .insp label { font-size: 11px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+    .insp .wide { grid-column: 1 / -1; }
+    .chk { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin: 8px 0; }
+    .row-btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+    .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
+    .tabs button { padding: 4px 8px; font-size: 11px; }
+    .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-height: 280px; overflow: auto; }
+    .thumbs button { padding: 2px; height: 80px; overflow: hidden; }
+    .thumbs img { max-width: 100%; max-height: 52px; display: block; margin: 0 auto; image-rendering: pixelated; }
+    .thumbs .lab { font-size: 10px; color: var(--muted); word-break: break-all; }
+    .budget { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .budget td { padding: 2px 4px; border-bottom: 1px solid var(--line); }
+    .warn { color: var(--warn); white-space: pre-wrap; font-size: 12px; }
+    .help { color: var(--muted); white-space: pre-wrap; font-size: 11px; }
+    .banner { width: 100%; padding: 6px 12px; background: #2a2418; color: var(--warn); font-size: 12px; }
+    #busy { display: none; position: absolute; z-index: 3; inset: 12px auto auto 12px; background: #000c; padding: 6px 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Студия карты</h1>
+    <span class="meta" id="meta">кадр с диска…</span>
+    <span style="flex:1"></span>
+    <button type="button" data-tool="select" class="on" title="Клик по спрайту. Пустое место — тащить карту">Выбрать</button>
+    <button type="button" data-tool="pan" title="ЛКМ тащить карту">Карта</button>
+    <span class="size-btns">
+      <button type="button" id="btnShrinkHdr" title="уменьшить">－ размер</button>
+      <button type="button" id="btnGrowHdr" title="увеличить">＋ размер</button>
+    </span>
+    <span class="turn-btns">
+      <button type="button" id="btnTurnL" title="Q: лицо влево или зеркало">◀ влево</button>
+      <button type="button" id="btnTurnR" title="E: лицо вправо или зеркало">вправо ▶</button>
+    </span>
+    <button type="button" data-tool="building" title="Клик по лоту — посадить выбранное здание">Здание</button>
+    <button type="button" data-tool="decor" title="Клик по тайлу — посадить декор, машину или юнита из каталога">Посадить</button>
+    <button type="button" data-tool="ground" title="Красить ромбы пола: трава, дорога, тротуар, песок">Пол</button>
+    <button type="button" data-tool="eraser" class="danger" title="Стереть клетку пола в воду. Кисть 1–3. Декор на клетке тоже снимается">Ластик пола</button>
+    <button type="button" id="btnDeleteHdr" class="danger" title="Delete: снять выбранный спрайт">Удалить</button>
+    <button type="button" data-brush="1" class="on" title="Кисть земли: 1 тайл">кисть 1</button>
+    <button type="button" data-brush="2" title="Кисть земли: 3×3">2</button>
+    <button type="button" data-brush="3" title="Кисть земли: 5×5">3</button>
+    <button type="button" id="btnArtGame" class="on" title="Игровой кадр: pixelize, как в клиенте">игра</button>
+    <button type="button" id="btnArtV2" title="Только студия: исходники *_v2.png. Земля и пак не меняются">v2</button>
+    <button type="button" id="btnFit" title="Вписать остров в окно. Колесо само по себе кадр не сбрасывает">В кадр</button>
+    <button type="button" id="btnFrame" title="Перепечь PNG земли (после кисти пола или если слой уехал)">Обновить землю</button>
+    <button type="button" id="btnClearAssets" class="danger" title="Снять все спрайты. Земля и дороги остаются">Очистить ассеты</button>
+    <button type="button" id="btnRevert" class="danger" title="Очистить фикстуру и вернуть генератор">Вернуть генератор</button>
+    <button type="button" id="btnSave" class="primary" title="Записать authored_layout.json">Сохранить</button>
+  </header>
+  <div class="banner" id="banner">Колесо — зум вокруг курсора. Средняя / пробел — пан. Стрелки — 1 px, Shift — 8 px.</div>
+  <div class="wrap">
+    <div class="map-wrap" id="mapWrap">
+      <div id="busy">рендер кадра…</div>
+      <div id="stage">
+        <img id="iso" alt="остров" draggable="false" />
+        <canvas id="floorCv"></canvas>
+        <canvas id="spriteCv" class="hidden"></canvas>
+        <div id="tileMark"></div>
+      </div>
+      <div id="sel">
+        <i class="h e" data-h="e" title="ширина"></i>
+        <i class="h s" data-h="s" title="высота"></i>
+        <i class="h se" data-h="se" title="размер"></i>
+      </div>
+    </div>
+    <aside class="side">
+      <h2>Как двигать</h2>
+      <div class="help" id="help">Выбрать: ЛКМ по спрайту — двигать. Пустая земля или «Карта» — тащить остров.
+Размер: угол рамки, ＋/－, «всем этот размер» для всех копий того же id.
+Подъём: Alt+перетаскивание или [ ].
+Поворот: ◀ влево / вправо ▶ (Q / E).
+Пол: палитра трава/дорога/кладка/стереть — ромбы легенды, не кубы. Кисть 1–3. «Ластик пола» и свотч «стереть» пишут воду; край сетки не красится. «Очистить ассеты» снимает все спрайты. Удалить — выбранный ассет.
+«v2» — превью исходников на той же земле, в пак не пишется.
+Здание: клик по лоту. Посадить: вкладка «все» — весь реестр. Колесо — зум.</div>
+      <h2>Выбор</h2>
+      <div id="hitInfo" class="meta">клик по спрайту или тайлу</div>
+      <div class="insp">
+        <label>тайл x <input id="inTx" type="number" step="1" /></label>
+        <label>тайл y <input id="inTy" type="number" step="1" /></label>
+        <label>сдвиг x px <input id="inOx" type="number" step="1" /></label>
+        <label>сдвиг y px <input id="inOy" type="number" step="1" /></label>
+        <label>длина px <input id="inW" type="number" min="0" step="1" /></label>
+        <label>высота px <input id="inH" type="number" min="0" step="1" /></label>
+        <label>подъём px <input id="inLift" type="number" min="0" step="1" /></label>
+        <label>масштаб % <input id="inScale" type="number" min="1" step="1" value="100" /></label>
+        <div class="wide meta" id="nativeInfo">родной размер —</div>
+      </div>
+      <label class="chk"><input id="lockAspect" type="checkbox" checked /> держать пропорции</label>
+      <label class="chk"><input id="inFlip" type="checkbox" /> зеркало по горизонтали</label>
+      <div class="row-btns">
+        <button type="button" id="btnShrink" title="уменьшить на 10%">－ размер</button>
+        <button type="button" id="btnGrow" title="увеличить на 10%">＋ размер</button>
+        <button type="button" id="btnFlip">Зеркало</button>
+        <button type="button" id="btnFaceL" title="Q">◀ влево</button>
+        <button type="button" id="btnFaceR" title="E">вправо ▶</button>
+        <button type="button" id="btnMatchSize" title="все спрайты этого id получат текущий размер">всем этот размер</button>
+        <button type="button" id="btnDelete" class="danger" title="Delete">Удалить</button>
+        <button type="button" id="btnResetGeom">сбросить сдвиг и размер</button>
+      </div>
+      <h2>Каталог</h2>
+      <input id="pickSearch" type="search" placeholder="поиск по id" />
+      <div class="tabs">
+        <button type="button" data-cat="building" class="on">здания</button>
+        <button type="button" data-cat="decor">декор</button>
+        <button type="button" data-cat="vehicle">техника</button>
+        <button type="button" data-cat="unit">юниты</button>
+        <button type="button" data-cat="tile">плитки</button>
+        <button type="button" data-cat="fx">fx</button>
+        <button type="button" data-cat="all">все</button>
+      </div>
+      <select id="pickBuilding" size="6"></select>
+      <div class="thumbs" id="pickDecor"></div>
+      <h2>Пол острова</h2>
+      <div class="gpal" id="groundPalette"></div>
+      <select id="pickGround" hidden></select>
+      <h2>Бюджет заполнителя</h2>
+      <table class="budget" id="budget"></table>
+      <div class="meta" id="decorBps"></div>
+      <h2>Предупреждения</h2>
+      <div class="warn" id="warn">нет</div>
+    </aside>
+  </div>
+  <script>
+    const FLOOR = {
+      ".": "rgba(46,58,22,0.88)",
+      r: "rgba(58,63,77,0.94)",
+      c: "rgba(106,106,116,0.94)",
+      s: "rgba(154,154,146,0.88)",
+      b: "rgba(200,168,106,0.9)",
+      k: "rgba(58,63,77,0.88)",
+      p: "rgba(90,99,116,0.9)",
+      m: "rgba(58,63,77,0.94)",
+      "~": "#12203f"
+    };
+    const FLOOR_FROM_ID = {
+      island_block: ".", island_block_03: ".", island_block_04: ".", island_block_earth: ".",
+      island_dirt: ".", island_dirt_earth: ".", island_cliff_earth: ".",
+      beach: "b", parking: "k", plaza_tile: "p", masonry: "m", sidewalk: "s", crosswalk: "c",
+      water_tile: "~", water_deep: "~"
+    };
+    const CAT_LABEL = { building: "здания", decor: "декор", vehicle: "техника", unit: "юниты", tile: "плитки", fx: "fx", all: "все" };
+    let state = null;
+    let placed = [];
+    let tiles = [];
+    let props = [];
+    let overlayPlacements = [];
+    let overlayTiles = [];
+    let overlayProps = [];
+    let mapLive = [];
+    let tilesDirty = false;
+    let floorLive = false;
+    let propsDirty = false;
+    let placedDirty = false;
+    let replacePlacements = 0;
+    let replaceProps = 0;
+    let tool = "select";
+    let brush = 1;
+    let decorId = null;
+    let catalogTab = "building";
+    let selected = null;
+    let view = { x: 0, y: 0, z: 1 };
+    let viewFitted = false;
+    let drag = null;
+    let space = false;
+    let live = false;
+    let textures = {};
+    let artStyle = (localStorage.getItem("corporator-studio-art") === "v2") ? "v2" : "game";
+    let raf = 0;
+    let hitsLive = [];
+    let roadPrev = null;
+    let roadAxis = "";
+
+    function busy(on) { document.getElementById("busy").style.display = on ? "block" : "none"; }
+    function iso() { return (state && state.iso) || {}; }
+
+    function applyView() {
+      document.getElementById("stage").style.transform =
+        "translate(" + view.x + "px," + view.y + "px) scale(" + view.z + ")";
+      if (selected && selected.hit) markHit(selected.hit);
+    }
+
+    function fitView() {
+      const wrap = document.getElementById("mapWrap");
+      const img = document.getElementById("iso");
+      const w = img.naturalWidth || iso().width || 0;
+      const h = img.naturalHeight || iso().height || 0;
+      if (!w || !h) return;
+      const z = Math.min(wrap.clientWidth / w, wrap.clientHeight / h) * 0.96;
+      view.z = Math.max(0.12, Math.min(8, z));
+      view.x = (wrap.clientWidth - w * view.z) / 2;
+      view.y = (wrap.clientHeight - h * view.z) / 2;
+      viewFitted = true;
+      applyView();
+    }
+
+    function wrapPoint(ev) {
+      const r = document.getElementById("mapWrap").getBoundingClientRect();
+      return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+    }
+
+    function imgPoint(ev) {
+      const p = wrapPoint(ev);
+      return { px: (p.x - view.x) / view.z, py: (p.y - view.y) / view.z };
+    }
+
+    function lotAt(tx, ty) {
+      return (state.lots || []).find(l => tx >= l.x && ty >= l.y && tx < l.x + l.w && ty < l.y + l.h) || null;
+    }
+
+    function tileAtPx(px, py) {
+      const I = iso();
+      const x = px - (I.off_x || 0) - (I.half_w || 32);
+      const y = py - (I.off_y || 0) + (I.drop || 0);
+      const den = 2 * (I.half_w || 32);
+      return { tx: Math.round((x + 2 * y) / den), ty: Math.round((2 * y - x) / den) };
+    }
+
+    function hits() {
+      if (replacePlacements && replaceProps && !overlayPlacements.length && !props.length && !(placed && placed.length)) {
+        return [];
+      }
+      return hitsLive.length ? hitsLive : (state && state.hits) || [];
+    }
+
+    function geomOf(row) {
+      if (!row) return { ox: 0, oy: 0, lift: 0, w_px: 0, h_px: 0, flip: 0 };
+      return {
+        ox: row.ox || 0, oy: row.oy || 0, lift: row.lift || 0,
+        w_px: row.w_px || 0, h_px: row.h_px || 0, flip: row.flip || 0
+      };
+    }
+
+    function applyGeomTo(row, g) {
+      row.ox = g.ox || 0;
+      row.oy = g.oy || 0;
+      row.lift = g.lift || 0;
+      row.w_px = g.w_px || 0;
+      row.h_px = g.h_px || 0;
+      row.flip = g.flip || 0;
+      if (!row.ox) delete row.ox;
+      if (!row.oy) delete row.oy;
+      if (!row.lift) delete row.lift;
+      if (!row.w_px) delete row.w_px;
+      if (!row.h_px) delete row.h_px;
+      if (!row.flip) delete row.flip;
+      if (selected && selected.row === row && selected.hit) {
+        selected.hit.ox = row.ox || 0;
+        selected.hit.oy = row.oy || 0;
+        selected.hit.lift = row.lift || 0;
+        selected.hit.w_px = row.w_px || 0;
+        selected.hit.h_px = row.h_px || 0;
+        selected.hit.flip = row.flip || 0;
+      }
+    }
+
+    function currentGeom() {
+      return {
+        ox: Number(document.getElementById("inOx").value) || 0,
+        oy: Number(document.getElementById("inOy").value) || 0,
+        lift: Math.max(0, Number(document.getElementById("inLift").value) || 0),
+        w_px: Math.max(0, Number(document.getElementById("inW").value) || 0),
+        h_px: Math.max(0, Number(document.getElementById("inH").value) || 0),
+        flip: document.getElementById("inFlip").checked ? 1 : 0
+      };
+    }
+
+    function liveGeomFor(h) {
+      if (!h) return { ox: 0, oy: 0, lift: 0, w_px: 0, h_px: 0, flip: 0 };
+      if (selected && selected.row && selected.hit && (
+        selected.hit === h ||
+        (h.id === selected.hit.id && h.tx === selected.tx && h.ty === selected.ty) ||
+        (h.role === "building" && h.lot_index != null && h.lot_index === selected.row.lot_index)
+      )) {
+        return geomOf(selected.row);
+      }
+      if (h.role === "building") {
+        const p = placed.find(r => r.lot_index === h.lot_index) || placed.find(r => r.id === h.id && r.x === h.tx && r.y === h.ty);
+        if (p) return geomOf(p);
+      }
+      const prop = props.find(r => r.id === h.id && r.x === h.tx && r.y === h.ty);
+      if (prop) return geomOf(prop);
+      return { ox: h.ox || 0, oy: h.oy || 0, lift: h.lift || 0, w_px: h.w_px || 0, h_px: h.h_px || 0, flip: h.flip || 0 };
+    }
+
+    function relinkSelected() {
+      if (!selected) return;
+      const id = selected.row && selected.row.id;
+      const lot = selected.row && selected.row.lot_index;
+      if (selected.type === "building") {
+        const row = placed.find(p => p.lot_index === lot) || placed.find(p => p.id === id);
+        if (row) selected.row = row;
+        const hit = hits().find(h => h.role === "building" && h.lot_index === lot)
+          || hits().find(h => h.id === (selected.hit && selected.hit.id) && h.tx === selected.tx && h.ty === selected.ty);
+        if (hit) {
+          selected.hit = hit;
+          selected.tx = hit.tx;
+          selected.ty = hit.ty;
+        }
+      } else {
+        const tx = selected.tx, ty = selected.ty;
+        const row = props.find(p => p.id === id && p.x === tx && p.y === ty);
+        if (row) selected.row = row;
+        const hit = hits().find(h => h.id === (selected.hit && selected.hit.id) && h.tx === tx && h.ty === ty);
+        if (hit) selected.hit = hit;
+      }
+      if (selected.hit) markHit(selected.hit);
+    }
+
+    function boxAt(h, tx, ty, g) {
+      const I = iso();
+      const tw = h.native_w || h.w;
+      const th = h.native_h || h.h;
+      const nw = g.w_px > 0 ? g.w_px : tw;
+      const nh = g.h_px > 0 ? g.h_px : th;
+      let ax = h.ax || 0, ay = h.ay || 0;
+      if (tw && (nw !== tw || nh !== th)) {
+        ax = Math.floor(ax * nw / tw);
+        ay = Math.floor(ay * nh / th);
+      }
+      if (g.flip) ax = nw - ax;
+      const cols = h.cols || 1, rows = h.rows || 1;
+      const hw = I.half_w || 32, hh = I.tile_h || 32;
+      const isoX = ((tx + cols - 1) - (ty + rows - 1)) * hw;
+      const isoY = ((tx + cols - 1) + (ty + rows - 1)) * (I.half_h || 16);
+      const cloud = String(h.id).startsWith("cloud") ? (I.tile_w || 64) : 0;
+      return {
+        x: isoX + hw - ax + (g.ox || 0) + (I.off_x || 0),
+        y: isoY + hh - ay - (I.drop || 0) - (g.lift || 0) - cloud + (g.oy || 0) + (I.off_y || 0),
+        w: nw,
+        h: nh
+      };
+    }
+
+    function boxOf(h) {
+      return boxAt(h, h.tx, h.ty, liveGeomFor(h));
+    }
+
+    function capturePtr(ev) {
+      const el = document.getElementById("mapWrap");
+      try { el.setPointerCapture(ev.pointerId); } catch (e) {}
+      el.classList.add("drag");
+      ev.preventDefault();
+    }
+
+    function hitObject(px, py) {
+      const list = hits();
+      for (let i = list.length - 1; i >= 0; i--) {
+        const h = list[i];
+        const b = boxOf(h);
+        if (px >= b.x && py >= b.y && px < b.x + b.w && py < b.y + b.h) return h;
+      }
+      return null;
+    }
+
+    function markTile(tx, ty) {
+      const I = iso();
+      const el = document.getElementById("tileMark");
+      const ox = ((tx - ty) * (I.half_w || 32)) + (I.off_x || 0);
+      const oy = ((tx + ty) * (I.half_h || 16)) + (I.off_y || 0) - (I.drop || 0);
+      el.style.left = ox + "px";
+      el.style.top = oy + "px";
+      el.style.width = (I.tile_w || 64) + "px";
+      el.style.height = (I.tile_h || 32) + "px";
+      el.style.display = "block";
+    }
+
+    function markHit(h) {
+      const el = document.getElementById("sel");
+      if (!h) { el.style.display = "none"; return; }
+      const b = boxOf(h);
+      const sw = Math.max(8, b.w * view.z);
+      const sh = Math.max(8, b.h * view.z);
+      el.style.left = (view.x + b.x * view.z) + "px";
+      el.style.top = (view.y + b.y * view.z) + "px";
+      el.style.width = sw + "px";
+      el.style.height = sh + "px";
+      el.classList.toggle("tiny", sw < 28 || sh < 28);
+      el.style.display = "block";
+    }
+
+    function sizeLayers(w, h) {
+      ["floorCv", "spriteCv"].forEach(id => {
+        const cv = document.getElementById(id);
+        if (cv.width !== w) cv.width = w;
+        if (cv.height !== h) cv.height = h;
+        cv.style.width = w + "px";
+        cv.style.height = h + "px";
+      });
+    }
+
+    function groundSprite(ch) {
+      const g = (state.ground || []).find(x => x.ch === ch);
+      return (g && g.fill) || FLOOR[ch] || "";
+    }
+
+    function fillIsoDiamond(ctx, x, y, hw, tw, th) {
+      ctx.beginPath();
+      ctx.moveTo(x + hw, y);
+      ctx.lineTo(x + tw, y + th / 2);
+      ctx.lineTo(x + hw, y + th);
+      ctx.lineTo(x, y + th / 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawFloor() {
+      const cv = document.getElementById("floorCv");
+      const ctx = cv.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      if (!floorLive || !tiles.length) return;
+      const I = iso();
+      const hw = I.half_w || 32, tw = I.tile_w || 64, th = I.tile_h || 32;
+      const cliff = Number((state && state.cliff_depth) || 0);
+      for (const t of tiles) {
+        const erased = t.ch === "~";
+        const fill = erased ? "#12203f" : (FLOOR[t.ch] || groundSprite(t.ch));
+        if (!fill) continue;
+        const x = ((t.x - t.y) * hw) + (I.off_x || 0);
+        const y = ((t.x + t.y) * (th / 2)) + (I.off_y || 0) - (I.drop || 0);
+        ctx.fillStyle = fill;
+        fillIsoDiamond(ctx, x, y, hw, tw, th);
+        if (erased && cliff) fillIsoDiamond(ctx, x, y + cliff, hw, tw, th);
+      }
+    }
+
+    function drawSprites() {
+      const cv = document.getElementById("spriteCv");
+      const ctx = cv.getContext("2d");
+      ctx.imageSmoothingEnabled = artStyle === "v2";
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      if (!live) return;
+      const list = hits().slice().sort((a, b) => (a.depth - b.depth) || (a.tx - b.tx));
+      for (const h of list) {
+        const im = textures[h.id];
+        if (!im || !im.complete || !im.naturalWidth) continue;
+        const b = boxOf(h);
+        const g = liveGeomFor(h);
+        const w = Math.max(1, b.w), ht = Math.max(1, b.h);
+        if (g.flip) {
+          ctx.save();
+          ctx.translate(b.x + w, b.y);
+          ctx.scale(-1, 1);
+          ctx.drawImage(im, 0, 0, w, ht);
+          ctx.restore();
+        } else {
+          ctx.drawImage(im, b.x, b.y, w, ht);
+        }
+      }
+    }
+
+    function paintLive() {
+      drawFloor();
+      drawSprites();
+      if (selected) markHit(selected.hit);
+    }
+
+    function schedulePaint() {
+      if (raf) return;
+      raf = requestAnimationFrame(() => { raf = 0; paintLive(); });
+    }
+
+    function writeInspector() {
+      const g = selected ? geomOf(selected.row) : { ox: 0, oy: 0, lift: 0, w_px: 0, h_px: 0, flip: 0 };
+      const tx = selected ? (selected.tx ?? selected.row.x) : "";
+      const ty = selected ? (selected.ty ?? selected.row.y) : "";
+      document.getElementById("inTx").value = tx;
+      document.getElementById("inTy").value = ty;
+      document.getElementById("inOx").value = g.ox;
+      document.getElementById("inOy").value = g.oy;
+      const nw = selected && selected.hit ? (selected.hit.native_w || selected.hit.w || 0) : 0;
+      const nh = selected && selected.hit ? (selected.hit.native_h || selected.hit.h || 0) : 0;
+      document.getElementById("inW").value = g.w_px || nw;
+      document.getElementById("inH").value = g.h_px || nh;
+      document.getElementById("inLift").value = g.lift;
+      document.getElementById("inFlip").checked = !!g.flip;
+      const dw = g.w_px || nw, dh = g.h_px || nh;
+      document.getElementById("inScale").value = nw ? Math.round(dw * 100 / nw) : 100;
+      document.getElementById("nativeInfo").textContent = nw ? ("родной размер " + nw + "×" + nh + " px") : "родной размер —";
+      if (selected && selected.hit) {
+        const b = boxOf(selected.hit);
+        document.getElementById("hitInfo").textContent = selected.hit.id + " @ " + selected.tx + "," + selected.ty + "  " + b.w + "×" + b.h + " px";
+      }
+    }
+
+    function knownIds() {
+      const s = new Set();
+      for (const c of state.catalog || []) s.add(c.id);
+      for (const id of state.prop_catalog || []) s.add(id);
+      const g = state.catalog_groups || {};
+      for (const key of Object.keys(g)) {
+        for (const id of g[key] || []) s.add(id);
+      }
+      return s;
+    }
+
+    function catalogIds(tab) {
+      const g = state.catalog_groups || {};
+      if (tab === "all") {
+        if (g.all && g.all.length) return g.all;
+        const seen = new Set();
+        const ids = [];
+        for (const c of state.catalog || []) {
+          if (!seen.has(c.id)) { seen.add(c.id); ids.push(c.id); }
+        }
+        for (const key of Object.keys(g)) {
+          for (const id of g[key] || []) {
+            if (!seen.has(id)) { seen.add(id); ids.push(id); }
+          }
+        }
+        return ids;
+      }
+      if (tab === "building") return (state.catalog || []).map(c => c.id);
+      if (g[tab] && g[tab].length) return g[tab];
+      return state.prop_catalog || [];
+    }
+
+    function fillPalettes() {
+      const bsel = document.getElementById("pickBuilding");
+      const keep = bsel.value;
+      bsel.innerHTML = "";
+      for (const c of state.catalog || []) {
+        const o = document.createElement("option");
+        o.value = c.id;
+        o.textContent = c.kind + " · " + c.id;
+        bsel.appendChild(o);
+      }
+      if (keep) bsel.value = keep;
+      fillGroundPalette();
+      fillThumbs();
+    }
+
+    function fillGroundPalette() {
+      const box = document.getElementById("groundPalette");
+      const gsel = document.getElementById("pickGround");
+      const keep = gsel.value;
+      box.innerHTML = "";
+      gsel.innerHTML = "";
+      for (const g of state.ground || []) {
+        const o = document.createElement("option");
+        o.value = g.ch;
+        o.textContent = g.label;
+        gsel.appendChild(o);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.ch = g.ch;
+        btn.title = g.label;
+        const dia = document.createElement("div");
+        dia.className = "dia";
+        dia.style.background = g.fill || FLOOR[g.ch] || "#46783c";
+        const lab = document.createElement("div");
+        lab.className = "lab";
+        lab.textContent = g.label;
+        btn.appendChild(dia);
+        btn.appendChild(lab);
+        btn.addEventListener("click", () => {
+          gsel.value = g.ch;
+          tool = "ground";
+          setTool();
+          setGroundSwatch();
+        });
+        box.appendChild(btn);
+      }
+      if (keep) gsel.value = keep;
+      setGroundSwatch();
+    }
+
+    function setGroundSwatch() {
+      const ch = document.getElementById("pickGround").value;
+      document.querySelectorAll("#groundPalette button").forEach(b => b.classList.toggle("on", b.dataset.ch === ch));
+    }
+
+    function groundSpec() {
+      const ch = document.getElementById("pickGround").value;
+      const rows = state.ground || [];
+      return rows.find(g => g.ch === ch) || rows[0] || { ch: "." };
+    }
+
+    function floorCharOf(id) {
+      if (FLOOR_FROM_ID[id]) return FLOOR_FROM_ID[id];
+      if (id.indexOf("road_") === 0) return "r";
+      if (id.indexOf("sidewalk") === 0) return "s";
+      return "";
+    }
+
+    function fillThumbs() {
+      const box = document.getElementById("pickDecor");
+      box.innerHTML = "";
+      const q = (document.getElementById("pickSearch").value || "").trim().toLowerCase();
+      const ids = catalogIds(catalogTab).filter(id => !q || id.toLowerCase().indexOf(q) >= 0);
+      for (const id of ids) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.title = id;
+        const img = document.createElement("img");
+        img.alt = "";
+        img.src = spriteUrl(id);
+        img.addEventListener("error", () => img.remove());
+        const lab = document.createElement("div");
+        lab.className = "lab";
+        lab.textContent = id;
+        btn.appendChild(img);
+        btn.appendChild(lab);
+        btn.addEventListener("click", () => {
+          const floorCh = floorCharOf(id);
+          const isBld = (state.catalog || []).some(c => c.id === id);
+          if (floorCh) {
+            document.getElementById("pickGround").value = floorCh;
+            tool = "ground";
+            setGroundSwatch();
+          } else if (isBld && (catalogTab === "building" || catalogTab === "all")) {
+            document.getElementById("pickBuilding").value = id;
+            tool = "building";
+          } else {
+            decorId = id;
+            tool = "decor";
+          }
+          setTool();
+        });
+        box.appendChild(btn);
+      }
+    }
+
+    function paintBudget(budget) {
+      const tb = document.getElementById("budget");
+      tb.innerHTML = "<tr><td>район</td><td>есть</td><td>надо</td></tr>";
+      const b = budget || state.budget || {};
+      for (const [did, row] of Object.entries(b)) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td>" + did + "</td><td>" + row.got + "</td><td>" + row.want + "</td>";
+        tr.style.color = row.got === row.want ? "var(--ok)" : "var(--bad)";
+        tb.appendChild(tr);
+      }
+    }
+
+    function showWarn(list) {
+      document.getElementById("warn").textContent = (list && list.length) ? list.join("\n") : "нет";
+    }
+
+    function snapshotProps() {
+      if (!propsDirty) {
+        props = (state.generated_props || []).map(p => ({ ...p }));
+        propsDirty = true;
+      }
+    }
+
+    function spriteUrl(id) {
+      return "/api/sprite/" + encodeURIComponent(id) + (artStyle === "v2" ? "?v2=1" : "");
+    }
+
+    function applyArtStyle() {
+      document.getElementById("btnArtGame").classList.toggle("on", artStyle === "game");
+      document.getElementById("btnArtV2").classList.toggle("on", artStyle === "v2");
+      document.getElementById("spriteCv").classList.toggle("v2", artStyle === "v2");
+    }
+
+    function setArtStyle(next) {
+      if (next === artStyle) return;
+      artStyle = next;
+      localStorage.setItem("corporator-studio-art", next);
+      textures = {};
+      applyArtStyle();
+      fillThumbs();
+      loadTextures().then(() => schedulePaint());
+    }
+
+    function loadTextures() {
+      const ids = new Set();
+      for (const h of hits()) ids.add(h.id);
+      if (selected && selected.hit) ids.add(selected.hit.id);
+      for (const g of state.ground || []) {
+        if (g.sprite) ids.add(g.sprite);
+      }
+      const pending = [];
+      for (const id of ids) {
+        if (textures[id] && textures[id].naturalWidth) continue;
+        const im = new Image();
+        im.src = spriteUrl(id);
+        textures[id] = im;
+        pending.push(new Promise(res => { im.onload = () => res(); im.onerror = () => res(); }));
+      }
+      return Promise.all(pending);
+    }
+
+    function applyState(next) {
+      state = next;
+      hitsLive = (state.hits || []).map(h => ({ ...h }));
+      placed = (state.placed || []).map(p => ({ ...p }));
+      overlayPlacements = (state.overlay_placements || []).map(p => ({ ...p }));
+      overlayTiles = (state.tiles || []).map(t => ({ ...t }));
+      overlayProps = (state.props || []).map(p => ({ ...p }));
+      tiles = overlayTiles.map(t => ({ ...t }));
+      replacePlacements = Number(state.replace_placements || 0);
+      replaceProps = Number(state.replace_props || 0);
+      props = (replaceProps || (state.props || []).length)
+        ? overlayProps.map(p => ({ ...p }))
+        : (state.generated_props || []).map(p => ({ ...p }));
+      tilesDirty = tiles.length > 0;
+      propsDirty = !!(replaceProps || (state.props || []).length);
+      placedDirty = !!(replacePlacements || overlayPlacements.length);
+      mapLive = (state.map || []).map(row => row);
+      fillPalettes();
+      paintBudget(state.budget);
+      showWarn(state.warnings);
+      document.getElementById("decorBps").textContent = "декор " + (state.decor_bps || 0) + " bps";
+      document.getElementById("meta").textContent = "лотов " + (state.lots || []).length + " · hash " + String(state.layout_hash || "").slice(0, 12);
+      const w = iso().width || 0, h = iso().height || 0;
+      if (w && h) sizeLayers(w, h);
+    }
+
+    function bodyOf(kind, extra) {
+      return {
+        placements: placedDirty ? placed : overlayPlacements,
+        tiles: (tilesDirty ? tiles : overlayTiles).filter(t => !t.stamp).map(t => ({ x: t.x, y: t.y, ch: t.ch })),
+        props: propsDirty ? props : overlayProps,
+        replace_placements: replacePlacements,
+        replace_props: replaceProps,
+        revert: kind === "revert",
+        ...extra
+      };
+    }
+
+    async function waitImg(el, url) {
+      let last = new Error("preview");
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          await new Promise((resolve, reject) => {
+            const t = setTimeout(() => reject(new Error("preview timeout")), 60000);
+            const done = () => { clearTimeout(t); resolve(); };
+            el.onload = done;
+            el.onerror = () => { clearTimeout(t); reject(new Error("preview")); };
+            const sep = url.indexOf("?") >= 0 ? "&" : "?";
+            el.src = attempt ? url + sep + "r=" + attempt : url;
+            if (el.complete && el.naturalWidth) done();
+          });
+          if (el.naturalWidth) return;
+          last = new Error("preview");
+        } catch (err) {
+          last = err;
+          await new Promise(r => setTimeout(r, 200 * (attempt + 1)));
+        }
+      }
+      throw last;
+    }
+
+    async function loadGround(force) {
+      const img = document.getElementById("iso");
+      const url = "/preview/ground.png" + (force ? "?" + Date.now() : "");
+      await waitImg(img, url);
+      img.classList.add("ready");
+      if (img.naturalWidth) {
+        sizeLayers(img.naturalWidth, img.naturalHeight);
+        img.style.width = img.naturalWidth + "px";
+        img.style.height = img.naturalHeight + "px";
+      }
+      if (!viewFitted) fitView();
+    }
+
+    function setBanner(text) {
+      document.getElementById("banner").textContent = text ||
+        "Пол: трава, дорога, кладка — ромбы легенды. Удалить снимает выбранный спрайт. Синий угол — размер.";
+    }
+
+    async function enableLive() {
+      const img = document.getElementById("iso");
+      try {
+        await loadGround(false);
+        await loadTextures();
+        live = true;
+        document.getElementById("spriteCv").classList.remove("hidden");
+        paintLive();
+        setBanner();
+      } catch (err) {
+        live = false;
+        document.getElementById("spriteCv").classList.add("hidden");
+        img.classList.remove("ready");
+        img.removeAttribute("src");
+        document.getElementById("banner").textContent = "земля не собралась: " + err + " — «Обновить землю» повторит.";
+      }
+    }
+
+    async function refresh(kind, opts) {
+      const rebake = !!(opts && opts.rebake);
+      const wantHits = rebake || !!(opts && opts.hits);
+      busy(rebake || kind === "save" || kind === "revert");
+      try {
+        const res = await fetch((kind === "save" || kind === "revert") ? "/api/save" : "/api/stage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyOf(kind, { preview: rebake, rebuild: wantHits || rebake }))
+        });
+        const out = await res.json();
+        if (!out.ok) {
+          showWarn(out.errors || ["ошибка"]);
+          busy(false);
+          return;
+        }
+        if (out.state) applyState(out.state);
+        else {
+          if (out.iso) state.iso = out.iso;
+          if (out.hits) { state.hits = out.hits; hitsLive = out.hits.map(h => ({ ...h })); }
+          if (out.placed) { placed = out.placed.map(p => ({ ...p })); state.placed = placed; }
+          if (out.map) { state.map = out.map; mapLive = out.map.map(r => r); }
+          paintBudget(out.budget);
+          showWarn(out.warnings);
+          if (out.decor_bps != null) document.getElementById("decorBps").textContent = "декор " + out.decor_bps + " bps";
+          document.getElementById("meta").textContent = "hash " + String(out.layout_hash || "").slice(0, 12);
+        }
+        if (rebake) {
+          await loadGround(true);
+          floorLive = false;
+          await loadTextures();
+          live = true;
+          document.getElementById("spriteCv").classList.remove("hidden");
+          paintLive();
+        } else {
+          await loadTextures();
+          schedulePaint();
+        }
+        relinkSelected();
+        if (kind === "save") {
+          document.getElementById("banner").textContent =
+            "Записано. Карта игроков после python content/build.py && python art/pipeline/scene.py";
+        } else if (!rebake) {
+          setBanner();
+        }
+      } catch (err) {
+        document.getElementById("banner").textContent = "студия: " + err;
+      }
+      busy(false);
+    }
+
+    function cellAt(tx, ty) {
+      const row = mapLive[ty];
+      if (typeof row !== "string") return "";
+      return row[tx] || "";
+    }
+
+    function setCell(tx, ty, ch) {
+      const row = mapLive[ty];
+      if (typeof row !== "string" || tx < 0 || tx >= row.length) return;
+      mapLive[ty] = row.slice(0, tx) + ch + row.slice(tx + 1);
+    }
+
+    function pushPropAt(tx, ty, id) {
+      snapshotProps();
+      props = props.filter(p => !(p.x === tx && p.y === ty));
+      props.push({ id, x: tx, y: ty });
+    }
+
+    function isShore(x, y) {
+      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+      for (const [dx, dy] of dirs) {
+        const n = cellAt(x + dx, y + dy);
+        if (n === "~" || n === "") return true;
+      }
+      return false;
+    }
+
+    function roadSpan() {
+      const v = Number((state && state.road_span) || 0);
+      return v > 1 ? v : 1;
+    }
+
+    function noteRoadAxis(tx, ty) {
+      if (roadPrev) {
+        if (tx === roadPrev.x && ty !== roadPrev.y) roadAxis = "y";
+        else if (ty === roadPrev.y && tx !== roadPrev.x) roadAxis = "x";
+      }
+      roadPrev = { x: tx, y: ty };
+    }
+
+    function laneDelta() {
+      if (roadAxis === "x") return { dx: 0, dy: 1 };
+      return { dx: 1, dy: 0 };
+    }
+
+    function stampFloor(x, y, ch) {
+      const cur = cellAt(x, y);
+      if (!cur) return;
+      const m = Number((state && state.water_margin) || 0);
+      const n = (mapLive && mapLive.length) || ((state && state.map && state.map.length) || 0);
+      if (m && n && (x < m || y < m || x >= n - m || y >= n - m)) return;
+      const inlandBeach = ch === "b" && cur !== "b" && !isShore(x, y);
+      tiles = tiles.filter(t => !(t.x === x && t.y === y));
+      if (inlandBeach) {
+        tiles.push({ x, y, ch: "b", stamp: 1 });
+        return;
+      }
+      tiles.push({ x, y, ch });
+      setCell(x, y, ch);
+    }
+
+    function paintGround(tx, ty, chForce) {
+      const spec = groundSpec();
+      const ch = chForce || spec.ch;
+      const r = brush;
+      floorLive = true;
+      tilesDirty = true;
+      const span = (ch === "r" || ch === "c") ? roadSpan() : 1;
+      if (span > 1) noteRoadAxis(tx, ty);
+      const d = span > 1 ? laneDelta() : { dx: 0, dy: 0 };
+      for (let dy = 1 - r; dy < r; dy++) {
+        for (let dx = 1 - r; dx < r; dx++) {
+          for (let k = 0; k < span; k++) {
+            stampFloor(tx + dx + d.dx * k, ty + dy + d.dy * k, ch);
+          }
+        }
+      }
+      schedulePaint();
+    }
+
+    function eraseFloorCell(tx, ty) {
+      paintGround(tx, ty, "~");
+    }
+
+    function deleteSelected() {
+      if (!selected) {
+        document.getElementById("banner").textContent = "сначала кликни спрайт, потом Удалить";
+        return;
+      }
+      if (selected.type === "prop") {
+        snapshotProps();
+        props = props.filter(p => p !== selected.row);
+      } else if (selected.type === "building" && selected.row.kind === "filler") {
+        placedDirty = true;
+        placed = placed.filter(p => p !== selected.row);
+      } else {
+        document.getElementById("banner").textContent = "ядро и маяки не удаляются";
+        return;
+      }
+      selected = null;
+      markHit(null);
+      writeInspector();
+      refresh("stage", { hits: true });
+    }
+
+    function selectFromHit(h, tx, ty) {
+      if (!h) {
+        selected = null;
+        markHit(null);
+        writeInspector();
+        document.getElementById("hitInfo").textContent = "тайл " + tx + "," + ty;
+        return;
+      }
+      const lot = lotAt(h.tx, h.ty);
+      const occ = placed.find(p => p.lot_index === (h.lot_index != null ? h.lot_index : (lot ? lot.lot_index : -1)) && p.id === h.id);
+      if (h.role === "building" && occ) {
+        selected = { type: "building", row: occ, tx: h.tx, ty: h.ty, hit: h };
+      } else {
+        snapshotProps();
+        let prop = props.find(p => p.id === h.id && p.x === h.tx && p.y === h.ty);
+        if (!prop) {
+          prop = { id: h.id, x: h.tx, y: h.ty, ...liveGeomFor(h) };
+          props.push(prop);
+        }
+        selected = { type: "prop", row: prop, tx: h.tx, ty: h.ty, hit: h };
+      }
+      markHit(h);
+      writeInspector();
+      const b = boxOf(h);
+      document.getElementById("hitInfo").textContent = h.id + " @ " + h.tx + "," + h.ty + "  " + b.w + "×" + b.h + " px";
+    }
+
+    function retileSelection(tx, ty) {
+      if (!selected || !selected.hit) return;
+      if (selected.type === "building") {
+        const lot = lotAt(tx, ty);
+        if (!lot) return;
+        const occ = placed.find(p => p.lot_index === lot.lot_index && p !== selected.row);
+        if (occ) return;
+        selected.row.lot_index = lot.lot_index;
+        selected.row.x = lot.x;
+        selected.row.y = lot.y;
+        selected.row.w = lot.w;
+        selected.row.h = lot.h;
+        selected.row.zone = lot.zone;
+        tx = lot.x;
+        ty = lot.y;
+        placedDirty = true;
+      } else {
+        snapshotProps();
+        selected.row.x = tx;
+        selected.row.y = ty;
+      }
+      selected.tx = tx;
+      selected.ty = ty;
+      selected.hit.tx = tx;
+      selected.hit.ty = ty;
+    }
+
+    function followCursor(px, py, grabX, grabY) {
+      const destX = px - grabX;
+      const destY = py - grabY;
+      const g = geomOf(selected.row);
+      const origin = boxAt(
+        selected.hit,
+        selected.tx,
+        selected.ty,
+        { ox: 0, oy: 0, lift: g.lift, w_px: g.w_px, h_px: g.h_px, flip: g.flip }
+      );
+      g.ox = Math.round(destX - origin.x);
+      g.oy = Math.round(destY - origin.y);
+      applyGeomTo(selected.row, g);
+      if (selected.type === "building") placedDirty = true;
+      markHit(selected.hit);
+      schedulePaint();
+    }
+
+    function snapFootToTile() {
+      if (!selected || selected.type !== "prop" || !selected.hit) return;
+      const b = boxOf(selected.hit);
+      const { tx, ty } = tileAtPx(b.x + b.w / 2, b.y + b.h - 1);
+      const destX = b.x, destY = b.y;
+      retileSelection(tx, ty);
+      const g = geomOf(selected.row);
+      const origin = boxAt(
+        selected.hit,
+        selected.tx,
+        selected.ty,
+        { ox: 0, oy: 0, lift: g.lift, w_px: g.w_px, h_px: g.h_px, flip: g.flip }
+      );
+      g.ox = Math.round(destX - origin.x);
+      g.oy = Math.round(destY - origin.y);
+      applyGeomTo(selected.row, g);
+    }
+
+    function beginResize(ev, handle) {
+      const b = boxOf(selected.hit);
+      const p = imgPoint(ev);
+      drag = {
+        kind: "resize",
+        handle: handle || "se",
+        px: p.px,
+        py: p.py,
+        w: b.w,
+        h: b.h,
+        pinX: b.x,
+        pinY: b.y,
+        moved: false
+      };
+      capturePtr(ev);
+    }
+
+    function applyResize(px, py) {
+      if (!selected || !selected.hit) return;
+      const lock = document.getElementById("lockAspect").checked;
+      const nw = selected.hit.native_w || selected.hit.w || 1;
+      const nh = selected.hit.native_h || selected.hit.h || 1;
+      const axis = drag.handle || "se";
+      let w = drag.w, hgt = drag.h;
+      if (axis === "e" || axis === "se") w = Math.max(8, Math.round(px - drag.pinX));
+      if (axis === "s" || axis === "se") hgt = Math.max(8, Math.round(py - drag.pinY));
+      if (lock && axis !== "s") hgt = Math.max(8, Math.round(w * nh / nw));
+      if (lock && axis === "s") w = Math.max(8, Math.round(hgt * nw / nh));
+      const g = geomOf(selected.row);
+      g.w_px = w;
+      g.h_px = hgt;
+      applyGeomTo(selected.row, g);
+      const origin = boxAt(
+        selected.hit,
+        selected.tx,
+        selected.ty,
+        { ox: 0, oy: 0, lift: g.lift, w_px: w, h_px: hgt, flip: g.flip }
+      );
+      g.ox = Math.round(drag.pinX - origin.x);
+      g.oy = Math.round(drag.pinY - origin.y);
+      applyGeomTo(selected.row, g);
+      if (selected.type === "prop") snapshotProps();
+      if (selected.type === "building") placedDirty = true;
+      markHit(selected.hit);
+      schedulePaint();
+    }
+
+    function beginPan(ev, extra) {
+      const p = wrapPoint(ev);
+      drag = { kind: "pan", x: p.x - view.x, y: p.y - view.y, sx: p.x, sy: p.y, moved: false, ...(extra || {}) };
+      capturePtr(ev);
+    }
+
+    function onDown(ev) {
+      if (!state) return;
+      if (ev.button === 1 || space || ev.button === 2 || tool === "pan") {
+        beginPan(ev);
+        return;
+      }
+      if (ev.button !== 0) return;
+      const grip = ev.target && ev.target.closest ? ev.target.closest("#sel [data-h]") : null;
+      if (grip && selected && tool === "select") {
+        ev.stopPropagation();
+        beginResize(ev, grip.dataset.h);
+        return;
+      }
+      ev.preventDefault();
+      const { px, py } = imgPoint(ev);
+      const { tx, ty } = tileAtPx(px, py);
+      markTile(tx, ty);
+      const h = hitObject(px, py);
+      if (tool === "select") {
+        if (!h) {
+          beginPan(ev, { clickDeselect: true, tx, ty });
+          return;
+        }
+        selectFromHit(h, tx, ty);
+        if (selected) {
+          const g = geomOf(selected.row);
+          const b = boxOf(selected.hit);
+          if (ev.altKey) {
+            drag = { kind: "lift", px, py, lift: g.lift, moved: false };
+          } else if (ev.shiftKey) {
+            beginResize(ev, "se");
+          } else {
+            drag = { kind: "obj", px, py, grabX: px - b.x, grabY: py - b.y, moved: false };
+          }
+          capturePtr(ev);
+        }
+        return;
+      }
+      if (tool === "building") {
+        const lot = lotAt(tx, ty);
+        if (!lot) return;
+        const spec = (state.catalog || []).find(c => c.id === document.getElementById("pickBuilding").value);
+        if (!spec) return;
+        placedDirty = true;
+        if (spec.kind !== "filler") placed = placed.filter(p => p.id !== spec.id);
+        placed = placed.filter(p => p.lot_index !== lot.lot_index);
+        placed.push({ id: spec.id, kind: spec.kind, lot_index: lot.lot_index, zone: lot.zone, x: lot.x, y: lot.y, w: lot.w, h: lot.h });
+        refresh("stage", { hits: true });
+        return;
+      }
+      if (tool === "decor") {
+        if (!decorId) return;
+        pushPropAt(tx, ty, decorId);
+        refresh("stage", { hits: true });
+        return;
+      }
+      if (tool === "ground") {
+        paintGround(tx, ty);
+        drag = { kind: "paint" };
+        capturePtr(ev);
+        return;
+      }
+      if (tool === "eraser") {
+        eraseFloorCell(tx, ty);
+        drag = { kind: "paint" };
+        capturePtr(ev);
+        return;
+      }
+    }
+
+    function onMove(ev) {
+      if (!drag) return;
+      ev.preventDefault();
+      if (drag.kind === "pan") {
+        const p = wrapPoint(ev);
+        if (Math.abs(p.x - (drag.sx || p.x)) >= 2 || Math.abs(p.y - (drag.sy || p.y)) >= 2) drag.moved = true;
+        view.x = p.x - drag.x;
+        view.y = p.y - drag.y;
+        applyView();
+        return;
+      }
+      const { px, py } = imgPoint(ev);
+      const { tx, ty } = tileAtPx(px, py);
+      markTile(tx, ty);
+      if (drag.kind === "paint") {
+        if (tool === "eraser") eraseFloorCell(tx, ty);
+        else paintGround(tx, ty);
+        return;
+      }
+      const dx = Math.round(px - drag.px);
+      const dy = Math.round(py - drag.py);
+      if (!drag.moved && Math.abs(dx) < 2 && Math.abs(dy) < 2) return;
+      drag.moved = true;
+      if (drag.kind === "obj" && selected) {
+        followCursor(px, py, drag.grabX, drag.grabY);
+        return;
+      }
+      if (drag.kind === "lift" && selected) {
+        const g = geomOf(selected.row);
+        g.lift = Math.max(0, drag.lift - dy);
+        applyGeomTo(selected.row, g);
+        if (selected.type === "building") placedDirty = true;
+        schedulePaint();
+        markHit(selected.hit);
+        return;
+      }
+      if (drag.kind === "resize" && selected) {
+        applyResize(px, py);
+      }
+    }
+
+    function onUp() {
+      wrap.classList.remove("drag");
+      if (drag && drag.kind === "pan" && drag.clickDeselect && !drag.moved) {
+        selectFromHit(null, drag.tx, drag.ty);
+      }
+      if (drag && (drag.kind === "obj" || drag.kind === "lift" || drag.kind === "resize") && drag.moved) {
+        if (drag.kind === "obj") snapFootToTile();
+        writeInspector();
+        refresh("stage", {});
+      }
+      if (drag && drag.kind === "paint") {
+        refresh("stage", { rebake: true });
+      }
+      drag = null;
+      roadPrev = null;
+      roadAxis = "";
+    }
+
+    function matchSizeAll() {
+      if (!selected || !selected.hit) {
+        document.getElementById("banner").textContent = "сначала кликни спрайт, потом «всем этот размер»";
+        return;
+      }
+      const id = selected.row.id || selected.hit.id;
+      const g0 = geomOf(selected.row);
+      if (props.some(p => p.id === id)) snapshotProps();
+      let n = 0;
+      const stamp = (row) => {
+        if (!row || row.id !== id) return;
+        const g = geomOf(row);
+        g.w_px = g0.w_px;
+        g.h_px = g0.h_px;
+        applyGeomTo(row, g);
+        n++;
+      };
+      for (const p of placed) stamp(p);
+      for (const p of props) stamp(p);
+      if (placed.some(p => p.id === id)) placedDirty = true;
+      writeInspector();
+      schedulePaint();
+      document.getElementById("banner").textContent = "размер " + id + " на " + n + " копиях";
+    }
+
+    function nudge(dx, dy, lift) {
+      if (!selected) return;
+      if (selected.type === "prop") snapshotProps();
+      if (selected.type === "building") placedDirty = true;
+      const g = geomOf(selected.row);
+      g.ox += dx;
+      g.oy += dy;
+      if (lift) g.lift = Math.max(0, g.lift + lift);
+      applyGeomTo(selected.row, g);
+      writeInspector();
+      schedulePaint();
+      refresh("stage", {});
+    }
+
+    function pinFoot(before) {
+      if (!selected || !selected.hit || !before) return;
+      const g = geomOf(selected.row);
+      const after = boxOf(selected.hit);
+      g.ox = (g.ox || 0) + Math.round((before.x + before.w / 2) - (after.x + after.w / 2));
+      g.oy = (g.oy || 0) + Math.round((before.y + before.h) - (after.y + after.h));
+      applyGeomTo(selected.row, g);
+    }
+
+    function toggleFlip() {
+      if (!selected) {
+        document.getElementById("banner").textContent = "сначала кликни спрайт, потом влево/вправо";
+        return;
+      }
+      if (selected.type === "prop") snapshotProps();
+      if (selected.type === "building") placedDirty = true;
+      const before = selected.hit ? boxOf(selected.hit) : null;
+      const g = geomOf(selected.row);
+      g.flip = g.flip ? 0 : 1;
+      applyGeomTo(selected.row, g);
+      pinFoot(before);
+      writeInspector();
+      if (selected.hit) markHit(selected.hit);
+      schedulePaint();
+    }
+
+    function facingRing(id) {
+      const known = knownIds();
+      const vd = /^(vehicle_dir_)([nesw])$/.exec(id);
+      if (vd) return ["n", "e", "s", "w"].map(d => vd[1] + d).filter(x => known.has(x));
+      const m = /^(.*)_(n|e|s|w)$/.exec(id);
+      if (m) {
+        const four = ["n", "e", "s", "w"].map(d => m[1] + "_" + d);
+        if (four.filter(x => known.has(x)).length >= 3) return four.filter(x => known.has(x));
+      }
+      const base = id.endsWith("_w") ? id.slice(0, -2) : id;
+      if (base && known.has(base) && known.has(base + "_w")) return [base, base + "_w"];
+      return [id];
+    }
+
+    function setSpriteId(next) {
+      if (!selected || !next) return;
+      if (selected.type === "prop") snapshotProps();
+      if (selected.type === "building") placedDirty = true;
+      const before = selected.hit ? boxOf(selected.hit) : null;
+      selected.row.id = next;
+      if (selected.hit) selected.hit.id = next;
+      writeInspector();
+      loadTextures().then(() => {
+        pinFoot(before);
+        if (selected && selected.hit) markHit(selected.hit);
+        schedulePaint();
+      });
+    }
+
+    function turn(dir) {
+      if (!selected) {
+        document.getElementById("banner").textContent = "сначала кликни спрайт, потом влево/вправо";
+        return;
+      }
+      const id = selected.row.id || (selected.hit && selected.hit.id);
+      if (!id) return;
+      const ring = facingRing(id);
+      if (ring.length >= 3) {
+        const i = Math.max(0, ring.indexOf(id));
+        setSpriteId(ring[(i + dir + ring.length) % ring.length]);
+        return;
+      }
+      if (ring.length === 2) {
+        const want = dir < 0 ? ring[1] : ring[0];
+        if (want !== id) setSpriteId(want);
+        else toggleFlip();
+        return;
+      }
+      toggleFlip();
+    }
+
+    function cycleFacing(dir) {
+      turn(dir);
+    }
+
+    function applyInspector() {
+      if (!selected) return;
+      if (selected.type === "prop") snapshotProps();
+      if (selected.type === "building") placedDirty = true;
+      const g = currentGeom();
+      applyGeomTo(selected.row, g);
+      const tx = Number(document.getElementById("inTx").value);
+      const ty = Number(document.getElementById("inTy").value);
+      if (selected.type === "prop" && Number.isFinite(tx) && Number.isFinite(ty)) {
+        selected.row.x = tx;
+        selected.row.y = ty;
+        selected.tx = tx;
+        selected.ty = ty;
+        if (selected.hit) { selected.hit.tx = tx; selected.hit.ty = ty; }
+      }
+      if (selected.type === "building" && Number.isFinite(tx) && Number.isFinite(ty)) {
+        const lot = lotAt(tx, ty);
+        if (lot) selected.row.lot_index = lot.lot_index;
+      }
+      schedulePaint();
+      refresh("stage", {});
+    }
+
+    function scaleBy(step) {
+      if (!selected || !selected.hit) {
+        document.getElementById("banner").textContent = "сначала кликни спрайт, потом ＋/－ размер";
+        return;
+      }
+      const nw = selected.hit.native_w || selected.hit.w || 1;
+      const nh = selected.hit.native_h || selected.hit.h || 1;
+      const before = boxOf(selected.hit);
+      const g = geomOf(selected.row);
+      const curW = g.w_px > 0 ? g.w_px : nw;
+      let pct = Math.max(10, Math.round(curW * 100 / nw) + step);
+      let nextW = Math.max(8, Math.round(nw * pct / 100));
+      const minDelta = 24;
+      if (Math.abs(nextW - curW) < minDelta) nextW = Math.max(8, curW + (step > 0 ? minDelta : -minDelta));
+      g.w_px = nextW;
+      g.h_px = Math.max(8, Math.round(nh * nextW / nw));
+      applyGeomTo(selected.row, g);
+      const after = boxOf(selected.hit);
+      const footX = before.x + before.w / 2;
+      const footY = before.y + before.h;
+      g.ox = (g.ox || 0) + Math.round(footX - (after.x + after.w / 2));
+      g.oy = (g.oy || 0) + Math.round(footY - (after.y + after.h));
+      applyGeomTo(selected.row, g);
+      if (selected.type === "prop") snapshotProps();
+      if (selected.type === "building") placedDirty = true;
+      writeInspector();
+      markHit(selected.hit);
+      schedulePaint();
+    }
+
+    function applyScale() {
+      if (!selected || !selected.hit) return;
+      const nw = selected.hit.native_w || selected.hit.w || 1;
+      const nh = selected.hit.native_h || selected.hit.h || 1;
+      const before = boxOf(selected.hit);
+      const pct = Math.max(10, Number(document.getElementById("inScale").value) || 100);
+      const g = geomOf(selected.row);
+      g.w_px = Math.max(8, Math.round(nw * pct / 100));
+      g.h_px = Math.max(8, Math.round(nh * pct / 100));
+      applyGeomTo(selected.row, g);
+      const after = boxOf(selected.hit);
+      const footX = before.x + before.w / 2;
+      const footY = before.y + before.h;
+      g.ox = (g.ox || 0) + Math.round(footX - (after.x + after.w / 2));
+      g.oy = (g.oy || 0) + Math.round(footY - (after.y + after.h));
+      applyGeomTo(selected.row, g);
+      if (selected.type === "prop") snapshotProps();
+      if (selected.type === "building") placedDirty = true;
+      writeInspector();
+      markHit(selected.hit);
+      schedulePaint();
+    }
+
+    function setTool() {
+      document.querySelectorAll("button[data-tool]").forEach(b => b.classList.toggle("on", b.dataset.tool === tool));
+    }
+    function setBrush() {
+      document.querySelectorAll("button[data-brush]").forEach(b => b.classList.toggle("on", Number(b.dataset.brush) === brush));
+    }
+    function setCat() {
+      document.querySelectorAll("button[data-cat]").forEach(b => b.classList.toggle("on", b.dataset.cat === catalogTab));
+    }
+
+    async function boot() {
+      applyArtStyle();
+      busy(true);
+      try {
+        const res = await fetch("/api/state");
+        if (!res.ok) throw new Error("state " + res.status);
+        applyState(await res.json());
+        const w = iso().width || 0, h = iso().height || 0;
+        if (w && h) {
+          sizeLayers(w, h);
+          const img = document.getElementById("iso");
+          img.style.width = w + "px";
+          img.style.height = h + "px";
+          fitView();
+        }
+        document.getElementById("banner").textContent = "собираю землю и спрайты…";
+        await enableLive();
+      } catch (err) {
+        document.getElementById("banner").textContent = "студия не ответила: " + err;
+      }
+      busy(false);
+    }
+
+    const wrap = document.getElementById("mapWrap");
+    wrap.addEventListener("pointerdown", onDown);
+    document.getElementById("sel").addEventListener("pointerdown", ev => {
+      const grip = ev.target && ev.target.closest ? ev.target.closest("[data-h]") : null;
+      if (!grip || !selected || tool !== "select") return;
+      ev.stopPropagation();
+      ev.preventDefault();
+      beginResize(ev, grip.dataset.h);
+    });
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    wrap.addEventListener("contextmenu", ev => ev.preventDefault());
+    wrap.addEventListener("wheel", ev => {
+      ev.preventDefault();
+      viewFitted = true;
+      const p = wrapPoint(ev);
+      const wx = (p.x - view.x) / view.z;
+      const wy = (p.y - view.y) / view.z;
+      const next = view.z * (ev.deltaY < 0 ? 1.12 : 1 / 1.12);
+      view.z = Math.max(0.12, Math.min(8, next));
+      view.x = p.x - wx * view.z;
+      view.y = p.y - wy * view.z;
+      applyView();
+    }, { passive: false });
+    window.addEventListener("keydown", ev => {
+      if (ev.target && (ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT" || ev.target.tagName === "TEXTAREA")) return;
+      if (ev.code === "Space") { space = true; wrap.classList.add("space"); ev.preventDefault(); }
+      const step = ev.shiftKey ? 8 : 1;
+      if (ev.key === "ArrowLeft") { nudge(-step, 0, 0); ev.preventDefault(); }
+      if (ev.key === "ArrowRight") { nudge(step, 0, 0); ev.preventDefault(); }
+      if (ev.key === "ArrowUp") { nudge(0, -step, 0); ev.preventDefault(); }
+      if (ev.key === "ArrowDown") { nudge(0, step, 0); ev.preventDefault(); }
+      if (ev.key === "[") { nudge(0, 0, -step); ev.preventDefault(); }
+      if (ev.key === "]") { nudge(0, 0, step); ev.preventDefault(); }
+      if (ev.key === "r" || ev.key === "R") { toggleFlip(); ev.preventDefault(); }
+      if (ev.key === "q" || ev.key === "Q") { turn(-1); ev.preventDefault(); }
+      if (ev.key === "e" || ev.key === "E") { turn(1); ev.preventDefault(); }
+      if (ev.key === "Delete" || ev.key === "Backspace") {
+        deleteSelected();
+        ev.preventDefault();
+      }
+    });
+    window.addEventListener("keyup", ev => {
+      if (ev.code === "Space") { space = false; wrap.classList.remove("space"); }
+    });
+    document.querySelectorAll("button[data-tool]").forEach(b => b.addEventListener("click", () => { tool = b.dataset.tool; setTool(); }));
+    document.querySelectorAll("button[data-brush]").forEach(b => b.addEventListener("click", () => { brush = Number(b.dataset.brush); setBrush(); }));
+    document.querySelectorAll("button[data-cat]").forEach(b => b.addEventListener("click", () => {
+      catalogTab = b.dataset.cat;
+      setCat();
+      fillThumbs();
+    }));
+    document.getElementById("pickSearch").addEventListener("input", fillThumbs);
+    document.getElementById("btnSave").addEventListener("click", () => refresh("save", { rebake: true }));
+    document.getElementById("btnFrame").addEventListener("click", () => refresh("stage", { rebake: true }));
+    document.getElementById("btnFit").addEventListener("click", fitView);
+    document.getElementById("btnArtGame").addEventListener("click", () => setArtStyle("game"));
+    document.getElementById("btnArtV2").addEventListener("click", () => setArtStyle("v2"));
+    document.getElementById("btnFlip").addEventListener("click", toggleFlip);
+    document.getElementById("btnGrow").addEventListener("click", () => scaleBy(25));
+    document.getElementById("btnShrink").addEventListener("click", () => scaleBy(-25));
+    document.getElementById("btnGrowHdr").addEventListener("click", () => scaleBy(25));
+    document.getElementById("btnShrinkHdr").addEventListener("click", () => scaleBy(-25));
+    document.getElementById("btnTurnL").addEventListener("click", () => turn(-1));
+    document.getElementById("btnTurnR").addEventListener("click", () => turn(1));
+    document.getElementById("btnFaceL").addEventListener("click", () => turn(-1));
+    document.getElementById("btnFaceR").addEventListener("click", () => turn(1));
+    document.getElementById("btnMatchSize").addEventListener("click", matchSizeAll);
+    document.getElementById("btnDelete").addEventListener("click", deleteSelected);
+    document.getElementById("btnDeleteHdr").addEventListener("click", deleteSelected);
+    document.getElementById("inFlip").addEventListener("change", applyInspector);
+    document.getElementById("btnResetGeom").addEventListener("click", () => {
+      if (!selected) return;
+      applyGeomTo(selected.row, { ox: 0, oy: 0, lift: 0, w_px: 0, h_px: 0, flip: 0 });
+      writeInspector();
+      schedulePaint();
+      refresh("stage", {});
+    });
+    document.getElementById("btnRevert").addEventListener("click", () => {
+      if (confirm("Вернуть генератор и очистить фикстуру?")) {
+        tilesDirty = false; propsDirty = false; placedDirty = false;
+        replacePlacements = 0; replaceProps = 0;
+        tiles = []; props = []; overlayPlacements = []; selected = null;
+        refresh("revert", { rebake: true });
+      }
+    });
+    document.getElementById("btnClearAssets").addEventListener("click", () => {
+      if (!confirm("Снять все здания, деревья и декор? Земля останется.")) return;
+      placed = [];
+      overlayPlacements = [];
+      props = [];
+      overlayProps = [];
+      selected = null;
+      placedDirty = true;
+      propsDirty = true;
+      replacePlacements = 1;
+      replaceProps = 1;
+      refresh("save", { rebake: true });
+    });
+    ["inOx", "inOy", "inW", "inH", "inLift", "inTx", "inTy"].forEach(id => {
+      document.getElementById(id).addEventListener("change", applyInspector);
+    });
+    document.getElementById("inScale").addEventListener("change", applyScale);
+    boot();
+  </script>
+</body>
+</html>

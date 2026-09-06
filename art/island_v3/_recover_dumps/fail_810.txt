@@ -1,0 +1,7 @@
+LINE 1328
+OLD LEN 62
+NEW LEN 77
+OLD HEAD
+        bmesh.ops.remove_doubles(bm, verts=plaza_vs, dist=2.8)
+---NEW HEAD---
+        bmesh.ops.remove_doubles(bm, verts=plaza_vs, dist=2.8 * ISLAND_SCALE)

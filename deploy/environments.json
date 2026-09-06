@@ -1,0 +1,12 @@
+/* GENERATED from pack e45cd45df5a471712127b7de094cb615d5609fff1427f981471d120b8520620f; do not edit */
+{
+  "dev": {
+    "migrations": "forward"
+  },
+  "staging": {
+    "migrations": "forward"
+  },
+  "prod": {
+    "migrations": "forward"
+  }
+}

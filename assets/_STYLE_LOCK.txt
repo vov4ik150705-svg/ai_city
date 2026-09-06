@@ -1,0 +1,79 @@
+Corporator v2 — STYLE LOCK (read before every GenerateImage)
+
+WHAT "STYLE" MEANS (and what it does NOT mean)
+  Same WORLD, not the same BUILDING.
+  Lighting + camera + finish are shared. Colors, silhouette, materials, roof,
+  and massing MUST be unique per object. Do NOT clone City Hall (no cream
+  porticos, no cobalt tiled hip roof, no cupola, no matching masonry box).
+  Do NOT paint every sprite in Hall's cream + cobalt.
+  Previous-version PNGs are IDENTITY only (what the object is). They are
+  boring/pixel — do not copy them 1:1; redesign them as unique painterly
+  3D miniatures that still read as the same object.
+
+CAMERA (shared)
+  2:1 isometric, ~30° from above, NO vanishing-point perspective.
+  Object centered, occupies >= 2/3 of the frame.
+
+LIGHT (shared — this is the only Hall lesson)
+  Sun UPPER LEFT.
+  Bright tops and left faces. Darker right faces.
+  Soft AO in corners and under eaves. No rim-light from the right. No night.
+
+FINISH (shared)
+  Painterly 3D miniature as RAW identity only. Game sprite is the pixelize output:
+  grid-aligned, 53-colour lock, 1px outline. Do not ship unquantized v2 into the atlas.
+
+BACKGROUND (mandatory)
+  Solid flat MAGENTA #FF00FF on every non-object pixel.
+  NO ground plane, NO grass under the object, NO dirt cube, NO drop-shadow
+  blob on the canvas (shadows are a later layer). NO LV badge. NO HUD.
+
+UNIQUENESS (mandatory — fail the sprite if it looks like Hall or a sibling)
+  Different footprint/silhouette from every other v2 already on disk.
+  Different roof language (hip / sawtooth / flat+HVAC / dome / glass cube /
+  shed / campus bar — pick ONE that fits THIS object, not Hall's).
+  Different wall material (brick / glass / steel panel / clapboard / stone
+  rustication / tile / concrete — pick what the function needs).
+  Accent color from the object's job or district, NOT from Hall:
+    compute/NVDA  — green glow, dark tech
+    energy/TSLA   — crimson, industrial
+    logistics/AMZN — ochre/amber warehouse
+    consumer/AAPL — pale glass, highlight, warm retail
+    automation/MSFT — navy campus, long and low
+    finance/COIN  — deep blue, vault/tower language
+    base workshop — warm brick + steel, production
+    base hub      — civic/training, not a hall clone
+    base power    — small electrical, insulators
+    base bank     — vault, not a mini City Hall
+  Windows: at least two horizontal rows on buildings; amber and/or cool glass.
+  Beacons: huge corp mark on a facade (>= 1/3 of that wall) + roof ticker.
+  Product: Corporator, $CORP. Sixth stock COIN. NEVER Google / GOOGL / G.
+
+REFERENCES
+  Do NOT attach city_hall_v2.png as the only reference — the model will copy it.
+  For lighting/quality attach TWO diverse v2s, never Hall alone, e.g.:
+    C:\Users\sk640\ai_city\assets\buildings\energy_plant_v2.png
+    C:\Users\sk640\ai_city\assets\buildings\logistics_hub_v2.png
+    C:\Users\sk640\ai_city\assets\buildings\finance_tower_v2.png
+  If an ORIGINAL source exists, attach it as identity (what it is), then
+  redesign: same object, new unique architecture, shared lighting only.
+
+AFTER GENERATE
+  Composite onto #FF00FF if needed, copy to art/raw/raw_<id>.png (do not overwrite
+  existing raw or existing assets/<cat>/*_v2.png).
+  python art/pipeline/pixelize.py --report
+  python art/pipeline/pixelize.py
+  Cursor gens:
+    C:\Users\sk640\.cursor\projects\c-Users-sk640-ai-city\assets\<filename>
+  Repo dest (identity, append-only):
+    C:\Users\sk640\ai_city\assets\<folder>\<id>_v2.png
+  Do NOT skip pixelize. Game frames live in art/out/.
+
+PROMPT SKELETON
+  Isolated game sprite, single UNIQUE <SUBJECT>, true 2:1 isometric ~30°
+  from above. Sun UPPER LEFT (bright top+left, darker right, AO). Painterly
+  3D miniature, grounded materials. This object must NOT look like a
+  neoclassical hall: no cream colonnade, no cobalt hip roof, no cupola.
+  <unique massing, roof, wall material, accent color>. Solid magenta
+  #FF00FF background, no ground, no grass, no shadow blob, no LV badge.
+  Not pixel art, not a copy of the old pixel original, not a copy of City Hall.

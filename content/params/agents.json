@@ -1,0 +1,98 @@
+{
+  "section": "agents",
+  "note": "Контуры — это ось, вокруг которой сворачивается матрица §5.8. Роль объявляет, какие контуры для неё родные; здание объявляет свой контур и вторичный. Девяносто клеток матрицы становятся 18 строк зданий по два поля плюс 5 строк ролей.",
+  "contours": {
+    "work_production": { "src": "DESIGN.md §5.8", "why": "Заводы и источники энергии: Workshop, Power Node, Energy Plant" },
+    "work_logistics": { "src": "DESIGN.md §5.8", "why": "Всё, что режет простой: Logistics Hub, Drone Depot, Fleet Yard" },
+    "work_finance": { "src": "DESIGN.md §5.8", "why": "Касса и витрина: Bank, Exchange, Finance Tower" },
+    "work_retail": { "src": "DESIGN.md §5.8", "why": "Розница от Population: Flagship Store, Retail Complex" },
+    "work_research": { "src": "DESIGN.md §5.8", "why": "Compute и обучение: AI Research Center, Data Center" },
+    "work_admin": { "src": "DESIGN.md §5.8", "why": "Канцелярия и управление контуром: City Hall, Cloud Campus, Clearing House" }
+  },
+  "roles": {
+    "engineer": {
+      "home_contours": ["work_production"],
+      "produces": "output",
+      "v1": true,
+      "src": "DESIGN.md §5.7",
+      "why": "Производство. Качает выход здания: Capital на заводе, Energy на станции, Compute в лаборатории"
+    },
+    "logistician": {
+      "home_contours": ["work_logistics"],
+      "produces": "idle_reduction",
+      "v1": true,
+      "src": "DESIGN.md §5.7",
+      "why": "Не производит ресурс сам, снимает простои. С открытым Logistics режет простой по всей цепочке"
+    },
+    "trader": {
+      "home_contours": ["work_finance", "work_retail"],
+      "produces": "spread_and_retail",
+      "v1": true,
+      "src": "DESIGN.md §5.7",
+      "why": "Два родных контура — единственная роль с двумя. Именно это делает посадку на выходные головоломкой: банк спит, магазин работает"
+    },
+    "scientist": {
+      "home_contours": ["work_research"],
+      "produces": "xp_and_research",
+      "v1": true,
+      "src": "DESIGN.md §5.7, §11",
+      "why": "Тратит Compute на Train или Research. Без Compute стоит IDLE(нет compute). Лабораторию по-прежнему может крутить Engineer соседом"
+    },
+    "manager": {
+      "home_contours": ["work_admin"],
+      "produces": "focus",
+      "v1": true,
+      "src": "DESIGN.md §5.7, §11",
+      "why": "Сам ничего не производит, усиливает один выбранный игроком контур. Focus — выбор контура, keys пусты"
+    }
+  },
+  "objectives": {
+    "produce": { "role": "engineer", "is_default": true, "v1": true, "keys": [], "src": "DESIGN.md §5.9", "why": "Нормальный выход без надбавок и без штрафов. Дефолт: ни один ключ модификатора не трогается, это нулевая точка отсчёта для остальных задач" },
+    "overclock": { "role": "engineer", "is_default": false, "v1": true, "keys": ["output_bps", "energy_cost_bps"], "src": "DESIGN.md §5.9", "why": "Больше выхода, больше расход energy. Если energy впритык — чаще IDLE" },
+    "route": { "role": "logistician", "is_default": true, "v1": true, "keys": ["idle_reduction_bps"], "src": "DESIGN.md §5.9", "why": "Режет простой входов здесь и сейчас, не копя запас. Дефолт логиста, потому что в v1 главная беда города — вставший из-за energy завод" },
+    "stockpile": { "role": "logistician", "is_default": false, "v1": true, "keys": ["idle_reduction_bps", "output_bps"], "src": "DESIGN.md §5.9", "why": "Копит буфер: меньше пиковых простоев, ниже текущий выход" },
+    "desk": { "role": "trader", "is_default": true, "v1": true, "keys": [], "src": "DESIGN.md §5.9", "why": "Спред в банке или розница в магазине" },
+    "quote": { "role": "trader", "is_default": false, "v1": true, "keys": [], "src": "DESIGN.md §5.9", "why": "Только на бирже: лучше hop, в банке нулевой эффект" },
+    "train": { "role": "scientist", "is_default": true, "v1": true, "keys": ["xp_rate_bps", "compute_cost_bps"], "src": "DESIGN.md §5.9", "why": "XP другим агентам за Compute: два кванта XP, плата compute тем же ceil что Overclock по energy" },
+    "research": { "role": "scientist", "is_default": false, "v1": true, "keys": ["compute_cost_bps"], "src": "DESIGN.md §5.9", "why": "Открывает узлы дерева за Compute вместо обучения агентов. Альтернатива Train: один учёный не делает и то, и другое" },
+    "focus": { "role": "manager", "is_default": true, "v1": true, "keys": [], "src": "DESIGN.md §5.9", "why": "Сама задача — выбор контура; ключи пусты, строк нет (L85)" }
+  },
+  "traits": {
+    "night_owl": { "keys": ["energy_cost_bps"], "src": "DESIGN.md §5.10", "why": "Ночной штраф по energy меньше" },
+    "frugal": { "keys": ["energy_cost_bps", "compute_cost_bps", "output_bps"], "src": "DESIGN.md §5.10", "why": "Меньше расход входов, чуть меньше выход" },
+    "specialist": { "keys": ["output_bps"], "src": "DESIGN.md §5.10", "why": "Родное здание 1.0 → 1.15, чужое ещё хуже" },
+    "steady": { "keys": ["jitter_bps"], "src": "DESIGN.md §5.10", "why": "Дрожь тика уже, меньше сюрпризов" }
+  },
+  "params": {
+    "slots_start": {
+      "v": 8,
+      "u": "count",
+      "src": "DESIGN.md §12",
+      "why": "Восемь на старте. Меньше — город не собирается, больше — фонд зарплат съедается"
+    },
+    "slots_per_city_level": {
+      "v": 2,
+      "u": "count",
+      "src": "DESIGN.md §12",
+      "why": "Плюс два за уровень города"
+    },
+    "slots_cap": {
+      "v": 20,
+      "u": "count",
+      "src": "DESIGN.md §12",
+      "why": "Двадцать — уже плотный город, не армия. Упирается фонд зарплат, а не стоимость LLM"
+    },
+    "hire_pool_engineer_bps": { "v": 5000, "u": "bps", "src": "DESIGN.md §5.12", "why": "Вес инженера в стартовом пуле найма" },
+    "hire_pool_logistician_bps": { "v": 2500, "u": "bps", "src": "DESIGN.md §5.12", "why": "Вес логиста в стартовом пуле. Четверть, потому что в v1 он режет простой локально и второй такой же почти не нужен" },
+    "hire_pool_trader_bps": { "v": 2500, "u": "bps", "src": "DESIGN.md §5.12", "why": "Вес трейдера. Иначе первые восемь — касса без завода" },
+    "traits_per_agent_min": { "v": 1, "u": "count", "src": "DESIGN.md §5.10", "why": "Одна-две черты на агента, не персонаж D&D" },
+    "traits_per_agent_max": { "v": 2, "u": "count", "src": "DESIGN.md §5.10", "why": "Черты выдаются при найме и не перекатываются" }
+  },
+  "derived": {
+    "slots_at_city_level": "min(slots_start + slots_per_city_level × (level − 1), slots_cap)",
+    "city_level_at_slots_cap": "минимальный уровень, на котором достигается slots_cap",
+    "hire_pool_total_bps": "сумма hire_pool_*_bps, обязана равняться 10000",
+    "objectives_by_role": "группировка objectives по role",
+    "v1_objective_count": "количество задач с v1 = true"
+  }
+}

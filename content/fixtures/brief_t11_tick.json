@@ -1,0 +1,22 @@
+{
+  "note": "Literal BRIEF.md §6 T11 inventory. TICK.md and the next-wave linter must cover every item. Edit only together with BRIEF.",
+  "src": "docs/BRIEF.md §6 T11",
+  "items": [
+    { "id": "step_order", "brief": "точный порядок шагов", "tick_section": "§3", "rule_or_derived": "L206 L212 derived.day_boundary_contours" },
+    { "id": "tick_signature", "brief": "сигнатура функции", "tick_section": "§2", "rule_or_derived": "L208 tick(state, inputs) -> (state, records)" },
+    { "id": "integer_math", "brief": "целочисленная арифметика", "tick_section": "§4", "rule_or_derived": "L209 L210 derived.remainder_sinks" },
+    { "id": "prng_hash", "brief": "устройство PRNG от hash(city_id, tick_index, agent_id)", "tick_section": "§5", "rule_or_derived": "D11 derived.tick_prng_streams L223" },
+    { "id": "decision_record", "brief": "байт-точный layout DecisionRecord", "tick_section": "§8", "rule_or_derived": "L196 L197 L198 L199 L200 derived.record_fields" },
+    { "id": "offline_catchup", "brief": "догон оффлайна при заходе", "tick_section": "§6", "rule_or_derived": "D8 L214 catch_up" },
+    { "id": "day_boundary", "brief": "поведение на границе суток", "tick_section": "§6", "rule_or_derived": "D4 L212 derived.day_boundary_contours" },
+    { "id": "hour_six", "brief": "поведение в 06:00 при пересчёте efficiency", "tick_section": "§3", "rule_or_derived": "D4 L213 efficiency_recalc_hour" },
+    { "id": "price_as_input", "brief": "сэмпл цены как записанный вход тика", "tick_section": "§7", "rule_or_derived": "D12 L208" },
+    { "id": "ratchet_whole_days", "brief": "храповик роста целыми сутками города", "tick_section": "§7", "rule_or_derived": "L212 D4 hour==0 apply_ratchet" },
+    { "id": "stale_price_down", "brief": "деградация STALE_PRICE только вниз", "tick_section": "§7", "rule_or_derived": "DESIGN.md §2.3 L29" },
+    { "id": "zero_mints_zero", "brief": "ноль в ответе фида даёт минт 0", "tick_section": "§7", "rule_or_derived": "L29 rate_raw_from_samples" },
+    { "id": "batcher_minute", "brief": "батчер раз в минуту по всем городам", "tick_section": "§9", "rule_or_derived": "D1 L204 attest_root_period_s" },
+    { "id": "root_contents", "brief": "что именно идёт в корень", "tick_section": "§9", "rule_or_derived": "D2.1 D3 derived.merkle_leaf_order" },
+    { "id": "ipfs_city_day", "brief": "батч в IPFS агрегатом на сутки города", "tick_section": "§9", "rule_or_derived": "D1 L205 derived.ipfs_aggregate_key" },
+    { "id": "gate_rpc_fail_open", "brief": "поведение при отказе гейта или RPC", "tick_section": "§2", "rule_or_derived": "D9 derived.attest_failure_mode" }
+  ]
+}

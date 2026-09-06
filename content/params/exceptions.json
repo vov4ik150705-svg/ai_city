@@ -1,0 +1,12 @@
+{
+  "section": "exceptions",
+  "note": "Каждая строка здесь — сущность, настроенная руками вопреки правилу. Пустой список — не формальность: матрица DESIGN.md §5.8 на 90 клеток свернулась в два поля на здание без единого исключения, и это проверяется генератором против фикстуры. Как только список подходит к потолку exception_budget, значит правило описано неверно и переписывать надо правило, а не расширять список.",
+  "exceptions": {
+    "tick_jitter_bps": {
+      "entity": "tick_jitter_bps",
+      "field": "remainder_mod_span",
+      "src": "DESIGN.md §5.3, content/build.py tick_jitter_bps",
+      "why": "Changing jitter to rejection resampling revalues every already recorded shift. The 64-bit prng offset is at most (2**64 % span) / 2**64; new sample code must use rejection. This exception covers only the existing tick_jitter_bps % span line"
+    }
+  }
+}

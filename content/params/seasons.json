@@ -1,0 +1,127 @@
+{
+  "section": "seasons",
+  "note": "T7 Influence seasons and top-N prizes. Season length is balance.season_city_days, never stored here. Prize period length is derived from prize_periods_per_season. Prize assets are the six district tickers, never CORP. Payout is live after the C11 recount (season_prizes_live=1); rank was already v1.",
+  "params": {
+    "influence_intensity_exp_bps": {
+      "v": 10000,
+      "u": "bps",
+      "src": "docs/PRIZES.md T7 product",
+      "why": "Degree 1 of intensity. v1 is a product of four intensities, not a weighted sum tuned by eye"
+    },
+    "influence_stability_exp_bps": {
+      "v": 10000,
+      "u": "bps",
+      "src": "docs/PRIZES.md T7 product",
+      "why": "Degree 1 of stability. A dead day zeroes the product; an exponent other than identity is a v1 lint error"
+    },
+    "influence_efficiency_exp_bps": {
+      "v": 10000,
+      "u": "bps",
+      "src": "docs/PRIZES.md T7 R-T7-3",
+      "why": "Degree 1 of efficiency versus the canonical 10000 neutral, not versus a server mean"
+    },
+    "influence_coverage_exp_bps": {
+      "v": 10000,
+      "u": "bps",
+      "src": "docs/PRIZES.md T7 coverage",
+      "why": "Degree 1 of playable coverage. Zero opened districts is identity, not a penalty for missing a stake"
+    },
+    "prize_top_n": {
+      "v": 10,
+      "u": "count",
+      "src": "HUD.md §9 LEADERBOARD",
+      "why": "HUD is a simple table, not a twenty-row board. Zipf n equals this count, never a hand list of shares"
+    },
+    "prize_curve_alpha_bps": {
+      "v": 10000,
+      "u": "bps",
+      "src": "docs/PRIZES.md T7 Zipf",
+      "why": "Alpha 1: weight is BPS//k. Geometric 1/2 is winner-take-all; equal shares are a ten-sybil grab"
+    },
+    "prize_periods_per_season": {
+      "v": 3,
+      "u": "count",
+      "src": "D-M-4, docs/PRIZES.md §6.1",
+      "why": "Divisor of season_city_days, not a second length. Exact divide gives three prize periods; storing 30 would fork T2 on the first season edit"
+    },
+    "season_qualify_bps": {
+      "v": 2000,
+      "u": "bps",
+      "src": "docs/PRIZES.md T7 qualify",
+      "why": "Twenty percent of the prize period must have I_day > 0. A clone on day 29 of the period is not backfilled"
+    },
+    "prize_require_live_stake": {
+      "v": 1,
+      "u": "flag",
+      "src": "docs/PRIZES.md T7 stake gate",
+      "why": "At least one playable_v1 stake still live at settlement. Token thresholds are the frozen S_min snapshot"
+    },
+    "season_prizes_live": {
+      "v": 1,
+      "u": "flag",
+      "src": "PLAN_CODE C11, R-T7-2",
+      "why": "C11 recount: rank stays, $CORP payout is on. Flipping this without rules_version 0.19.0 is yield"
+    },
+    "prize_live_min_rules_minor": {
+      "v": 19,
+      "u": "count",
+      "src": "PLAN_CODE C11, D-M-10",
+      "why": "Minor floor of the last prize-formula recount (0.19.0). v1.1 raises rules_version without moving this floor (D-G-3); live=1 below it would mint CORP as yield"
+    },
+    "prize_creator_tax_share_bps": {
+      "v": 5000,
+      "u": "bps",
+      "src": "DESIGN.md §2.5, D-M-3, D-M-12",
+      "why": "Increment of the 2% tax, not the body. Body still feeds payroll; this half is the monthly stock basket plus studio ETH. Raising it without raising the headline rate starves the fund"
+    },
+    "prize_cork_share_bps": {
+      "v": 0,
+      "u": "bps",
+      "src": "DESIGN.md §2.5, R-T6-1",
+      "why": "Fund cork is a recovery channel for payroll, not a prize tap"
+    },
+    "prize_nft_share_bps": {
+      "v": 0,
+      "u": "bps",
+      "src": "docs/BRIEF.md §6 T8, PLAN_V11 G6, D-G-9",
+      "why": "G6 fixed the crane at zero (D-G-9). NFT proceeds close the inference bill; a prize share would promise yield the protocol cannot hold"
+    },
+    "prize_hop_haircut_bps": {
+      "v": 0,
+      "u": "bps",
+      "src": "docs/PRIZES.md R-T7-1",
+      "why": "Prize hop is unused: month stocks are bought by the conveyor, not at spend. Do not copy fragment_hop_haircut_bps"
+    }
+  },
+  "scope": {
+    "leaderboard_scope": {
+      "v": "wallet",
+      "src": "docs/PRIZES.md T7 anti-sybil",
+      "why": "One wallet one slot: max of that wallet's cities, not a sum that rebuilds the whale from six towns"
+    }
+  },
+  "derived": {
+    "season_len_city_days": "equals balance.season_city_days, never stored",
+    "season_real_hours": "len × city_day_real_hours",
+    "season_real_whole_days_24h": "season_real_hours // 24",
+    "season_real_remain_hours_24h": "season_real_hours % 24",
+    "prize_period_city_days": "season_city_days / prize_periods_per_season, never stored",
+    "prize_period_real_hours": "prize_period_city_days × city_day_real_hours",
+    "prize_period_index": "(city_day − 1) // prize_period_city_days",
+    "qualify_days": "prize_period_city_days × season_qualify_bps / BPS, never stored",
+    "zipf_weights": "BPS // k for k = 1..n at alpha = 10000",
+    "zipf_payout_witness": "floor Zipf on the BPS pool at prize_top_n; dust stays",
+    "influence_witnesses": "optimizer_ref, lazy_whale, active_whale, last_day_clone from existing params",
+    "prize_season_budget": "spend_protocol path × protocol_prizes_bps (0 after D-M-16); month kettle is DEX 0.8%",
+    "sybil_cost_vs_rank10": "qualify time, reference deposit, stake target vs rank-10 payout at N cities",
+    "settle_hour": "efficiency_recalc_hour, first hour of a new prize period",
+    "prize_asset": "six district tickers joined, never CORP and never Capital (R-M-3 inverted)",
+    "prize_assets": "districts[].ticker in file order, never CORP, never a hand list, never playable_v1",
+    "basket_size": "len(prize_assets), never stored",
+    "prize_share_cap_over_contribution_bps": "smallest k so T3 rank-1 Zipf at N=2 is unclipped; never stored",
+    "prize_kettles": "farm = spend tenth × 14d tickets; month = DEX 0.8% × period Zipf; unmixed",
+    "basket_zipf_witness": "N=1 takes each pool; N=10 harmonic per asset; empty ticker does not block",
+    "share_cap_witness": "optimizer rank-1 unclipped; ten farm clones at 0.1% contrib are clipped",
+    "split_check": "protocol_fragments_bps + protocol_prizes_bps, must be 10000"
+  }
+}

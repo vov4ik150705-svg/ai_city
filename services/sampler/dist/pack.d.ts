@@ -1,0 +1,20 @@
+export type SamplerPack = {
+    readonly hash: string;
+    readonly samplerPeriodS: bigint;
+    readonly samplerPeriodMaxS: bigint;
+    readonly tickLengthS: bigint;
+    readonly samplesPerTwapWindow: bigint;
+    readonly samplesPerTick: bigint;
+    readonly ageAlertCityHours: bigint;
+    readonly stalenessMaxCityHours: bigint;
+    readonly ticksPerCityDay: bigint;
+    readonly inputFields: readonly string[];
+    readonly priceDayPublished: bigint;
+    readonly blocksTick: bigint;
+    readonly failMode: string;
+    readonly aggregation: string;
+};
+export declare function loadSamplerPack(bytes: Uint8Array): SamplerPack;
+export declare function cityDayOf(pack: SamplerPack, cityTime: bigint): bigint;
+export declare function samplerPeriodOk(pack: SamplerPack): boolean;
+export declare function ageAlertBeforeStale(pack: SamplerPack): boolean;
