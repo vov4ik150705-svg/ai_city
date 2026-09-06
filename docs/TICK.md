@@ -12,7 +12,7 @@
 
 Тик — чистая функция одного часа города: записанные входы плюс состояние → новое состояние плюс запечатанные записи. Аттестация (дерево, CID, корень) живёт **снаружи** тика: после выплаты, асинхронно, неблокирующе (`DESIGN.md` §6.4).
 
-Живой эталон — `content/tick.py`. Каталога `packages/engine` в дереве нет; T12 перенесёт границу пакета. Спека пишется так, чтобы перенос не менял байты записи.
+Живой эталон — `content/tick.py`. Рантайм — `packages/engine` (T12 закрыт); байты записи с эталоном совпадают.
 
 Снаружи тика и почему:
 
@@ -37,7 +37,7 @@ tick(state: dict, inputs: dict) -> tuple[dict, list[dict]]
 
 BRIEF: `tick(state, inputs) -> (state, records)`.
 
-`state` — экономика одного прогона (фонд, vault, города, `cfg`). Состав ключей T3-харнесса — `docs/reports/T11_recon.md` §1.2; боевой город добавляет склады Energy/Compute, здания, агентов, леджер фрагментов, `nodes`, `park_slots`, кошелёк как **записанный** снимок, не RPC. Выводимое (`tick_index`, агрегаты) в params не кладётся.
+`state` — экономика одного прогона (фонд, vault, города, `cfg`). Состав ключей T3-харнесса — `docs/archive/reports/T11_recon.md` §1.2; боевой город добавляет склады Energy/Compute, здания, агентов, леджер фрагментов, `nodes`, `park_slots`, кошелёк как **записанный** снимок, не RPC. Выводимое (`tick_index`, агрегаты) в params не кладётся.
 
 `inputs` — записанные входы этого тика. Обязательные в боевом пути: `pack_hash`, `city_time` (или `tick_index` для харнесса, см. §6), TWAP-поля, `feed_live`, оборот DEX, `price_sample_city_time`, команды компаньона (список; в дерево идёт только `companion_commands_hash`), `stake_snapshot` (`wallet.stake_tokens`: стейк гейтит районы, без него реплей `DESIGN.md` §6.3 не сходится; `R-T11-12`). Харнесс T3 сегодня без `city_time` — тик выводит часы из `tick_index` (D5). Пустой `pack_hash` пропускает сверку только если ключа нет; ключ есть и не совпал → `PACK_HASH` (D9). `wallet.corp_balance` и `wallet.chain` во вход тика не входят (T12).
 
@@ -524,7 +524,7 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 | `L225` | TICK.md has no bare two-digit literals after strip |
 <!-- /GEN -->
 
-Спека правил — `docs/reports/T11_tz.md` §5. Атаки — там же §6.
+Спека правил — `docs/archive/reports/T11_tz.md` §5. Атаки — там же §6.
 
 ---
 
@@ -537,4 +537,4 @@ python content/attack.py
 python content/sim.py
 ```
 
-Хеш пака — поле `hash` в `content/out/pack.json`. Инертность T3 — `docs/SIMULATION.md` §3–§4 и `docs/reports/T11_tz.md` §7. Широкие таблицы — GENERATED «T11: …».
+Хеш пака — поле `hash` в `content/out/pack.json`. Инертность T3 — `docs/SIMULATION.md` §3–§4 и `docs/archive/reports/T11_tz.md` §7. Широкие таблицы — GENERATED «T11: …».

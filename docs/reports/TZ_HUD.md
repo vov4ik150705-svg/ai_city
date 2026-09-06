@@ -1,11 +1,11 @@
 # TZ_HUD — интерфейс Corporator
 
-Каркас HTML/CSS. **После** принятого вида острова (`PLAN_ISLAND.md`). Этапы V8/V9 из `PLAN_VISUAL.md` — архив, не старт острова.
+Каркас HTML/CSS. **После** принятого вида острова (`PLAN_ISLAND.md`). Этапы V8/V9 из `docs/archive/plans/PLAN_VISUAL.md` — архив, не старт острова.
 Канон — `HUD.md` и `docs/SCREENS.md`. Мокап — `docs/mockups/hud_mockup_v1.png`.
 Числа геометрии — `content/fixtures/hud_layout.json`. Тексты — `content/strings/ru.json`.
 
 > **Восстановлено 2026-09-01** из ТЗ до пивота 31 августа (`R-V-55`). Баннер «стройка
-> снята / BUILD = стейк» снят. Экран `build` снова каталог и посадка с клика по тайлу.
+> снята / BUILD = стейк» снят. Экран `build` — каталог; живая посадка — свободный авторский якорь (`R-V-100`), клик по тайлу сетки — архив (`R-V-55`).
 > Миссии **не** оживают: `missions_live=0`, пункт-заглушка (`R-V-4`). Лейаут острова
 > один на всех (`R-V-15`): схема районов из `derived`, не «при смене сида».
 
@@ -97,7 +97,7 @@ grid-template-rows:    var(--hud-top) 1fr var(--hud-strip) var(--hud-menu);
 
 Шрифт: пиксельный битмап для чисел и заголовков, обычный sans для длинных строк лога.
 Полностью пиксельный лог нечитаем — это прямой запрет `HUD.md` §7. Файл шрифта —
-вендоренный woff2-сабсет из `art/fonts/` (`TZ_ART.md` §5), без сетевых запросов (`L344`).
+вендоренный woff2-сабсет из `art/fonts/` (`docs/archive/plans/TZ_ART.md` §5), без сетевых запросов (`L344`).
 
 Никаких CSS-фреймворков. Один файл `apps/client/src/hud/hud.css`: блок токенов, затем
 классы по компонентам. CSS-in-JS не вводится: он раздувает бандл и мешает измерять его
@@ -236,10 +236,9 @@ vault, стоки котлов `farm` и `month`, ETH студии. Кнопок
 
 Заняла слот карты мира. Мини-схема острова: шесть зон, залитые акцентным цветом района,
 серые пока закрыты, с точкой заполненности. Клик по зоне → камера в
-`derived.zone_centroids` (`TZ_RENDER.md` §7.3).
+`derived.zone_centroids` (`docs/archive/plans/TZ_RENDER.md` §7.3).
 
-Схема рисуется из `derived.zone_centroids` и `zone_block_counts`, не картинкой: иначе она
-разойдётся с запечённой сценой (лейаут один на всех, `R-V-15`).
+Схема рисуется из `derived.zone_centroids` и `zone_block_counts` экономической сетки пака, не картинкой карты (`R-V-99`); клик ведёт орбиту к зоне острова (`R-V-98`), не к тайлу.
 
 ---
 
@@ -315,7 +314,7 @@ funds → window → limit → external. Внутри identity: демо, зат
 
 | экран | что делает | обязательные отказы |
 |---|---|---|
-| `build` | каталог и посадка; тайл — из клика по сцене | `CITY_LEVEL_TOO_LOW`, `BUILD_TILE_ILLEGAL`, `NO_FREE_BUILD_SLOT`, `NOT_ENOUGH_CAPITAL` |
+| `build` | каталог и посадка на свободный авторский якорь (`R-V-100`); клик по тайлу — архив, не задание | `CITY_LEVEL_TOO_LOW`, `BUILD_TILE_ILLEGAL`, `NO_FREE_BUILD_SLOT`, `NOT_ENOUGH_CAPITAL` |
 | `agents` | найм и список | `NO_FREE_AGENT_SLOT`, `NOT_ENOUGH_CAPITAL` |
 | `districts` | шесть строк, открытие за `$CORP` | `WALLET_NOT_CONNECTED`, `STAKE_BELOW_THRESHOLD`, `NOT_ENOUGH_CORP`, `DISTRICT_LOCKED` |
 | `exchange` | покупка стока; итог в Capital, **не маршрут** | `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CORP`, `EXCHANGE_HOP_UNAVAILABLE` |
@@ -330,7 +329,7 @@ funds → window → limit → external. Внутри identity: демо, зат
 | `onboarding_demo` | шесть шагов, §8.4 | `DEMO_NO_WITHDRAW` на финале |
 | `wallet_connect` | четыре состояния кошелька | `WALLET_NOT_CONNECTED`, `WALLET_WRONG_CHAIN` |
 | `settings` | язык, звук, точные числа, анимация тика, тумблер автопилота | — |
-| `companion` | новый экран, V10, `TZ_FEATURES.md` §2 | `DEMO_NO_COMPANION`, `COMPANION_*` |
+| `companion` | новый экран, V10, `docs/archive/plans/TZ_FEATURES.md` §2 | `DEMO_NO_COMPANION`, `COMPANION_*` |
 
 `exchange`: поля `kind=route` нет. Витрина показывает интервал итога в Capital
 (`exchange_quote_capital_bps`): vault, иммутабельный `creatorTaxBps`, лишняя нога как

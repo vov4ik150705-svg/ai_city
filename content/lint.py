@@ -2760,6 +2760,28 @@ VISUAL3_STAGE_IDS = (
     "visual3_close",
 )
 VISUAL3_RULES_MINOR = 22
+ISLAND_STAGE_IDS = (
+    "island_form",
+    "island_terrain",
+    "island_ground",
+    "island_decor",
+    "island_light",
+    "island_compose",
+    "island_anchors",
+    "island_client",
+    "island_close",
+)
+ISLAND_STEP_STAGE_IDS = (
+    "island_terrain",
+    "island_ground",
+    "island_decor",
+    "island_light",
+    "island_compose",
+    "island_anchors",
+    "island_client",
+)
+ISLAND_FORM_CONSTRUCTION = ("island_stage_keys_exist",)
+ISLAND_RULES_MINOR = 23
 VISUAL3_ENGINE_CONSTRUCTION = (
     "visual3_island_from_legend",
     "visual3_orbit_from_pack",
@@ -11360,7 +11382,7 @@ def l369_plaza_pad_and_shore(data: dict) -> None:
 
 
 def l370_visual3_form(data: dict) -> None:
-    rule("L370", "eight visual3 keys sit between visual_close and mainnet_launch; engine/assets/light/input/units/world/close CT match their stage probes")
+    rule("L370", "eight visual3 keys sit between visual_close and visual3_close inclusive; engine/assets/light/input/units/world/close CT match their stage probes")
     try:
         arch_sec = data.get("arch") or {}
         stages = arch_sec.get("roadmap") or {}
@@ -11377,14 +11399,14 @@ def l370_visual3_form(data: dict) -> None:
         reused = [k for k in VISUAL3_STAGE_IDS if k in prior]
         if reused:
             fail("L370", f"visual3 key reuses a prior-phase name: {reused[:4]}")
-        if "visual_close" not in order or "mainnet_launch" not in order:
-            fail("L370", "visual_close or mainnet_launch missing; visual3 keys have no window")
+        if "visual_close" not in order or "visual3_close" not in order:
+            fail("L370", "visual_close or visual3_close missing; visual3 keys have no window")
         else:
             i = order.index("visual_close")
-            j = order.index("mainnet_launch")
-            window = order[i + 1 : j]
+            j = order.index("visual3_close")
+            window = order[i + 1 : j + 1]
             if window != list(VISUAL3_STAGE_IDS):
-                fail("L370", f"roadmap_order after visual_close is {window[:8]}, want eight visual3 keys")
+                fail("L370", f"roadmap_order after visual_close through visual3_close is {window[:8]}, want eight visual3 keys")
         form = stages.get("visual3_form") or {}
         ct = list(form.get("construction_tests") or [])
         if ct != ["visual3_stage_keys_exist"]:
@@ -12226,6 +12248,104 @@ def l384_visual3_close_measured(data: dict) -> None:
         fail("L384", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
 
+def l385_island_form(data: dict) -> None:
+    rule(
+        "L385",
+        "nine island keys sit between visual3_close and mainnet_launch; form CT, step gates, close jobs/sim, minor 23",
+    )
+    try:
+        arch_sec = data.get("arch") or {}
+        stages = arch_sec.get("roadmap") or {}
+        order = list(arch_sec.get("roadmap_order") or [])
+        missing = [k for k in ISLAND_STAGE_IDS if k not in order or k not in stages]
+        if missing:
+            fail(
+                "L385",
+                f"island stage keys missing from order or roadmap: {missing[:6]}: "
+                "without them an agent lands on visual3_close and rebuilds the cell grid",
+            )
+        prior = (
+            set(VISUAL_STAGE_IDS)
+            | set(VISUAL3_STAGE_IDS)
+            | set(RELEASE_STAGE_IDS)
+            | set(V11_STAGE_IDS)
+            | set(MONEY_AND_LIVE_STAGE_IDS)
+        )
+        reused = [k for k in ISLAND_STAGE_IDS if k in prior]
+        if reused:
+            fail(
+                "L385",
+                f"island key reuses a prior-phase name: {reused[:4]}: "
+                "island ids must be new, not aliases of visual/visual3/release/v11/money/live",
+            )
+        if "visual3_close" not in order or "mainnet_launch" not in order:
+            fail("L385", "visual3_close or mainnet_launch missing; island keys have no window before P7")
+        else:
+            i = order.index("visual3_close")
+            j = order.index("mainnet_launch")
+            window = order[i + 1 : j]
+            if window != list(ISLAND_STAGE_IDS):
+                fail(
+                    "L385",
+                    f"roadmap_order after visual3_close is {window[:9]}, want nine island keys: "
+                    "a ghost or a drop sends the agent to the wrong gate_cmd",
+                )
+            window_prior = [k for k in window if k in prior]
+            if window_prior:
+                fail(
+                    "L385",
+                    f"island window reuses prior-phase name {window_prior[:4]}: "
+                    "island keys must be new ids, not visual/release/v11/money/live names",
+                )
+        form = stages.get("island_form") or {}
+        ct = list(form.get("construction_tests") or [])
+        if ct != list(ISLAND_FORM_CONSTRUCTION):
+            fail(
+                "L385",
+                f"island_form.construction_tests {ct} != {list(ISLAND_FORM_CONSTRUCTION)}: "
+                "L268 bijection would miss the island it() or invent a ghost probe",
+            )
+        for sid in ISLAND_STEP_STAGE_IDS:
+            cmd = str((stages.get(sid) or {}).get("gate_cmd") or "")
+            if JOBS8_RE.search(cmd):
+                fail(
+                    "L385",
+                    f"{sid}.gate_cmd runs --jobs 8: the full attack belongs on island_close, "
+                    "not a mesh/client step",
+                )
+        close_cmd = str((stages.get("island_close") or {}).get("gate_cmd") or "")
+        if not JOBS8_RE.search(close_cmd):
+            fail(
+                "L385",
+                "island_close.gate_cmd dropped --jobs 8: phase close is the full attack, "
+                "otherwise money numbers close on a stub",
+            )
+        if "sim.py" not in close_cmd:
+            fail(
+                "L385",
+                "island_close.gate_cmd dropped sim.py: money numbers would close without a replay",
+            )
+        _major, minor = _rules_major_minor(data)
+        if minor < ISLAND_RULES_MINOR:
+            fail(
+                "L385",
+                f"rules_version minor {minor} < {ISLAND_RULES_MINOR}: "
+                "island keys are a new entity and bump the minor once (docs/CONTENT.md §5)",
+            )
+        counts: dict[str, int] = {}
+        for k in order:
+            counts[k] = counts.get(k, 0) + 1
+        for k in ISLAND_STAGE_IDS:
+            if counts.get(k, 0) != 1:
+                fail(
+                    "L385",
+                    f"{k} occurs {counts.get(k, 0)} times in roadmap_order: "
+                    "a duplicate or a drop makes gate_cmd lookup ambiguous",
+                )
+    except Exception as exc:
+        fail("L385", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
 # ------------------------------------------------------------------- pending
 
 def collect_pending(data: dict) -> None:
@@ -12432,6 +12552,7 @@ RULES = [
     l382_water_one_plane_fill,
     l383_decor_instanced_no_physics,
     l384_visual3_close_measured,
+    l385_island_form,
 ]
 
 

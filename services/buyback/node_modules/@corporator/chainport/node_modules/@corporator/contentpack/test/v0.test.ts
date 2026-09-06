@@ -143,12 +143,12 @@ function roadmapOrderGaps(arch: ArchFile): readonly string[] {
   return gaps
 }
 
-function visualWindow(arch: ArchFile): readonly string[] | "ops_watch_missing" | "mainnet_launch_missing" {
+function visualWindow(arch: ArchFile): readonly string[] | "ops_watch_missing" | "visual3_close_missing" {
   const i = arch.roadmap_order.indexOf("ops_watch")
-  const j = arch.roadmap_order.indexOf("mainnet_launch")
+  const j = arch.roadmap_order.indexOf("visual3_close")
   if (i < 0) return "ops_watch_missing"
-  if (j < 0) return "mainnet_launch_missing"
-  return arch.roadmap_order.slice(i + 1, j)
+  if (j < 0) return "visual3_close_missing"
+  return arch.roadmap_order.slice(i + 1, j + 1)
 }
 
 function stageFieldGaps(stage: ArchStage): readonly string[] {
@@ -363,8 +363,8 @@ describe.sequential("V0 construction", () => {
     expect(roadmapOrderGaps(arch)).toEqual([])
     expect(visualWindow(arch)).toEqual([...PICTURE_STAGE_IDS])
     const close = arch.roadmap_order.indexOf("visual_close")
-    const launch = arch.roadmap_order.indexOf("mainnet_launch")
-    expect(arch.roadmap_order.slice(close + 1, launch)).toEqual([...VISUAL3_STAGE_IDS])
+    const v3close = arch.roadmap_order.indexOf("visual3_close")
+    expect(arch.roadmap_order.slice(close + 1, v3close + 1)).toEqual([...VISUAL3_STAGE_IDS])
     for (const id of VISUAL3_STAGE_IDS) {
       expect(PRIOR_PHASE.has(id)).toBe(false)
       expect((VISUAL_STAGE_IDS as readonly string[]).includes(id)).toBe(false)

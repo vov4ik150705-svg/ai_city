@@ -18,7 +18,7 @@
 
 ## §2. Монорепо и слои
 
-`packages/` — engine, protocol, contentpack, chainport, render. `services/` — api, sampler, buyback, attestor, llm. `apps/` — client. Пакет render не импортирует engine (`L338`, `L339`). Живой 3D-остров — `art/island_v3` и `models/` (`R-V-96`, `PLAN_ISLAND.md`); клеточный кадр `V3-0`…`V3-7` и Pixi `V12` — архив (`R-V-77`). Позы фона сетки пака, если остаются в архивном коде, — чистая функция `city_time`. Дроны, машины и пешеходы на живом меше не обязательны (`R-V-97`). Шрифты HUD — вендоренные OFL woff2 в `art/fonts/`, без CDN (`L344`, `HUD.md` §7).
+`packages/` — engine, protocol, contentpack, chainport, render. `services/` — api, sampler, buyback, attestor, llm. `apps/` — client. Пакет render не импортирует engine (`L338`, `L339`). Живой кадр — 3D-остров `art/island_v3` и `models/` (`R-V-96`, `R-V-98`, `docs/reports/PLAN_ISLAND.md`); клеточный кадр `V3-0`…`V3-7` и Pixi `V12` — архив (`R-V-77`). Пакет `render` читает остров, а не легенду пака; в коде это ещё не так, долг в `docs/reports/PLAN_ISLAND.md`. Юнитов нет (`R-V-101`). Позы архивного кода сетки, если остаются, — чистая функция `city_time`. Шрифты HUD — вендоренные OFL woff2 в `art/fonts/`, без CDN (`L344`, `HUD.md` §7).
 
 <!-- GEN:arch.packages -->
 

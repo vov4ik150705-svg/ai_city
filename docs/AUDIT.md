@@ -1,6 +1,6 @@
 # Аудит пяти контрактов (P3)
 
-Внутренний проход до подписи `launchToken`. Канон: `PLAN_RELEASE.md` P3, `PLAN_MONEY.md` §15, `DESIGN.md` §10. Таблица статусов в паке (`arch.audit.findings`) — источник для `L321`. Здесь — разбор. Адреса стража и подписанта и секунды `unpauseDelay` не выдумываются (`§9`).
+Внутренний проход до подписи `launchToken`. Канон: `docs/archive/plans/PLAN_RELEASE.md` P3, `docs/archive/plans/PLAN_MONEY.md` §15, `DESIGN.md` §10. Таблица статусов в паке (`arch.audit.findings`) — источник для `L321`. Здесь — разбор. Адреса стража и подписанта и секунды `unpauseDelay` не выдумываются (`§9`).
 
 Статический проход по `contracts/src`: нет `tx.origin`, нет `delegatecall` / proxy, нет `selfdestruct`, нет `.call(` на произвольный адрес. CEI на `claimPrize` / `returnUnsettled` / `_refund`: сначала слот, потом `transfer`. Solidity 0.8.28, роли задаются в конструкторе.
 

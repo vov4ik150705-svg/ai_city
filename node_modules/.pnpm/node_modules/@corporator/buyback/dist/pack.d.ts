@@ -1,0 +1,31 @@
+export type StampField = "eth_collected" | "corp_bought" | "deposit_confirmed" | "mint";
+export type BuybackPack = {
+    readonly hash: string;
+    readonly cadence: bigint;
+    readonly trancheCapBps: bigint;
+    readonly minBatchWei: bigint;
+    readonly slippageSafety: bigint;
+    readonly slippageSafetyMin: bigint;
+    readonly capitalAnchor: bigint;
+    readonly creatorTaxBps: bigint;
+    readonly bps: bigint;
+    readonly order: readonly StampField[];
+    readonly executorService: string;
+    readonly voucherService: string;
+    readonly payerService: string;
+    readonly blocksTick: bigint;
+    readonly failMode: string;
+    readonly depthHalfWei: bigint;
+    readonly depthTwoWei: bigint;
+    readonly depthTenWei: bigint;
+    readonly prizeShareBps: bigint;
+    readonly studioShareBps: bigint;
+    readonly hopHaircutBps: bigint;
+    readonly tickers: readonly string[];
+    readonly quoteAssetByTicker: {
+        readonly [ticker: string]: string;
+    };
+    readonly studioRecipient: string;
+    readonly basketOrder: readonly string[];
+};
+export declare function loadBuybackPack(bytes: Uint8Array): BuybackPack;

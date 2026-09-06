@@ -1,7 +1,7 @@
 # Сгенерированные таблицы
 
 Артефакт сборки. Источник — `content/params/`, генератор — `content/build.py`,
-версия правил `0.22.0`, пак `131`, хеш `e45cd45df5a47171…`.
+версия правил `0.23.0`, пак `132`, хеш `1d6fa473503c17de…`.
 Руками не править: следующая сборка перезапишет.
 
 ## Соответствие роли и здания
@@ -1979,6 +1979,15 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 | `visual3_units` | `python content/lint.py && python content/build.py && python content/attack.py --only L370,L372,L380,L381` | `pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate` | `L370`, `L372`, `L380`, `L381` | `layout_v1_bytes` |
 | `visual3_world` | `python content/lint.py && python content/build.py && python content/attack.py --only L370,L372,L382,L383` | `pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate` | `L370`, `L372`, `L382`, `L383` | `layout_v1_bytes` |
 | `visual3_close` | `python content/lint.py && python content/build.py && python content/attack.py --jobs 8 && python content/sim.py` | `pnpm -w run gate` | `L370`, `L384`, `L351`, `L13`, `L14` | `L13_L14`, `I1_I3`, `layout_v1_bytes` |
+| `island_form` | `python content/lint.py && python content/build.py && python content/attack.py --only L385,L370,L353` | `pnpm --filter @corporator/contentpack run gate` | `L385`, `L370`, `L353` | `layout_v1_bytes` |
+| `island_terrain` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
+| `island_ground` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
+| `island_decor` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
+| `island_light` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
+| `island_compose` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
+| `island_anchors` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
+| `island_client` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate` | `L385` | `layout_v1_bytes` |
+| `island_close` | `python content/lint.py && python content/build.py && python content/attack.py --jobs 8 && python content/sim.py` | `pnpm -w run gate` | `L385`, `L13`, `L14` | `L13_L14`, `I1_I3`, `layout_v1_bytes` |
 | `mainnet_launch` | `python content/build.py && python content/lint.py && python content/attack.py --only L13,L14,L24,L279,L293` | `pnpm -w run gate` | `L13`, `L14`, `L24`, `L279`, `L293` | `L13_L14`, `I1_I3` |
 | `season_one` | `python content/lint.py && python content/attack.py --only L282,L283,L284,L289,L291,L292,L294,L304` | `pnpm -w run gate` | `L282`, `L283`, `L284`, `L289`, `L291`, `L292`, `L294`, `L304` | `demo_isolated`, `I7`, `I11` |
 

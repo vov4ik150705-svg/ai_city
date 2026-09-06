@@ -4632,6 +4632,68 @@ def a_l384_v12_title(d: dict) -> None:
     )
 
 
+def a_l385_drop_island_form(d: dict) -> None:
+    order = list((d.get("arch") or {}).get("roadmap_order") or [])
+    d["arch"]["roadmap_order"] = [x for x in order if x != "island_form"]
+    d["arch"]["roadmap"].pop("island_form", None)
+
+
+def a_l385_ghost_after_close(d: dict) -> None:
+    order = list(d["arch"]["roadmap_order"])
+    i = order.index("visual3_close")
+    d["arch"]["roadmap_order"] = order[: i + 1] + ["ghost_island"] + order[i + 1 :]
+    form = d["arch"]["roadmap"].get("island_form") or {}
+    d["arch"]["roadmap"]["ghost_island"] = form
+
+
+def a_l385_form_ghost_ct(d: dict) -> None:
+    d["arch"]["roadmap"]["island_form"]["construction_tests"] = ["ghost_island"]
+
+
+def a_l385_form_empty_ct(d: dict) -> None:
+    d["arch"]["roadmap"]["island_form"]["construction_tests"] = []
+
+
+def a_l385_jobs8_terrain(d: dict) -> None:
+    row = ((d.get("arch") or {}).get("roadmap") or {}).get("island_terrain")
+    if isinstance(row, dict):
+        row["gate_cmd"] = (
+            "python content/lint.py && python content/build.py && "
+            "python content/attack.py --jobs 8"
+        )
+
+
+def a_l385_close_drop_jobs(d: dict) -> None:
+    row = ((d.get("arch") or {}).get("roadmap") or {}).get("island_close")
+    if isinstance(row, dict):
+        row["gate_cmd"] = "python content/lint.py && python content/build.py && python content/sim.py"
+
+
+def a_l385_close_drop_sim(d: dict) -> None:
+    row = ((d.get("arch") or {}).get("roadmap") or {}).get("island_close")
+    if isinstance(row, dict):
+        row["gate_cmd"] = (
+            "python content/lint.py && python content/build.py && "
+            "python content/attack.py --jobs 8"
+        )
+
+
+def a_l385_minor_low(d: dict) -> None:
+    d["meta"]["rules_version"] = "0.22.0"
+
+
+def a_l385_reuse_prior_name(d: dict) -> None:
+    order = list(d["arch"]["roadmap_order"])
+    i = order.index("visual3_close")
+    d["arch"]["roadmap_order"] = order[: i + 1] + ["hud_shell"] + order[i + 1 :]
+
+
+def a_l385_dup_island_form(d: dict) -> None:
+    order = list(d["arch"]["roadmap_order"])
+    i = order.index("visual3_close")
+    d["arch"]["roadmap_order"] = order[:i] + ["island_form"] + order[i:]
+
+
 def a_l382_drop_water(d: dict) -> None:
     d["_render_source"] = {
         "three.ts": (
@@ -5539,6 +5601,16 @@ ATTACKS = [
     ("L384", "visual3_close.gate_cmd без sim.py", a_l384_drop_sim),
     ("L384", "нет observeVisual3Budgets", a_l384_drop_fn),
     ("L384", "GATE_VISUAL заголовок V12", a_l384_v12_title),
+    ("L385", "снят island_form", a_l385_drop_island_form),
+    ("L385", "ghost после visual3_close", a_l385_ghost_after_close),
+    ("L385", "island_form.construction_tests ghost", a_l385_form_ghost_ct),
+    ("L385", "island_form.construction_tests пуст", a_l385_form_empty_ct),
+    ("L385", "--jobs 8 в island_terrain.gate_cmd", a_l385_jobs8_terrain),
+    ("L385", "island_close.gate_cmd без --jobs 8", a_l385_close_drop_jobs),
+    ("L385", "island_close.gate_cmd без sim.py", a_l385_close_drop_sim),
+    ("L385", "rules_version minor 22", a_l385_minor_low),
+    ("L385", "hud_shell в окне острова", a_l385_reuse_prior_name),
+    ("L385", "дубль island_form в order", a_l385_dup_island_form),
     ("L307", "logistics.playable_v1 оставлен false", a_l307_logistics_cut),
     ("L307", "automation.playable_v1 снят: оффлайн 18 недостижим", a_l307_automation_cut),
     ("L307", "finance.playable_v1 снят: доля фонда не набирается", a_l307_finance_cut),
@@ -8474,6 +8546,7 @@ VISUAL_FORM_CONSTRUCTION = (
 )
 
 VISUAL3_FORM_CONSTRUCTION = ("visual3_stage_keys_exist",)
+ISLAND_FORM_CONSTRUCTION = ("island_stage_keys_exist",)
 VISUAL3_ENGINE_CONSTRUCTION = (
     "visual3_island_from_legend",
     "visual3_orbit_from_pack",
@@ -10574,7 +10647,7 @@ def _release_order_after_v11(data: dict) -> list[str] | str:
     if "rebalance_close" not in order:
         return "rebalance_close missing from roadmap_order"
     tail = order[order.index("rebalance_close") + 1 :]
-    skip = set(lint.VISUAL_STAGE_IDS) | set(lint.VISUAL3_STAGE_IDS)
+    skip = set(lint.VISUAL_STAGE_IDS) | set(lint.VISUAL3_STAGE_IDS) | set(lint.ISLAND_STAGE_IDS)
     return [k for k in tail if k not in skip]
 
 
@@ -10728,13 +10801,13 @@ def construction_release_stage_keys_exist(data: dict) -> str | None:
 def _visual_window(order: list[str]) -> list[str] | str:
     if "ops_watch" not in order:
         return "ops_watch missing from roadmap_order"
-    if "mainnet_launch" not in order:
-        return "mainnet_launch missing from roadmap_order"
+    if "visual3_close" not in order:
+        return "visual3_close missing from roadmap_order"
     i = order.index("ops_watch")
-    j = order.index("mainnet_launch")
+    j = order.index("visual3_close")
     if j <= i:
-        return "mainnet_launch precedes ops_watch"
-    return order[i + 1 : j]
+        return "visual3_close precedes ops_watch"
+    return order[i + 1 : j + 1]
 
 
 def _visual_form_errors(data: dict) -> str | None:
@@ -10758,7 +10831,7 @@ def _visual_form_errors(data: dict) -> str | None:
         return window
     if window != list(lint.VISUAL_STAGE_IDS) + list(lint.VISUAL3_STAGE_IDS):
         return (
-            f"keys between ops_watch and mainnet_launch are {window[:8]}, "
+            f"keys between ops_watch and visual3_close are {window[:8]}, "
             "want thirteen visual keys then eight visual3 keys"
         )
     counts: dict[str, int] = {}
@@ -11043,6 +11116,38 @@ def construction_visual3_stage_keys_exist(data: dict) -> str | None:
         mutate(d)
         if not [e for e in _run_one(lint.l370_visual3_form, d) if e.startswith("L370")]:
             return f"{mutate.__name__} was not detected by L370"
+    return None
+
+
+def construction_island_stage_keys_exist(data: dict) -> str | None:
+    missed = [e for e in _run_one(lint.l385_island_form, data) if e.startswith("L385")]
+    if missed:
+        return f"healthy pack failed L385: {missed[0]}"
+    form = ((data.get("arch") or {}).get("roadmap") or {}).get("island_form")
+    if form is None:
+        return "island_form missing after healthy check"
+    if list(form.get("construction_tests") or []) != list(ISLAND_FORM_CONSTRUCTION):
+        return (
+            f"island_form.construction_tests {form.get('construction_tests')} "
+            f"!= {list(ISLAND_FORM_CONSTRUCTION)}"
+        )
+    mutators = (
+        a_l385_drop_island_form,
+        a_l385_ghost_after_close,
+        a_l385_form_ghost_ct,
+        a_l385_form_empty_ct,
+        a_l385_jobs8_terrain,
+        a_l385_close_drop_jobs,
+        a_l385_close_drop_sim,
+        a_l385_minor_low,
+        a_l385_reuse_prior_name,
+        a_l385_dup_island_form,
+    )
+    for mutate in mutators:
+        d = copy.deepcopy(data)
+        mutate(d)
+        if not [e for e in _run_one(lint.l385_island_form, d) if e.startswith("L385")]:
+            return f"{mutate.__name__} was not detected by L385"
     return None
 
 
@@ -12662,7 +12767,8 @@ CONSTRUCTION = (
     ("алерт возраста сэмпла раньше среза курса; stale=0 роняет L326", construction_alert_fires_before_decay_cuts_rate),
     ("инцидент с runbook и кодом; owner drained и AUTH_REQUIRED роняют L327", construction_incident_has_runbook_and_code),
     ("тринадцать ключей картинки плюс восемь v3 между ops_watch и mainnet_launch; снятие visual_form детектируется", construction_visual_stage_keys_exist),
-    ("восемь ключей v3 между visual_close и mainnet_launch; снятие visual3_form детектируется", construction_visual3_stage_keys_exist),
+    ("восемь ключей v3 между visual_close и visual3_close; снятие visual3_form детектируется", construction_visual3_stage_keys_exist),
+    ("девять ключей острова между visual3_close и mainnet_launch; снятие island_form детектируется", construction_island_stage_keys_exist),
     ("остров из легенды пака; нет import three роняет L371", construction_visual3_island_from_legend),
     ("орбита из пака, не iso-зум; копия zoom_levels и stub gate_cmd роняют L373/L372", construction_visual3_orbit_from_pack),
     ("RENDER_NO_GPU жив; Pixi как кадр и flag=0 роняют L371", construction_visual3_no_gpu_stays),

@@ -1,0 +1,24 @@
+export type AttestorPack = {
+    readonly hash: string;
+    readonly rootPeriodS: bigint;
+    readonly leafPrefix: Uint8Array;
+    readonly nodePrefix: Uint8Array;
+    readonly cidVersion: bigint;
+    readonly cidCodec: bigint;
+    readonly cidMhCode: bigint;
+    readonly cidMhLength: bigint;
+    readonly lagAlertTicks: bigint;
+    readonly ticksPerCityDay: bigint;
+    readonly tickLengthS: bigint;
+    readonly ipfsKey: readonly string[];
+    readonly failureMode: string;
+    readonly blocksTick: bigint;
+    readonly failMode: string;
+    readonly layoutVersion: bigint;
+};
+export declare function loadAttestorPack(bytes: Uint8Array): AttestorPack;
+export declare function cityDayOf(pack: AttestorPack, cityTime: bigint): bigint;
+export declare function aggregateKey(cityId: string, cityDay: bigint): string;
+export declare function keyIsCityDay(pack: AttestorPack): boolean;
+export declare function domainsDiffer(pack: AttestorPack): boolean;
+export declare function rootPeriodOk(pack: AttestorPack): boolean;

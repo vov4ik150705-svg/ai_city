@@ -18,7 +18,7 @@
 
 ## §2. Команды
 
-Множество `POST /command/X` ≡ множество различных `commit:*` в `screens.json`. Биекция в обе стороны. Ручной список путей запрещён. `L232`. `derived.command_endpoints`. `commit:build` / `POST /command/build` живы с `build_place` (`R-V-55`): посадка лот-плитки на пустой тайл. Вода, берег, дорога и занятый лот — `BUILD_TILE_ILLEGAL`.
+Множество `POST /command/X` ≡ множество различных `commit:*` в `screens.json`. Биекция в обе стороны. Ручной список путей запрещён. `L232`. `derived.command_endpoints`. `commit:build` / `POST /command/build` в проводе ещё несут `build_place` (`R-V-55`, долг `docs/reports/PLAN_ISLAND.md` §5): посадка лот-плитки на пустой тайл. Живой канон — свободный авторский якорь (`R-V-100`). Вода, берег, дорога и занятый лот — `BUILD_TILE_ILLEGAL`.
 
 Заглушка `v1 = stub` отвечает `FEATURE_NOT_IN_V1` и ничего не меняет: `spend = none`. `L234`.
 

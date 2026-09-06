@@ -44,10 +44,23 @@ const VISUAL3_STAGE_IDS = [
   "visual3_close",
 ] as const
 
+const ISLAND_STAGE_IDS = [
+  "island_form",
+  "island_terrain",
+  "island_ground",
+  "island_decor",
+  "island_light",
+  "island_compose",
+  "island_anchors",
+  "island_client",
+  "island_close",
+] as const
+
 function isPictureStage(id: string): boolean {
   return (
     (VISUAL_STAGE_IDS as readonly string[]).includes(id) ||
-    (VISUAL3_STAGE_IDS as readonly string[]).includes(id)
+    (VISUAL3_STAGE_IDS as readonly string[]).includes(id) ||
+    (ISLAND_STAGE_IDS as readonly string[]).includes(id)
   )
 }
 

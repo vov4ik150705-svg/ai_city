@@ -1160,6 +1160,15 @@
     "visual3_units",
     "visual3_world",
     "visual3_close",
+    "island_form",
+    "island_terrain",
+    "island_ground",
+    "island_decor",
+    "island_light",
+    "island_compose",
+    "island_anchors",
+    "island_client",
+    "island_close",
     "mainnet_launch",
     "season_one"
   ],
@@ -2704,6 +2713,140 @@
       ],
       "src": "PLAN_VISUAL_V3 V3-7, D-V3-1, D-V3-16",
       "why": "Phase close: measured v3 budgets, full attack and sim. --jobs 8 belongs here; P7 starts after this passport"
+    },
+    "island_form": {
+      "goal": "Pack carries nine island keys between visual3_close and mainnet_launch",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385,L370,L353",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L385",
+        "L370",
+        "L353"
+      ],
+      "construction_tests": [
+        "island_stage_keys_exist"
+      ],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md, docs/reports/PLAN_ISLAND.md §2",
+      "why": "Without island keys an agent lands on visual3_close and rebuilds the cell grid instead of the authored island"
+    },
+    "island_terrain": {
+      "goal": "Relief and two terraces on the authored island mass",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L385"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md, docs/reports/PLAN_ISLAND.md §2 step 1",
+      "why": "A flat pancake hides the sunken plaza and the raised ring the owner framed as the target view"
+    },
+    "island_ground": {
+      "goal": "Plaza paving, ring paths, and soil where stone is not",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L385"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md, docs/reports/PLAN_ISLAND.md §2 step 2",
+      "why": "Bare triangle mesh reads as a studio table, not a courtyard with walks to the halls"
+    },
+    "island_decor": {
+      "goal": "Author trees, lamps, and maybe small fences as instances",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L385"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md R-V-103, docs/reports/PLAN_ISLAND.md §2 step 3",
+      "why": "Empty terraces stay a diorama of files; decor is author placement, not a district quota"
+    },
+    "island_light": {
+      "goal": "Warm windows, sign neon, and in-scene clouds under a readable day",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L385"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md, docs/reports/PLAN_ISLAND.md §2 step 4",
+      "why": "Flat fill plus a CSS sky cannot show neon brands or clouds sitting below the island"
+    },
+    "island_compose": {
+      "goal": "Re-seat the same 18 GLB so City Hall dominates the ring",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L385"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md R-V-98, docs/reports/PLAN_ISLAND.md §2 step 5",
+      "why": "Sparse models on a table hide the hall; the ring must face the plaza without replacing files"
+    },
+    "island_anchors": {
+      "goal": "Author Empty anchors in the island GLB for later player builds",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "ts_gate_cmd": "pnpm --filter @corporator/contentpack run gate",
+      "tests": [
+        "L385"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md R-V-100, docs/reports/PLAN_ISLAND.md §2 step 6",
+      "why": "Lots in the pack grid are not build sites; a free named Empty is the only legal plant point"
+    },
+    "island_client": {
+      "goal": "Client draws island.glb and plants models on occupied anchors",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
+      "tests": [
+        "L385"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md, docs/reports/PLAN_ISLAND.md §2 step 7",
+      "why": "The live client still mounts the pack cell grid; wiring the authored mass closes the map split"
+    },
+    "island_close": {
+      "goal": "Close the authored-island phase with full attack, sim, and pack publish",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --jobs 8 && python content/sim.py",
+      "ts_gate_cmd": "pnpm -w run gate",
+      "tests": [
+        "L385",
+        "L13",
+        "L14"
+      ],
+      "construction_tests": [],
+      "invariants": [
+        "L13_L14",
+        "I1_I3",
+        "layout_v1_bytes"
+      ],
+      "src": "docs/CANON.md, docs/reports/PLAN_ISLAND.md §2",
+      "why": "Phase close must replay money numbers; a narrow gate would let P7 start on an unaccepted island"
     },
     "mainnet_launch": {
       "goal": "Sign launchToken at 200 bps, deploy four groups, open deposits in 20 min; pack fact that evening",
