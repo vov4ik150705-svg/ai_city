@@ -17,7 +17,7 @@
 | сырьё зданий | `models/*.glb` | ровно 18 файлов = таблица `PLANTS` |
 | посадчик | `art/island_v3/build_island.py` | открывает blend, снимает чужие меши, сажает `PLANTS`, yaw 45°, экспорт; **корпус не генерирует**; Empty `anchor_*` не создаёт и не удаляет |
 | снимок массы | `art/island_v3/_freeze_canon.py` | пишет только объект `Island` в папку канона; живые `island.blend` / `island.glb` не трогает |
-| просмотр | `art/island_v3/view.html` | `island.glb?v=grid` |
+| просмотр | `art/island_v3/view.html` | тонкие `runtime/` (`?v=runtime`), не жирный bake |
 
 Канон массы 2026-09-06:
 
@@ -125,7 +125,7 @@ blender.exe --background --python art/island_v3/build_island.py
 blender.exe art/island_v3/island.blend --background --python art/island_v3/_freeze_canon.py
 ```
 
-Смотреть: из `art/island_v3` → `python -m http.server 8788 --bind 127.0.0.1` → `http://127.0.0.1:8788/view.html?v=grid`. Орбита вьюера: `40deg 62deg 2200m`, цель `0m 160m 0m`.
+Смотреть: из `art/island_v3` → `python -m http.server 8788 --bind 127.0.0.1` → `http://127.0.0.1:8788/view.html?v=runtime`. Орбита вьюера: `40deg 62deg 2200m`, цель `0m 160m 0m`.
 
 ---
 

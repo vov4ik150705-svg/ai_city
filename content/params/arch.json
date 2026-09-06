@@ -2999,6 +2999,13 @@
       "src": "D-V3-3, PLAN_VISUAL_V3 V3-1, L267",
       "why": "Three.js is the v3 island engine in packages/render. Pin matches package.json so the frame cannot drift"
     },
+    "gltf_transform_cli": {
+      "version": "4.4.2",
+      "kind": "package",
+      "npm": "@gltf-transform/cli",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md I0, R-V-98, L267",
+      "why": "Studio glTF diet CLI for thin island runtime. Pin matches the workspace so I0 cannot silently pick another compressor"
+    },
     "react": {
       "version": "19.2.8",
       "kind": "package",

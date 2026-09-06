@@ -4,3 +4,9 @@ contracts/broadcast/
 art/preview/studio_ground.png
 art/preview/v2/
 
+# I0 authoring sources: not runtime, not git
+art/island_v3/*.blend
+art/island_v3/island.glb
+art/island_v3/snapshots/**/*.blend
+models/
+

@@ -198,8 +198,9 @@ def main() -> None:
     island = bpy.data.objects.get("Island")
     if island is None:
         raise RuntimeError("no Island object in blend")
+    plant_names = {row[0] for row in PLANTS}
     for ob in list(bpy.data.objects):
-        if ob.type == "MESH" and ob.name != "Island":
+        if ob.type == "MESH" and ob.name in plant_names:
             bpy.data.objects.remove(ob, do_unlink=True)
     bpy.data.orphans_purge(do_recursive=True)
     buildings = [plant(*row) for row in PLANTS]

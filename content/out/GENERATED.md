@@ -1,7 +1,7 @@
 # Сгенерированные таблицы
 
 Артефакт сборки. Источник — `content/params/`, генератор — `content/build.py`,
-версия правил `0.23.0`, пак `132`, хеш `1d6fa473503c17de…`.
+версия правил `0.23.0`, пак `133`, хеш `e997446659ee88bf…`.
 Руками не править: следующая сборка перезапишет.
 
 ## Соответствие роли и здания
@@ -2010,6 +2010,7 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 | `vite` | `8.2.2` | `package` | `vite` | `—` |
 | `pixijs` | `8.20.1` | `package` | `pixi.js` | `—` |
 | `threejs` | `0.185.1` | `package` | `three` | `—` |
+| `gltf_transform_cli` | `4.4.2` | `package` | `@gltf-transform/cli` | `—` |
 | `react` | `19.2.8` | `package` | `react` | `—` |
 | `react_dom` | `19.2.8` | `package` | `react-dom` | `—` |
 | `types_react` | `19.2.8` | `package` | `@types/react` | `—` |
