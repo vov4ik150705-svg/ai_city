@@ -31,7 +31,6 @@
 | `capital_unit_usd=0` | L313 | caught касса |
 | три конструкции G7 | L313 | OK на зелёном; красный внутри |
 | четыре рычага вместе | окно A в конверте | A_t2 14217; полосы 3991/7983; конверт meta не подогнан (`A-G-13`) |
-| `demo_companion` | 0 | 0 (`A-G-15`) |
 | `season_prizes_live` | 1, watermark 19 | так (`A-G-17`) |
 | `launch.deployed` | пуст | пять полей пустые (`A-G-2`) |
 | краны NFT | 0 | 0; L312 жив |
@@ -47,6 +46,5 @@
 
 ## Незакрытое
 
-`companion_llm_price_snapshot` — owner (`R-T8-2`). `exit_uncovered_at_band_floor` — owner (после G7 не выдумывать). `pause_ready_delay` — owner. `bank_withdraw_rate_ceiling_only` — T3. Выручка NFT в пул — owner, флаг 0.
 
 Next Step: фаза v1.1 закрыта. `PLAN_RELEASE` P0–P8 — по решению владельца; `launchToken` не раньше P7.

@@ -33,7 +33,6 @@
 | L05/L07/L08/L66 | гейт | 4/4 caught |
 | robotics_lab params | не тронут | `inputs lab: energy,compute` |
 | повторный флип призов | A-G-17 | `season_prizes_live` 1 |
-| демо + компаньон | A-G-15 | `demo_companion=0` |
 | `launch.deployed` | A-G-2 | пять полей пустые |
 | подгонка окна A | A-G-11 | не подогнано |
 
@@ -44,9 +43,3 @@
 Новых `R-G-*` нет. `R-G-1` подтверждён.
 
 ## Незакрытое
-
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner).
-
-`companion_rows_live` 0, `set_manager_focus` forbidden (G5).
-
-Next Step: **G5** — `companion_live` (ненулевой idle relief; `set_manager_focus`; пересчёт окна A).

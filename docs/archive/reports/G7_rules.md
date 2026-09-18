@@ -4,7 +4,6 @@
 
 ## L313
 
-Ловит: `window_a_ratified ≠ 1`; играбельных районов ≠ 6; круг вне `[round_trip_floor_bps, round_trip_ceiling_bps]`; вход ≥ выход; `_return_bands_in_envelope` (A=10000 → `return_min` вне полосы); касса (unit/ceiling / mint > `capital_anchor`); оффлайн `base+automation ≠ 18`; `companion_rows_live ≠ 1` или relief ≤ 0; scientist/train не live; `force_dominating`; dominating/dead/mandatory/uncovered ≠ 0; `demo_companion ≠ 0`; `season_prizes_live` снят.
 
 План §5: красный вход — сдвинуть полосу за конверт (`fund_amplification_target_bps=10000`). Пойман (`a_l42_amplification_too_low`).
 

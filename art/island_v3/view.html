@@ -3,24 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Corporator — island</title>
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
-        }
-      }
-    </script>
+    <title>Corporator — island preview</title>
     <style>
       html,
-      body {
+      body,
+      #host {
         margin: 0;
         height: 100%;
-        background: #9ec8e0;
+        background: #6fb4f0;
         font-family: system-ui, sans-serif;
       }
-      canvas {
+      #host {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        touch-action: none;
+        cursor: grab;
+      }
+      #host canvas {
         display: block;
         width: 100%;
         height: 100%;
@@ -37,96 +37,27 @@
         font-size: 13px;
         pointer-events: none;
       }
+      [data-look-error] {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        padding: 8px 12px;
+        background: #3b1020;
+        color: #ffe8ee;
+        z-index: 2;
+      }
     </style>
   </head>
   <body>
-    <p class="hint">ЛКМ — вращать · колёсико — зум · ПКМ — сдвиг · отъезжайте, чтобы увидеть весь остров</p>
-    <script type="module">
-      import * as THREE from "three";
-      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-      import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
-
-      const BUILDINGS = [
-        "city_hall",
-        "tesla",
-        "apple",
-        "coinbase",
-        "microsoft",
-        "bank",
-        "amazon",
-        "fleet_yard",
-        "nvidia_depot",
-        "workshop",
-        "power_node",
-        "amazon_warehouse",
-        "agent_hub",
-        "clearinghouse",
-        "data_center",
-        "exchange",
-        "nvidia_tower",
-        "robotic_lab",
-      ];
-
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x9ec8e0);
-      const camera = new THREE.PerspectiveCamera(45, 1, 1, 80000);
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 2));
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
-      document.body.prepend(renderer.domElement);
-
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 160, 0);
-      controls.minDistance = 800;
-      controls.maxDistance = 44000;
-      controls.minPolarAngle = THREE.MathUtils.degToRad(8);
-      controls.maxPolarAngle = THREE.MathUtils.degToRad(89);
-      const theta = THREE.MathUtils.degToRad(40);
-      const phi = THREE.MathUtils.degToRad(62);
-      const radius = 2200;
-      camera.position.set(
-        radius * Math.sin(phi) * Math.sin(theta),
-        radius * Math.cos(phi) + 160,
-        radius * Math.sin(phi) * Math.cos(theta),
-      );
-      controls.update();
-
-      scene.add(new THREE.HemisphereLight(0xd7e7f5, 0x3a3f4d, 1.05));
-      const sun = new THREE.DirectionalLight(0xfff2d8, 1.35);
-      sun.position.set(2400, 4200, 1400);
-      scene.add(sun);
-
-      function resize() {
-        const w = globalThis.innerWidth;
-        const h = globalThis.innerHeight;
-        camera.aspect = w / Math.max(h, 1);
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h, false);
-      }
-      globalThis.addEventListener("resize", resize);
-      resize();
-
-      const loader = new GLTFLoader();
-      await MeshoptDecoder.ready;
-      loader.setMeshoptDecoder(MeshoptDecoder);
-
-      const cache = "v=runtime8k";
-      const mass = await loader.loadAsync(`runtime/island_mass.glb?${cache}`);
-      scene.add(mass.scene);
-      const loaded = await Promise.all(
-        BUILDINGS.map((slug) => loader.loadAsync(`runtime/buildings/${slug}.glb?${cache}`)),
-      );
-      for (const gltf of loaded) {
-        scene.add(gltf.scene);
-      }
-
-      renderer.setAnimationLoop(() => {
-        controls.update();
-        renderer.render(scene, camera);
-      });
-    </script>
+    <div
+      id="host"
+      data-surface="scene"
+      data-look="LOOK-03-preview"
+      data-mass="./runtime/island_mass.glb"
+      data-buildings="./runtime/buildings/"
+      data-anchor-prefix="anchor_"
+    ></div>
+    <p class="hint">ЛКМ — вращать · колёсико — зум</p>
+    <script type="module" src="./preview.ts"></script>
   </body>
 </html>

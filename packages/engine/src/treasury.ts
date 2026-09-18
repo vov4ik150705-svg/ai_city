@@ -69,15 +69,10 @@ export function returnUnsettledAttack(
 export function claimPrize(args: {
   readonly owed: bigint
   readonly poolIn: bigint
-  readonly paused: boolean
   readonly demo: boolean
-  readonly honorPause: boolean
 }): ClaimResult {
   if (args.demo) {
     return { paid: 0n, code: CODE_DEMO_NO_PRIZE, owed: args.owed, assetPool: args.poolIn }
-  }
-  if (args.paused && args.honorPause) {
-    return { paid: 0n, code: "", owed: args.owed, assetPool: args.poolIn }
   }
   if (args.poolIn < args.owed) {
     return { paid: 0n, code: CODE_UNCOVERED, owed: args.owed, assetPool: args.poolIn }
@@ -89,18 +84,14 @@ export function claimEveryAsset(args: {
   readonly assets: readonly string[]
   readonly owed: { readonly [asset: string]: bigint }
   readonly poolIn: { readonly [asset: string]: bigint }
-  readonly paused: boolean
   readonly demo: boolean
-  readonly honorPause: boolean
 }): readonly AssetClaim[] {
   const out: AssetClaim[] = []
   for (const asset of args.assets) {
     const row = claimPrize({
       owed: args.owed[asset] ?? 0n,
       poolIn: args.poolIn[asset] ?? 0n,
-      paused: args.paused,
       demo: args.demo,
-      honorPause: args.honorPause,
     })
     out.push({
       asset,
@@ -120,11 +111,24 @@ export function refundPlayer(args: {
   readonly anchor: bigint
   readonly corpInVault: bigint
   readonly totalBacking: bigint
+  readonly reservedWei?: bigint
+  readonly weiPerBacking?: bigint
+  readonly reserved?: bigint
 }): RefundResult {
-  if (args.amount > args.backing || args.amount <= 0n) {
+  const reservedWei = args.reservedWei ?? 0n
+  const weiPer = args.weiPerBacking ?? 0n
+  const reservedBacking = args.reserved ?? 0n
+  let avail = reservedBacking >= args.backing ? 0n : args.backing - reservedBacking
+  if (reservedWei > 0n && weiPer > 0n) {
+    const covered = reservedWei / weiPer
+    const fromWei = args.backing > covered ? args.backing - covered : 0n
+    if (fromWei < avail) avail = fromWei
+  }
+  if (args.amount <= 0n || args.amount > avail) {
+    const reason = args.amount > args.backing || args.amount <= 0n ? "over_backing" : "reserved"
     return {
       ok: 0n,
-      reason: "over_backing",
+      reason,
       paid: 0n,
       backing: args.backing,
       capital: args.capital,

@@ -11,5 +11,3 @@
 - `a_l330_cap` считает те же байты, что L330 (страницы манифеста), не `fallback.png`.
 
 ## Не делалось
-
-Живой GPU-кадр и fps (нет WebGL / playwright) — **R-V-38**. Живой `getRoot` (R-V-5 / R-V-36). Миссии, краны NFT, `companion_revenue_live`, `launchToken`, P7.

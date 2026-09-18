@@ -1,4 +1,4 @@
-import { asBig, asDict, asStr } from "./values.js"
+import { asBig, asDict, asList, asStr } from "./values.js"
 import type { Dict } from "./values.js"
 
 function seasonParam(data: Dict, name: string): bigint {
@@ -206,6 +206,74 @@ function periodDays(data: Dict): bigint {
   const n = seasonParam(data, "prize_periods_per_season")
   if (n <= 0n) return 0n
   return season / n
+}
+
+export function intensityBps(gdp: bigint, capex: bigint, bps: bigint): bigint {
+  return (gdp * bps) / (capex > 1n ? capex : 1n)
+}
+
+export function coverageBps(producing: bigint, opened: bigint, bps: bigint): bigint {
+  if (opened <= 0n) return bps
+  return (producing * bps) / opened
+}
+
+export function stabilityBps(validTicks: bigint, ticksDay: bigint, bps: bigint): bigint {
+  if (ticksDay <= 0n) return 0n
+  return (validTicks * bps) / ticksDay
+}
+
+export function iDay(intensity: bigint, stability: bigint, efficiency: bigint, coverage: bigint, bps: bigint): bigint {
+  let x = (intensity * stability) / bps
+  x = (x * efficiency) / bps
+  x = (x * coverage) / bps
+  return x
+}
+
+export function positiveDay(gdpDay: bigint): boolean {
+  return gdpDay > 0n
+}
+
+export function accumulateDay(
+  city: Dict,
+  gdpDay: bigint,
+  validTicks: bigint,
+  createdDay: bigint,
+  closedDay: bigint,
+  ticksDay: bigint,
+  bps: bigint,
+): bigint {
+  if (createdDay > 0n && closedDay < createdDay) return 0n
+  const capex = asBig(city["capex"], asBig(city["deposit_spent"]))
+  const intensity = intensityBps(gdpDay, capex, bps)
+  const stability = ticksDay <= 0n ? 0n : (validTicks * bps) / ticksDay
+  let eff = asBig(city["district_efficiency_bps"], bps)
+  const districts = city["district_efficiency"]
+  if (districts && typeof districts === "object") {
+    const slots = asDict(districts)
+    const keys = Object.keys(slots)
+    if (keys.length > 0) {
+      let sum = 0n
+      let n = 0n
+      for (const did of keys) {
+        sum += asBig(asDict(slots[did])["efficiency_bps"], bps)
+        n += 1n
+      }
+      if (n > 0n) eff = sum / n
+    }
+  }
+  const opened = BigInt(asList(city["districts"]).length)
+  const producing = asBig(city["producing"], opened)
+  const coverage = coverageBps(producing, opened, bps)
+  const delta = iDay(intensity, stability, eff, coverage, bps)
+  city["influence"] = asBig(city["influence"]) + delta
+  if (positiveDay(gdpDay)) city["positive_days"] = asBig(city["positive_days"]) + 1n
+  return delta
+}
+
+export function consumeAfterSettle(city: Dict): void {
+  city["influence"] = 0n
+  city["positive_days"] = 0n
+  city["spend_protocol_period"] = 0n
 }
 
 export function periodSettleDue(data: Dict, cityDay: bigint, hour: bigint): boolean {

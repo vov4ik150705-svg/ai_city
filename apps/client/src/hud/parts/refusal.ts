@@ -65,13 +65,12 @@ export function failedTokens(args: {
     out.add("not_demo_withdraw")
     out.add("not_demo_claim")
     out.add("not_demo_prize")
-    out.add("not_demo_companion")
   }
   if (!args.walletConnected) out.add("wallet")
   if (!args.capitalPositive) out.add("capital")
   if (!args.corpPositive) out.add("corp")
-  if (!args.bankOpen) out.add("bank_open")
   if (args.bankSunday) out.add("bank_weekday")
+  else if (!args.bankOpen) out.add("bank_open")
   if (args.buildTileIllegal) out.add("build_tile")
   out.add("v1_feature")
   return out

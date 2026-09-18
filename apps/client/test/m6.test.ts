@@ -47,8 +47,9 @@ describe("M6 prize_surface", () => {
     expect(view.basket.map((row) => row.ticker).join("\n")).toBe(tickers.join("\n"))
     expect(view.usedKeys.includes("UI_PRIZE_BASKET")).toBe(true)
     expect(view.periodHours).toBe(pack.prizePeriodRealHours.toString())
-    expect(view.treasury.value).toBe("0")
-    expect(view.treasury.key).toBe("UI_TREASURY")
+    expect(view.treasury.kind).toBe("unavailable")
+    expect(view.treasury.value === "0").toBe(false)
+    expect(view.treasury.exact).toBe("")
   })
 
   it("drain_notice_visible_on_leaderboard", () => {
@@ -112,9 +113,7 @@ describe("M6 prize_surface", () => {
       assets,
       owed,
       poolIn: covered,
-      paused: false,
       demo: false,
-      honorPause: true,
     })
     expect(paid.map((row) => row.asset).join("\n")).toBe(assets.join("\n"))
     expect(paid.every((row) => row.paid === 10n && row.code === "")).toBe(true)
@@ -122,9 +121,7 @@ describe("M6 prize_surface", () => {
       assets,
       owed,
       poolIn: dry,
-      paused: false,
       demo: false,
-      honorPause: true,
     })
     expect(uncovered.map((row) => row.asset).join("\n")).toBe(assets.join("\n"))
     expect(uncovered.every((row) => row.paid === 0n && row.code === CODE_UNCOVERED)).toBe(true)

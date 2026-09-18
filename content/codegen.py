@@ -801,7 +801,9 @@ def write_artifacts(rendered: dict[str, str]) -> None:
     for rel, text in rendered.items():
         path = REPO / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8", newline="\n")
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text(text, encoding="utf-8", newline="\n")
+        tmp.replace(path)
 
 
 def check_artifacts(rendered: dict[str, str]) -> list[str]:

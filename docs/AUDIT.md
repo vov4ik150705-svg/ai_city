@@ -1,10 +1,10 @@
 # Аудит пяти контрактов (P3)
 
-Внутренний проход до подписи `launchToken`. Канон: `docs/archive/plans/PLAN_RELEASE.md` P3, `docs/archive/plans/PLAN_MONEY.md` §15, `DESIGN.md` §10. Таблица статусов в паке (`arch.audit.findings`) — источник для `L321`. Здесь — разбор. Адреса стража и подписанта и секунды `unpauseDelay` не выдумываются (`§9`).
+Внутренний проход до подписи `launchToken`. Канон: `docs/archive/plans/PLAN_RELEASE.md` P3, `docs/archive/plans/PLAN_MONEY.md` §15, `DESIGN.md` §10. Таблица статусов в паке (`arch.audit.findings`) — источник для `L321`. Здесь — разбор. Адреса стража и подписанта не выдумываются (`§9`). `pause` / `unpause` / `unpauseDelay` сняты со скоупа production-контрактов.
 
 Статический проход по `contracts/src`: нет `tx.origin`, нет `delegatecall` / proxy, нет `selfdestruct`, нет `.call(` на произвольный адрес. CEI на `claimPrize` / `returnUnsettled` / `_refund`: сначала слот, потом `transfer`. Solidity 0.8.28, роли задаются в конструкторе.
 
-Чеклист токенов: шесть стоков + `$CORP`. Учёт входа по разнице `balanceOf`. Результат `transfer`/`transferFrom` внутри `require`. `decimals` стока не предполагается равным 18. Нулевой `transferFrom` отвергается (`amount > 0`). Пауза/чёрный список эмитента — свойство бумаги, не конструктора казны; пауза наших контрактов режет депозит и клейм.
+Чеклист токенов: шесть стоков + `$CORP`. Учёт входа по разнице `balanceOf`. Результат `transfer`/`transferFrom` внутри `require`. `decimals` стока не предполагается равным 18. Нулевой `transferFrom` отвергается (`amount > 0`). Пауза/чёрный список эмитента — свойство бумаги, не конструктора казны. Наши контракты не держат `paused`. `issueVoucher` резервирует `backingOf`; `presentVoucher` снимает резерв; просроченный ваучер освобождает его через `releaseExpiredVoucher`. Рефанд и ваучер не тратят одно покрытие дважды. `StakeRegistry.unstake` — держатель, без одобрения owner.
 
 `forge test --root contracts` — инварианты backing, `returnUnsettled`, страж не подписант, fee-on-transfer, границы.
 
@@ -48,9 +48,9 @@
 
 ### constructor_unpause_delay
 
-Серьёзность medium. Статус accepted.
+Серьёзность note. Статус accepted.
 
-Конструктор требует `unpauseDelay > 0`. Число секунд — владелец, `pending.pause_ready_delay`. Не выдумано. Фиксируется подписью в P7. `R-P-3`.
+Находка устарела: `pause` / `unpause` / `paused` / `unpauseDelay` / `pauseReadyAt` сняты со скоупа. Конструкторы Vault и PrizeTreasury не принимают задержку. `pause_ready_delay` убран из `pending.json` — это не UNKNOWN-секунды. `CORPORATOR_UNPAUSE_DELAY` скрипт не читает. Секунды и адреса не выдуманы. Рефанд, `setRefundRoot`, `claimRefund` и `returnUnsettled` остаются под своими ролями без precondition `paused`.
 
 ### constructor_guardian_signer
 
@@ -90,4 +90,4 @@ Callers требуют `returns (bool)`. Низкоуровневый `call` н�
 
 ## Заморозка конструкторов
 
-Форма: `guardian`, `signer`, `unpauseDelay > 0`, адрес `$CORP`, шесть стоков. Значения адресов и задержки — env на P7, не литералы пака.
+Форма: `guardian`, `signer`, адрес `$CORP`, шесть стоков. Значения адресов — env на P7, не литералы пака. `unpauseDelay` больше не аргумент.

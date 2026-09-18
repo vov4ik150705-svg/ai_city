@@ -56,6 +56,121 @@ def window_index(day: int, days: int) -> int:
     return (day - 1) // days
 
 
+def window_settle_due(data: dict, city_day: int, hour: int) -> bool:
+    """Global 14-day farm window. First hour of a new window, never a backfill."""
+    if hour != settle_hour(data):
+        return False
+    days = window_days(data)
+    if days <= 0 or city_day <= 1:
+        return False
+    return (city_day - 1) % days == 0
+
+
+def _mul_pow(base: int, growth: int, exp: int) -> int:
+    out = int(base)
+    steps = int(exp)
+    if steps <= 0:
+        return out
+    g = int(growth)
+    for _ in range(steps):
+        out = out * g // BPS
+    return out
+
+
+def fragment_gross_base(
+    authored: object,
+    cost_l1: int,
+    output_weight_bps: int | None,
+    output_growth_bps: int,
+    level: int,
+    payback: int,
+) -> int:
+    """Common Capital-equivalent units per playable beacon/level. Not payroll.
+
+    Authored fragment_gross_base wins. Otherwise cost(L1) × weight / (BPS × payback)
+    grown by output_growth^(L-1). Missing output_weight defaults to BPS so a
+    playable beacon still has a non-zero common unit without a new pack param.
+    """
+    if authored is not None:
+        if isinstance(authored, dict):
+            key = str(int(level))
+            if key in authored:
+                return int(authored[key])
+            if "v" in authored:
+                return int(authored["v"])
+        return int(authored)
+    ow = int(output_weight_bps) if output_weight_bps else BPS
+    if payback <= 0 or cost_l1 <= 0:
+        return 0
+    out1 = int(cost_l1) * ow // (BPS * int(payback))
+    return _mul_pow(out1, int(output_growth_bps) or BPS, int(level) - 1)
+
+
+def settle_cities(
+    data: dict,
+    cities: dict[str, dict],
+    pools: dict[str, int] | int,
+) -> dict:
+    """Per-ticker window settle. Cap if N>=2. Dust stays. Ledger cleared. Owed written."""
+    ids = sorted(cities)
+    tickers: set[str] = set()
+    for cid in ids:
+        ledger = cities[cid].get("fragment_ledger")
+        if isinstance(ledger, dict):
+            tickers.update(str(k) for k in ledger)
+    if not tickers:
+        result = {"tickers": {}, "codes": [CODE_NO_CLAIMS]}
+        for cid in ids:
+            city = cities[cid]
+            if city.get("fragment_ledger") is not None or city.get("fragment_pool") is not None:
+                city["fragment_settlement"] = result
+        return result
+    pool_map = pools if isinstance(pools, dict) else {}
+    default_pool = 0 if isinstance(pools, dict) else int(pools)
+    by_ticker: dict[str, dict] = {}
+    codes: list[str] = []
+    for ticker in sorted(tickers):
+        frags = []
+        for cid in ids:
+            ledger = cities[cid].get("fragment_ledger")
+            if isinstance(ledger, dict):
+                frags.append(int(ledger.get(ticker) or 0))
+            else:
+                frags.append(0)
+        pool = int(pool_map.get(ticker) or default_pool)
+        if pool <= 0:
+            for cid in ids:
+                pool = int(cities[cid].get("fragment_pool") or 0)
+                if pool > 0:
+                    break
+        row = settle_from_data(data, frags, pool)
+        by_ticker[ticker] = row
+        codes.extend(row.get("codes") or [])
+        leftover = int(row.get("pool_left") or 0)
+        if ticker in pool_map:
+            pool_map[ticker] = leftover
+        for i, cid in enumerate(ids):
+            city = cities[cid]
+            pay = int(row["payouts"][i])
+            owed = city.setdefault("fragment_owed", {})
+            if not isinstance(owed, dict):
+                owed = {}
+                city["fragment_owed"] = owed
+            owed[ticker] = int(owed.get(ticker) or 0) + pay
+            if leftover and not isinstance(pools, dict):
+                city["fragment_pool"] = leftover
+        if isinstance(pools, dict):
+            pools[ticker] = leftover
+    for cid in ids:
+        city = cities[cid]
+        city["fragment_ledger"] = {}
+        city["fragment_settlement"] = {
+            "tickers": {t: {"payouts": by_ticker[t]["payouts"], "dust": by_ticker[t]["dust"], "n_claiming": by_ticker[t]["n_claiming"]} for t in by_ticker},
+            "codes": codes,
+        }
+    return {"tickers": by_ticker, "codes": codes}
+
+
 def window_real_hours(data: dict) -> int:
     hours = data["time"]["params"]["city_day_real_hours"]["v"]
     return window_days(data) * hours
@@ -351,19 +466,16 @@ def season_method(data: dict) -> str:
 
 
 def window_budget_rows(data: dict, balance: dict, economy: dict) -> dict:
-    """Spend-protocol path only. T1 USD scales activity, not creator tax (R-T6-4)."""
+    """Size the farm from the DEX active-work leg, not Capital spending."""
     launch = {k: v["v"] for k, v in data["launch"]["params"].items()}
-    spend_proto = data["economy"]["params"]["spend_protocol_bps"]["v"]
-    frag_bps = fp(data, "protocol_fragments_bps")
     hop = fp(data, "fragment_hop_haircut_bps")
-    cork_share = fp(data, "fragment_cork_share_bps")
-    include_cork = bool((data.get("fragments") or {}).get("include_cork_in_budget"))
+    active_work_bps = fp(data, "active_work_creator_tax_bps")
     window = window_days(data)
-    season = data["balance"]["params"]["season_city_days"]["v"]
-    deposit_net = int(balance.get("deposit_capital_net") or 0)
+    season_days = data["balance"]["params"]["season_city_days"]["v"]
+    periods = data["seasons"]["params"]["prize_periods_per_season"]["v"]
+    period_days = season_days // periods if periods and season_days % periods == 0 else 0
     unit = data["economy"]["params"]["capital_unit_usd"]["v"]
     n_cities = data["sim"]["params"]["reference_n_cities"]["v"]
-    low_usd = launch["revenue_scenario_low_usd"]
     scenarios = {
         "low": launch["revenue_scenario_low_usd"],
         "mid": launch["revenue_scenario_mid_usd"],
@@ -371,17 +483,18 @@ def window_budget_rows(data: dict, balance: dict, economy: dict) -> dict:
     }
     rows = {}
     for name, usd in scenarios.items():
-        scale = usd * BPS // low_usd if low_usd else 0
-        spend = deposit_net * window // season if season else 0
-        spend = spend * scale // BPS
-        proto = spend * spend_proto // BPS
-        frag_cap = protocol_fragment_budget(proto, frag_bps, cork_share, include_cork)
-        usd_8dec = frag_cap * unit
+        turnover_window = usd * window // period_days if period_days else 0
+        turnover_8dec = turnover_window * 100_000_000
+        gross_usd_8dec = turnover_8dec * active_work_bps // BPS
+        frag_cap = gross_usd_8dec // unit if unit else 0
+        usd_8dec = gross_usd_8dec
         usd_net = usd_8dec * (BPS - hop) // BPS
         rows[name] = {
             "activity_usd": usd,
-            "spend_capital": spend,
-            "proto_capital": proto,
+            "turnover_window_usd": turnover_window,
+            "active_work_bps": active_work_bps,
+            "spend_capital": 0,
+            "proto_capital": 0,
             "frag_capital": frag_cap,
             "frag_usd_8dec": usd_net,
             "frag_usd_8dec_per_city": usd_net,

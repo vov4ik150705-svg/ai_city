@@ -37,6 +37,8 @@ export function liveGenesis(cfg: Dict, pack: Dict): Dict {
   city["city_level"] = 1n
   city["agents"] = []
   city["buildings"] = []
+  city["functions"] = []
+  city["created_day"] = 1n
   const state = newState(cfg, { a: city }, {})
   armFund(state, cfg)
   state["day_budget_day"] = null

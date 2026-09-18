@@ -21,7 +21,6 @@
 
 ## 2. Изменено
 
-`content/pack.py` (`PARAM_FILES`), `content/schema/corporator.schema.json` (`$defs.arch_file`, `api_file`, `fixture_t12_arch_file`; у кодов опциональный `http`), `content/build.py` (`IMPLEMENTED_DERIVED`, `report_t12`), `content/world.py` (`safe_h = vh − top − strip − menu`), `content/params/meta.json` (0.16.0 / 24), `content/params/codes.json` (категория `transport`, шесть кодов с `http`), `content/strings/ru.json` (шесть текстов), `content/params/pending.json` (T12 закрыт; `companion_llm_price_snapshot` → `owner`), `content/fixtures/hud_layout.json` (40 / 48), `content/params/placement.json` (формула `safe_rect_h`), `content/lint.py` (`L226`–`L266`), `content/attack.py` (41 атака + 29 проб), `docs/CONTENT.md`, `content/README.md`, `DESIGN.md` §10, `HUD.md` §2/§8, `docs/SCREENS.md` строка 3, `docs/TICK.md` §1, `docs/WORLD.md` (`R-T10-2`).
 
 Удалён черновик `content/_t12_schema_check.py`.
 
@@ -36,7 +35,6 @@
 | `stock_strip_height_px` | 40 | `HUD.md` §6.2, сетка 8 |
 | `bottom_menu_height_px` | 48 | `HUD.md` §6.3, сетка 8 |
 
-Выводы (не хранятся): `sampler_period_s = tick_length_real_seconds // 75` = 50; `price_channel_period_s` = период; `samples_per_twap_window = 24 × 1 × 75` = 1800; `command_rate_limit_per_city_tick = 2 × slots_cap` = 40; `voucher_ttl_s = tick_length_real_seconds`; `state_snapshot_every_ticks = ticks_per_city_day`; `companion_queue_capacity = 1 × 1`; `sampler_age_alert_city_hours = staleness // 2`.
 
 ## 4. Камера (единственное разрешённое неэкономическое движение)
 

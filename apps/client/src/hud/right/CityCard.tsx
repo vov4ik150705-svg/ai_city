@@ -1,6 +1,6 @@
 import type { ReactElement } from "react"
 import type { HudView } from "../model.js"
-import { Empty } from "../parts/Empty.js"
+import { Empty, UnavailableState } from "../parts/Empty.js"
 import { Panel } from "../parts/Panel.js"
 import { Value } from "../parts/Value.js"
 
@@ -8,10 +8,16 @@ export function ProtocolPlaque(props: { readonly view: HudView }): ReactElement 
   return (
     <div data-key="UI_PROTOCOL">
       {props.view.protocol.map((p) => (
-        <p key={p.id} data-key={p.key} className="hud-row">
+        <div key={p.id} data-key={p.key} className="hud-row">
           <span className="hud-muted">{p.caption}</span>
-          <span>{p.value}</span>
-        </p>
+          {p.kind === "unavailable" ? (
+            <span data-key="UI_UNAVAILABLE" className="hud-unavailable">
+              {p.value}
+            </span>
+          ) : (
+            <span>{p.value}</span>
+          )}
+        </div>
       ))}
       {props.view.basket.map((b) => (
         <p key={b.ticker} data-ticker={b.ticker} className="hud-row">
@@ -25,10 +31,16 @@ export function ProtocolPlaque(props: { readonly view: HudView }): ReactElement 
 export function CityCard(props: { readonly title: string; readonly titleKey: string; readonly view: HudView }): ReactElement {
   return (
     <Panel id="city" title={props.title} titleKey={props.titleKey}>
-      <p data-key={props.view.treasury.key} className="hud-row">
+      <div data-key={props.view.treasury.key} className="hud-row">
         <span className="hud-muted">{props.view.treasury.caption}</span>
-        <Value display={props.view.treasury.value} exact={props.view.treasury.exact} />
-      </p>
+        {props.view.treasury.kind === "unavailable" ? (
+          <span data-key="UI_UNAVAILABLE" className="hud-unavailable">
+            {props.view.treasury.value}
+          </span>
+        ) : (
+          <Value display={props.view.treasury.value} exact={props.view.treasury.exact} />
+        )}
+      </div>
       <ProtocolPlaque view={props.view} />
       {props.view.prizeNotice ? (
         <p data-key={props.view.prizeNotice.key} className="hud-row hud-row--trim">
@@ -50,13 +62,18 @@ export function AgentsPanel(props: {
 }): ReactElement {
   return (
     <Panel id="agents" title={props.title} titleKey={props.titleKey}>
-      {props.view.agents.map((a) => (
-        <div key={a.id} data-key={a.idleKey} className="hud-row">
-          {a.idleText}
-        </div>
-      ))}
-      {props.view.agents.length === 0 ? <Empty textKey="UI_EMPTY_NO_ENTITIES" text={props.view.agentsEmpty} /> : null}
-      <button type="button" className="hud-hire" data-key="UI_HIRE" onClick={props.onHire}>
+      {props.view.agentsKind === "unavailable" ? (
+        <UnavailableState textKey="UI_AGENTS_UNAVAILABLE" text={props.view.agentsEmpty} />
+      ) : null}
+      {props.view.agentsKind === "ready"
+        ? props.view.agents.map((a) => (
+            <div key={a.id} data-key={a.idleKey} className="hud-row">
+              {a.idleText}
+            </div>
+          ))
+        : null}
+      {props.view.agentsKind === "empty" ? <Empty textKey="UI_EMPTY_NO_ENTITIES" text={props.view.agentsEmpty} /> : null}
+      <button type="button" className="hud-hire hud-btn hud-btn--primary" data-key="UI_HIRE" onClick={props.onHire}>
         {props.view.hireText}
       </button>
     </Panel>
@@ -68,9 +85,6 @@ export function LogPanel(props: {
   readonly titleKey: string
   readonly view: HudView
   readonly extra: readonly { readonly id: string; readonly key: string; readonly text: string }[]
-  readonly needle: string
-  readonly filterLabel: string
-  readonly onFilter: () => void
   readonly onBadge: (id: string) => void
   readonly openId: string
 }): ReactElement {
@@ -82,15 +96,9 @@ export function LogPanel(props: {
     badgeText: "",
     root: "",
     cid: "",
-  }))].filter((a) => {
-    if (props.needle.length === 0) return true
-    return a.key.startsWith(props.needle)
-  })
+  }))]
   return (
     <Panel id="log" title={props.title} titleKey={props.titleKey}>
-      <button type="button" data-action="log_filter_companion" data-on={props.needle.length === 0 ? "0" : "1"} onClick={props.onFilter}>
-        {props.filterLabel}
-      </button>
       {rows.map((a) => (
         <div key={a.id} data-key={a.key} className="hud-log">
           <span>{a.text}</span>

@@ -33,5 +33,3 @@
 - `code-phase.mdc` уже текст P0–P8; второго файла нет.
 
 ## 4. Инертность
-
-Круг 1445, вход 200, выход 910, mint 51, окно A `[12275, 15783]`. `creator_tax_bps` 200. `season_prizes_live` 1. `companion_revenue_live` 0. Краны NFT 0. `window_a_ratified` 1.

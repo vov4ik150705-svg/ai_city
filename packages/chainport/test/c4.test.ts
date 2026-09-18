@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process"
-import { readFileSync, writeFileSync } from "node:fs"
+import { readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
@@ -14,8 +14,24 @@ import {
   type PortConfig,
   type Voucher,
 } from "../src/index.ts"
+import { assertPrizeTreasuryPort } from "./prize_treasury.cases.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
+
+function replaceFileSync(file: string, data: string | Uint8Array): void {
+  const tmp = `${file}.${String(process.pid)}.tmp`
+  writeFileSync(tmp, data)
+  try {
+    renameSync(tmp, file)
+  } catch (err) {
+    try {
+      unlinkSync(tmp)
+    } catch {
+      /* keep rename error */
+    }
+    throw err
+  }
+}
 
 function packBytes(): Uint8Array {
   return new Uint8Array(readFileSync(join(repo, "content/out/pack.json")))
@@ -104,7 +120,9 @@ describe.sequential("C4 construction", () => {
     expect(mock.vault).toBeDefined()
     expect(mock.stakeRegistry).toBeDefined()
     expect(mock.merkleRoots).toBeDefined()
+    expect(mock.prizeTreasury).toBeDefined()
     expect(rpc.corpToken).toBeDefined()
+    expect(rpc.prizeTreasury).toBeDefined()
     const clientSrc = readFileSync(join(repo, "apps/client/src/index.ts"), "utf8")
     expect(clientSrc.includes("@corporator/chainport")).toBe(false)
     expect(clientSrc.includes("voucher_signer")).toBe(false)
@@ -112,14 +130,15 @@ describe.sequential("C4 construction", () => {
     const clientPkg = readFileSync(join(repo, "apps/client/package.json"), "utf8")
     expect(clientPkg.includes("@corporator/chainport")).toBe(false)
     const target = join(repo, "packages/chainport/src/mock.ts")
-    const original = readFileSync(target, "utf8")
+    const original = readFileSync(target)
     try {
-      writeFileSync(target, `import "viem"\n${original}`)
+      replaceFileSync(target, Buffer.concat([Buffer.from('import "viem"\n'), original]))
       const eslintHit = runEslint("packages/chainport/src/mock.ts")
       expect(eslintHit.status).not.toBe(0)
     } finally {
-      writeFileSync(target, original)
+      replaceFileSync(target, original)
     }
+    expect(Buffer.compare(readFileSync(target), original)).toBe(0)
   })
 
   it("voucher_single_use", async () => {
@@ -166,12 +185,17 @@ describe.sequential("C4 construction", () => {
     expect(before.ok && after.ok).toBe(true)
     if (before.ok && after.ok) expect(after.amount).toBe(before.amount)
     expect((await mock.stakeRegistry.stake(account, "NVDA", 1n)).ok).toBe(true)
+    expect((await mock.stakeRegistry.unstake(account, "NVDA", 1n)).ok).toBe(true)
     const snap = await mock.stakeRegistry.snapshot(account)
     expect(snap.ok).toBe(true)
-    if (snap.ok) expect(snap.rows.length).toBe(1)
+    if (snap.ok) {
+      expect(snap.rows.length).toBe(1)
+      expect(snap.rows[0]?.amount).toBe(0n)
+    }
     expect((await mock.merkleRoots.putRoot("c", 0n, "ab")).ok).toBe(true)
     const root = await mock.merkleRoots.getRoot("c", 0n)
     expect(root.ok).toBe(true)
     if (root.ok) expect(root.root).toBe("ab")
+    await assertPrizeTreasuryPort(cfg)
   })
 })

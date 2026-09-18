@@ -23,10 +23,11 @@ export type BootErr = {
 
 export type BootResult = BootOk | BootErr
 
-function sectionBig(sections: { readonly [key: string]: unknown }, id: string): bigint {
+function sectionMaybe(sections: { readonly [key: string]: unknown }, id: string): bigint | undefined {
+  if (!Object.prototype.hasOwnProperty.call(sections, id)) return undefined
   const val = sections[id]
   if (typeof val === "bigint") return val
-  return 0n
+  return undefined
 }
 
 function potBig(row: { readonly [key: string]: unknown }, id: string): bigint {
@@ -37,9 +38,9 @@ function potBig(row: { readonly [key: string]: unknown }, id: string): bigint {
 
 function prizeFromSections(sections: { readonly [key: string]: unknown }): {
   readonly prizeNoticeKey: string
-  readonly protocolEthInFlight: bigint
-  readonly protocolVaultCorp: bigint
-  readonly protocolStudioEth: bigint
+  readonly protocolEthInFlight: bigint | undefined
+  readonly protocolVaultCorp: bigint | undefined
+  readonly protocolStudioEth: bigint | undefined
   readonly prizeBasket: readonly {
     readonly ticker: string
     readonly farm: bigint
@@ -63,20 +64,21 @@ function prizeFromSections(sections: { readonly [key: string]: unknown }): {
   }
   return {
     prizeNoticeKey,
-    protocolEthInFlight: sectionBig(sections, "wallet.protocol_eth_in_flight"),
-    protocolVaultCorp: sectionBig(sections, "wallet.protocol_vault_corp"),
-    protocolStudioEth: sectionBig(sections, "wallet.protocol_studio_eth"),
+    protocolEthInFlight: sectionMaybe(sections, "wallet.protocol_eth_in_flight"),
+    protocolVaultCorp: sectionMaybe(sections, "wallet.protocol_vault_corp"),
+    protocolStudioEth: sectionMaybe(sections, "wallet.protocol_studio_eth"),
     prizeBasket,
   }
 }
 
 function logFromSections(sections: { readonly [key: string]: unknown }): ClientSnapshot["log"] {
+  if (!Object.prototype.hasOwnProperty.call(sections, "log.events")) return undefined
   const raw = sections["log.events"]
-  if (raw === undefined || raw === null || typeof raw !== "object" || Array.isArray(raw)) return []
+  if (raw === undefined || raw === null || typeof raw !== "object" || Array.isArray(raw)) return undefined
   const obj = raw as { readonly [key: string]: unknown }
   const rows = obj["rows"]
-  if (!Array.isArray(rows)) return []
-  const out: ClientSnapshot["log"][number][] = []
+  if (!Array.isArray(rows)) return undefined
+  const out: { id: string; key: string; badge: string; root: string; cid: string }[] = []
   for (const item of rows) {
     if (item === null || typeof item !== "object" || Array.isArray(item)) continue
     const row = item as { readonly [key: string]: unknown }
@@ -107,17 +109,33 @@ export function snapshotFromEnvelope(body: unknown): ClientSnapshot {
   return {
     cityTime: asBig(obj["city_time"]),
     accountKind: typeof kind === "string" ? kind : "wallet",
-    capital: sectionBig(sections, "tick.capital"),
-    corp: sectionBig(sections, "wallet.corp_balance"),
-    energy: sectionBig(sections, "tick.energy"),
-    compute: sectionBig(sections, "tick.compute"),
-    population: 0n,
-    payrollRatioBps: sectionBig(sections, "aggregate.payroll_ratio"),
-    gdp: sectionBig(sections, "aggregate.gdp"),
-    happiness: sectionBig(sections, "aggregate.happiness"),
-    stability: sectionBig(sections, "aggregate.stability"),
+    capital: sectionMaybe(sections, "tick.capital"),
+    corp: sectionMaybe(sections, "wallet.corp_balance"),
+    energy: sectionMaybe(sections, "tick.energy"),
+    compute: sectionMaybe(sections, "tick.compute"),
+    population: sectionMaybe(sections, "aggregate.population"),
+    cityLevel: sectionMaybe(sections, "aggregate.city_level"),
+    payrollRatioBps: sectionMaybe(sections, "aggregate.payroll_ratio"),
+    payrollPaid: sectionMaybe(sections, "aggregate.payroll_paid"),
+    payrollRequested: sectionMaybe(sections, "aggregate.payroll_requested"),
+    energyDemand: sectionMaybe(sections, "tick.energy_demand"),
+    computeDemand: sectionMaybe(sections, "tick.compute_demand"),
+    gdp: sectionMaybe(sections, "aggregate.gdp"),
+    happiness: sectionMaybe(sections, "aggregate.happiness"),
+    stability: sectionMaybe(sections, "aggregate.stability"),
+    productivity: sectionMaybe(sections, "aggregate.productivity"),
+    seasonLabel: undefined,
+    periodLabel: undefined,
+    cityLabel: undefined,
+    unreadCount: undefined,
+    logLoading: undefined,
+    logError: undefined,
+    quoteLive: undefined,
+    quoteAgeMs: undefined,
+    bankLimitLive: undefined,
+    functions: undefined,
     stocks: [],
-    agents: [],
+    agents: undefined,
     log: logFromSections(sections),
     prizeNoticeKey: prize.prizeNoticeKey,
     protocolEthInFlight: prize.protocolEthInFlight,

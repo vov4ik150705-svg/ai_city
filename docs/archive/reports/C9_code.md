@@ -13,7 +13,6 @@
 | `deploy/Dockerfile` | кодоген: ARG/ENV `PACK_HASH`, runtime без python и `content/` |
 | `scripts/ci.mjs` | кодоген: шаги пака, все гоняются, exit после цикла |
 | `deploy/environments.json` | кодоген: `dev` / `staging` / `prod` |
-| `services/llm/src/{values,pack,step,index}.ts` | шаблон `COMPANION_LLM_TEMPLATE`, очередь `companion_queue_capacity` |
 | `services/llm/test/c9.test.ts` | `llm_refusal_falls_back_to_template` |
 | `services/api/test/c9.test.ts` | `image_pins_pack_hash`, `image_has_no_python`, `ci_step_has_red_run` |
 

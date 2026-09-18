@@ -1,6 +1,6 @@
-import type { AssetPort, CorpTokenPort, MerkleRootsPort, RootResult, SnapshotResult, StakeRegistryPort, VaultPort } from "../port.js"
+import type { AssetPort, CorpTokenPort, MerkleRootsPort, PrizeTreasuryPort, RootResult, SnapshotResult, StakeRegistryPort, VaultPort } from "../port.js"
 import { silentTransport, type PortAmount, type PortConfig, type PortResult, type RpcOutcome, type RpcTransport, type Voucher } from "../values.js"
-import { dec, decodeAmount, decodeResult, decodeRoot, decodeSnapshot, rpcMethod } from "./codec.js"
+import { dec, decodeAmount, decodeResult, decodeRoot, decodeSnapshot, encodeDecList, encodeStringList, rpcMethod } from "./codec.js"
 
 export { createLiveTransport } from "./live.js"
 export type { LiveContracts, LiveRpcConfig } from "./live.js"
@@ -30,6 +30,7 @@ function bind(transport: RpcTransport): {
   readonly vault: VaultPort
   readonly stakeRegistry: StakeRegistryPort
   readonly merkleRoots: MerkleRootsPort
+  readonly prizeTreasury: PrizeTreasuryPort
 } {
   const corpToken: CorpTokenPort = {
     async balanceOf(account: string): Promise<PortAmount> {
@@ -63,6 +64,9 @@ function bind(transport: RpcTransport): {
     async stake(account: string, ticker: string, amount: bigint): Promise<PortResult> {
       return decodeResult(await invoke(transport, rpcMethod.stake, [account, ticker, dec(amount)]))
     },
+    async unstake(account: string, ticker: string, amount: bigint): Promise<PortResult> {
+      return decodeResult(await invoke(transport, rpcMethod.unstake, [account, ticker, dec(amount)]))
+    },
     async snapshot(account: string): Promise<SnapshotResult> {
       return decodeSnapshot(await invoke(transport, rpcMethod.snapshot, [account]))
     },
@@ -75,7 +79,35 @@ function bind(transport: RpcTransport): {
       return decodeRoot(await invoke(transport, rpcMethod.getRoot, [cityId, dec(cityDay)]))
     },
   }
-  return { corpToken, vault, stakeRegistry, merkleRoots }
+  const prizeTreasury: PrizeTreasuryPort = {
+    async deposit(caller: string, token: string, kettle: bigint, amount: bigint): Promise<PortResult> {
+      return decodeResult(await invoke(transport, rpcMethod.prizeDeposit, [caller, token, dec(kettle), dec(amount)]))
+    },
+    async slice(
+      caller: string,
+      token: string,
+      kettle: bigint,
+      players: readonly string[],
+      amounts: readonly bigint[],
+    ): Promise<PortResult> {
+      return decodeResult(
+        await invoke(transport, rpcMethod.prizeSlice, [
+          caller,
+          token,
+          dec(kettle),
+          encodeStringList(players),
+          encodeDecList(amounts),
+        ]),
+      )
+    },
+    async returnUnsettled(caller: string, token: string, kettle: bigint): Promise<PortResult> {
+      return decodeResult(await invoke(transport, rpcMethod.prizeReturnUnsettled, [caller, token, dec(kettle)]))
+    },
+    async claimPrize(caller: string, token: string, kettle: bigint): Promise<PortResult> {
+      return decodeResult(await invoke(transport, rpcMethod.prizeClaimPrize, [caller, token, dec(kettle)]))
+    },
+  }
+  return { corpToken, vault, stakeRegistry, merkleRoots, prizeTreasury }
 }
 
 export function createRpcPort(cfg: PortConfig, transport?: RpcTransport): AssetPort {
@@ -88,5 +120,6 @@ export function createRpcPort(cfg: PortConfig, transport?: RpcTransport): AssetP
     vault: bound.vault,
     stakeRegistry: bound.stakeRegistry,
     merkleRoots: bound.merkleRoots,
+    prizeTreasury: bound.prizeTreasury,
   }
 }

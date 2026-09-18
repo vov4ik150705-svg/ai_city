@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import sys
+from collections import defaultdict
 from itertools import combinations
 
 from pack import BPS, OUT_DIR, canonical, write_out, write_out_bytes
@@ -17,6 +18,12 @@ from pack import BPS, OUT_DIR, canonical, write_out, write_out_bytes
 import build
 
 _CACHE: dict[str, dict] = {}
+_NP = None
+_NP_READY = 0
+
+
+def _phase(msg: str) -> None:
+    print(msg, file=sys.stderr, flush=True)
 
 
 def gate_fingerprint(data: dict) -> str:
@@ -207,6 +214,283 @@ def _between(
         if a != c:
             spanned = True
     return spanned
+
+
+def _gdp_of(sc: dict, bal: dict, tm: dict, n_prod: int, season_days: int) -> int:
+    ticks_day = tm["ticks_per_city_day"]
+    if sc["horizon"] == "day":
+        ticks = ticks_day
+    elif sc["horizon"] == "mid":
+        ticks = ticks_day * season_days // 2
+    else:
+        ticks = ticks_day * season_days
+    if sc["uptime"] == "minimalist":
+        uptime = bal["uptime_minimalist_bps"]
+    else:
+        uptime = bal["uptime_optimizer_bps"]
+    ws_out = (bal.get("level_output") or {}).get("workshop", [0])[0]
+    return ws_out * ticks * uptime // BPS * n_prod
+
+
+def _prep_build(
+    data: dict,
+    generated: dict,
+    dids: list[str],
+    bld: dict,
+    n_cities: int,
+    eff_maps: dict[tuple[str, str], dict[str, int]],
+) -> dict:
+    """Per-build stacks and maps used by the streamed scorer. Arithmetic matches `_score_build`."""
+    acc = bld["acc"]
+    taken = bld["taken"]
+    nodes = generated["progression_nodes"]
+    opened = [dids[i] for i, t in enumerate(bld["tiers"]) if t]
+    thrift: dict[str, int] = {}
+    paper: list[tuple[str, int]] = []
+    for nid in taken:
+        row = nodes.get(nid)
+        if not row:
+            continue
+        axis = row.get("axis")
+        if axis == "thrift":
+            did = row["district"]
+            thrift[did] = thrift.get(did, 0) + abs(int(row["magnitude"]))
+        elif axis == "paper":
+            paper.append((row["district"], abs(int(row["magnitude"]))))
+    eff_m: dict[tuple[str, str], int] = {}
+    for key, eff in eff_maps.items():
+        cur = BPS
+        for d in opened:
+            cur = cur * eff[d] // BPS
+        eff_m[key] = cur
+    bcost_m = _stack(data, "build_cost_bps", acc.get("build_cost_bps") or [], BPS)
+    uspeed_m = _stack(data, "upgrade_speed_bps", acc.get("upgrade_speed_bps") or [], BPS)
+    ecost_m = _stack(data, "energy_cost_bps", acc.get("energy_cost_bps") or [], BPS)
+    ccost_m = _stack(data, "compute_cost_bps", acc.get("compute_cost_bps") or [], BPS)
+    fund = _stack(data, "fund_share_bps", acc.get("fund_share_bps") or [], 0)
+    offline_base = data["time"]["params"]["offline_cap_city_hours_base"]["v"]
+    return {
+        "cost": bld["cost"],
+        "taken": taken,
+        "out_m": _stack(data, "output_bps", acc.get("output_bps") or [], BPS),
+        "pop_m": _stack(data, "population_conversion_bps", acc.get("population_conversion_bps") or [], BPS),
+        "idle_m": _stack(data, "idle_reduction_bps", acc.get("idle_reduction_bps") or [], BPS),
+        "bcost_m": bcost_m,
+        "uspeed_m": uspeed_m,
+        "ecost_m": ecost_m,
+        "ccost_m": ccost_m,
+        "energy_def": BPS * BPS // ecost_m if ecost_m else 0,
+        "compute_def": BPS * BPS // ccost_m if ccost_m else 0,
+        "slot_free": BPS * BPS // bcost_m if bcost_m else BPS,
+        "slot_cap": uspeed_m,
+        "fund": fund,
+        "share": BPS + fund,
+        "total": n_cities * BPS + fund,
+        "offline": offline_base + _stack(data, "offline_cap_hours", acc.get("offline_cap_hours") or [], 0),
+        "thrift": thrift,
+        "paper": paper,
+        "eff_m": eff_m,
+    }
+
+
+def _goals_of(
+    data: dict,
+    prep: dict,
+    sc: dict,
+    gdp: int,
+    deposit_net: int,
+    exit_bps: int,
+    proxy: bool,
+) -> tuple[int, int, int, int, int]:
+    """Same integer pipeline as `_score_build`, without per-scenario allocations."""
+    if sc["energy"] == "deficit":
+        energy_prod = prep["energy_def"]
+        compute_prod = prep["compute_def"]
+    else:
+        energy_prod = BPS
+        compute_prod = BPS
+    if sc["slots"] == "free":
+        slot_m = prep["slot_free"]
+    else:
+        slot_m = prep["slot_cap"]
+    produced = gdp
+    produced = produced * prep["out_m"] // BPS
+    produced = produced * prep["pop_m"] // BPS
+    produced = produced * prep["idle_m"] // BPS
+    produced = produced * energy_prod // BPS
+    produced = produced * compute_prod // BPS
+    produced = produced * slot_m // BPS
+    produced = produced * prep["eff_m"][(sc["eff_mode"], sc["spot"])] // BPS
+    if sc["energy"] == "deficit" and sc["eff_mode"] == "spot":
+        bonus = prep["thrift"].get(sc["spot"]) or 0
+        if bonus:
+            produced = produced * (BPS + bonus) // BPS
+    cost = prep["cost"]
+    capital_net = produced - cost
+    cash = capital_net if capital_net > 0 else 0
+    if sc["bank"] == "closed":
+        withdraw = 0
+    else:
+        raw = cash * exit_bps // BPS
+        total = prep["total"]
+        withdraw = raw * prep["share"] // total if total else 0
+    if proxy:
+        fragments = 0
+        for did, mag in prep["paper"]:
+            if sc["eff_mode"] == "spot" and did != sc["spot"]:
+                continue
+            if sc["eff_mode"] == "spot":
+                fragments += mag
+            else:
+                fragments += mag * sc["eff"][did] // BPS
+    else:
+        frag_mags = []
+        for did, mag in prep["paper"]:
+            if sc["eff_mode"] == "spot" and did != sc["spot"]:
+                continue
+            frag_mags.append(mag)
+        if not frag_mags:
+            fragments = 0
+        else:
+            stack = _stack(data, "fragment_rate_bps", frag_mags, BPS)
+            fragments = gdp * stack // BPS if stack > BPS else 0
+    budget = deposit_net + gdp
+    return (
+        capital_net,
+        withdraw,
+        prep["offline"],
+        fragments,
+        1 if cost <= budget else 0,
+    )
+
+
+def _live_dims(vecs: list[tuple[int, ...]]) -> tuple[int, ...]:
+    if not vecs:
+        return ()
+    width = len(vecs[0])
+    live: list[int] = []
+    for d in range(width):
+        ref = vecs[0][d]
+        for row in vecs:
+            if row[d] != ref:
+                live.append(d)
+                break
+    return tuple(live)
+
+
+def _numpy():
+    global _NP, _NP_READY
+    if _NP_READY:
+        return _NP
+    _NP_READY = 1
+    try:
+        import numpy as np
+    except ImportError:
+        _NP = None
+        return None
+    _NP = np
+    return np
+
+
+def _winners_from_values(vals, mask):
+    """Argmax among affordable rows, family-index order. All-tie → empty."""
+    np = _numpy()
+    if np is not None and hasattr(vals, "shape"):
+        n_aff = int(mask.sum())
+        if n_aff <= 0:
+            return set()
+        best = vals[mask].max()
+        idx = np.flatnonzero(mask & (vals == best))
+        if n_aff > 1 and idx.size == n_aff:
+            return set()
+        return {int(i) for i in idx}
+    n_aff = sum(1 for x in mask if x)
+    best = None
+    wins: list[int] = []
+    for i, flag in enumerate(mask):
+        if not flag:
+            continue
+        v = vals[i]
+        if best is None or v > best:
+            best = v
+            wins = [i]
+        elif v == best:
+            wins.append(i)
+    if best is None:
+        return set()
+    if n_aff > 1 and len(wins) == n_aff:
+        return set()
+    return set(wins)
+
+
+def _first_dominator_map(
+    costs: list[int],
+    vecs: list[tuple[int, ...]],
+    need: list[int],
+) -> dict[int, tuple[str, int]]:
+    """First `_dominates` witness in `by_cost` order. Exact reason and index."""
+    found: dict[int, tuple[str, int]] = {}
+    if not need:
+        return found
+    n_family = len(costs)
+    by_cost = sorted(range(n_family), key=lambda j: costs[j])
+    live = _live_dims(vecs)
+    slim = [tuple(v[d] for d in live) for v in vecs] if live else [() for _ in vecs]
+    try:
+        import numpy as np
+    except ImportError:
+        np = None
+    if np is not None and slim and slim[0]:
+        order = np.fromiter(by_cost, dtype=np.intp, count=n_family)
+        arranged = [slim[j] for j in by_cost]
+        V = np.array(arranged)
+        C = np.array([costs[j] for j in by_cost])
+        groups: dict[int, list[int]] = defaultdict(list)
+        for i in need:
+            groups[costs[i]].append(i)
+        batch = 16
+        for ci, qs in groups.items():
+            end = int(np.searchsorted(C, ci, side="right"))
+            if end <= 0:
+                continue
+            pref_v = V[:end]
+            pref_c = C[:end]
+            pref_j = order[:end]
+            cheaper_row = pref_c < ci
+            qn = len(qs)
+            for start in range(0, qn, batch):
+                chunk = qs[start : start + batch]
+                Q = np.array([slim[i] for i in chunk])
+                ge = pref_v[:, None, :] >= Q[None, :, :]
+                all_ge = ge.all(axis=2)
+                any_gt = (pref_v[:, None, :] > Q[None, :, :]).any(axis=2)
+                mask = all_ge & (any_gt | cheaper_row[:, None])
+                for qi, i in enumerate(chunk):
+                    col = mask[:, qi]
+                    self_at = np.flatnonzero(pref_j == i)
+                    if self_at.size:
+                        col = col.copy()
+                        col[self_at] = False
+                    hits = np.flatnonzero(col)
+                    if not hits.size:
+                        continue
+                    row = int(hits[0])
+                    reason = "vector" if bool(any_gt[row, qi]) else "cheaper"
+                    found[i] = (reason, int(pref_j[row]))
+        return found
+    for i in need:
+        ci = costs[i]
+        vi = slim[i]
+        for j in by_cost:
+            if costs[j] > ci:
+                break
+            if j == i:
+                continue
+            got = _dominates(costs[j], slim[j], ci, vi)
+            if got:
+                found[i] = (got, j)
+                break
+    return found
 
 
 def _eff_vector(dids: list[str], mode: str, spotlight: str, lo: int, mid: int, hi: int) -> dict[str, int]:
@@ -577,7 +861,9 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
         _CACHE[digest] = empty
         return empty
 
+    _phase("builds enumerate")
     family = _enumerate_family(data, generated)
+    _phase(f"builds family {len(family)}")
     dids = sorted(data["districts"]["districts"])
     scenarios = _scenario_grid(data, dids)
     # One production line: T3 baseline is a single Workshop. slots_start is occupancy, not GDP.
@@ -591,12 +877,187 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
         "fragments_season",
     )
 
-    scores: list[dict] = []
-    for bld in family:
-        per = []
-        for sc in scenarios:
-            per.append(
-                _score_build(
+    # Stream scores into argmax. Storing family × scenario dicts is hundreds of
+    # millions of allocations and is what made publication hang for hours.
+    scores = [{"build": bld} for bld in family]
+    n_sc = len(scenarios)
+    season_days = data["balance"]["params"]["season_city_days"]["v"]
+    gdps = [_gdp_of(sc, bal, tm, n_prod, season_days) for sc in scenarios]
+    exit_bps = bal.get("bank_exit_return_bps") or BPS
+    proxy = bool((data.get("progression") or {}).get("fragments_season_proxy"))
+    eff_maps: dict[tuple[str, str], dict[str, int]] = {}
+    for sc in scenarios:
+        eff_maps.setdefault((sc["eff_mode"], sc["spot"]), sc["eff"])
+    preps = [
+        _prep_build(data, generated, dids, bld, n_cities, eff_maps) for bld in family
+    ]
+    _phase(f"builds preps {len(preps)}")
+    prod_keys: list[tuple] = []
+    prod_index: list[int] = []
+    prod_seen: dict[tuple, int] = {}
+    for si, sc in enumerate(scenarios):
+        key = (gdps[si], sc["energy"], sc["slots"], sc["eff_mode"], sc["spot"])
+        idx = prod_seen.get(key)
+        if idx is None:
+            idx = len(prod_keys)
+            prod_seen[key] = idx
+            prod_keys.append(key)
+        prod_index.append(idx)
+    n_prod_keys = len(prod_keys)
+    produced: list[list[int]] = []
+    for prep in preps:
+        out_m = prep["out_m"]
+        pop_m = prep["pop_m"]
+        idle_m = prep["idle_m"]
+        thrift = prep["thrift"]
+        eff_m = prep["eff_m"]
+        energy_def = prep["energy_def"]
+        compute_def = prep["compute_def"]
+        slot_free = prep["slot_free"]
+        slot_cap = prep["slot_cap"]
+        row = [0] * n_prod_keys
+        for ki, (gdp, energy, slots, emode, spot) in enumerate(prod_keys):
+            if energy == "deficit":
+                energy_prod = energy_def
+                compute_prod = compute_def
+            else:
+                energy_prod = BPS
+                compute_prod = BPS
+            slot_m = slot_free if slots == "free" else slot_cap
+            p = gdp
+            p = p * out_m // BPS
+            p = p * pop_m // BPS
+            p = p * idle_m // BPS
+            p = p * energy_prod // BPS
+            p = p * compute_prod // BPS
+            p = p * slot_m // BPS
+            p = p * eff_m[(emode, spot)] // BPS
+            if energy == "deficit" and emode == "spot":
+                bonus = thrift.get(spot) or 0
+                if bonus:
+                    p = p * (BPS + bonus) // BPS
+            row[ki] = p
+        produced.append(row)
+    _phase(f"builds produced {len(produced)}")
+    costs_only = [prep["cost"] for prep in preps]
+    share_of = [prep["share"] for prep in preps]
+    total_of = [prep["total"] for prep in preps]
+    offline_of = [prep["offline"] for prep in preps]
+    if not proxy:
+        for prep in preps:
+            all_mags = [mag for _did, mag in prep["paper"]]
+            prep["stack_all"] = (
+                _stack(data, "fragment_rate_bps", all_mags, BPS) if all_mags else BPS
+            )
+            by_did: dict[str, list[int]] = {}
+            for did, mag in prep["paper"]:
+                by_did.setdefault(did, []).append(mag)
+            prep["stack_spot"] = {
+                did: _stack(data, "fragment_rate_bps", mags, BPS) for did, mags in by_did.items()
+            }
+    frag_keys: list[tuple] = []
+    frag_index: list[int] = []
+    frag_seen: dict[tuple, int] = {}
+    for si, sc in enumerate(scenarios):
+        key = (gdps[si], sc["eff_mode"], sc["spot"])
+        idx = frag_seen.get(key)
+        if idx is None:
+            idx = len(frag_keys)
+            frag_seen[key] = idx
+            frag_keys.append(key)
+        frag_index.append(idx)
+    n_frag_keys = len(frag_keys)
+    fragments: list[list[int]] = []
+    for prep in preps:
+        row = [0] * n_frag_keys
+        paper = prep["paper"]
+        for fi, (gdp, emode, spot) in enumerate(frag_keys):
+            if proxy:
+                cur = 0
+                for did, mag in paper:
+                    if emode == "spot" and did != spot:
+                        continue
+                    if emode == "spot":
+                        cur += mag
+                    else:
+                        cur += mag * eff_maps[(emode, spot)][did] // BPS
+                row[fi] = cur
+            elif emode == "spot":
+                stack = prep["stack_spot"].get(spot) or BPS
+                row[fi] = gdp * stack // BPS if stack > BPS else 0
+            else:
+                stack = prep["stack_all"]
+                row[fi] = gdp * stack // BPS if stack > BPS else 0
+        fragments.append(row)
+    _phase(f"builds fragments {len(fragments)}")
+    np = _numpy()
+    n_family_sc = len(preps)
+    wide = np.int64 if np is not None else None
+    if np is not None and n_family_sc and wide is not None:
+        cost_a = np.array(costs_only, dtype=wide)
+        off_a = np.array(offline_of, dtype=wide)
+        share_a = np.array(share_of, dtype=wide)
+        total_a = np.array(total_of, dtype=wide)
+        prod_a = np.array(produced, dtype=wide)
+        frag_a = np.array(fragments, dtype=wide)
+        if (
+            int(cost_a[0]) != costs_only[0]
+            or int(prod_a[0, 0]) != produced[0][0]
+            or int(frag_a[0, 0]) != fragments[0][0]
+        ):
+            raise RuntimeError("int64 score table overflow")
+        zero = 0
+    else:
+        cost_a = off_a = share_a = total_a = prod_a = frag_a = None
+        zero = 0
+    argmax: list[dict[str, set[int]]] = [{g: set() for g in goals} for _ in range(n_sc)]
+    for si, sc in enumerate(scenarios):
+        gdp = gdps[si]
+        budget = deposit_net + gdp
+        ki = prod_index[si]
+        fi = frag_index[si]
+        if np is not None and cost_a is not None:
+            mask = cost_a <= budget
+            cap = prod_a[:, ki] - cost_a
+            if sc["bank"] == "open":
+                cash = np.where(cap > zero, cap, zero)
+                tot = total_a
+                safe = np.where(tot, tot, 1)
+                withdraw = np.where(tot, cash * exit_bps // BPS * share_a // safe, zero)
+            else:
+                withdraw = np.zeros(n_family_sc, dtype=wide)
+            argmax[si][goals[0]] = _winners_from_values(cap, mask)
+            argmax[si][goals[1]] = _winners_from_values(withdraw, mask)
+            argmax[si][goals[2]] = _winners_from_values(off_a, mask)
+            argmax[si][goals[3]] = _winners_from_values(frag_a[:, fi], mask)
+            continue
+        mask_l = [c <= budget for c in costs_only]
+        cap_l = [produced[bi][ki] - costs_only[bi] for bi in range(n_family_sc)]
+        if sc["bank"] == "open":
+            wd_l = []
+            for bi, cap_n in enumerate(cap_l):
+                cash = cap_n if cap_n > 0 else 0
+                total = total_of[bi]
+                wd_l.append(cash * exit_bps // BPS * share_of[bi] // total if total else 0)
+        else:
+            wd_l = [0] * n_family_sc
+        frag_l = [fragments[bi][fi] for bi in range(n_family_sc)]
+        argmax[si][goals[0]] = _winners_from_values(cap_l, mask_l)
+        argmax[si][goals[1]] = _winners_from_values(wd_l, mask_l)
+        argmax[si][goals[2]] = _winners_from_values(offline_of, mask_l)
+        argmax[si][goals[3]] = _winners_from_values(frag_l, mask_l)
+
+    if family and scenarios:
+        probe_bi = [0]
+        if len(family) > 1:
+            probe_bi.append(len(family) - 1)
+        probe_si = [0]
+        if n_sc > 1:
+            probe_si.append(n_sc - 1)
+        for bi in probe_bi:
+            bld = family[bi]
+            for si in probe_si:
+                ref = _score_build(
                     data,
                     generated,
                     bal,
@@ -605,40 +1066,26 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
                     bld["tiers"],
                     bld["acc"],
                     bld["cost"],
-                    sc,
+                    scenarios[si],
                     n_prod,
                     n_cities,
                     deposit_net,
                     bld["taken"],
                 )
-            )
-        scores.append({"build": bld, "per": per})
+                got = _goals_of(
+                    data, preps[bi], scenarios[si], gdps[si], deposit_net, exit_bps, proxy
+                )
+                ref_t = (
+                    ref["capital_season_net"],
+                    ref["withdraw_season"],
+                    ref["offline_tolerance"],
+                    ref["fragments_season"],
+                    ref["affordable"],
+                )
+                if ref_t != got:
+                    raise RuntimeError(f"score parity bi={bi} si={si}: ref {ref_t} got {got}")
 
-    # affordable filter per scenario (budget depends on uptime via gdp, stored per score)
-    n_sc = len(scenarios)
-    argmax: list[dict[str, set[int]]] = [{g: set() for g in goals} for _ in range(n_sc)]
-    for si in range(n_sc):
-        affordable_idx = [bi for bi, row in enumerate(scores) if row["per"][si]["affordable"]]
-        n_aff = len(affordable_idx)
-        for g in goals:
-            best = None
-            winners: list[int] = []
-            for bi in affordable_idx:
-                val = scores[bi]["per"][si][g]
-                if best is None or val > best:
-                    best = val
-                    winners = [bi]
-                elif val == best:
-                    winners.append(bi)
-            # A pair where every affordable build ties justifies nobody: otherwise
-            # offline_tolerance (same 12h on all v1 builds) would mark every node live.
-            if best is None:
-                argmax[si][g] = set()
-            elif n_aff > 1 and len(winners) == n_aff:
-                argmax[si][g] = set()
-            else:
-                argmax[si][g] = set(winners)
-
+    _phase("builds argmax done")
     justified: set[int] = set()
     for si in range(n_sc):
         for g in goals:
@@ -646,9 +1093,14 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
 
     dominating = []
     nonempty_pairs = [(si, g) for si in range(n_sc) for g in goals if argmax[si][g]]
-    for bi in range(len(scores)):
-        if nonempty_pairs and all(bi in argmax[si][g] for si, g in nonempty_pairs):
-            dominating.append(bi)
+    if nonempty_pairs:
+        si0, g0 = nonempty_pairs[0]
+        cand = set(argmax[si0][g0])
+        for si, g in nonempty_pairs[1:]:
+            cand &= argmax[si][g]
+            if not cand:
+                break
+        dominating = [bi for bi in range(len(scores)) if bi in cand]
 
     all_nodes = set(generated["progression_nodes"])
     just_nodes: list[frozenset[str]] = []
@@ -664,13 +1116,17 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
         mandatory = sorted(inter)
 
     node_best: dict[str, list[str]] = {nid: [] for nid in all_nodes}
+    node_best_seen: dict[str, set[str]] = {nid: set() for nid in all_nodes}
     for si, sc in enumerate(scenarios):
         for g in goals:
             label = f"{sc['uptime']}/{sc['energy']}/{sc['horizon']}/{sc['slots']}/{sc['bank']}/{sc['eff_mode']}:{sc['spot']}:{g}"
             for bi in argmax[si][g]:
                 for nid in scores[bi]["build"]["taken"]:
-                    if nid in node_best and label not in node_best[nid]:
-                        node_best[nid].append(label)
+                    seen = node_best_seen.get(nid)
+                    if seen is None or label in seen:
+                        continue
+                    seen.add(label)
+                    node_best[nid].append(label)
 
     # depth/breadth flip on slots
     flips = 0
@@ -713,10 +1169,38 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
         bits.append("m=" + ",".join(bld["merges"]))
         return " ".join(bits)
 
+    _phase("builds vectors")
     vecs = [_favor_vec(data, row["build"]["acc"]) for row in scores]
     costs = [row["build"]["cost"] for row in scores]
     n_family = len(scores)
-    by_cost = sorted(range(n_family), key=lambda j: costs[j])
+    need = [i for i in range(n_family) if i not in justified]
+    _phase(f"builds dominance {len(need)}")
+    first_dom = _first_dominator_map(costs, vecs, need)
+    _phase(f"builds dominance done {len(first_dom)}")
+    if need:
+        probe = [need[0], need[-1]] if len(need) > 1 else [need[0]]
+        by_cost_chk = sorted(range(n_family), key=lambda j: costs[j])
+        for i in probe:
+            ci = costs[i]
+            vi = vecs[i]
+            expect = None
+            wit_j = None
+            for j in by_cost_chk:
+                if costs[j] > ci:
+                    break
+                if j == i:
+                    continue
+                got = _dominates(costs[j], vecs[j], ci, vi)
+                if got:
+                    expect = got
+                    wit_j = j
+                    break
+            got_opt = first_dom.get(i)
+            if expect is None:
+                if got_opt is not None:
+                    raise RuntimeError(f"dominator parity extra at {i}")
+            elif got_opt != (expect, wit_j):
+                raise RuntimeError(f"dominator parity {i}: ref {(expect, wit_j)} got {got_opt}")
     groups: dict[tuple, list[int]] = {}
     for i, row in enumerate(scores):
         key = (row["build"]["tiers"], row["build"]["merges"])
@@ -743,16 +1227,9 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
         vi = vecs[i]
         reason = None
         wit = None
-        for j in by_cost:
-            if costs[j] > ci:
-                break
-            if j == i:
-                continue
-            got = _dominates(costs[j], vecs[j], ci, vi)
-            if got:
-                reason = got
-                wit = j
-                break
+        hit = first_dom.get(i)
+        if hit:
+            reason, wit = hit
         if reason is None:
             peers = groups[(scores[i]["build"]["tiers"], scores[i]["build"]["merges"])]
             for p in peers:
@@ -877,7 +1354,7 @@ def analyse(data: dict, pack: dict | None = None) -> dict:
         "merge_cost": generated["merge_cost"],
         "merge_active_cap": generated["merge_active_cap"],
         "v1_merge_active_cap": generated["v1_merge_active_cap"],
-        "affordable_eval": sum(1 for row in scores if any(cell["affordable"] for cell in row["per"])),
+        "affordable_eval": sum(1 for prep in preps if gdps and prep["cost"] <= deposit_net + max(gdps)),
         "hash": digest,
         "gate_fp": gate_fingerprint(data),
     }

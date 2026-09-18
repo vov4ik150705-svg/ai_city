@@ -38,7 +38,7 @@
 
 ## llm_refuse
 
-Признак: провайдер отказал, подставлен шаблон. Код `COMPANION_LLM_TEMPLATE`. Экономика не замечает. Решает ops.
+Признак: провайдер отказал, подставлен шаблон. Код `SERVICE_DEGRADED`. Экономика не замечает. Решает ops.
 
 ## uncovered_claim
 
@@ -46,5 +46,5 @@
 
 ## signer_compromise
 
-Признак: ключ `voucher_signer` не вызывает доверия. Код `SERVICE_DEGRADED`. Страж ставит паузу. `refundPlayer` только в пределах `backingOf`. Ничего сверх (`R-M-17`). Решает guardian.
+Признак: ключ `voucher_signer` не вызывает доверия. Код `SERVICE_DEGRADED`. Паузы в контракте нет. `refundPlayer` только в пределах доступного backing (за вычетом reservation ваучеров). Ничего сверх (`R-M-17`). Решает signer; страж крутит `refundRoot` / ротацию.
 

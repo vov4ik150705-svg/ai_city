@@ -1,0 +1,1016 @@
+CORPORATOR DOCUMENTATION — STRUCTURE AND WRITING BRIEF
+
+PROJECT GOAL
+
+Create the English-language documentation for Corporator, a browser-based 3D city-management game.
+
+The documentation should feel like a useful game guide written by someone who understands the game. It needs enough personality to be enjoyable, enough detail to help players make decisions, and enough technical precision to explain how funds, contracts, and verification actually work.
+
+Do not turn it into a marketing pitch, a corporate whitepaper, or a repository audit.
+
+This document defines the structure and editorial approach. It is not the finished set of player-facing articles.
+
+Website layout and visual design are outside the scope of this stage.
+
+
+1. WHAT THE DOCUMENTATION SHOULD DO
+
+Help readers answer three sets of questions:
+
+UNDERSTAND THE GAME
+What do I control?
+What do I actually do?
+What makes one decision better than another?
+
+LEARN TO RUN A CITY
+How do buildings, workers, resources, and schedules fit together?
+Why is something idle?
+What should I develop next?
+
+UNDERSTAND THE ECONOMY
+Where does Capital come from?
+Who pays for work?
+Where are my tokens held?
+What can I verify?
+What can prevent a withdrawal?
+
+The main reading path should move from the city to its workforce, development, economy, and underlying protocol.
+
+Readers who want to inspect risks or contracts first must be able to do so directly.
+
+
+2. CORE FACTS TO PRESERVE
+
+Corporator is about operating an existing city, not building a procedural map from scratch.
+
+The physical island is authored and shared. Each account has its own city economy. A shared map does not mean shared control of workers, buildings, or balances.
+
+Players activate and operate building functions at authored locations. The current grid-based build command is an implementation mismatch, not a second intended placement system.
+
+$CORP is an external token.
+
+Capital is an internal accounting unit backed by $CORP in the Vault. It is not an ERC-20 and is not the same as a wallet’s $CORP balance.
+
+Payroll is finite. A valid production request does not guarantee a full payout.
+
+Backing in $CORP does not guarantee a stable dollar value, immediate liquidity, or profit.
+
+Stock Tokens are external assets used for industry access. Their exact legal and economic rights come from the external asset, not from Corporator.
+
+Using company names and tickers does not establish an official partnership.
+
+Agents are deterministic workers. An LLM does not calculate their economic output.
+
+There are five current worker roles:
+Engineer, Logistician, Trader, Scientist, and Manager.
+
+Operator is not a sixth role in the current content.
+
+There are six industries:
+Compute / NVDA
+Energy / TSLA
+Logistics / AMZN
+Consumer / AAPL
+Automation / MSFT
+Finance / COIN
+
+Energy and Compute are consumable resources. Logistics is not a third inventory resource.
+
+There are 18 building types:
+six base buildings, six industry buildings, and six synergy buildings.
+
+A city day lasts 25 real hours and contains 24 economic ticks.
+One tick lasts 62 minutes and 30 seconds in real time.
+
+The base offline cap is 12 city hours. Authored Automation progression can extend it to 18 city hours.
+
+
+Bank operates from 08:00 to 20:00 in personal city time and is closed on city Sunday.
+
+The full intended player loop is not yet implemented end to end.
+
+Do not treat a content entry, formula, screen, button, contract primitive, or mock result as proof of a working player-facing feature.
+
+
+3. DOCUMENTATION NAVIGATION
+
+GETTING STARTED
+  Welcome to Corporator
+  How the Game Works
+  Your First Session
+  What’s Available Now
+
+RUNNING YOUR CITY
+  The Island and Its Buildings
+  City Time
+  Production and Resources
+  City Metrics
+  While You’re Away
+
+YOUR WORKFORCE
+  Understanding Agents
+  Roles and Assignments
+  Tasks and Traits
+  Levels and Capacity
+
+BUILDINGS AND INDUSTRIES
+  Building Directory
+    Base Infrastructure
+    Industry Buildings
+    Synergy Buildings
+  The Six Industries
+    Compute · NVDA
+    Energy · TSLA
+    Logistics · AMZN
+    Consumer · AAPL
+    Automation · MSFT
+    Finance · COIN
+  Staking and Industry Access
+  Markets and Efficiency
+
+PROGRESSION
+  City Level
+  Industry Trees
+  Research
+  Industry Merges
+
+THE ECONOMY
+  Economy Overview
+  $CORP and Capital
+  The Vault and Backing
+  Payroll: How Shifts Get Paid
+  Spending, Fees, and Reserves
+  The Bank: Withdrawing Capital
+  The Exchange: Buying Stock Tokens
+  Risks and Limitations
+
+SEASONS AND REWARDS
+  Seasons and Influence
+  Fragments
+  Prize Pools and Claims
+
+PROTOCOL AND SECURITY
+  What Runs Where
+  Smart Contracts
+  Market Data and External Services
+  Verifying Game Calculations
+  Permissions and Emergency Controls
+  Network and Contract Addresses
+
+REFERENCE
+  Why Your City Isn’t Working
+  Frequently Asked Questions
+  Glossary
+  Tables and Formulas
+  Versions and Changes
+
+This is the full destination, not a requirement to publish dozens of empty pages.
+
+Combine short, closely related topics until each one has enough useful material to stand on its own. Use shared templates for building and industry entries.
+
+
+4. GETTING STARTED
+
+WELCOME TO CORPORATOR
+
+Start with the central idea:
+
+The city is already built. Your job is to make it work.
+
+Introduce the browser game, the authored island, and the player’s role as its operator.
+
+Describe the decisions players make:
+activating functions, hiring workers, assigning tasks, supplying resources, opening industries, and choosing what to improve.
+
+Make the difference between the shared physical map and personal economic state easy to understand.
+
+Do not begin with contract architecture or the Vault formula.
+
+Introduce financial limits briefly and plainly. This is an economic game, not a promise of guaranteed returns.
+
+
+HOW THE GAME WORKS
+
+Walk through the main loop:
+
+Obtain Capital
+→ activate a function
+→ assign a worker where required
+→ meet the working conditions
+→ complete a shift
+→ receive the applicable payout
+→ choose the next investment.
+
+Explain what the player decides at each step.
+
+Distinguish production from payment early. A valid request can still be trimmed by Payroll.
+
+Include reinvestment, industry access, and Bank withdrawal as parts of the broader loop without suggesting that all of them work in the current build.
+
+
+YOUR FIRST SESSION
+
+Separate demo entry from wallet-connected entry.
+
+Explain:
+- What a login signature is for.
+- How signing in differs from approving a transaction.
+- Why demo and wallet-backed progress cannot cross.
+- What the current version actually allows a new player to do.
+
+Do not publish a deposit walkthrough before the application supports deposits.
+
+
+WHAT’S AVAILABLE NOW
+
+Provide a short, factual status page with three categories:
+- Available.
+- Partially implemented.
+- In development.
+
+This is not an internal bug tracker.
+
+It must still distinguish a working player feature from a local contract test, a generated rule, or a placeholder screen.
+
+Date status claims and identify the build or rules version they describe.
+
+
+5. RUNNING YOUR CITY
+
+THE ISLAND AND ITS BUILDINGS
+
+Describe the city as existing infrastructure with functions the player can activate and operate.
+
+Clarify:
+- The island is authored, not generated from a wallet.
+- City economies are personal.
+- Physical buildings and active economic functions are different things.
+- An inactive building can remain visible on the island.
+
+Mention the legacy grid implementation only in a status note. Do not teach it as an intended alternative.
+
+
+CITY TIME
+
+Cover:
+- 25 real hours per city day.
+- 24 ticks per city day.
+- 62 minutes and 30 seconds per tick.
+- The personal city calendar.
+- Building schedules.
+- Bank and Exchange hours.
+- City Sunday versus external market weekends.
+
+Give practical examples of what these rules mean.
+
+A player should leave knowing why a building is closed, not just how to convert time units.
+
+
+PRODUCTION AND RESOURCES
+
+Answer the question:
+What has to be true for work to happen?
+
+Follow the chain:
+function → assignment → task → schedule → resources → result → payment.
+
+Explain Energy and Compute separately.
+
+Describe Logistics as idle reduction, not warehouse stock.
+
+Separate:
+- Direct Capital-producing functions.
+- Resource-producing functions.
+- Support and service functions.
+
+Explain why a support building can be valuable without directly producing Capital.
+
+
+CITY METRICS
+
+For each metric, state:
+- What it measures.
+- How it is derived.
+- Whether it directly changes production.
+- What a player can learn from it.
+
+Preserve these distinctions:
+- GDP is not net profit.
+- Productivity is a measurement, not a second output bonus.
+- Happiness does not currently apply an active output penalty.
+- Stability measures valid working ticks under the applicable rules.
+- Influence is a seasonal score, not spendable currency.
+
+Do not imply that the current interface already receives every metric.
+
+
+WHILE YOU’RE AWAY
+
+Explain:
+- The base offline window.
+- The role of building schedules during eligible offline time.
+- Automation’s authored offline-cap progression.
+- What happens after the cap is reached.
+
+Separate intended catch-up behavior from the incomplete server integration.
+
+
+6. YOUR WORKFORCE
+
+UNDERSTANDING AGENTS
+
+Introduce the worker model:
+
+Role + level + traits + assignment + task.
+
+The player makes management decisions. Workers execute the assigned work under deterministic rules.
+
+Do not imply that agents independently spend funds, govern the city, or use an LLM to determine payouts.
+
+
+ROLES AND ASSIGNMENTS
+
+Engineer:
+Production and energy infrastructure.
+
+Logistician:
+Logistics and idle reduction.
+
+Trader:
+Finance, exchange, and retail functions.
+
+Scientist:
+Research and computing infrastructure.
+
+Manager:
+Administration and city focus.
+
+Explain home, neighboring, permitted foreign, and incompatible assignments.
+
+Use actual building examples from the content.
+
+Do not add Operator without a new, explicit content decision.
+
+
+TASKS AND TRAITS
+
+Present choices as trade-offs, not a list of free bonuses.
+
+Examples:
+- Overclock increases output and Energy cost.
+- Stockpile offers stronger idle reduction with an output penalty.
+- Frugal reduces resource costs at the expense of some output.
+- Specialist performs better at home and worse away.
+
+Put exact values beside the explanation when useful.
+
+A modifier percentage is not a promise of the same percentage increase in payouts or profit.
+
+
+LEVELS AND CAPACITY
+
+Explain worker development, available slots, city-level limits, and the infrastructure that affects them.
+
+Do not invent firing rules, worker markets, or agent NFT ownership.
+
+
+7. BUILDINGS AND INDUSTRIES
+
+BUILDING DIRECTORY
+
+Organize the 18 building types into three groups:
+
+Base infrastructure:
+City Hall
+Workshop
+Agent Hub
+Power Node
+Bank
+Exchange
+
+Industry buildings:
+AI Research Center
+Energy Plant
+Logistics Hub
+Flagship Store
+Cloud Campus
+Finance Tower
+
+Synergy buildings:
+Robotics Lab
+Drone Depot
+Data Center
+Fleet Yard
+Retail Complex
+Clearing House
+
+Use this template for each building:
+
+1. What it does.
+2. What unlocks it.
+3. Who can work there.
+4. What it consumes and provides.
+5. When it operates.
+6. What upgrades change.
+7. Why it might be idle.
+8. Useful dependencies and combinations.
+9. Current implementation status.
+
+Do not infer missing resource inputs from a building’s name or fictional purpose.
+
+Do not imply that all 18 content types are already mapped and working in the live 3D scene.
+
+
+THE SIX INDUSTRIES
+
+Give each industry its own entry.
+
+Compute / NVDA:
+Computing, research, and related infrastructure.
+
+Energy / TSLA:
+Energy supply and support for expanding production.
+
+Logistics / AMZN:
+Reducing logistics-related idle time.
+
+Consumer / AAPL:
+Population-linked retail activity.
+
+Automation / MSFT:
+Agent capacity and offline capabilities.
+
+Finance / COIN:
+Banking capabilities and financial modifiers.
+
+Focus on mechanical identity, dependencies, and synergies.
+
+Do not invent corporate histories, factions, or official partnerships.
+
+
+STAKING AND INDUSTRY ACCESS
+
+Explain:
+- External Stock Tokens are used.
+- Access thresholds are measured in token quantity.
+- The authored minimum thresholds are frozen rather than repriced in dollars every day.
+- Initial access, extra stake bonuses, and progression requirements are separate concepts.
+- Unstake has intended grace-period and freeze rules.
+- Those rules are not yet fully enforced in the gameplay implementation.
+
+Do not describe staking as guaranteed yield or imply that the game mints its own NVDA.
+
+
+MARKETS AND EFFICIENCY
+
+Begin with:
+
+Markets change the conditions an industry works under. They do not credit stock-price gains to your city balance.
+
+Then explain:
+- The efficiency range.
+- The moving-average comparison.
+- Recorded external inputs.
+- Stale-data handling.
+- Which modifiers must be applied in the actual simulation.
+
+Keep stock performance, district efficiency, city payouts, and player profit distinct.
+
+
+8. PROGRESSION
+
+CITY LEVEL
+
+Explain which capabilities and limits change as the city develops.
+
+Use confirmed rules. Do not invent an XP model where the source material does not establish one.
+
+
+INDUSTRY TREES
+
+Cover:
+- Three tiers.
+- City-level requirements.
+- Stake multiples.
+- Mutually exclusive choices.
+- Practical consequences of specialization.
+
+Make irreversible or exclusive choices visible before discussing their benefits.
+
+
+RESEARCH
+
+Introduce:
+Grid
+Tools
+Handbook
+Circuits
+Lathe
+
+For each:
+- Effect.
+- Cost.
+- Duration.
+- Requirements.
+- Implementation status.
+
+Keep generated values tied to a rules version.
+
+
+INDUSTRY MERGES
+
+Explain the difference between a merge and a synergy building.
+
+Cover matching restrictions, the maximum number of active merges, and the current no-respec rule.
+
+Do not use “merge” and “synergy” interchangeably.
+
+
+9. THE ECONOMY
+
+ECONOMY OVERVIEW
+
+Explain the main paths:
+- $CORP enters the Vault.
+- Backing supports Capital creation.
+- Capital is used for city actions.
+- Payroll pays eligible requests from a finite fund.
+- Bank provides the intended route back to $CORP.
+
+Describe external funding, reserves, and prize assets as separate flows.
+
+Do not draw or describe a perpetual loop where reinvesting necessarily creates more value.
+
+
+$CORP AND CAPITAL
+
+Explain what each is, where it is held or recorded, and what it is used for.
+
+Describe the 2000 capital anchor as a ceiling within the backing rules.
+
+Do not present it as a fixed exchange rate, redemption promise, or return.
+
+
+THE VAULT AND BACKING
+
+Cover:
+- Deposits.
+- Capital creation.
+- Floating mint rate.
+- Entry fees.
+- The backing invariant.
+- Reserve accounting.
+- The limits of backing.
+
+State plainly:
+
+Backing in $CORP does not guarantee a stable dollar value.
+
+
+PAYROLL: HOW SHIFTS GET PAID
+
+Explain:
+- Fund sources.
+- Daily and tick budgets.
+- Production requests versus payouts.
+- Proportional trimming.
+- Empty-fund behavior.
+- Relevant reserve mechanisms.
+
+This is a gameplay page as well as an economic page.
+
+A player should understand why a correctly configured city can still receive a reduced payout.
+
+
+SPENDING, FEES, AND RESERVES
+
+Keep these mechanisms separate:
+- Vault fees.
+- Trading fees.
+- Bank markup.
+- Internal spending distribution.
+- Capital burning.
+- External buybacks.
+- Reserve movements.
+
+Capital burning is not an on-chain $CORP burn.
+
+Do not publish conflicting historical funding splits as if they were one settled policy.
+
+Confirm the current owner of each flow before writing final numerical claims.
+
+
+THE BANK: WITHDRAWING CAPITAL
+
+Explain:
+- Personal city-time hours.
+- Sunday closure.
+- Personal limits.
+- Global liquidity limits.
+- Conversion arithmetic.
+- Voucher handling.
+- Refusal reasons.
+
+Distinguish the authored Bank-level ladder from the engine’s current limited treatment of higher levels.
+
+Make it clear that a Capital balance does not guarantee immediate withdrawal of the entire amount.
+
+
+THE EXCHANGE: BUYING STOCK TOKENS
+
+Explain the intended external route:
+
+$CORP → ETH → USDG → Stock Token
+
+Cover fees, slippage, quote assumptions, and infrastructure dependencies.
+
+A displayed estimate is not proof that an executable swap route is live.
+
+
+RISKS AND LIMITATIONS
+
+Cover:
+- $CORP price risk.
+- Stock Token price and asset-specific risks.
+- Finite Payroll.
+- Withdrawal limits and liquidity.
+- Contract and server dependencies.
+- Administrative permissions.
+- Stale external data.
+- Incomplete features.
+
+Use direct language.
+
+Do not hide important limits in a general disclaimer or soften financial warnings with humor.
+
+
+10. SEASONS AND REWARDS
+
+SEASONS AND INFLUENCE
+
+Explain:
+- 90-city-day seasons.
+- Three 30-day periods.
+- Qualification.
+- Daily contributions to Influence.
+- Ranking and settlement.
+
+Show why sustained city performance matters.
+
+Influence is not spendable Capital.
+
+
+FRAGMENTS
+
+Explain:
+- Internal accrual.
+- Applicable windows.
+- Settlement.
+- Claim conditions.
+- Pool coverage.
+
+Do not describe fragments as freely tradable tokens unless such a mechanic is explicitly established.
+
+
+PRIZE POOLS AND CLAIMS
+
+Cover:
+- The six Stock Tokens in the prize basket.
+- Allocation rules.
+- Coverage requirements.
+- Claim conditions.
+- The difference between a calculated reward and an actual asset transfer.
+
+Keep seasonal prizes and fragment claims distinct.
+
+Do not describe local claim arithmetic as completed external custody settlement.
+
+
+11. PROTOCOL AND SECURITY
+
+WHAT RUNS WHERE
+
+Explain the boundaries between:
+
+Browser
+API
+Deterministic engine
+Storage
+External services
+Smart contracts
+
+State clearly:
+
+A deterministic simulation is not the same as a fully on-chain game.
+
+
+SMART CONTRACTS
+
+Document:
+
+Vault:
+Backing custody, mint accounting, and withdrawals.
+
+StakeRegistry:
+Stock Token staking records.
+
+PrizeTreasury:
+Prize custody, allocation, and claims.
+
+MerkleRoots:
+Publication of roots used to verify records.
+
+$CORP:
+Production token infrastructure, separately from the local CorpToken test double.
+
+For each contract or asset, include:
+- Purpose.
+- Assets held or recorded.
+- Main operations.
+- Privileged roles.
+- Limitations.
+- Deployment status.
+
+Do not imply that local test contracts prove a production deployment or completed audit.
+
+
+MARKET DATA AND EXTERNAL SERVICES
+
+Explain the sampler, buyback service, attestor, and external LLM boundary.
+
+For each:
+- What does it provide?
+- What depends on it?
+- What happens when it fails?
+- Is the production integration actually running?
+
+Distinguish designed fallback behavior from verified production behavior.
+
+
+VERIFYING GAME CALCULATIONS
+
+Cover:
+- Integer arithmetic.
+- Recorded inputs.
+- DecisionRecords.
+- Content-pack versions and hashes.
+- Merkle proofs.
+- Reproducing calculations.
+
+Explain proof boundaries:
+
+A Merkle proof shows that a record belongs to a committed set. It does not, by itself, establish the correctness of every game rule or the security of the whole system.
+
+A successful mock attestation is not evidence of an on-chain root submission.
+
+
+PERMISSIONS AND EMERGENCY CONTROLS
+
+Identify who can:
+- Mint Capital through contract primitives.
+- Authorize vouchers.
+- Publish roots.
+- Pause relevant operations.
+- Rotate privileged roles.
+- Perform recovery actions.
+
+Describe the actual voucher mechanism:
+authorized fields are pre-registered and checked when presented.
+
+Do not claim that the current Vault verifies ECDSA signature bytes on-chain.
+
+
+NETWORK AND CONTRACT ADDRESSES
+
+Publish verified deployment information with explorer links and status.
+
+Distinguish known external infrastructure from Corporator’s own deployment.
+
+If production addresses are unconfirmed, say so.
+
+Never use placeholders that could be mistaken for real, usable contracts.
+
+
+12. REFERENCE
+
+WHY YOUR CITY ISN’T WORKING
+
+Use this format:
+
+What you see
+→ what it means
+→ what to check
+→ what you can do.
+
+Cover:
+- Missing Energy.
+- Missing Compute.
+- Incompatible assignments.
+- Closed working hours.
+- Frozen industries.
+- Exhausted offline time.
+- Trimmed Payroll.
+
+Distinguish failed working conditions from correctly calculated but reduced payments.
+
+
+FREQUENTLY ASKED QUESTIONS
+
+Prioritize actual points of confusion:
+
+Is Capital a token?
+Does an active building automatically pay?
+Do agents use an LLM?
+Does a rising stock price mean I earned money?
+Why can’t I withdraw my entire balance?
+Can demo progress move to a wallet?
+What does a verification badge prove?
+Which features work in the current version?
+
+
+GLOSSARY
+
+Keep one consistent meaning for:
+Capital
+$CORP
+Vault
+Payroll
+Treasury
+Bank
+Exchange
+Stock Token
+Industry
+District
+Beacon
+Synergy
+Agent
+Role
+Trait
+Task
+Shift
+Efficiency
+Productivity
+Happiness
+Stability
+Population
+Influence
+Fragment
+Stake
+City time
+Offline cap
+Pack
+DecisionRecord
+TickInputHeader
+
+Qualify “Treasury” when necessary. City Capital and protocol ETH buckets are not interchangeable.
+
+
+TABLES AND FORMULAS
+
+Use versioned, pack-derived values wherever possible.
+
+Explain units, scales, and rounding.
+
+Do not copy raw internal integers into player-facing tables without confirming their display units.
+
+Do not manually maintain a second balance source that can drift from the pack.
+
+
+VERSIONS AND CHANGES
+
+Separate:
+- Rule changes.
+- Balance changes.
+- Newly available features.
+- Fixes.
+- Known limitations.
+
+Updating documentation does not mean a feature has shipped.
+
+
+13. WRITING STYLE
+
+Write in natural English for players.
+
+Use concrete subjects and verbs. Explain what happens, why it happens, and what the player can do.
+
+Use contractions where they sound natural.
+
+Vary sentence length. Keep paragraphs readable without making every sentence a standalone slogan.
+
+Avoid empty phrases such as:
+“unlock limitless potential”
+“revolutionary ecosystem”
+“seamless experience”
+“next-generation AI economy”
+“embark on your journey”
+“maximize your earning potential”
+
+Do not repeatedly use “not just X, but Y” or end every section with a motivational line.
+
+A small amount of corporate humor is appropriate in gameplay explanations.
+
+Example:
+“Another Workshop won’t solve a power shortage. It will give you two Workshops waiting for power.”
+
+Do not use jokes in explanations of custody, fees, withdrawals, losses, or emergency controls.
+
+Prefer:
+
+“Your Workshop is active, but it still needs a compatible worker and enough Energy to run.”
+
+Avoid:
+
+“Production functionality is governed by a multi-layer operational dependency framework.”
+
+Do not overuse fictional office memos, executive briefings, or corporate roleplay. The game’s identity should support the explanation, not obstruct it.
+
+Do not invent lore, ownership rights, mechanics, or missing details.
+
+If something needs a new design decision, identify it as a proposal before presenting it as part of the game.
+
+
+14. RULES VERSUS IMPLEMENTATION
+
+Keep approved design and working functionality separate.
+
+A useful status note is:
+
+Rules: Defined in the current content pack.
+Implementation: Partial.
+
+Money-related pages must also state whether the player-facing operation is available.
+
+Do not interrupt every paragraph with a warning. Put concise status notes where they are useful, and make critical availability limits visible before instructions that would otherwise suggest the player can act.
+
+Preserve unresolved contradictions. Do not silently choose whichever version makes the game sound more complete.
+
+The supplied handoff is the basis for these claims. It is not a substitute for verifying a newer repository state or production deployment.
+
+
+15. STANDARD ARTICLE FORMAT
+
+Use this structure where it helps:
+
+1. WHAT IT IS
+A short introduction that answers the player’s immediate question.
+
+2. HOW IT WORKS
+A clear cause-and-effect explanation.
+
+3. YOUR DECISION
+What the player controls and what the trade-offs are.
+
+4. EXAMPLE
+A small, clearly labeled scenario.
+
+5. REQUIREMENTS AND LIMITS
+Prerequisites, exceptions, and failure conditions.
+
+6. EXACT RULES
+Formulas or tables when they add useful precision.
+
+7. CURRENT STATUS
+What works in the relevant build.
+
+8. RELATED READING
+The next useful pages.
+
+Do not force every article into all eight sections.
+Avoid repeating the same disclaimer, summary, and transition on every page.
+
+
+16. SAMPLE OPENING
+
+THE CITY IS ALREADY BUILT. NOW MAKE IT WORK.
+
+In Corporator, you don’t start with an empty map. You take charge of an island with workshops, energy infrastructure, research facilities, and a bank. The buildings are there. Getting them to work together is your job.
+
+A Workshop needs more than an active switch. It needs a suitable worker and enough Energy. More computing capacity puts pressure on the power supply. A faster task can raise consumption. And even a properly configured shift depends on the budget available to pay it.
+
+You decide which problem to solve first.
+
+Real Stock Tokens unlock six industries, while external markets influence their working conditions. A rising stock price doesn’t automatically become your profit, though. The city still runs on resources, schedules, and a finite Payroll fund.
+
+This guide explains those connections, from your first assignment to the contracts behind the economy.
+
+
+17. FIRST WRITING MILESTONE
+
+Write these four pages first:
+
+1. Welcome to Corporator.
+2. How the Game Works.
+3. Production and Resources.
+4. Economy Overview.
+
+Together, they establish:
+- What the player controls.
+- How work happens.
+- Why production can stop.
+- Where payments come from.
+
+Use them to settle the tone and depth before expanding the building directory, workforce guide, and technical reference.
+
+All documentation and player-facing copy must be in English.
+Discussion, editorial questions, and explanations to the project owner should remain in Russian.

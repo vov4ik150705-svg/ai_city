@@ -50,6 +50,5 @@ HUD `prize_surface` (`D-M-15`): городской Treasury = Capital; плаш�
 
 ## Незакрытое
 
-PENDING 5: `companion_llm_price_snapshot`, `exit_uncovered_at_band_floor`, `bank_withdraw_rate_ceiling_only`, `pause_ready_delay`, `burn_reserve_rescue` — owner/T3. `launchToken` запрещён до M7.
 
 Next: M7 — `launch_freeze`.

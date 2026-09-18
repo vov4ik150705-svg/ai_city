@@ -1,6 +1,5 @@
 # V7 final
 
-`render_motion`: город живёт от `city_time` (машины, дроны, дым, FX без выдуманных чисел). `launch.deployed` пуст. Водяной знак 19. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **77**, хеш **`68432d1253f85deeacb0f24f0d593b40f704352bf9f45b10cfdd1a40526918b3`**, 620605 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 179 кадров, magenta 0, sha `acd419041ca4`. `layout_hash` `63aa7ce8cc09…` (геометрия не сдвинулась).
 

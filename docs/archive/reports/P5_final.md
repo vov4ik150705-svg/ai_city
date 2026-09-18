@@ -51,6 +51,5 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner, к P7). Внешний аудит-подрядчик — календарь владельца. Живой compose / тестнет — среда, не пак.
 
 Next Step: **P6** — `ops_watch` (пороги из чисел P5, не из головы).

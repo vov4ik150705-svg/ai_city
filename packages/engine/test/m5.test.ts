@@ -70,21 +70,17 @@ describe.sequential("M5 construction", () => {
     const uncovered = claimPrize({
       owed: 50n,
       poolIn: 0n,
-      paused: false,
       demo: false,
-      honorPause: true,
     })
     expect(uncovered.code).toBe(CODE_UNCOVERED)
     expect(uncovered.paid).toBe(0n)
-    const paused = claimPrize({
+    const covered = claimPrize({
       owed: 50n,
       poolIn: 50n,
-      paused: true,
       demo: false,
-      honorPause: true,
     })
-    expect(paused.paid).toBe(0n)
-    expect(paused.code).toBe("")
+    expect(covered.paid).toBe(50n)
+    expect(covered.code).toBe("")
   })
 
   it("refund_player_capped_by_backing", () => {
@@ -109,6 +105,28 @@ describe.sequential("M5 construction", () => {
     expect(ok.backing).toBe(0n)
     expect(ok.capital).toBe(0n)
     expect(ok.reserve).toBe(60n)
+    const reservedEat = refundPlayer({
+      backing: 100n,
+      amount: 100n,
+      capital: 200000n,
+      anchor: 2000n,
+      corpInVault: 200n,
+      totalBacking: 140n,
+      reserved: 40n,
+    })
+    expect(reservedEat.ok).toBe(0n)
+    expect(reservedEat.reason).toBe("reserved")
+    const reservedOk = refundPlayer({
+      backing: 100n,
+      amount: 60n,
+      capital: 200000n,
+      anchor: 2000n,
+      corpInVault: 200n,
+      totalBacking: 140n,
+      reserved: 40n,
+    })
+    expect(reservedOk.ok).toBe(1n)
+    expect(reservedOk.backing).toBe(40n)
   })
 
   it("bot_refund_not_whole_vault", () => {

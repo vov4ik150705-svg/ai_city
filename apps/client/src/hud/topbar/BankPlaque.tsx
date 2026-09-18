@@ -5,7 +5,7 @@ export function BankPlaque(props: { readonly plaque: HudView["plaque"] }): React
   const warn = props.plaque.key === "BANK_CLOSED" || props.plaque.key === "BANK_SUNDAY"
   const tone = warn ? "hud-plaque--warn" : "hud-plaque--ok"
   return (
-    <span data-key={props.plaque.key} className={`hud-plaque ${tone}`}>
+    <span data-key={props.plaque.key} title={props.plaque.text} className={`hud-plaque ${tone}`}>
       {props.plaque.text}
     </span>
   )

@@ -1,10 +1,34 @@
 import { clampRate, mintRate, staleDecayRate, tickJitterBps } from "./arith.js"
 import { happinessOfCity } from "./aggregates.js"
+import { bankShareBps, remainingGlobal, resetDayCounters } from "./bank.js"
 import { rateRawFromSamples } from "./config.js"
 import { applyStack } from "./stack.js"
 import { emptyDayMon, seededPrng } from "./state.js"
 import { asBig, asDict, asList, asStr, sortedKeys, TickError } from "./values.js"
 import type { Dict } from "./values.js"
+
+function requireCfgBig(cfg: Dict, name: string): bigint {
+  if (!(name in cfg)) {
+    throw new TickError("INDEX", 0n, name, { i: 0n })
+  }
+  return asBig(cfg[name])
+}
+
+function shareBpsOf(cfg: Dict): bigint {
+  const share = requireCfgBig(cfg, "share_bps")
+  if (share <= 0n) {
+    throw new TickError("INDEX", 0n, "share_bps", { i: 0n })
+  }
+  return share
+}
+
+function spendBpsOf(cfg: Dict): bigint {
+  const spend = requireCfgBig(cfg, "spend_bps")
+  if (spend <= 0n) {
+    throw new TickError("INDEX", 0n, "spend_bps", { i: 0n })
+  }
+  return spend
+}
 
 function accOf(state: Dict): Dict {
   return asDict(state["acc"])
@@ -298,7 +322,11 @@ export function bankOpen(cfg: Dict, hour: bigint, weekday: bigint): bigint {
 }
 
 function inOfflineWindow(cfg: Dict, city: Dict, tickIndex: bigint): bigint {
-  const cap = asBig(cfg["offline_cap"])
+  const added = asBig(city["offline_cap_hours"])
+  const hard = asBig(cfg["offline_hard_cap"], 18n)
+  let cap = asBig(cfg["offline_cap"]) + added
+  if (cap > hard) cap = hard
+  if (cap < 0n) cap = 0n
   const period = asBig(city["login_period"])
   if (period <= 1n) return 1n
   let credited = cap
@@ -522,6 +550,10 @@ export function pay(cfg: Dict, state: Dict, rows: readonly Dict[]): void {
     paidSum += payout
     addAcc(state, "payroll_paid", payout)
     state["day_payroll"] = asBig(state["day_payroll"]) + payout
+    if ("influence" in city || "season_row" in city || "day_gdp" in city) {
+      city["day_gdp"] = asBig(city["day_gdp"]) + unit
+      if (unit > 0n) city["day_valid_ticks"] = asBig(city["day_valid_ticks"]) + 1n
+    }
   }
   if (paidSum > budget) {
     throw new TickError("I4_OVER_BUDGET", asBig(state["tick_index"]), "-", { paid: paidSum, budget })
@@ -533,18 +565,19 @@ export function applySpend(cfg: Dict, state: Dict, city: Dict, amountIn: bigint,
   let amount = amountIn
   if (amount <= 0n) return
   if (amount > asBig(city["capital"])) amount = asBig(city["capital"])
-  const bps = asBig(cfg["bps"])
+  const spendBps = spendBpsOf(cfg)
   city["capital"] = asBig(city["capital"]) - amount
-  const burn = (amount * asBig(cfg["spend_burn_bps"])) / bps
-  const toFund = (amount * asBig(cfg["spend_fund_bps"])) / bps
-  const proto = amount - burn - toFund
+  const burn = (amount * asBig(cfg["spend_burn_bps"])) / spendBps
+  let toFund = (amount * asBig(cfg["spend_fund_bps"])) / spendBps
+  const proto = (amount * asBig(cfg["spend_protocol_bps"])) / spendBps
+  toFund += amount - burn - toFund - proto
   const w = asBig(city["weight"]) === 0n ? 1n : asBig(city["weight"])
   state["fund"] = asBig(state["fund"]) + toFund * w
   state["capital_outstanding"] = asBig(state["capital_outstanding"]) - (burn + proto) * w
   const rate = asBig(state["mint_rate"])
   if (rate > 0n) {
     const burnCorp = (burn * asBig(cfg["wei"])) / rate
-    const protoCorp = (proto * asBig(cfg["wei"])) / rate
+    const protoCorp = proto <= 0n ? 0n : (proto * asBig(cfg["wei"])) / rate
     state["reserve_corp"] = asBig(state["reserve_corp"]) + burnCorp * w
     addAcc(state, "reserve_in_corp", burnCorp * w)
     const protoOut = protoCorp * w
@@ -563,7 +596,7 @@ export function applySpend(cfg: Dict, state: Dict, city: Dict, amountIn: bigint,
     const leftover = amount - take
     if (leftover > 0n) {
       city["deposit_spent"] = asBig(city["deposit_spent"]) + leftover
-      addAcc(state, "f_deposit", ((leftover * asBig(cfg["spend_fund_bps"])) / bps) * w)
+      addAcc(state, "f_deposit", ((leftover * asBig(cfg["spend_fund_bps"])) / spendBps) * w)
     }
   } else {
     city["deposit_spent"] = asBig(city["deposit_spent"]) + amount
@@ -583,18 +616,9 @@ export function splitBankLimit(asks: readonly bigint[], cap: bigint): bigint[] {
 export function bankWithdraw(cfg: Dict, state: Dict, day: bigint, hour: bigint, weekday: bigint): void {
   const bps = asBig(cfg["bps"])
   const live = asBig(state["pool_eth"])
-  const globalLim = (live * asBig(cfg["bank_pool_share_bps"])) / bps
-  let usedToday = asBig(state["bank_used_today_wei"])
   const cities = asDict(state["cities"])
-  if (state["bank_day"] !== day) {
-    state["bank_day"] = day
-    usedToday = 0n
-    for (const cid of Object.keys(cities)) {
-      asDict(cities[cid])["withdrawn_day"] = 0n
-    }
-  }
-  let remainingGlobal = globalLim - usedToday
-  if (remainingGlobal < 0n) remainingGlobal = 0n
+  resetDayCounters(state, day)
+  let remaining = remainingGlobal(state, live, asBig(cfg["bank_pool_share_bps"]), bps)
   const asks: { cid: string; ethAsk: bigint; scaled: bigint }[] = []
   for (const cid of sortedKeys(cities)) {
     const city = asDict(cities[cid])
@@ -614,9 +638,10 @@ export function bankWithdraw(cfg: Dict, state: Dict, day: bigint, hour: bigint, 
     const rate = asBig(state["mint_rate"])
     const markup = asBig(cfg["bank_markup_bps"])
     if (rate <= 0n) continue
-    const share = asBig(city["bank_level"]) > 0n ? asBig(cfg["bank_l1_share_bps"]) : 0n
+    let share = bankShareBps(asDict(cfg["bank_levels"]), asBig(city["bank_level"]))
+    if (share <= 0n && asBig(city["bank_level"]) > 0n) share = asBig(cfg["bank_l1_share_bps"])
     const personal = (((live * asBig(cfg["bank_pool_share_bps"])) / bps) * share) / bps
-    let room = personal - asBig(city["withdrawn_day"])
+    let room = personal - asBig(city["withdrawn_day"]) - asBig(city["reserved_day"])
     if (room < 0n) room = 0n
     let corp = (wantCap * asBig(cfg["wei"]) * bps) / (rate * (bps + markup))
     const maxCap = asBig(city["capital"])
@@ -646,9 +671,9 @@ export function bankWithdraw(cfg: Dict, state: Dict, day: bigint, hour: bigint, 
   for (const a of asks) totalAsk += a.scaled
   const issued = splitBankLimit(
     asks.map((a) => a.scaled),
-    remainingGlobal,
+    remaining,
   )
-  const cut = totalAsk > remainingGlobal && totalAsk > 0n ? 1n : 0n
+  const cut = totalAsk > remaining && totalAsk > 0n ? 1n : 0n
   if (cut > 0n) {
     asList(state["codes"]).push(asStr(cfg["bank_limit_code"]))
     addAcc(state, "bank_cuts", 1n)
@@ -684,7 +709,7 @@ export function bankWithdraw(cfg: Dict, state: Dict, day: bigint, hour: bigint, 
     const keep = vaultTake - sell
     city["corp_held"] = asBig(city["corp_held"]) + (w === 0n ? keep : keep / w)
     if (sell > 0n) {
-      const tax = (gotScaled * asBig(cfg["creator_tax_bps"])) / bps
+      const tax = (gotScaled * asBig(cfg["creator_tax_bps"])) / shareBpsOf(cfg)
       creditCreatorTax(cfg, state, tax, false)
       addAcc(state, "tax_city_eth", tax)
       const nxt = cpmmSellCorp(asBig(state["pool_eth"]), asBig(state["pool_corp"]), sell)
@@ -705,11 +730,11 @@ export function bankWithdraw(cfg: Dict, state: Dict, day: bigint, hour: bigint, 
       city["codes"] = codes
     }
   }
-  state["bank_used_today_wei"] = usedToday + soldEth
-  if (soldEth > remainingGlobal) {
+  state["bank_used_today_wei"] = asBig(state["bank_used_today_wei"]) + soldEth
+  if (soldEth > remaining) {
     throw new TickError("I10_BANK_OVER", asBig(state["tick_index"]), "-", {
       sold: soldEth,
-      remaining: remainingGlobal,
+      remaining,
     })
   }
   assertI1(cfg, state, "-")
@@ -892,20 +917,48 @@ export function corkReturn(cfg: Dict, state: Dict): void {
   dm["drip_cork_corp"] = asBig(dm["drip_cork_corp"]) + drip
 }
 
-function splitCreatorTaxAtoms(tax: bigint, prizeShareBps: bigint, bps: bigint): readonly [bigint, bigint] {
-  const prize = (tax * prizeShareBps) / bps
-  return [tax - prize, prize]
+export function splitCreatorTaxAtoms(
+  tax: bigint,
+  prizeShareBps: bigint,
+  activeWorkCreatorTaxBps: bigint,
+  studioShareBps: bigint,
+  shareBps: bigint,
+  creatorTaxBps: bigint,
+): readonly [bigint, bigint, bigint, bigint] {
+  if (shareBps <= 0n || creatorTaxBps <= 0n) {
+    throw new TickError("INDEX", 0n, "creator_tax_bps", { i: creatorTaxBps })
+  }
+  const prizeLeg = (tax * prizeShareBps) / shareBps
+  const studio = (prizeLeg * studioShareBps) / shareBps
+  const stockLeg = prizeLeg - studio
+  const farm = (tax * activeWorkCreatorTaxBps) / creatorTaxBps
+  const leaderboard = stockLeg - farm
+  if (leaderboard < 0n) {
+    throw new TickError("TAX_SPLIT_NEG", 0n, "-", { farm, leaderboard, stock_leg: stockLeg })
+  }
+  return [tax - prizeLeg, leaderboard, farm, studio]
 }
 
-function creditCreatorTax(cfg: Dict, state: Dict, tax: bigint, spec: boolean): void {
+export function creditCreatorTax(cfg: Dict, state: Dict, tax: bigint, spec: boolean): void {
   if (tax <= 0n) return
-  const bps = asBig(cfg["bps"])
-  const split = splitCreatorTaxAtoms(tax, asBig(cfg["prize_creator_tax_share_bps"]), bps)
+  const split = splitCreatorTaxAtoms(
+    tax,
+    requireCfgBig(cfg, "prize_creator_tax_share_bps"),
+    requireCfgBig(cfg, "active_work_creator_tax_bps"),
+    requireCfgBig(cfg, "studio_eth_share_bps"),
+    shareBpsOf(cfg),
+    requireCfgBig(cfg, "creator_tax_bps"),
+  )
   const fund = split[0]
-  const prize = split[1]
+  const leaderboard = split[1]
+  const farm = split[2]
+  const studio = split[3]
   state["treasury_eth"] = asBig(state["treasury_eth"]) + fund
   state["treasury_fund_eth"] = asBig(state["treasury_fund_eth"]) + fund
-  state["treasury_basket_eth"] = asBig(state["treasury_basket_eth"]) + prize
+  state["treasury_basket_eth"] = asBig(state["treasury_basket_eth"]) + leaderboard + farm
+  state["treasury_leaderboard_eth"] = asBig(state["treasury_leaderboard_eth"]) + leaderboard
+  state["treasury_farm_eth"] = asBig(state["treasury_farm_eth"]) + farm
+  state["treasury_studio_eth"] = asBig(state["treasury_studio_eth"]) + studio
   if (spec) {
     state["treasury_spec_eth"] = asBig(state["treasury_spec_eth"]) + fund
   } else {
@@ -917,8 +970,8 @@ export function applyDexTurnover(cfg: Dict, state: Dict, turnoverUsd8dec: bigint
   if (turnoverUsd8dec <= 0n) return
   const ethUsd = asBig(cfg["eth_usd_8dec"])
   if (ethUsd <= 0n) return
-  const bps = asBig(cfg["bps"])
-  const taxUsd = (turnoverUsd8dec * asBig(cfg["creator_tax_bps"])) / bps
+  const shareBps = shareBpsOf(cfg)
+  const taxUsd = (turnoverUsd8dec * requireCfgBig(cfg, "creator_tax_bps")) / shareBps
   const taxWei = (taxUsd * asBig(cfg["wei"])) / ethUsd
   creditCreatorTax(cfg, state, taxWei, true)
   addAcc(state, "tax_spec_eth", taxWei)

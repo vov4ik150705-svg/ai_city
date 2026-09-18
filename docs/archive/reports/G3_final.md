@@ -39,7 +39,6 @@
 | L61/L62/L68/L71 | гейт | 7/7 caught |
 | robotics_lab | не тронут | не тронут |
 | повторный флип призов | A-G-17 | `season_prizes_live` остался 1 |
-| демо + компаньон | A-G-15 | `demo_companion=0` |
 | `launch.deployed` | A-G-2 | пять полей пустые |
 | подгонка окна A | A-G-11 | не подогнано; окно то же |
 
@@ -51,8 +50,6 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner).
 
-`companion_rows_live` 0, `set_manager_focus` forbidden (G5). Пять зданий синергий кроме robotics_lab — G4.
 
 Next Step: **G4** — `synergy_buildings` (пять зданий правилом «оба района играбельны»; матрица аффинити с каноном).

@@ -1,6 +1,5 @@
 # V6 final
 
-`render_camera`: зум только из пака, клампы, клик стейк/карточка (D-V-22). `launch.deployed` пуст. Водяной знак 19. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **76**, хеш **`08c372ac0744de9565620a82b0a09092aa5695f39593aa1983c4ecfc9f3e4f44`**, 617619 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 179 кадров, magenta 0, sha `acd419041ca4`. `layout_hash` `63aa7ce8cc09…` (геометрия не сдвинулась).
 

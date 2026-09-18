@@ -1,6 +1,5 @@
 # V3 final
 
-`render_ground`: двухъярусные кубы в PixiJS, пакет `packages/render`, отказ без GPU. `launch.deployed` пуст. Водяной знак 19. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **73**, хеш **`4f1b62d01791e171937900993ae80fb3a278569695f6b00f3b2ade452cc42458`**, 613070 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. `ground_chunk_tiles` 8 = `road_period_tiles`. `tile_cube_h` 32. `water_frame_count` 1. Атлас без изменений: 175 кадров, magenta 0, sha `ec1cc3a5dc61`. `layout_hash` `63aa7ce8cc09…`. fallback.png = `art/preview/scene.png`, opaque magenta 0.
 

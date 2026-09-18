@@ -1,4 +1,4 @@
-import { asBig, asDict, max1 } from "./values.js"
+import { asBig, asDict, asStr, max1 } from "./values.js"
 import type { Dict } from "./values.js"
 
 const TERMS = ["housing_bps", "parks_bps", "energy_bps", "payroll_bps"] as const
@@ -42,6 +42,93 @@ export function productivityBps(realized: bigint, nominal: bigint, bps: bigint):
 
 export function population(occupiedJobs: bigint, populationPerJob: bigint, housingCapacity: bigint): bigint {
   return occupiedJobs * populationPerJob + housingCapacity
+}
+
+const HOUSING_LEVEL_INDEX: { readonly [id: string]: readonly number[] } = {
+  flagship_store: [2, 4, 6],
+  retail_complex: [3, 5, 7],
+}
+
+const HOUSING_FALLBACK: { readonly [level: number]: bigint } = {
+  2: 400n,
+  3: 600n,
+  4: 900n,
+  5: 1350n,
+  6: 2025n,
+  7: 3037n,
+}
+
+export function housingBaseOf(archetype: string, level: bigint, thresholds: Dict): bigint {
+  const idx = HOUSING_LEVEL_INDEX[archetype]
+  if (idx === undefined) return 0n
+  let lv = Number(level)
+  if (lv < 1) return 0n
+  if (lv > idx.length) lv = idx.length
+  const key = String(idx[lv - 1])
+  if (key in thresholds) return asBig(thresholds[key])
+  return HOUSING_FALLBACK[idx[lv - 1] ?? 0] ?? 0n
+}
+
+export function housingCapacityOf(functions: readonly unknown[], thresholds: Dict, housingAdd = 0n): bigint {
+  let total = housingAdd
+  if (total < 0n) total = 0n
+  for (const raw of functions) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
+    const row = asDict(raw)
+    if (asBig(row["frozen"]) > 0n || asBig(row["deactivated"]) > 0n || row["frozen"] === true || row["deactivated"] === true) {
+      continue
+    }
+    const aid = asStr(row["id"], asStr(row["archetype"]))
+    const lv = asBig(row["level"], 1n)
+    total += housingBaseOf(aid, lv, thresholds)
+  }
+  return total
+}
+
+export function cityLevelFromPopulation(pop: bigint, thresholds: Dict, levelMax: bigint): bigint {
+  if (levelMax < 1n) return 1n
+  let level = 1n
+  let L = 1n
+  while (L <= levelMax) {
+    const need = asBig(thresholds[L.toString()])
+    if (pop >= need) level = L
+    else break
+    L += 1n
+  }
+  return level
+}
+
+export function stickyCityLevel(current: bigint, derived: bigint): bigint {
+  let cur = current
+  if (cur < 1n) cur = 1n
+  return cur > derived ? cur : derived
+}
+
+export function buildSlotsOf(agentSlots: bigint, autonomousOrdinary = 3n): bigint {
+  const out = agentSlots + autonomousOrdinary
+  return out > 0n ? out : 0n
+}
+
+export function ordinaryActiveCount(functions: readonly unknown[], defs: Dict): bigint {
+  let n = 0n
+  for (const raw of functions) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
+    const row = asDict(raw)
+    if (asBig(row["frozen"]) > 0n || asBig(row["deactivated"]) > 0n || row["frozen"] === true || row["deactivated"] === true) {
+      continue
+    }
+    const aid = asStr(row["id"], asStr(row["archetype"]))
+    const spec = asDict(defs[aid])
+    if (spec["autonomous"] === true || spec["prebuilt"] === true) continue
+    n += 1n
+  }
+  return n
+}
+
+export function clipOfflineHours(base: bigint, added: bigint, hardCap: bigint): bigint {
+  const total = base + added
+  if (total < 0n) return 0n
+  return total < hardCap ? total : hardCap
 }
 
 export function gdpDay(payouts: readonly bigint[]): bigint {

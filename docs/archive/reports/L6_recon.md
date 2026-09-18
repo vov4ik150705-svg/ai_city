@@ -27,7 +27,6 @@ RPC `https://rpc.mainnet.chain.robinhood.com` без `Origin` даёт Cloudflar
 
 ## LLM
 
-Счёта провайдера нет. `companion_llm_price_snapshot` остаётся pending. Точку не выдумывать (`D-L-10`, `R-T12-7`). `L141` падает, если pending снять без датированной точки. Это `R-L-19`.
 
 ## ТЗ на шаг
 

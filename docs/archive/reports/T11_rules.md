@@ -50,7 +50,6 @@
 | L218 | вторая формула Stability | `def stability_bps` в `aggregates.py` | `L218  aggregates.py defines stability_bps; the only formula is seasons.stability_bps` |
 | L219 | фрагменты на idle / не-маяке | `force_fragment_accrual` + idle | `L219  idle tick accrued fragments_delta=100, expected 0` |
 | L220 | `season_prizes_live=0` и выплата > 0 | probe `sum_payout=40` | `L220  season_prizes_live=0 but sum_payout=40 at non-zero rank` |
-| L221 | `commands` в DecisionRecord | ключ в sample | `L221  DecisionRecord carries commands; companion_commands_hash belongs on the header` |
 | L222 | T11 `state_source` без `producer` | снят у `aggregate.happiness` | `L222  state_source aggregate.happiness owner T11 has no producer` |
 | L223 | нет исключения jitter `% span` | удалена строка exceptions | `L223  exceptions missing tick_jitter_bps / remainder_mod_span` |
 

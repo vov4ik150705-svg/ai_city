@@ -41,11 +41,15 @@ export function BuildScreen(props: ScreenProps): ReactElement {
                 disabled={blocked}
                 onClick={() => {
                   if (blocked) return
-                  props.onCommit("build", {
-                    building_id: row.id,
-                    tile_x: props.pendingTileX,
-                    tile_y: props.pendingTileY,
-                  })
+                  const done = props.onIntent(
+                    { kind: "build", buildingId: row.id },
+                    {
+                      building_id: row.id,
+                      tile_x: props.pendingTileX,
+                      tile_y: props.pendingTileY,
+                    },
+                  )
+                  if (done !== undefined) void done.then(undefined, () => undefined)
                 }}
               >
                 {label}

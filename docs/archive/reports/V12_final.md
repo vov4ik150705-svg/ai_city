@@ -1,6 +1,5 @@
 # V12 final — паспорт входа в P7
 
-`visual_close`: фаза картинки закрыта числами. `launch.deployed` пуст. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19. P7 не начат.
 
 Пак **82**, хеш **`a3b67011e25570ffac28009815c65763265aa549b55a8e7ff2433a4a4fe2a0a0`**, 628557 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783], A_t2 **14217**. Атлас 179 кадров, magenta 0. `layout_hash` `63aa7ce8cc09…`.
 

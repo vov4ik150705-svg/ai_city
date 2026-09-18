@@ -2,17 +2,55 @@ import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
+import { atPath, loadPack, type Json } from "@corporator/contentpack"
+import { codes } from "@corporator/protocol"
+import { type PortConfig } from "@corporator/chainport"
 import {
+  createDefaultConveyorSubmit,
   emptyBasketState,
   loadBuybackPack,
   splitCollected,
   stepBasket,
+  stepLeaderboardBasket,
 } from "../src/index.ts"
+import {
+  assertConveyorHappyPath,
+  assertConveyorMonthFarmIsolation,
+  assertConveyorNoCallOnFailedHop,
+} from "./conveyor.cases.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
 function packBytes(): Uint8Array {
   return new Uint8Array(readFileSync(join(repo, "content/out/pack.json")))
+}
+
+function asObj(value: Json): { readonly [key: string]: Json } {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(codes.API_MALFORMED)
+  }
+  return value
+}
+
+function asText(value: Json | undefined): string {
+  if (typeof value !== "string") throw new Error(codes.API_MALFORMED)
+  return value
+}
+
+function asBig(value: Json | undefined): bigint {
+  if (typeof value !== "bigint") throw new Error(codes.API_MALFORMED)
+  return value
+}
+
+function cfgFromPack(root: Json): PortConfig {
+  const keys = asObj(atPath(root, ["sections", "arch", "keys"]))
+  const voucher = asObj(keys["voucher_signer"] ?? null)
+  const buy = asObj(keys["buyback_executor"] ?? null)
+  return {
+    voucherTtlS: asBig(atPath(root, ["generated", "api", "voucher_ttl_s"])),
+    voucherSignerService: asText(voucher["service"]),
+    buybackExecutorService: asText(buy["service"]),
+  }
 }
 
 function fatDepths(
@@ -27,10 +65,12 @@ function fatDepths(
 }
 
 describe.sequential("M4 construction", () => {
-  it("basket_uniform_budget_per_ticker", () => {
+  it("basket_uniform_budget_per_ticker", async () => {
     const pack = loadBuybackPack(packBytes())
     expect(pack.tickers.length).toBe(6)
     expect(pack.tickers.includes("CORP")).toBe(false)
+    expect(pack.leaderboardBps).toBe(30n)
+    expect(pack.farmBps).toBe(50n)
     expect(pack.basketOrder).toEqual(["eth_split", "quote_swapped", "stock_bought", "custody_confirmed"])
     expect(pack.payerService).toBe("buyback")
     expect(pack.executorService).toBe("buyback")
@@ -53,9 +93,19 @@ describe.sequential("M4 construction", () => {
       expect(hop.quoteAsset.length > 0).toBe(true)
     }
     expect(out.next.hopLag).toBe(0n)
+    const leaderboardWei = (eth * pack.leaderboardBps) / pack.creatorTaxBps
+    const leaderboard = stepLeaderboardBasket(pack, emptyBasketState(pack.tickers), leaderboardWei, depths, 1n)
+    expect(leaderboard.fundWei).toBe(0n)
+    expect(leaderboard.prizeWei).toBe(leaderboardWei)
+    expect(leaderboard.stocksWei).toBe(leaderboardWei)
+    const cfg = cfgFromPack(loadPack(packBytes()).pack)
+    await assertConveyorHappyPath(pack, cfg)
+    const handler = createDefaultConveyorSubmit(packBytes(), pack)
+    const degraded = await handler(new Uint8Array())
+    expect(degraded.length > 0).toBe(true)
   })
 
-  it("thin_pool_throttles_not_reallocates", () => {
+  it("thin_pool_throttles_not_reallocates", async () => {
     const pack = loadBuybackPack(packBytes())
     const eth = 60_000n
     const fat = fatDepths(pack.tickers, pack.depthTenWei)
@@ -81,9 +131,11 @@ describe.sequential("M4 construction", () => {
       if (hop.ticker === "AMZN") continue
       expect(hop.sendWei).toBe(even.perTickerWei)
     }
+    const cfg = cfgFromPack(loadPack(packBytes()).pack)
+    await assertConveyorMonthFarmIsolation(pack, cfg)
   })
 
-  it("basket_failure_does_not_block_tick", () => {
+  it("basket_failure_does_not_block_tick", async () => {
     const pack = loadBuybackPack(packBytes())
     expect(pack.blocksTick).toBe(0n)
     expect(pack.failMode).toBe("open")
@@ -109,6 +161,8 @@ describe.sequential("M4 construction", () => {
     expect(amzn !== undefined).toBe(true)
     if (amzn === undefined) return
     expect(amzn.sendWei > 0n).toBe(true)
+    const cfg = cfgFromPack(loadPack(packBytes()).pack)
+    await assertConveyorNoCallOnFailedHop(pack, cfg)
   })
 
   it("basket_leg_floor_favours_fund", () => {

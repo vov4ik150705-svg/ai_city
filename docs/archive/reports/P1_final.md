@@ -61,6 +61,5 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner, к P3/P7). Числа владельца §9 — к P3/P7.
 
 Next Step: **P2** — `ci_tracks` (два трека CI, `L319`; не зависит от P1).

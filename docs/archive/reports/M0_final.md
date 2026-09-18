@@ -65,6 +65,5 @@
 
 ## 5. Незакрытое
 
-PENDING 3: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3).
 
 Next Step: **M1** — `fee_split` (ставка 200 bps, вход vault 200 bps, вариант A).

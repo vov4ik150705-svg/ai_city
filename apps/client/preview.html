@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Corporator — island preview (client)</title>
+    <style>
+      html,
+      body,
+      #host {
+        margin: 0;
+        height: 100%;
+        background: #6fb4f0;
+      }
+      #host {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        touch-action: none;
+        cursor: grab;
+      }
+      #host canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      [data-look-error] {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        padding: 8px 12px;
+        background: #3b1020;
+        color: #ffe8ee;
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="host" data-surface="scene" data-look="LOOK-03-client-preview"></div>
+    <script type="module" src="/src/islandPreview.ts"></script>
+  </body>
+</html>

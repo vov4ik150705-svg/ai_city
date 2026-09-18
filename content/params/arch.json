@@ -6,7 +6,7 @@
       "v": 1,
       "u": "count",
       "src": "D16, DESIGN.md §5.4",
-      "why": "Our worker count, not a guessed provider quota. Overflow already carries COMPANION_QUEUE_FULL; raising this without a measured bill is a silent second queue"
+      "why": "Out-of-tick LLM worker count for daily summary and hire personality; not a tick input"
     },
     "attest_lag_alert_ticks": {
       "v": 2,
@@ -685,7 +685,7 @@
       "service": "api",
       "client": 0,
       "src": "D-M-13, D-M-14, PLAN_MONEY M5",
-      "why": "Pauses vault and prize treasury; cannot sign refunds or returnUnsettled"
+      "why": "Proposes two-step signer rotation and recovers wrong tokens; cannot equal signer; Vault and PrizeTreasury have no pause"
     },
     "signer": {
       "service": "api",
@@ -886,7 +886,7 @@
       "why": "Pin failure grows the outbox. Pay continues. The tick does not block"
     },
     "llm_refuse": {
-      "code": "COMPANION_LLM_TEMPLATE",
+      "code": "SERVICE_DEGRADED",
       "sign": "provider_fail_template_substituted",
       "owner": "ops",
       "runbook": "llm_refuse",
@@ -910,7 +910,7 @@
       "runbook": "signer_compromise",
       "decides": "guardian",
       "src": "R-M-17 PLAN_RELEASE P6",
-      "why": "Guardian pauses. refundPlayer only up to backingOf. Nothing beyond. No forever-lock copy"
+      "why": "No contract pause. refundPlayer only up to available backing. Guardian rotates signer and sets refundRoot. Nothing beyond. No forever-lock copy"
     }
   },
   "environments": {
@@ -1008,7 +1008,7 @@
       ],
       "source_ids": [],
       "src": "D5, HUD.md §8",
-      "why": "Event and companion journal stream, pushed on event"
+      "why": "Event journal stream, pushed on event"
     }
   },
   "buyback_refs": {
@@ -1027,20 +1027,20 @@
   ],
   "basket_routes": {
     "month": {
-      "source": "dex_prize_leg",
+      "source": "dex_leaderboard_leg",
       "allocation": "uniform",
       "destination": "prize_month",
       "haircut_ref": "fragments.params.fragment_hop_haircut_bps",
       "src": "D-M-5, D-M-9, PLAN_MONEY M4",
-      "why": "Equal ETH budget per district ticker. Thin pools keep leftover; leftover does not move"
+      "why": "0.3% leaderboard leg of DEX turnover buys an equal ETH budget per district ticker. Thin pools keep leftover; leftover does not move"
     },
     "farm": {
-      "source": "spend_protocol",
+      "source": "dex_active_work_leg",
       "allocation": "by_demand",
       "destination": "prize_farm",
       "haircut_ref": "fragments.params.fragment_hop_haircut_bps",
       "src": "D-M-16, docs/PRIZES.md T6",
-      "why": "Spend tenth hop already exists; this row is the reference, not a second haircut"
+      "why": "0.5% active-work leg of DEX turnover buys stocks by recorded fragment demand; this row is the reference, not a second haircut"
     }
   },
   "basket_order": [
@@ -1058,7 +1058,7 @@
     "refund_fn": "refundPlayer",
     "refund_root": 1,
     "src": "D-M-13, D-M-14, PLAN_MONEY M5",
-    "why": "Prize stocks return unsliced to the bot; vault refunds at most backingOf; burn reserve is not this function"
+    "why": "Prize stocks return unsliced to the bot; vault refunds at most availableOf (backing minus voucher reservations); burn reserve is not this function"
   },
   "sampler_input_fields": [
     "corp_eth_wei_per_whole",
@@ -1087,7 +1087,7 @@
     "idle_reduction_bps": {
       "stage": "companion_live",
       "src": "D-G-5, D-G-8",
-      "why": "Companion idle relief cuts residual_idle and reopens window A; lifting the flag without a recount is L143"
+      "why": "Idle-reduction remains a T5 key; Companion is cut, so this lever has no companion row. Stage id companion_live is historical"
     }
   },
   "roadmap_order": [
@@ -1216,7 +1216,16 @@
         "payroll_trim_proportional",
         "no_float_in_bytes",
         "record_key_order_irrelevant",
-        "merkle_odd_level_not_duplicated"
+        "merkle_odd_level_not_duplicated",
+        "offline clip reaches 18 and never 19",
+        "build slots are abstract agent_slots plus 3",
+        "train is +1 XP additive with remainder; trainer mags do not enter XP",
+        "housing is direct Consumer capacity and city level is sticky",
+        "new cities do not backfill closed global days",
+        "bank reservations exclude prior days and expire into the current day",
+        "fragments use gross base before payroll and settle the global window",
+        "fees canonical generated round-trip is 1445",
+        "unstake returns settled tokens and freezes below S_min"
       ]
     },
     "host_db_replay": {
@@ -1714,7 +1723,9 @@
       "construction_tests": [
         "round_trip_after_tax_two_percent",
         "fund_tax_floor_holds",
-        "dex_visible_fee_under_ceiling"
+        "dex_visible_fee_under_ceiling",
+        "creator tax split is 100/30/50/20 of tax atoms on turnover",
+        "spend amount 1 with protocol 0 does not take CORP from vault"
       ],
       "invariants": [
         "L13_L14"
@@ -1745,7 +1756,7 @@
       "why": "Storing a second season length would fork T2 and silently shrink qualify_days"
     },
     "prize_basket": {
-      "goal": "Monthly board is six stocks without CORP; spend tenth feeds the farm kettle",
+      "goal": "Monthly board is six stocks without CORP; the DEX leaderboard and active-work legs feed separate stock kettles",
       "gate_cmd": "python content/build.py && python content/lint.py && python content/vectors.py && python content/codegen.py --check && python content/attack.py --only L283,L284,L291,L292,L294,L304,L90,L93,L107,L112",
       "ts_gate_cmd": "pnpm -w run gate",
       "tests": [
@@ -1822,7 +1833,7 @@
       "why": "Unsettled stocks return through the treasury bot; vault, fund and reserve stay out of drain"
     },
     "vault_safety": {
-      "goal": "Vault refunds at most backingOf; guardian is not the signer",
+      "goal": "Vault refunds at most availableOf; guardian is not the signer",
       "gate_cmd": "python content/lint.py && python content/attack.py --only L299,L303,L300,L301,L305",
       "ts_gate_cmd": "pnpm -w run gate",
       "tests": [
@@ -2455,7 +2466,31 @@
         "hud_geometry_from_fixture",
         "bank_plaque_always_present",
         "payroll_row_appears_when_trimmed",
-        "stock_bar_shows_two_numbers"
+        "stock_bar_shows_two_numbers",
+        "building_select_opens_popover_not_route",
+        "keeps FunctionStrip as keyboard non-3D access at narrow widths",
+        "keeps compact chrome copy unclipped without hiding primary state",
+        "announces loading and error distinctly from empty/unavailable/stale",
+        "uses shared 120-180ms motion token and reduced-motion without perpetual HUD animation",
+        "localizes clock updates without remounting the Three scene",
+        "centralizes presentation thresholds without contradicting pack geometry",
+        "returns focus after workspace close without focusing a detached trigger",
+        "treats only ready FieldView as an exact numeric value",
+        "value renderers do not use exact zero for non-ready fields",
+        "keeps StatusChip loading/stale/error distinct from unavailable",
+        "does not treat a missing payroll request as PAYROLL_TRIMMED",
+        "keeps EventsView rows on the snapshot log shape",
+        "keeps live adapter intent contracts without new routes",
+        "function strip does not substitute zero for unavailable functions",
+        "recent activity default presents at most three event rows",
+        "expands BANK_CLOSED journal copy instead of leaving {opens_in}",
+        "keeps Desktop v1.1 bright-blue tokens in palette and CSS",
+        "resolves local building thumbs and excludes the decorative 19th plus sheets",
+        "resolves role portraits and keeps sheets/brand as non-agent fallbacks",
+        "documents Lucide registry names and accessible labels without a Settings destination",
+        "loads verified local IBM Plex Sans and JetBrains Mono without a CDN",
+        "refuses decorative and unknown IDs as a functional BuildingCard thumbnail",
+        "keeps ResearchCard artwork explicit unavailable without invented assets"
       ],
       "invariants": [
         "layout_v1_bytes"
@@ -2477,7 +2512,18 @@
       "construction_tests": [
         "every_screen_has_empty_and_loading",
         "refusal_shows_one_blocking_code",
-        "no_cyrillic_in_components"
+        "no_cyrillic_in_components",
+        "keeps unsupported action unavailable without posting",
+        "does not treat claim_prize as confirmed custody",
+        "does not present a stale or missing quote as executable live quote",
+        "disables bank withdraw when live daily limit is unavailable or zero",
+        "labels bank and exchange amounts with Capital, $CORP, and selected Stock Token",
+        "blocks duplicate money submit and does not confirm without applied live result",
+        "maps only existing routes and tabs without new destination IDs",
+        "opens existing overlays for manage and keeps decorative buildings out of the functional catalog",
+        "shows unavailable live industry fields and keeps progression/merge off the overview cards",
+        "renders five research items with pack cost/duration and unavailable artwork/start/detail",
+        "keeps journal timestamp/entity/unread unavailable and seasons/farm/claims on existing overlays"
       ],
       "invariants": [
         "layout_v1_bytes"
@@ -2817,18 +2863,30 @@
       "why": "Lots in the pack grid are not build sites; a free named Empty is the only legal plant point"
     },
     "island_client": {
-      "goal": "Client draws island.glb and plants models on occupied anchors",
-      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L385",
+      "goal": "Client draws island_mass.glb and plants runtime buildings on occupied anchors",
+      "gate_cmd": "python content/lint.py && python content/build.py && python content/attack.py --only L333,L338,L340,L351,L352,L362,L371,L372,L375,L377,L378,L379,L380,L381,L382,L383,L384,L385,L386",
       "ts_gate_cmd": "pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate",
       "tests": [
-        "L385"
+        "L385",
+        "L386"
       ],
-      "construction_tests": [],
+      "construction_tests": [
+        "applies full translation including Y and forces scale 1",
+        "collectAnchors reads world pose and ignores local parent offset",
+        "fits island width into 72-86% at 1920x1080 and 1366x768",
+        "pulls back when City Hall is raised so the spire stays in the frustum",
+        "review occupancy is 18 studio assets and warehouse pack_id stays empty",
+        "wheel zoom is multiplicative, not a 1 m step",
+        "MeshoptDecoder missing is a visible error, not a silent ready",
+        "parity check fails on a different exposure",
+        "SkyDome and clouds classify as unlit categories",
+        "projected width fill is the camera-fit number, not a copied ceiling"
+      ],
       "invariants": [
         "layout_v1_bytes"
       ],
       "src": "docs/CANON.md, docs/reports/PLAN_ISLAND.md §2 step 7",
-      "why": "The live client still mounts the pack cell grid; wiring the authored mass closes the map split"
+      "why": "The live client must mount the authored mass; the pack cell grid is archive counters, not the picture"
     },
     "island_close": {
       "goal": "Close the authored-island phase with full attack, sim, and pack publish",
@@ -2893,7 +2951,6 @@
   },
   "derived": {
     "state_snapshot_every_ticks": "ticks_per_city_day; one boundary with the IPFS city-day aggregate",
-    "companion_queue_capacity": "companion_advisor_queue_depth times llm_worker_concurrency",
     "sampler_age_alert_city_hours": "price_staleness_max_city_hours floor-div 2; alert before decay cuts the rate",
     "command_endpoints": "distinct commit:* effects from screens.json as POST /command/X",
     "endpoint_refusals": "capability codes of the element, order (tier, token) from T9",
@@ -2906,7 +2963,7 @@
     "vector_class_ids": "vector_classes plus idle_* from codes idle category",
     "toolchain_engines": "toolchain.node.engines copied into every package.json engines.node",
     "basket_conveyor_witness": "uniform ETH budget per district ticker; thin pool capped; leftover stays; hop fail spends zero",
-    "treasury_safety_witness": "five port groups; returnUnsettled skips settled; refundPlayer capped; bot is not the whole vault"
+    "treasury_safety_witness": "five port groups; returnUnsettled skips settled; refundPlayer capped by availableOf; bot is not the whole vault"
   },
   "toolchain": {
     "node": {
@@ -3033,6 +3090,13 @@
       "npm": "@types/react-dom",
       "src": "D-C-14, PLAN_CODE C5",
       "why": "Latest 19.2 types for react-dom 19.2.8. A second React types package would fork JSX"
+    },
+    "lucide_react": {
+      "version": "1.46.0",
+      "kind": "package",
+      "npm": "lucide-react",
+      "src": "docs/reports/HUD_DESIGN_SYSTEM.md UI ICON SYSTEM",
+      "why": "Single HUD Lucide registry. Native React/SVG icons; no second icon library"
     },
     "pg": {
       "version": "8.23.0",
@@ -3243,7 +3307,7 @@
     },
     "forge_test": {
       "cmd": "forge test --root contracts",
-      "catches": "solc pin drift, vault invariant, pause path",
+      "catches": "solc pin drift, vault invariant, signer rotation",
       "red_input": "drop forge_test from the nightly track",
       "track": "nightly",
       "src": "D-P-6, PLAN_RELEASE P2",
@@ -3314,10 +3378,10 @@
         "why": "An open critical finding cannot coexist with a nonempty launch.deployed row; the table is the lock"
       },
       "constructor_unpause_delay": {
-        "severity": "medium",
+        "severity": "note",
         "status": "accepted",
-        "src": "PLAN_RELEASE §9, pending.pause_ready_delay",
-        "why": "unpauseDelay must be greater than zero; the owner seconds are not invented here and stay PENDING until P7"
+        "src": "owner: Vault/PrizeTreasury pause removed",
+        "why": "Finding obsolete: pause/unpause/paused/unpauseDelay/pauseReadyAt removed. Constructors take no delay. pause_ready_delay is not a PENDING seconds input. Seconds and addresses are not invented."
       },
       "constructor_guardian_signer": {
         "severity": "medium",

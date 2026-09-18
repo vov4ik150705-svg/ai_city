@@ -53,6 +53,5 @@ RK-M-11/12/13 закрыты L286 и двумя пробами. Выжившег
 
 ## Незакрытое
 
-PENDING 3: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner, 409), `bank_withdraw_rate_ceiling_only` (T3). `studio_eth_recipient` пуст — владелец. Пятая группа контрактов — M5. `launchToken` запрещён до M7.
 
 Next: M5 — `prize_treasury` + `vault_safety` (§15; не `owner_drain`).

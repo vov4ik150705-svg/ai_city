@@ -11,6 +11,10 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./ground": {
+      "types": "./src/ground.ts",
+      "default": "./src/ground.ts"
+    },
     "./pixi": {
       "types": "./src/pixi.ts",
       "default": "./src/pixi.ts"
@@ -30,6 +34,6 @@
     "vitest": "4.1.11"
   },
   "scripts": {
-    "gate": "tsc --noEmit -p tsconfig.json && vitest run test/v31.test.ts test/v32.test.ts test/v33.test.ts test/v34.test.ts test/v35.test.ts test/v36.test.ts test/v37.test.ts"
+    "gate": "tsc --noEmit -p tsconfig.json && vitest run test/v31.test.ts test/v32.test.ts test/v33.test.ts test/v34.test.ts test/v35.test.ts test/v36.test.ts test/v37.test.ts test/look02_pose.test.ts test/look03_runtime.test.ts"
   }
 }

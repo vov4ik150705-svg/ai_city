@@ -2,6 +2,7 @@ import type { ReactElement } from "react"
 import type { HudView } from "../model.js"
 import { Empty } from "../parts/Empty.js"
 import { Panel } from "../parts/Panel.js"
+import { FactLine, Facts } from "../parts/Facts.js"
 import { Value } from "../parts/Value.js"
 
 export function Overview(props: {
@@ -12,12 +13,13 @@ export function Overview(props: {
 }): ReactElement {
   return (
     <Panel id="overview" title={props.title} titleKey={props.titleKey}>
-      {props.rows.map((line) => (
-        <p key={line.id} data-key={line.key} className={line.tone === "ok" ? "hud-row" : `hud-row hud-row--${line.tone}`}>
-          <span className="hud-muted">{line.caption}</span>
-          <Value display={line.value} exact={line.exact} />
-        </p>
-      ))}
+      <Facts>
+        {props.rows.map((line) => (
+          <FactLine key={line.id} label={line.caption} labelKey={line.key} valueKey={line.key}>
+            <Value display={line.value} exact={line.exact} />
+          </FactLine>
+        ))}
+      </Facts>
       {props.payroll ? (
         <p data-key={props.payroll.key} className="hud-row hud-row--trim">
           {props.payroll.text}

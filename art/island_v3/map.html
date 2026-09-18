@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Corporator — генератор острова</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #1a222c;
+        color: #e8eef4;
+        font: 13px/1.4 "Segoe UI", system-ui, sans-serif;
+      }
+      #host {
+        position: absolute;
+        inset: 0 0 0 328px;
+        overflow: hidden;
+        touch-action: none;
+        cursor: grab;
+      }
+      #host[data-stamp="1"] {
+        cursor: crosshair;
+      }
+      #host canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #host[data-render-error="RENDER_NO_GPU"] {
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 35%, rgba(99, 146, 176, 0.22), transparent 42%),
+          #101821;
+      }
+      .render-fallback {
+        max-width: 420px;
+        margin: 24px;
+        padding: 16px 18px;
+        border: 1px solid #8a4a44;
+        background: rgba(12, 18, 28, 0.9);
+        color: #f0d88a;
+        text-align: center;
+        font: 600 13px/1.5 "Segoe UI", system-ui, sans-serif;
+      }
+      #rail {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 328px;
+        box-sizing: border-box;
+        padding: 12px 10px 28px;
+        background: #12181f;
+        border-right: 1px solid #3a4a3a;
+        overflow: auto;
+      }
+      #rail h1 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        font-weight: 650;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #9ec27a;
+      }
+      #rail h2 {
+        margin: 14px 0 6px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #8a9aaa;
+      }
+      #rail p {
+        margin: 0 0 8px;
+        color: #8a9aaa;
+      }
+      #q {
+        width: 100%;
+        box-sizing: border-box;
+        margin: 0 0 10px;
+        padding: 7px 8px;
+        border: 1px solid #2a343e;
+        background: #0d1218;
+        color: #e8eef4;
+      }
+      .item,
+      .cell,
+      .island-card {
+        display: block;
+        width: 100%;
+        margin: 0 0 4px;
+        padding: 6px 8px;
+        border: 1px solid #2a343e;
+        background: #1b232c;
+        color: #e8eef4;
+        text-align: left;
+        cursor: pointer;
+      }
+      .item[data-on="1"],
+      .cell[data-on="1"],
+      .island-card[data-on="1"] {
+        border-color: #9ec27a;
+        background: #24301c;
+      }
+      .grid,
+      .island-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin: 0 0 8px;
+      }
+      .cell,
+      .island-card {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .cell img,
+      .island-card img {
+        display: block;
+        width: 100%;
+        height: 78px;
+        object-fit: cover;
+        background: #0d1218;
+        pointer-events: none;
+      }
+      .cell img {
+        object-fit: contain;
+        height: 72px;
+      }
+      .cell img:not([src]) {
+        visibility: hidden;
+      }
+      .cell span,
+      .island-card span {
+        display: block;
+        padding: 4px 6px 6px;
+        font-size: 11px;
+        line-height: 1.25;
+        color: #d5dde6;
+      }
+      .island-card small {
+        display: block;
+        padding: 0 6px 6px;
+        font-size: 10px;
+        color: #8a9aaa;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 0 0 8px;
+      }
+      .chips button {
+        padding: 3px 7px;
+        border: 1px solid #2a343e;
+        background: #1b232c;
+        color: #c5ced6;
+        cursor: pointer;
+        font-size: 11px;
+      }
+      .chips button[data-on="1"] {
+        border-color: #9ec27a;
+        color: #d5e8c0;
+      }
+      details.pack {
+        margin: 8px 0 10px;
+        border: 1px solid #2a343e;
+        background: #0f151c;
+      }
+      details.pack summary {
+        cursor: pointer;
+        padding: 8px;
+        color: #c5d6b0;
+        font-weight: 600;
+      }
+      details.pack .grid {
+        padding: 0 8px 8px;
+      }
+      #placed button {
+        display: block;
+        width: 100%;
+        margin: 0 0 3px;
+        padding: 4px 6px;
+        border: 1px solid #2a343e;
+        background: #1b232c;
+        color: #c5ced6;
+        text-align: left;
+        cursor: pointer;
+        font-size: 11px;
+      }
+      .bar,
+      #props {
+        position: fixed;
+        left: 340px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        z-index: 2;
+      }
+      .bar {
+        top: 12px;
+        right: 12px;
+        max-height: 76px;
+        overflow: auto;
+        align-content: flex-start;
+      }
+      #props {
+        bottom: 44px;
+        padding: 8px 10px;
+        background: rgba(12, 18, 28, 0.88);
+        border: 1px solid #3a4a3a;
+      }
+      .bar button,
+      .bar label,
+      #props button {
+        padding: 6px 10px;
+        border: 1px solid #4a5c48;
+        background: rgba(18, 24, 31, 0.82);
+        color: #e8eef4;
+        cursor: pointer;
+      }
+      .bar button[data-on="1"],
+      #props button[data-on="1"] {
+        border-color: #c9a227;
+        color: #f0d88a;
+      }
+      #same-scale:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      #del,
+      #del-all {
+        border-color: #8a4a44;
+      }
+      #props label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        color: #d5dde6;
+      }
+      #scale {
+        width: 140px;
+      }
+      #sel-name {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #9ec27a;
+      }
+      #sel-size {
+        color: #8a9aaa;
+        font-variant-numeric: tabular-nums;
+      }
+      .hint,
+      #status {
+        position: fixed;
+        bottom: 12px;
+        margin: 0;
+        pointer-events: none;
+      }
+      .hint {
+        left: 340px;
+        padding: 8px 12px;
+        background: rgba(12, 18, 28, 0.72);
+        color: #d5dde6;
+        max-width: 52vw;
+      }
+      #status {
+        right: 12px;
+        color: #9ec27a;
+      }
+      #marquee {
+        position: fixed;
+        pointer-events: none;
+        z-index: 5;
+        box-sizing: border-box;
+        border: 1px solid #c9e27a;
+        background: rgba(201, 226, 122, 0.12);
+      }
+      #file {
+        display: none;
+      }
+      select.tool {
+        padding: 6px 8px;
+        border: 1px solid #4a5c48;
+        background: rgba(18, 24, 31, 0.82);
+        color: #e8eef4;
+      }
+      .island-scale {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin: 0 0 6px;
+        color: #d5dde6;
+      }
+      #island-scale,
+      #island-scale-x,
+      #island-scale-y,
+      #island-scale-z {
+        flex: 1;
+        min-width: 90px;
+      }
+      #island-scale-val,
+      #island-scale-x-val,
+      #island-scale-y-val,
+      #island-scale-z-val {
+        width: 44px;
+        font-variant-numeric: tabular-nums;
+        color: #9ec27a;
+      }
+      #island-lod-wrap[hidden] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <aside id="rail">
+      <h1>Генератор острова</h1>
+      <p>Выбери остров, ставь здания и декор кликом. Серия держит штамп, Esc снимает.</p>
+      <h2>Остров</h2>
+      <div id="islands" class="island-grid"></div>
+      <label class="island-scale">Ширина (X) <input id="island-scale-x" type="range" min="1" max="6" step="0.05" value="1" /><span id="island-scale-x-val">1.00×</span></label>
+      <label class="island-scale">Длина (Z) <input id="island-scale-z" type="range" min="1" max="6" step="0.05" value="1" /><span id="island-scale-z-val">1.00×</span></label>
+      <label class="island-scale">Высота (Y) <input id="island-scale-y" type="range" min="1" max="6" step="0.05" value="1" /><span id="island-scale-y-val">1.00×</span></label>
+      <label class="island-scale"><input id="island-scale-link" type="checkbox" /> Связать оси (равномерно)</label>
+      <div class="chips" id="island-scale-presets">
+        <button type="button" data-s="1" data-on="1">1×</button>
+        <button type="button" data-s="1.5">1.5×</button>
+        <button type="button" data-s="2">2×</button>
+        <button type="button" data-s="3">3×</button>
+        <button type="button" data-s="4">4×</button>
+        <button type="button" data-s="6">6×</button>
+      </div>
+      <p>Три слайдера тянут саму 3D-модель острова по осям — ширина (X), длина (Z), высота (Y) — а не зум камеры. Здания и обычный декор остаются того же размера, на острове появляется место. «Связать оси» двигает все три сразу. Кадр не подгоняется сам: нажми «Весь остров», чтобы снова увидеть весь остров.</p>
+      <div id="island-lod-wrap" hidden>
+        <h2>LOD</h2>
+        <div class="chips" id="island-lod"></div>
+        <p>Переключатель появляется, только если у модели несколько LOD. LOD0 — самый подробный.</p>
+      </div>
+      <input id="q" type="search" placeholder="поиск здания или декора" />
+      <div id="buildings"></div>
+      <div class="chips" id="decor-filters"></div>
+      <div id="decor"></div>
+      <h2>На карте</h2>
+      <div id="placed"></div>
+    </aside>
+    <div class="bar">
+      <button type="button" id="mode-t" data-on="1">Двигать G</button>
+      <button type="button" id="mode-r">Крутить R</button>
+      <button type="button" id="mode-s">Размер S</button>
+      <button type="button" id="series" data-on="1">Серия</button>
+      <button type="button" id="line" data-on="0">Линия</button>
+      <button type="button" id="snap">Сетка</button>
+      <button type="button" id="rand-yaw" data-on="1">Случайный поворот</button>
+      <button type="button" id="wf" data-on="0">Сокеты WF</button>
+      <select id="light" class="tool" title="Свет">
+        <option value="day">День</option>
+        <option value="dusk">Закат</option>
+        <option value="night">Ночь</option>
+        <option value="studio">Студия</option>
+      </select>
+      <button type="button" id="fit">Весь остров</button>
+      <button type="button" id="shot">Снимок</button>
+      <button type="button" id="undo">Отмена</button>
+      <button type="button" id="redo">Повтор</button>
+      <button type="button" id="del-all">Удалить всё</button>
+      <button type="button" id="save">Сохранить JSON</button>
+      <button type="button" id="canon-terra19">Канон Terra-19</button>
+      <label for="file">Открыть JSON</label>
+      <input id="file" type="file" accept="application/json,.json" />
+    </div>
+    <div id="props">
+      <span id="sel-name">ничего не выбрано</span>
+      <span id="sel-size"></span>
+      <label>Размер <input id="scale" type="range" min="0.03" max="12" step="0.01" value="1" /><span id="scale-val">1.00×</span></label>
+      <button type="button" id="same-scale" data-on="0" title="Размер слайдера и 1:1 для всех объектов этой модели на карте">Все такие</button>
+      <button type="button" id="native">1:1</button>
+      <button type="button" id="rot-l">−90°</button>
+      <button type="button" id="rot-r">+90°</button>
+      <button type="button" id="copy">Копировать</button>
+      <button type="button" id="paste">Вставить</button>
+      <button type="button" id="dup">Дублировать</button>
+      <button type="button" id="drop">На землю</button>
+      <button type="button" id="focus">К объекту</button>
+      <button type="button" id="del">Удалить</button>
+    </div>
+    <div id="host"></div>
+    <p class="hint">ЛКМ — поставить / взять · Shift+клик — добавить к выбору · Shift+рамка — группа · «Все такие» — размер одной модели на всю карту · Ctrl+C/V — копировать/вставить группу · Ctrl+D — дубль рядом · тяни — орбита или перенос группы · «Линия» для забора/дороги · ПКМ — сдвиг камеры · колесо — зум · Q/E — поворот · стрелки — сдвиг · Esc — снять штамп и выбор · вид камеры и карта пишутся сами, после обновления студии не слетают</p>
+    <p id="status">гружу каталог…</p>
+    <script type="module" src="./map.ts"></script>
+  </body>
+</html>

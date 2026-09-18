@@ -61,6 +61,5 @@ Solidity четырёх групп под `AssetPort`. Банк остаётся
 
 ## 5. Незакрытое
 
-PENDING 3: `companion_llm_price_snapshot` (owner, R-L-19), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3). Живой `eth_*` — L8. Foundry должен быть в `PATH` или `%USERPROFILE%\.foundry\bin`.
 
 Next Step: **L8** — живой RPC.

@@ -244,6 +244,54 @@ def qualified(positive_days: int, data: dict) -> bool:
     return int(positive_days) >= qualify_days(data)
 
 
+def positive_day(gdp_day: int) -> bool:
+    """A reward-positive day is GDP_day > 0. Zero and negative days do not qualify."""
+    return int(gdp_day) > 0
+
+
+def accumulate_day(
+    city: dict,
+    gdp_day: int,
+    valid_ticks: int,
+    data: dict,
+    created_day: int,
+    closed_day: int,
+) -> int:
+    """Add I_day and a positive-day mark for the closed global day. No backfill."""
+    created = int(created_day or 0)
+    closed = int(closed_day)
+    if created and closed < created:
+        return 0
+    capex = int(city.get("capex") or city.get("deposit_spent") or 0)
+    intensity = intensity_bps(int(gdp_day), capex, data)
+    stability = stability_bps(int(valid_ticks), data)
+    eff = int(city.get("district_efficiency_bps") or BPS)
+    districts = city.get("district_efficiency")
+    if isinstance(districts, dict) and districts:
+        vals = [
+            int((slot or {}).get("efficiency_bps") or BPS)
+            for slot in districts.values()
+            if isinstance(slot, dict)
+        ]
+        opened = len(city.get("districts") or vals)
+        eff = mean_efficiency_bps(vals, opened)
+    opened = len(city.get("districts") or [])
+    producing = int(city.get("producing") or opened)
+    coverage = coverage_bps(producing, opened, data)
+    delta = i_day(intensity, stability, eff, coverage, data)
+    city["influence"] = int(city.get("influence") or 0) + delta
+    if positive_day(gdp_day):
+        city["positive_days"] = int(city.get("positive_days") or 0) + 1
+    return delta
+
+
+def consume_after_settle(city: dict) -> None:
+    """Season/period settlement consumes accumulated Influence and period spend."""
+    city["influence"] = 0
+    city["positive_days"] = 0
+    city["spend_protocol_period"] = 0
+
+
 def wallet_influence(city_scores: dict[str, int], data: dict | None = None) -> int:
     if not city_scores:
         return 0
@@ -752,18 +800,19 @@ def settle_prizes(
 
 
 def season_budget(data: dict, generated: dict | None = None) -> dict:
-    """Spend-protocol path, season horizon (fraction 1). Same T1 scale as fragments."""
-    balance = (generated or {}).get("balance") or {}
+    """Size the leaderboard kettle from the DEX leaderboard leg."""
     launch = {k: v["v"] for k, v in data["launch"]["params"].items()}
-    spend_proto = data["economy"]["params"]["spend_protocol_bps"]["v"]
-    prizes_bps = data["fragments"]["params"]["protocol_prizes_bps"]["v"]
-    cork_share = sp(data, "prize_cork_share_bps")
-    include_cork = bool((data.get("seasons") or {}).get("include_cork_in_budget"))
+    economy = data["economy"]["params"]
+    tax = int(economy["creator_tax_bps"]["v"])
+    prize_share = int(data["seasons"]["params"]["prize_creator_tax_share_bps"]["v"])
+    studio_share = int(economy["studio_eth_share_bps"]["v"])
+    active_work_bps = int(data["fragments"]["params"]["active_work_creator_tax_bps"]["v"])
+    prize_bps = tax * prize_share // BPS
+    studio_bps = prize_bps * studio_share // BPS
+    leaderboard_bps = prize_bps - studio_bps - active_work_bps
     hop = sp(data, "prize_hop_haircut_bps")
-    deposit_net = int(balance.get("deposit_capital_net") or 0)
     unit = data["economy"]["params"]["capital_unit_usd"]["v"]
     n_cities = data["sim"]["params"]["reference_n_cities"]["v"]
-    low_usd = launch["revenue_scenario_low_usd"]
     scenarios = {
         "low": launch["revenue_scenario_low_usd"],
         "mid": launch["revenue_scenario_mid_usd"],
@@ -772,16 +821,16 @@ def season_budget(data: dict, generated: dict | None = None) -> dict:
     one_dollar = 100_000_000
     rows = {}
     for name, usd in scenarios.items():
-        scale = usd * BPS // low_usd if low_usd else 0
-        spend = deposit_net * scale // BPS
-        proto = spend * spend_proto // BPS
-        prize_cap = protocol_prize_budget(proto, prizes_bps, cork_share, include_cork)
-        usd_8dec = prize_cap * unit
+        period_usd_8dec = usd * 100_000_000
+        gross_usd_8dec = period_usd_8dec * leaderboard_bps // BPS
+        prize_cap = gross_usd_8dec // unit if unit else 0
+        usd_8dec = gross_usd_8dec
         usd_net = usd_8dec * (BPS - hop) // BPS
         rows[name] = {
             "activity_usd": usd,
-            "spend_capital": spend,
-            "proto_capital": proto,
+            "leaderboard_bps": leaderboard_bps,
+            "spend_capital": 0,
+            "proto_capital": 0,
             "prize_capital": prize_cap,
             "prize_usd_8dec": usd_net,
             "prize_usd_8dec_per_city": usd_net,
@@ -842,14 +891,14 @@ def prize_kettles(data: dict) -> dict:
 
     return {
         KETTLE_FARM: {
-            "source": "spend_protocol",
+            "source": "dex_active_work_leg",
             "window_days": window_days(data),
-            "split_bps": data["fragments"]["params"]["protocol_fragments_bps"]["v"],
+            "split_bps": BPS,
         },
         KETTLE_MONTH: {
-            "source": "dex_prize_leg",
+            "source": "dex_leaderboard_leg",
             "window_days": prize_period_days(data),
-            "split_bps": data["fragments"]["params"]["protocol_prizes_bps"]["v"],
+            "split_bps": BPS,
         },
     }
 

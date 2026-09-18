@@ -2,6 +2,7 @@
 pragma solidity 0.8.28;
 
 interface IERC20Stake {
+    function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
 }
@@ -44,6 +45,17 @@ contract StakeRegistry {
             _tickers[account].push(ticker);
         }
         amountOf[account][key] += got;
+    }
+
+    function unstake(string calldata ticker, uint256 amount) external {
+        require(bytes(ticker).length > 0 && amount > 0, "unstake");
+        bytes32 key = keccak256(bytes(ticker));
+        address token = tokenOf[key];
+        require(token != address(0), "listed");
+        uint256 have = amountOf[msg.sender][key];
+        require(have >= amount, "amount");
+        amountOf[msg.sender][key] = have - amount;
+        require(IERC20Stake(token).transfer(msg.sender, amount), "push");
     }
 
     function snapshot(address account) external view returns (string[] memory tickers, uint256[] memory amounts) {

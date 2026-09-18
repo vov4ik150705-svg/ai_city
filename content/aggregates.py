@@ -1,4 +1,4 @@
-"""City aggregates: Happiness, Productivity, GDP, Population (DESIGN.md §8, HUD.md §4.1).
+"""City aggregates: Happiness, Productivity, GDP, Population (DESIGN.md §8, screen contract).
 
 Pure functions over explicit integers and dicts. No pack I/O. Weights, park
 capacity and energy buffer arrive as arguments so the next agent can wire them
@@ -109,6 +109,108 @@ def population(occupied_jobs: int, population_per_job: int, housing_capacity: in
     per = _require_int(population_per_job, "population_per_job")
     housing = _require_int(housing_capacity, "housing_capacity")
     return jobs * per + housing
+
+
+# Housing is an additive gameplay quantity, not a fourteenth T5 modifier key (L127).
+# Capacities equal generated population_threshold of city levels 2/4/6 and 3/5/7.
+_HOUSING_LEVEL_INDEX = {
+    "flagship_store": (2, 4, 6),
+    "retail_complex": (3, 5, 7),
+}
+CONSUMER_FUNCTIONS = frozenset(_HOUSING_LEVEL_INDEX)
+
+
+def housing_base_of(archetype: str, level: int, thresholds: dict) -> int:
+    """Direct persons for one Consumer function. population_conversion_bps is not applied."""
+    idx = _HOUSING_LEVEL_INDEX.get(archetype)
+    if not idx:
+        return 0
+    lv = _require_int(level, "level")
+    if lv < 1:
+        return 0
+    if lv > len(idx):
+        lv = len(idx)
+    key = str(idx[lv - 1])
+    if key in thresholds:
+        return int(thresholds[key])
+    # Fallback matches the fused T2 ladder when thresholds are not passed.
+    table = {2: 400, 4: 900, 6: 2025, 3: 600, 5: 1350, 7: 3037}
+    return int(table[idx[lv - 1]])
+
+
+def housing_capacity_of(functions: list, thresholds: dict, housing_add: int = 0) -> int:
+    """Sum of direct Consumer capacities plus an additive housing_capacity remainder."""
+    total = _require_int(housing_add, "housing_add")
+    if total < 0:
+        total = 0
+    for row in functions:
+        if not isinstance(row, dict):
+            continue
+        if row.get("frozen") or row.get("deactivated"):
+            continue
+        aid = str(row.get("id") or row.get("archetype") or "")
+        lv = int(row.get("level") or 1)
+        total += housing_base_of(aid, lv, thresholds)
+    return total
+
+
+def city_level_from_population(pop: int, thresholds: dict, level_max: int) -> int:
+    """Highest L whose generated threshold is met. L1 threshold is 0."""
+    pop_i = _require_int(pop, "population")
+    cap = _require_int(level_max, "level_max")
+    if cap < 1:
+        return 1
+    level = 1
+    for L in range(1, cap + 1):
+        need = int(thresholds.get(str(L)) or 0)
+        if pop_i >= need:
+            level = L
+        else:
+            break
+    return level
+
+
+def sticky_city_level(current: int, derived: int) -> int:
+    """Achieved max is sticky: no downgrade, no revocation."""
+    cur = _require_int(current, "current")
+    der = _require_int(derived, "derived")
+    if cur < 1:
+        cur = 1
+    return cur if cur > der else der
+
+
+def build_slots_of(agent_slots: int, autonomous_ordinary: int = 3) -> int:
+    """Abstract ordinary active-function capacity. Not map tiles. Prebuilt/autonomous excluded."""
+    slots = _require_int(agent_slots, "agent_slots")
+    extra = _require_int(autonomous_ordinary, "autonomous_ordinary")
+    out = slots + extra
+    return out if out > 0 else 0
+
+
+def ordinary_active_count(functions: list, defs: dict | None = None) -> int:
+    """Count active logical functions that reserve an ordinary slot."""
+    n = 0
+    catalog = defs or {}
+    for row in functions:
+        if not isinstance(row, dict):
+            continue
+        if row.get("frozen") or row.get("deactivated"):
+            continue
+        aid = str(row.get("id") or row.get("archetype") or "")
+        spec = catalog.get(aid) or {}
+        if spec.get("autonomous") or spec.get("prebuilt"):
+            continue
+        n += 1
+    return n
+
+
+def clip_offline_hours(base: int, added: int, hard_cap: int) -> int:
+    """Automation 12+1+2+3 = 18. Merge +1 may reach the cap, never 19."""
+    total = _require_int(base, "base") + _require_int(added, "added")
+    cap = _require_int(hard_cap, "hard_cap")
+    if total < 0:
+        return 0
+    return total if total < cap else cap
 
 
 def gdp_day(payouts: list[int]) -> int:
@@ -303,6 +405,69 @@ def _check_population() -> str | None:
     return None
 
 
+def _check_housing_functions() -> str | None:
+    thresholds = {"1": 0, "2": 400, "3": 600, "4": 900, "5": 1350, "6": 2025, "7": 3037}
+    if housing_base_of("flagship_store", 1, thresholds) != 400:
+        return "flagship L1"
+    if housing_base_of("flagship_store", 2, thresholds) != 900:
+        return "flagship L2"
+    if housing_base_of("flagship_store", 3, thresholds) != 2025:
+        return "flagship L3"
+    if housing_base_of("retail_complex", 1, thresholds) != 600:
+        return "retail L1"
+    if housing_base_of("retail_complex", 2, thresholds) != 1350:
+        return "retail L2"
+    if housing_base_of("retail_complex", 3, thresholds) != 3037:
+        return "retail L3"
+    if housing_base_of("workshop", 1, thresholds) != 0:
+        return "workshop is not Consumer housing"
+    funcs = [
+        {"id": "flagship_store", "level": 1},
+        {"id": "retail_complex", "level": 1, "deactivated": 1},
+        {"id": "flagship_store", "level": 2, "frozen": 1},
+    ]
+    got = housing_capacity_of(funcs, thresholds, 11)
+    if got != 400 + 11:
+        return f"housing sum {got}"
+    return None
+
+
+def _check_sticky_level() -> str | None:
+    thresholds = {"1": 0, "2": 400, "3": 600, "4": 900, "5": 1350, "6": 2025, "7": 3037}
+    if city_level_from_population(0, thresholds, 7) != 1:
+        return "L1 at 0"
+    if city_level_from_population(399, thresholds, 7) != 1:
+        return "below L2"
+    if city_level_from_population(400, thresholds, 7) != 2:
+        return "L2 threshold"
+    if city_level_from_population(3037, thresholds, 7) != 7:
+        return "L7"
+    if sticky_city_level(4, 2) != 4:
+        return "no downgrade"
+    if sticky_city_level(2, 5) != 5:
+        return "upgrade allowed"
+    return None
+
+
+def _check_slots_and_offline() -> str | None:
+    if build_slots_of(8) != 11 or build_slots_of(20) != 23:
+        return "slots = agent_slots + 3"
+    defs = {"workshop": {}, "city_hall": {"prebuilt": True, "autonomous": True}, "robotics_lab": {"autonomous": True}}
+    funcs = [
+        {"id": "workshop", "level": 1},
+        {"id": "city_hall", "level": 1},
+        {"id": "robotics_lab", "level": 1},
+        {"id": "bank", "level": 1, "deactivated": 1},
+    ]
+    if ordinary_active_count(funcs, defs) != 1:
+        return "ordinary count should ignore autonomous/prebuilt/deactivated"
+    if clip_offline_hours(12, 6, 18) != 18:
+        return "12+6 must reach 18"
+    if clip_offline_hours(12, 7, 18) != 18:
+        return "merge +1 must never make 19"
+    return None
+
+
 def _check_productivity_identity() -> str | None:
     got = productivity_bps(24, 24)
     if got != BPS:
@@ -320,11 +485,14 @@ _CHECKS: tuple[tuple[str, object], ...] = (
     ("integers", _check_integers),
     ("population", _check_population),
     ("productivity_identity", _check_productivity_identity),
+    ("housing_functions", _check_housing_functions),
+    ("sticky_level", _check_sticky_level),
+    ("slots_and_offline", _check_slots_and_offline),
 )
 
 
 def selftest() -> list[str]:
-    """Run the nine probes. Each must fail on the planted bad input. Empty list = all held."""
+    """Run the probes. Each must fail on the planted bad input. Empty list = all held."""
     misses: list[str] = []
     for name, fn in _CHECKS:
         try:

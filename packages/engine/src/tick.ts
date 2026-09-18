@@ -16,8 +16,18 @@ import {
   reserveDrip,
   updateMintRate,
 } from "./economy.js"
-import { accrueAmount } from "./fragments.js"
-import { periodSettleDue, seasonSettle } from "./seasons.js"
+import {
+  buildSlotsOf,
+  cityLevelFromPopulation,
+  clipOfflineHours,
+  housingCapacityOf,
+  ordinaryActiveCount,
+  population,
+  stickyCityLevel,
+} from "./aggregates.js"
+import { accrueAmount, fragmentGrossBase, settleCities, windowSettleDue } from "./fragments.js"
+import { accumulateDay, consumeAfterSettle, periodSettleDue, seasonSettle, seasonSettleDue } from "./seasons.js"
+import { awardPaidTick, awardTrain, trainComputeCost } from "./xp.js"
 import { encodeHeader, requireHeader, requireRecord } from "./record.js"
 import { cityClock, companionCommandsHash, resolveCityTime, shiftSeedHex } from "./state.js"
 import { asBig, asBool, asDict, asList, asStr, clampInt, sortedKeys, TickError } from "./values.js"
@@ -30,7 +40,86 @@ function pyOr(value: unknown, fallback: bigint): bigint {
   return n
 }
 
+function accumulateInfluenceDay(cfg: Dict, state: Dict, day: bigint, hour: bigint): void {
+  if (hour !== 0n || asBig(state["tick_index"]) === 0n) return
+  const data = asDict(cfg["data"])
+  if (Object.keys(data).length === 0) return
+  const closed = day - 1n
+  const cities = asDict(state["cities"])
+  const bps = asBig(cfg["bps"])
+  const ticksDay = asBig(cfg["ticks_day"])
+  for (const cid of sortedKeys(cities)) {
+    const city = asDict(cities[cid])
+    if (!("influence" in city) && !("season_row" in city)) continue
+    accumulateDay(city, asBig(city["day_gdp"]), asBig(city["day_valid_ticks"]), asBig(city["created_day"]), closed, ticksDay, bps)
+    city["day_gdp"] = 0n
+    city["day_valid_ticks"] = 0n
+  }
+}
+
+function awardXp(cfg: Dict, state: Dict): void {
+  const curve = asDict(cfg["xp_to_next"])
+  if (Object.keys(curve).length === 0) return
+  const levelMax = asBig(cfg["agent_level_max"], 5n)
+  const gain = asBig(cfg["agent_level_gain_bps"], 1500n)
+  const bps = asBig(cfg["bps"])
+  const cities = asDict(state["cities"])
+  for (const cid of sortedKeys(cities)) {
+    const city = asDict(cities[cid])
+    const agents = asList(city["agents"])
+    if (agents.length === 0) continue
+    const cityMags: bigint[] = []
+    for (const m of asList(city["xp_rate_mags"])) cityMags.push(asBig(m))
+    awardPaidTick(city, curve, levelMax, gain, bps, cityMags)
+    for (const raw of agents) {
+      if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
+      const agent = asDict(raw)
+      if (!asStr(agent["train_target"]) && !asStr(city["train_target"])) continue
+      if ("compute_stock" in city) {
+        const mags: bigint[] = []
+        for (const m of asList(agent["compute_cost_mags"])) mags.push(asBig(m))
+        for (const m of asList(agent["train_compute_mags"])) mags.push(asBig(m))
+        if (mags.length > 0) {
+          const extra = trainComputeCost(asBig(city["compute_draw"]), mags, bps)
+          if (extra > asBig(city["compute_stock"])) continue
+          city["compute_stock"] = asBig(city["compute_stock"]) - extra
+        }
+      }
+      awardTrain(city, agent, curve, levelMax, gain, bps, cityMags)
+    }
+  }
+}
+
+function refreshCityProgress(cfg: Dict, state: Dict): void {
+  const thresholds = asDict(cfg["population_thresholds"])
+  const levelMax = asBig(cfg["city_level_max"], 7n)
+  const per = asBig(cfg["population_per_job"])
+  const data = asDict(cfg["data"])
+  const defs = asDict(asDict(data["buildings"])["buildings"])
+  const packSlots = asDict(cfg["slots_at_city_level"])
+  const cities = asDict(state["cities"])
+  for (const cid of sortedKeys(cities)) {
+    const city = asDict(cities[cid])
+    const functions = city["functions"]
+    if (functions === undefined && !("occupied_jobs" in city)) continue
+    if (Array.isArray(functions)) {
+      city["housing_capacity"] = housingCapacityOf(functions, thresholds, asBig(city["housing_capacity_add"]))
+      city["build_slots_used"] = ordinaryActiveCount(functions, defs)
+    }
+    if ("occupied_jobs" in city || Array.isArray(functions)) {
+      const jobs = asBig(city["occupied_jobs"])
+      const housing = asBig(city["housing_capacity"])
+      city["population"] = population(jobs, per, housing)
+      const derived = cityLevelFromPopulation(asBig(city["population"]), thresholds, levelMax)
+      city["city_level"] = stickyCityLevel(asBig(city["city_level"], 1n), derived)
+      const agentSlots = asBig(city["agent_slots"], asBig(packSlots[asBig(city["city_level"]).toString()]))
+      if (agentSlots > 0n) city["build_slots"] = buildSlotsOf(agentSlots)
+    }
+  }
+}
+
 function applyCompanion(cfg: Dict, state: Dict, commands: unknown): void {
+  if (!("companion" in asDict(cfg["data"]))) return
   if (!commands) return
   if (asBig(cfg["companion_replan_on_login"]) > 0n) return
   for (const cmd of asList(commands)) {
@@ -99,10 +188,28 @@ function hourSix(cfg: Dict, state: Dict, day: bigint, hour: bigint): void {
   const data = asDict(cfg["data"])
   if (Object.keys(data).length === 0) return
   const cities = asDict(state["cities"])
-  for (const cid of sortedKeys(cities)) {
-    const city = asDict(cities[cid])
-    if (!city["fragment_ledger"]) continue
-    city["fragment_settlement"] = { pool: asBig(city["fragment_pool"]) }
+  if (windowSettleDue(data, day, hour)) {
+    const subset: Dict = {}
+    for (const cid of sortedKeys(cities)) {
+      const city = asDict(cities[cid])
+      if (city["fragment_ledger"] === undefined && city["fragment_pool"] === undefined) continue
+      subset[cid] = city
+    }
+    if (Object.keys(subset).length > 0) {
+      const rawPools = state["fragment_pools"]
+      const poolArg: bigint | Dict =
+        rawPools !== undefined && rawPools !== null && typeof rawPools === "object"
+          ? asDict(rawPools)
+          : (() => {
+              let pool = 0n
+              for (const cid of Object.keys(subset)) {
+                pool = asBig(asDict(subset[cid])["fragment_pool"])
+                if (pool > 0n) break
+              }
+              return pool
+            })()
+      settleCities(data, subset, poolArg)
+    }
   }
   if (!periodSettleDue(data, day, hour)) return
   const rows: Dict[] = []
@@ -137,7 +244,48 @@ function hourSix(cfg: Dict, state: Dict, day: bigint, hour: bigint): void {
       day,
       hour,
     )
+    if (periodSettleDue(data, day, hour) || seasonSettleDue(data, day, hour)) {
+      for (const cid of sortedKeys(cities)) {
+        const city = asDict(cities[cid])
+        if (!("influence" in city) && !("season_row" in city)) continue
+        consumeAfterSettle(city)
+      }
+    }
   }
+}
+
+function fragmentGrossOf(cfg: Dict, building: Dict): bigint {
+  const data = asDict(cfg["data"])
+  const bid = asStr(building["id"], asStr(building["archetype"]))
+  const level = asBig(building["level"], 1n)
+  let authored = building["fragment_gross_base"]
+  if ((authored === undefined || authored === null) && bid) {
+    const spec = asDict(asDict(asDict(data["buildings"])["buildings"])[bid])
+    authored = spec["fragment_gross_base"]
+  }
+  const bps = asBig(cfg["bps"])
+  let costL1 = asBig(building["cost_l1"])
+  let ow: bigint | undefined
+  let growth = bps
+  let payback = 240n
+  if (bid && Object.keys(data).length > 0) {
+    const bal = asDict(asDict(data["balance"])["params"])
+    const growthRow = asDict(bal["output_growth_bps"])
+    const payRow = asDict(bal["normalization_payback_ticks"])
+    if ("v" in growthRow) growth = asBig(growthRow["v"])
+    if ("v" in payRow) payback = asBig(payRow["v"])
+    const spec = asDict(asDict(asDict(data["buildings"])["buildings"])[bid])
+    const storedOw = spec["output_weight_bps"]
+    if (storedOw !== undefined && storedOw !== null && typeof storedOw === "object") {
+      ow = asBig(asDict(storedOw)["v"])
+    }
+    const weights = spec["cost_weight_bps"]
+    if (costL1 <= 0n && weights !== undefined && weights !== null && typeof weights === "object") {
+      costL1 = (asBig(cfg["workshop_cost"]) * asBig(asDict(weights)["v"])) / bps
+    }
+    if (costL1 <= 0n) costL1 = asBig(cfg["workshop_cost"])
+  }
+  return fragmentGrossBase(authored, costL1, ow, growth, level, payback, bps)
 }
 
 function accrueFragments(cfg: Dict, state: Dict, city: Dict): bigint {
@@ -150,9 +298,11 @@ function accrueFragments(cfg: Dict, state: Dict, city: Dict): bigint {
   if (asBool(city["construction"])) status = asStr(cfg["status_construction"])
   const mags: bigint[] = []
   for (const m of asList(city["fragment_rate_mags"])) mags.push(asBig(m))
+  let gross = fragmentGrossOf(cfg, asDict(building))
+  if (gross <= 0n && asBool(asDict(building)["force_fragment_accrual"])) gross = payout
   const delta = accrueAmount(
     data,
-    payout,
+    gross,
     mags,
     asDict(building),
     status,
@@ -161,6 +311,15 @@ function accrueFragments(cfg: Dict, state: Dict, city: Dict): bigint {
     asStr(cfg["status_paid"]),
   )
   city["fragments"] = asBig(city["fragments"]) + delta
+  if (delta > 0n) {
+    const did = asStr(asDict(building)["district"])
+    const ticker = did ? asStr(asDict(asDict(asDict(data["districts"])["districts"])[did])["ticker"]) : ""
+    if (ticker) {
+      const ledger = asDict(city["fragment_ledger"] ?? {})
+      ledger[ticker] = asBig(ledger[ticker]) + delta
+      city["fragment_ledger"] = ledger
+    }
+  }
   return delta
 }
 
@@ -240,11 +399,14 @@ export function tick(state: Dict, inputs: Dict): readonly [Dict, Dict[]] {
     throw new TickError("I1_RATE_CEILING", asBig(state["tick_index"]), "-", { rate: asBig(state["mint_rate"]) })
   }
   applyDexTurnover(cfg, state, asBig(inputs["dex_turnover_usd_8dec"]))
+  accumulateInfluenceDay(cfg, state, clock[0], clock[1])
   hourSix(cfg, state, clock[0], clock[1])
   fixDayBudget(cfg, state, clock[0], clock[1])
   const rows = collectRequests(cfg, state, clock[1], clock[2])
   pay(cfg, state, rows)
   advanceResearch(cfg, state)
+  awardXp(cfg, state)
+  refreshCityProgress(cfg, state)
   const cities = asDict(state["cities"])
   for (const cid of sortedKeys(cities)) {
     const city = asDict(cities[cid])
@@ -312,7 +474,8 @@ export function catchUp(state: Dict, inputsNow: Dict, lastCityTime: bigint): rea
   const now = asBig(inputsNow["city_time"])
   const elapsed = length === 0n ? 0n : (now - lastCityTime) / length
   if (elapsed <= 0n) return [state, []]
-  const cap = length === 0n ? 0n : asBig(cfg["offline_cap"]) / length
+  const capHours = clipOfflineHours(asBig(cfg["offline_cap"]), asBig(state["offline_cap_hours"]), asBig(cfg["offline_hard_cap"], 18n))
+  const cap = length === 0n ? 0n : capHours / length
   const credited = elapsed < cap ? elapsed : cap
   const skipped = elapsed - credited
   const records: Dict[] = []

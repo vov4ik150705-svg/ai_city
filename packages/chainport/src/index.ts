@@ -7,6 +7,7 @@ export type {
   AssetPort,
   CorpTokenPort,
   MerkleRootsPort,
+  PrizeTreasuryPort,
   RootOk,
   RootResult,
   SnapshotOk,
@@ -28,7 +29,16 @@ export type {
   Voucher,
   WalletPrice,
 } from "./values.js"
-export { amountOk, err, isPortKind, ok, silentTransport } from "./values.js"
+export {
+  amountOk,
+  err,
+  isPortKind,
+  kettleOk,
+  ok,
+  PRIZE_KETTLE_FARM,
+  PRIZE_KETTLE_MONTH,
+  silentTransport,
+} from "./values.js"
 export { createMockPort } from "./mock.js"
 export { createLiveTransport, createRpcPort } from "./rpc/index.js"
 export type { JsonRpcPost, LiveContracts, LiveRpcConfig } from "./rpc/index.js"

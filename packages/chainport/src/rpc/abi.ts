@@ -8,9 +8,14 @@ export const selector = {
   issueVoucher: "437b0a2b",
   presentVoucher: "d60a25e1",
   stake: "90b8436f",
+  unstake: "d37c92dc",
   snapshot: "26512160",
   putRoot: "434d4b00",
   getRoot: "335b6101",
+  prizeDeposit: "e8484a0f",
+  prizeSlice: "30884ec2",
+  prizeReturnUnsettled: "aeb85586",
+  prizeClaimPrize: "25cc976d",
   // docs/LAUNCH.md §8: creatorTaxBps() on the live curve.
   creatorTaxBps: "c1bb8901",
 } as const
@@ -138,6 +143,12 @@ export function dataStake(account: string, ticker: string, amount: bigint): stri
   return concatSel(selector.stake, head + encodeString(ticker))
 }
 
+export function dataUnstake(ticker: string, amount: bigint): string {
+  const n = encodeUint(amount)
+  if (n.length === 0) return ""
+  return concatSel(selector.unstake, encodeUint(64n) + n + encodeString(ticker))
+}
+
 export function dataSnapshot(account: string): string {
   const a = encodeAddr(account)
   if (a.length === 0) return ""
@@ -159,6 +170,62 @@ export function dataGetRoot(cityId: string, day: bigint): string {
 
 export function dataCreatorTaxBps(): string {
   return "0x" + selector.creatorTaxBps
+}
+
+export function dataPrizeDeposit(token: string, kettle: bigint, amount: bigint): string {
+  if (kettle > 255n) return ""
+  const t = encodeAddr(token)
+  const k = encodeUint(kettle)
+  const n = encodeUint(amount)
+  if (t.length === 0 || k.length === 0 || n.length === 0) return ""
+  return concatSel(selector.prizeDeposit, t + k + n)
+}
+
+export function dataPrizeReturnUnsettled(token: string, kettle: bigint): string {
+  if (kettle > 255n) return ""
+  const t = encodeAddr(token)
+  const k = encodeUint(kettle)
+  if (t.length === 0 || k.length === 0) return ""
+  return concatSel(selector.prizeReturnUnsettled, t + k)
+}
+
+export function dataPrizeClaim(token: string, kettle: bigint): string {
+  if (kettle > 255n) return ""
+  const t = encodeAddr(token)
+  const k = encodeUint(kettle)
+  if (t.length === 0 || k.length === 0) return ""
+  return concatSel(selector.prizeClaimPrize, t + k)
+}
+
+export function dataPrizeSlice(
+  token: string,
+  kettle: bigint,
+  players: readonly string[],
+  amounts: readonly bigint[],
+): string {
+  if (kettle > 255n || players.length !== amounts.length) return ""
+  const t = encodeAddr(token)
+  const k = encodeUint(kettle)
+  if (t.length === 0 || k.length === 0) return ""
+  const addrs: string[] = []
+  const qtys: string[] = []
+  for (let i = 0; i < players.length; i += 1) {
+    const player = players[i]
+    const amt = amounts[i]
+    if (player === undefined || amt === undefined) return ""
+    const a = encodeAddr(player)
+    const n = encodeUint(amt)
+    if (a.length === 0 || n.length === 0) return ""
+    addrs.push(a)
+    qtys.push(n)
+  }
+  const n = BigInt(players.length)
+  const playersOff = encodeUint(128n)
+  const amountsOff = encodeUint(128n + 32n + 32n * n)
+  if (playersOff.length === 0 || amountsOff.length === 0) return ""
+  const playersBody = encodeUint(n) + addrs.join("")
+  const amountsBody = encodeUint(n) + qtys.join("")
+  return concatSel(selector.prizeSlice, t + k + playersOff + amountsOff + playersBody + amountsBody)
 }
 
 export function decodeUint(hex: string): bigint | undefined {

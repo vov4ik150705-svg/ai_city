@@ -4,7 +4,6 @@
 
 ## Предусловие
 
-`G2_final.md` на диске, гейт зелёный. Scientist и `research` live. Три узла авторские в `research.json` с `effect_bps`. L161 и live-flags требуют ровно 3. `research_start` на экране синтетикой; в `commandRoutes` его нет. `tick.py` не двигает research. Focus компаньона — G5.
 
 ## Дерево до шага
 

@@ -1,6 +1,5 @@
 # V4 final
 
-`render_sprites`: здания/декор/юниты из атласа на `foot_anchor`, тень, порядок художника, оверлеи, бейдж нехватки на сцене, подписи с порога зума. `launch.deployed` пуст. Водяной знак 19. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **74**, хеш **`63f6157f06d525711c45a9159019e21bfc8c3d1f0baa30fc5473191e9c964145`**, 614766 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 179 кадров (было 175), 1 страница, 2599413 B ≤ 4194304, magenta 0, sha `acd419041ca4`. `layout_hash` `63aa7ce8cc09…` (геометрия не сдвинулась). Объектов сцены **466** (PLAN пишет 424 — живой счёт, не копия).
 

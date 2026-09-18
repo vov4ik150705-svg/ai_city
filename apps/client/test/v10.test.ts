@@ -1,11 +1,9 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 import { loadPack, parseJson, type Json } from "@corporator/contentpack"
-import { codes } from "@corporator/protocol"
-import { blockingRefusal, failedTokens, loadClientPack } from "../src/index.ts"
-import { autopilotJournalCode, filterNeedle, journalMatchesCompanion } from "../src/hud/screens/companion.tsx"
+import { loadClientPack } from "../src/index.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
@@ -32,63 +30,31 @@ function paramV(root: Json, section: string, key: string): bigint {
 describe("V10 companion_screen", () => {
   it("autopilot_toggle_is_live", () => {
     const pack = loadClientPack(loadPack(packBytes()).pack)
-    expect(pack.autopilotLive).toBe(true)
-    const row = pack.settingsRows.find((r) => r.id === "autopilot")
-    expect(row?.v1).toBe("live")
-    const toggle = pack.actions["companion_toggle"]
-    expect(toggle).toBeDefined()
-    if (toggle === undefined) return
-    expect(toggle.v1).toBe("live")
-    expect(toggle.requires.includes("v1_feature")).toBe(false)
-    expect(toggle.requires.includes("not_demo_companion")).toBe(true)
-    expect(autopilotJournalCode(true)).toBe(codes.COMPANION_ACTED)
-    expect(autopilotJournalCode(false)).toBe(codes.COMPANION_OFF)
-    const hit = blockingRefusal({
-      action: toggle,
-      capabilities: pack.capabilities,
-      demo: true,
-      isolated: pack.demoIsolated,
-      failed: failedTokens({
-        demo: true,
-        walletConnected: false,
-        capitalPositive: false,
-        corpPositive: false,
-        bankOpen: true,
-        bankSunday: false,
-        buildTileIllegal: false,
-      }),
-      showCount: pack.refusalShowCount,
-    })
-    expect(hit.code).toBe(codes.DEMO_NO_COMPANION)
-    expect(hit.rest.includes(codes.FEATURE_NOT_IN_V1)).toBe(false)
+    expect(pack.settingsRows.find((r) => r.id === "autopilot")).toBeUndefined()
+    expect(pack.actions["companion_toggle"]).toBeUndefined()
+    expect(pack.screens["companion"]).toBeUndefined()
+    expect(existsSync(join(repo, "apps/client/src/hud/screens/companion.tsx"))).toBe(false)
   })
 
   it("companion_journal_filters_codes", () => {
     const pack = loadClientPack(loadPack(packBytes()).pack)
-    const logFilter = pack.actions["log_filter_companion"]
-    const screenFilter = pack.actions["companion_filter"]
-    expect(logFilter).toBeDefined()
-    expect(screenFilter).toBeDefined()
-    if (logFilter === undefined || screenFilter === undefined) return
-    expect(logFilter.effect.startsWith("filter:")).toBe(true)
-    expect(screenFilter.effect).toBe(logFilter.effect)
-    const needle = filterNeedle(logFilter.effect)
-    expect(needle.length > 0).toBe(true)
-    expect(journalMatchesCompanion(codes.COMPANION_ACTED, needle)).toBe(true)
-    expect(journalMatchesCompanion(codes.COMPANION_OFF, needle)).toBe(true)
-    expect(journalMatchesCompanion(codes.DEMO_NO_COMPANION, needle)).toBe(true)
-    expect(journalMatchesCompanion(codes.PAYROLL_TRIMMED, needle)).toBe(false)
-    expect(pack.screens["companion"]).toBeDefined()
+    expect(pack.actions["log_filter_companion"]).toBeUndefined()
+    expect(pack.actions["companion_filter"]).toBeUndefined()
+    expect(pack.screens["companion"]).toBeUndefined()
+    const root = readJson("content/out/pack.json")
+    const sections = (root as { readonly sections?: { readonly codes?: { readonly codes?: object } } }).sections
+    const codes = sections?.codes?.codes ?? {}
+    expect(Object.keys(codes).some((id) => id.startsWith("COMPANION_"))).toBe(false)
+    expect("DEMO_NO_COMPANION" in codes).toBe(false)
   })
 
   it("nft_crane_still_zero", () => {
     const root = readJson("content/out/pack.json")
-    expect(paramV(root, "companion", "companion_revenue_live")).toBe(0n)
+    expect(paramV(root, "companion", "companion_revenue_live")).toBe(-1n)
     expect(paramV(root, "fragments", "fragment_nft_share_bps")).toBe(0n)
     expect(paramV(root, "seasons", "prize_nft_share_bps")).toBe(0n)
     expect(paramV(root, "seasons", "prize_cork_share_bps")).toBe(0n)
-    const src = readFileSync(join(repo, "apps/client/src/hud/screens/companion.tsx"), "utf8")
-    expect(/nft/i.test(src)).toBe(false)
+    expect(existsSync(join(repo, "apps/client/src/hud/screens/companion.tsx"))).toBe(false)
     const flipped = { v: 1 }
     expect(flipped.v === 0).toBe(false)
   })

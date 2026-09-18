@@ -1,8 +1,8 @@
 """Export thin runtime GLBs from the authoring blend.
 
-Opens island.blend read-only. Never calls save_mainfile / save_as_mainfile.
-Does not run the planter delete cycle. Runtime files are dieted separately
-by diet_runtime.py.
+LOOK-02 contract: mass from collections 00/10/30/40/50, buildings from
+building_<slug> roots with identity root transform. Opens island.blend
+read-only. Never calls save_mainfile / save_as_mainfile.
 """
 
 from __future__ import annotations
@@ -11,6 +11,7 @@ import os
 import sys
 
 import bpy
+from mathutils import Matrix
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 if ROOT not in sys.path:
@@ -23,22 +24,32 @@ RUNTIME = os.path.join(ROOT, "runtime")
 BUILDINGS_DIR = os.path.join(RUNTIME, "buildings")
 MASS_GLB = os.path.join(RUNTIME, "island_mass.glb")
 
-INST_PARENTS: tuple[str, ...] = (
-    "inst_tree",
-    "inst_lamp",
-    "inst_fence",
-    "inst_stair",
-    "inst_sign",
-    "inst_cloud",
+MASS_COLLECTIONS: tuple[str, ...] = (
+    "00_CanonMass",
+    "10_Hardscape",
+    "30_WorldDecor",
+    "40_Sky",
+    "50_Anchors",
 )
 SKIP_TYPES = {"CAMERA", "LIGHT"}
 SKIP_NAMES = {"CamOrbit", "CamUnder", "Sun", "Fill", "Bounce"}
 KEEP_TEX_SOCKETS = {"Base Color", "Emission Color", "Emission", "Alpha"}
 TEXTURE_MAX_PX = 1024
+FORBIDDEN_MASS_PREFIXES = ("building_", "body_", "sign_", "window_", "look02_")
 
 
 def log(msg: str) -> None:
     print(msg, flush=True)
+
+
+def enable_all_layer_collections() -> None:
+    def rec(lc: bpy.types.LayerCollection) -> None:
+        lc.exclude = False
+        lc.hide_viewport = False
+        for ch in lc.children:
+            rec(ch)
+
+    rec(bpy.context.view_layer.layer_collection)
 
 
 def plant_slug(name: str) -> str:
@@ -48,10 +59,6 @@ def plant_slug(name: str) -> str:
             out.append("_")
         out.append(ch.lower())
     return "".join(out)
-
-
-def plant_names() -> set[str]:
-    return {row[0] for row in PLANTS}
 
 
 def plant_slugs() -> dict[str, str]:
@@ -68,28 +75,13 @@ def open_blend_readonly() -> None:
     log(f"opened {BLEND} (read-only, will not save)")
 
 
-def ensure_inst_parents() -> list[str]:
-    created: list[str] = []
-    scene = bpy.context.scene
-    if scene is None:
-        raise RuntimeError("no scene")
-    for name in INST_PARENTS:
-        ob = bpy.data.objects.get(name)
-        if ob is not None:
-            continue
-        ob = bpy.data.objects.new(name, None)
-        ob.empty_display_type = "PLAIN_AXES"
-        scene.collection.objects.link(ob)
-        created.append(name)
-    if created:
-        log(f"created empty inst parents in memory: {created}")
-    return created
-
-
 def select_only(obs: list[bpy.types.Object]) -> None:
     bpy.ops.object.select_all(action="DESELECT")
     active = None
     for ob in obs:
+        ob.hide_select = False
+        for col in ob.users_collection:
+            col.hide_select = False
         ob.hide_set(False)
         ob.hide_viewport = False
         ob.hide_render = False
@@ -144,8 +136,9 @@ def thin_building_textures(ob: bpy.types.Object) -> None:
 
 def export_selected(filepath: str) -> None:
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    tmp = os.path.join(os.path.dirname(filepath), "_" + os.path.basename(filepath)[:-4] + ".exporttmp.glb")
     kwargs: dict[str, object] = {
-        "filepath": filepath,
+        "filepath": tmp,
         "export_format": "GLB",
         "use_selection": True,
         "export_cameras": False,
@@ -156,41 +149,95 @@ def export_selected(filepath: str) -> None:
         ("export_gpu_instances", True),
         ("export_attributes", True),
         ("export_vertex_color", "MATERIAL"),
-        ("export_image_format", "WEBP"),
-        ("export_image_quality", 75),
     ]
     extras = dict(optionals)
     last_error: TypeError | None = None
-    while True:
-        try:
-            bpy.ops.export_scene.gltf(**kwargs, **extras)
-            log(f"wrote {filepath}")
-            return
-        except TypeError as exc:
-            last_error = exc
-            if not extras:
-                break
-            dropped, _ = extras.popitem()
-            log(f"export dropped {dropped}: {exc}")
-    raise RuntimeError(f"gltf export failed for {filepath}: {last_error}")
+    try:
+        while True:
+            try:
+                bpy.ops.export_scene.gltf(**kwargs, **extras)
+                os.replace(tmp, filepath)
+                log(f"wrote {filepath}")
+                return
+            except TypeError as exc:
+                last_error = exc
+                if not extras:
+                    break
+                dropped, _ = extras.popitem()
+                log(f"export dropped {dropped}: {exc}")
+        raise RuntimeError(f"gltf export failed for {filepath}: {last_error}")
+    finally:
+        if os.path.isfile(tmp) and os.path.normcase(tmp) != os.path.normcase(filepath):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+
+
+def collection_objects(name: str) -> list[bpy.types.Object]:
+    col = bpy.data.collections.get(name)
+    if col is None:
+        return []
+    return list(col.objects)
 
 
 def mass_objects() -> list[bpy.types.Object]:
-    buildings = plant_names()
     out: list[bpy.types.Object] = []
-    for ob in bpy.data.objects:
-        if ob.type in SKIP_TYPES or ob.name in SKIP_NAMES:
-            continue
-        if ob.name in buildings:
-            continue
-        if ob.name == "Island" or ob.name.startswith("anchor_") or ob.name.startswith("inst_"):
-            out.append(ob)
-            continue
-        if ob.type == "MESH":
+    seen: set[int] = set()
+    for col_name in MASS_COLLECTIONS:
+        for ob in collection_objects(col_name):
+            key = ob.as_pointer()
+            if key in seen:
+                continue
+            if ob.type in SKIP_TYPES or ob.name in SKIP_NAMES:
+                continue
+            if ob.name.startswith(FORBIDDEN_MASS_PREFIXES):
+                raise RuntimeError(f"mass collection {col_name} contains {ob.name}")
+            seen.add(key)
             out.append(ob)
     if not any(ob.name == "Island" for ob in out):
         raise RuntimeError("Island mesh missing from mass export set")
+    anchors = [ob for ob in out if ob.name.startswith("anchor_")]
+    if len(anchors) != 26:
+        raise RuntimeError(f"mass export anchors {len(anchors)} != 26")
+    empty_anchors = [ob.name for ob in anchors if ob.type != "EMPTY"]
+    if empty_anchors:
+        raise RuntimeError(f"anchor is not EMPTY: {empty_anchors[:4]}")
     return out
+
+
+def walk_tree(root: bpy.types.Object) -> list[bpy.types.Object]:
+    out = [root]
+    stack = [root]
+    while stack:
+        ob = stack.pop()
+        for ch in ob.children:
+            out.append(ch)
+            stack.append(ch)
+    return out
+
+
+def evaluated_world_matrix(ob: bpy.types.Object) -> Matrix:
+    chain: list[bpy.types.Object] = []
+    cur: bpy.types.Object | None = ob
+    while cur is not None:
+        chain.append(cur)
+        cur = cur.parent
+    mw = Matrix.Identity(4)
+    for node in reversed(chain):
+        if node.parent is None:
+            mw = node.matrix_basis.copy()
+        else:
+            mw = mw @ node.matrix_parent_inverse @ node.matrix_basis
+    return mw
+
+
+def apply_matrix_basis(ob: bpy.types.Object, mat: Matrix) -> None:
+    loc, rot, scale = mat.decompose()
+    ob.location = loc
+    ob.rotation_mode = "QUATERNION"
+    ob.rotation_quaternion = rot
+    ob.scale = scale
 
 
 def export_mass() -> None:
@@ -200,36 +247,122 @@ def export_mass() -> None:
     export_selected(MASS_GLB)
 
 
+def identity_export(root: bpy.types.Object, filepath: str) -> None:
+    tree = walk_tree(root)
+    saved: list[dict[str, object]] = []
+    for ob in tree:
+        saved.append(
+            {
+                "ob": ob,
+                "parent": ob.parent,
+                "pinv": ob.matrix_parent_inverse.copy(),
+                "loc": ob.location.copy(),
+                "rot_mode": ob.rotation_mode,
+                "rot_e": tuple(ob.rotation_euler),
+                "rot_q": ob.rotation_quaternion.copy(),
+                "scale": ob.scale.copy(),
+            }
+        )
+    worlds = {ob: evaluated_world_matrix(ob).copy() for ob in tree}
+    root_inv = worlds[root].inverted()
+    mesh_xforms: list[tuple[bpy.types.Mesh, Matrix]] = []
+    seen: set[int] = set()
+    for ob in tree:
+        if ob.type != "MESH" or ob.data is None:
+            continue
+        key = ob.data.as_pointer()
+        if key in seen:
+            raise RuntimeError(f"shared mesh on {ob.name}")
+        seen.add(key)
+        local = root_inv @ worlds[ob]
+        ob.data.transform(local)
+        mesh_xforms.append((ob.data, local))
+    parents = {ob: ob.parent for ob in tree}
+    for ob in tree:
+        ob.parent = None
+        ob.matrix_parent_inverse.identity()
+    apply_matrix_basis(root, Matrix.Identity(4))
+    for ob in tree:
+        if ob is root:
+            continue
+        apply_matrix_basis(ob, Matrix.Identity(4))
+        par = parents[ob]
+        ob.parent = root if par is not None else None
+        ob.matrix_parent_inverse.identity()
+    bpy.context.view_layer.update()
+    try:
+        for ob in tree:
+            thin_building_textures(ob)
+        select_only(tree)
+        export_selected(filepath)
+    finally:
+        for mesh, local in reversed(mesh_xforms):
+            mesh.transform(local.inverted())
+        for rec in saved:
+            ob = rec["ob"]
+            if not isinstance(ob, bpy.types.Object):
+                continue
+            ob.parent = None
+            ob.matrix_parent_inverse.identity()
+        for rec in saved:
+            ob = rec["ob"]
+            if not isinstance(ob, bpy.types.Object):
+                continue
+            ob.rotation_mode = rec["rot_mode"]
+            ob.location = rec["loc"]
+            ob.rotation_euler = rec["rot_e"]
+            ob.rotation_quaternion = rec["rot_q"]
+            ob.scale = rec["scale"]
+        for rec in saved:
+            ob = rec["ob"]
+            if not isinstance(ob, bpy.types.Object):
+                continue
+            par = rec["parent"]
+            ob.parent = par if isinstance(par, bpy.types.Object) else None
+            ob.matrix_parent_inverse = rec["pinv"]
+        bpy.context.view_layer.update()
+
+
 def export_buildings() -> None:
     slugs = plant_slugs()
     os.makedirs(BUILDINGS_DIR, exist_ok=True)
     missing: list[str] = []
-    for name, slug in slugs.items():
-        ob = bpy.data.objects.get(name)
-        if ob is None:
-            missing.append(name)
+    for _plant, slug in slugs.items():
+        root = bpy.data.objects.get(f"building_{slug}")
+        if root is None:
+            missing.append(slug)
             continue
         dest = os.path.join(BUILDINGS_DIR, f"{slug}.glb")
-        thin_building_textures(ob)
-        select_only([ob])
-        export_selected(dest)
+        identity_export(root, dest)
     if missing:
-        raise RuntimeError(f"missing plant objects: {missing}")
+        raise RuntimeError(f"missing building roots: {missing}")
+
+
+def extra_args() -> list[str]:
+    if "--" in sys.argv:
+        return sys.argv[sys.argv.index("--") + 1 :]
+    return []
 
 
 def main() -> None:
+    args = extra_args()
+    mass_only = "--mass-only" in args
+    buildings_only = "--buildings-only" in args
     open_blend_readonly()
+    enable_all_layer_collections()
     island = bpy.data.objects.get("Island")
     if island is None:
         raise RuntimeError("no Island object in blend")
-    names = plant_names()
-    present = {ob.name for ob in bpy.data.objects}
-    missing = sorted(names - present)
+    slugs = plant_slugs()
+    missing = [slug for slug in slugs.values() if bpy.data.objects.get(f"building_{slug}") is None]
     if missing:
-        raise RuntimeError(f"blend missing plants: {missing}")
-    ensure_inst_parents()
-    export_mass()
-    export_buildings()
+        raise RuntimeError(f"blend missing building roots: {missing}")
+    if buildings_only:
+        export_buildings()
+    else:
+        export_mass()
+        if not mass_only:
+            export_buildings()
     log("export_runtime done; blend not saved")
 
 

@@ -12,5 +12,3 @@
 - `c11` `season_prize_distribution_proportional`: минор `>= 20`, не литерал `0.20.0` (**R-V-37**, как L306).
 
 ## Не делалось
-
-Живой `getRoot` на тестовой сети (R-V-5 / **R-V-36**). Миссии, краны NFT, `companion_revenue_live`, `--jobs 8`, `sim.py`, `launchToken`, V12.

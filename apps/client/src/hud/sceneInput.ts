@@ -3,7 +3,7 @@ import {
   clampOrbit,
   isDoubleTap,
   isPan,
-  isTap,
+  isSceneTap,
   keyPanDir,
   keyZoomDir,
   lookAtZone,
@@ -11,6 +11,7 @@ import {
   routeSceneClick,
   wrapOrbit,
   hudSurfaceBlocksPick,
+  zoomOrbitDistance,
   type IslandHandle,
   type TileHit,
 } from "@corporator/render"
@@ -99,9 +100,10 @@ export function bindSceneInput(opts: {
   readonly opened: { readonly [district: string]: bigint }
   readonly wallNowMs: () => bigint
   readonly onRoute: (screen: string, objectId: string, cell: string, tileX: bigint, tileY: bigint) => void
+  readonly onCamChange: () => void
   readonly cam: { current: CamPos }
 }): () => void {
-  const { host, handle, camera, gradeBps, opened, wallNowMs, onRoute, cam } = opts
+  const { host, handle, camera, gradeBps, opened, wallNowMs, onRoute, onCamChange, cam } = opts
   void opts.tileW
   applyCam(handle, cam.current, camera)
 
@@ -119,6 +121,7 @@ export function bindSceneInput(opts: {
     cam.current.tileX = clamped.x
     cam.current.tileY = clamped.y
     applyCam(handle, cam.current, camera)
+    onCamChange()
   }
 
   const clickAt = (sx: bigint, sy: bigint): void => {
@@ -166,7 +169,12 @@ export function bindSceneInput(opts: {
       const prev = pinchDist <= 0n ? 1n : pinchDist
       const dir = pinchZoomDir(prev, dist, camera.pinchStepBps, gradeBps)
       if (dir !== 0n) {
-        cam.current.distance -= dir
+        cam.current.distance = zoomOrbitDistance(
+          cam.current.distance,
+          dir,
+          camera.orbit.distanceMin,
+          camera.orbit.distanceMax,
+        )
         pinchDist = dist
         pushCam()
       }
@@ -192,7 +200,7 @@ export function bindSceneInput(opts: {
     if (e.target === canvas && pointerId === e.pointerId) {
       const p = localPx(canvas, e.clientX, e.clientY)
       const total = absBig(p.x - startX) + absBig(p.y - startY)
-      if (isTap(total, camera.tapMaxMovePx)) {
+      if (isSceneTap(total, camera.tapMaxMovePx, camera.panDeadzonePx)) {
         const now = wallNowMs()
         if (isDoubleTap(now, lastTapMs, camera.doubleTapMs)) {
           const hit = handle.hitAt(p.x, p.y)
@@ -217,15 +225,16 @@ export function bindSceneInput(opts: {
     if (canvas === undefined || e.target !== canvas) return
     e.preventDefault()
     const dir = e.deltaY < 0 ? 1n : 0n - 1n
-    cam.current.distance -= dir
+    cam.current.distance = zoomOrbitDistance(
+      cam.current.distance,
+      dir,
+      camera.orbit.distanceMin,
+      camera.orbit.distanceMax,
+    )
     pushCam()
   }
 
   const onKey = (e: KeyboardEvent): void => {
-    if (e.key === "Escape") {
-      onRoute("", "", "", 0n, 0n)
-      return
-    }
     const pan = keyPanDir(e.key)
     if (pan.dx !== 0n || pan.dy !== 0n) {
       const next = clampCamera(cam.current.tileX + pan.dx, cam.current.tileY + pan.dy, camera.bounds)
@@ -236,7 +245,12 @@ export function bindSceneInput(opts: {
     }
     const z = keyZoomDir(e.key)
     if (z !== 0n) {
-      cam.current.distance -= z
+      cam.current.distance = zoomOrbitDistance(
+        cam.current.distance,
+        z,
+        camera.orbit.distanceMin,
+        camera.orbit.distanceMax,
+      )
       pushCam()
     }
   }

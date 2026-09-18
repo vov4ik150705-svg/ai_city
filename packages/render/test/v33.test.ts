@@ -123,7 +123,7 @@ describe.sequential("V3-3 construction", () => {
 
   it("visual3_no_baked_sun", () => {
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
-    expect(threeSrc.includes("MeshLambertMaterial")).toBe(true)
+    expect(threeSrc.includes("MeshStandardMaterial")).toBe(true)
     expect(threeSrc.includes("MeshBasicMaterial")).toBe(false)
     expect(threeSrc.includes("AmbientLight")).toBe(true)
     const heroSrc = readFileSync(join(repo, "art/pipeline/heroes.py"), "utf8")

@@ -23,8 +23,19 @@ export type StakeRow = {
   readonly amount: bigint
 }
 
+export const PRIZE_KETTLE_FARM = 0n
+export const PRIZE_KETTLE_MONTH = 1n
+
+export function kettleOk(kettle: bigint): boolean {
+  return kettle === PRIZE_KETTLE_FARM || kettle === PRIZE_KETTLE_MONTH
+}
+
 export type MockSeed = {
   readonly corp?: { readonly [account: string]: bigint }
+  readonly prizeStocks?: readonly string[]
+  readonly prizeBalances?: { readonly [account: string]: { readonly [token: string]: bigint } }
+  readonly prizeDepositor?: string
+  readonly prizeSigner?: string
 }
 
 export type RpcOutcome =

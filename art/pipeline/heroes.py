@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import struct
 from pathlib import Path
 
@@ -361,7 +362,7 @@ def _gltf_material(kind: str) -> dict[str, object]:
 def write_glb(
     path: Path,
     parts: list[tuple[str, list[float], list[float] | None, list[int]]],
-) -> None:
+) -> bytes:
     views: list[dict[str, int]] = []
     accessors: list[dict[str, object]] = []
     meshes: list[dict[str, object]] = []
@@ -468,8 +469,12 @@ def write_glb(
     out += struct.pack("<I", bin_len)
     out += b"BIN\x00"
     out += blob
+    blob = bytes(out)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(bytes(out))
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    tmp.write_bytes(blob)
+    os.replace(tmp, path)
+    return blob
 
 
 def building_ids(data: dict) -> list[str]:
@@ -490,18 +495,17 @@ def ensure_heroes(data: dict) -> dict[str, dict[str, object]]:
         low_parts = _mesh_parts(bid, False)
         lod_high = f"{bid}_lod0.glb"
         lod_low = f"{bid}_lod1.glb"
-        write_glb(
+        # Pack hash must not depend on a sibling worker tearing this path.
+        high_bytes = write_glb(
             HERO_DIR / lod_high,
             [(n, p, c, i) for n, p, c, i, _q in high_parts],
         )
-        write_glb(
+        low_bytes = write_glb(
             HERO_DIR / lod_low,
             [(n, p, c, i) for n, p, c, i, _q in low_parts],
         )
         qh = sum(q for _n, _p, _c, _i, q in high_parts)
         ql = sum(q for _n, _p, _c, _i, q in low_parts)
-        high_bytes = (HERO_DIR / lod_high).read_bytes()
-        low_bytes = (HERO_DIR / lod_low).read_bytes()
         catalog[bid] = {
             "lod_high": lod_high,
             "lod_low": lod_low,

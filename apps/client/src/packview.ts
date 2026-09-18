@@ -1,8 +1,7 @@
 import { atPath } from "@corporator/contentpack"
 import type { Json } from "@corporator/contentpack"
 import { codes } from "@corporator/protocol"
-import { loadHeroCatalog } from "@corporator/render"
-import type { HeroCatalogRow } from "@corporator/render"
+import type { OccupiedPlant } from "@corporator/render"
 import { asBig, asFlag, asList, asObj, asText, paramV } from "./values.js"
 import type { ActionRow, CapabilityRow } from "./demo.js"
 import type { HudFixture } from "./layout.js"
@@ -87,6 +86,7 @@ export type ClientOrbit = {
   readonly fovDeg: bigint
   readonly dragBpsPerPx: bigint
   readonly spanBps: bigint
+  readonly targetY: bigint
 }
 
 export type ClientCamera = {
@@ -236,26 +236,21 @@ export type ClientPack = {
   readonly bankLimit: bigint
   readonly quoteLo: bigint
   readonly quoteHi: bigint
-  readonly companionReliefBps: bigint
-  readonly companionCmdPerTick: bigint
-  readonly companionAdvisorDepth: bigint
-  readonly companionAdvisorCalls: bigint
-  readonly companionAdvisorCooldown: bigint
-  readonly companionOfflineCap: bigint
-  readonly companionCarryOver: bigint
-  readonly companionCommands: readonly { readonly id: string; readonly effect: string }[]
-  readonly autopilotLive: boolean
-  readonly lots: unknown
-  readonly heroCatalog: { readonly [id: string]: HeroCatalogRow }
-  readonly lodNear: bigint
-  readonly unitHeightBps: bigint
-  readonly unitShiftPeriod: bigint
-  readonly unitShiftSpanBps: bigint
-  readonly decorHeightBps: bigint
-  readonly lanternHeightBps: bigint
-  readonly canopyHeightBps: bigint
-  readonly vehicleHeightBps: bigint
-  readonly droneHoverHeightBps: bigint
+  readonly islandOccupied: readonly OccupiedPlant[]
+  readonly bloomStrengthBps: bigint
+  readonly bloomRadiusBps: bigint
+  readonly bloomThresholdBps: bigint
+  readonly buildingIds: readonly string[]
+  readonly researchAxes: readonly ClientResearchAxis[]
+  readonly progressionAxes: readonly string[]
+  readonly mergePairIds: readonly string[]
+  readonly populationThresholdByLevel: { readonly [level: string]: bigint }
+}
+
+export type ClientResearchAxis = {
+  readonly id: string
+  readonly cost: bigint | undefined
+  readonly timeTicks: bigint | undefined
 }
 
 function asJsonObj(value: Json | undefined): { readonly [key: string]: Json } {
@@ -368,6 +363,20 @@ export function loadClientPack(pack: Json): ClientPack {
     if (Array.isArray(rows) && rows.length > 0) cost = asBig(rows[0])
     catalog.push({ id: item, cost })
   }
+  const buildingIds = Object.keys(bdefs)
+  const researchAxesIn = asObj(asObj(sections["research"])["axes"])
+  const genBalance = asJsonObj(generated["balance"])
+  const researchCost = loadBigById(genBalance["research_node_cost"])
+  const researchTime = loadBigById(genBalance["research_node_time_ticks"])
+  const researchAxes: ClientResearchAxis[] = []
+  for (const id of Object.keys(researchAxesIn)) {
+    const cost = researchCost[id]
+    const timeTicks = researchTime[id]
+    researchAxes.push({ id, cost, timeTicks })
+  }
+  const progressionAxes = Object.keys(asObj(asObj(sections["progression"])["axes"]))
+  const mergePairIds = loadTexts(asJsonObj(generated["progression"])["merge_pairs"])
+  const populationThresholdByLevel = loadBigById(genBalance["population_threshold"])
   return {
     hash,
     demoIsolated: asFlag(paramV(screens, "demo_isolated")),
@@ -433,7 +442,7 @@ export function loadClientPack(pack: Json): ClientPack {
       minutesPerHour: paramV(sections["render"], "city_minutes_per_hour"),
       emissiveBps: paramV(sections["render"], "emissive_gain_bps"),
       gradeBps: paramV(sections["render"], "grade_bps"),
-      sunDistance: paramV(sections["render"], "sun_distance_tiles"),
+      sunDistance: paramV(sections["render"], "island_sun_distance"),
     },
     camera: {
       levels: loadZoomLevels(placement["zoom_levels"]),
@@ -452,12 +461,13 @@ export function loadClientPack(pack: Json): ClientPack {
         tiltMinBps: paramV(sections["render"], "orbit_tilt_min_bps"),
         tiltMaxBps: paramV(sections["render"], "orbit_tilt_max_bps"),
         azimuthBps: paramV(sections["render"], "orbit_azimuth_bps"),
-        distanceMin: paramV(sections["render"], "orbit_distance_min_tiles"),
-        distanceMax: paramV(sections["render"], "orbit_distance_max_tiles"),
-        distanceDefault: asBig(asJsonObj(generated["render"])["orbit_distance_default_tiles"]),
+        distanceMin: paramV(sections["render"], "island_orbit_distance_min"),
+        distanceMax: paramV(sections["render"], "island_orbit_distance_max"),
+        distanceDefault: paramV(sections["render"], "island_orbit_distance_default"),
         fovDeg: paramV(sections["render"], "orbit_fov_deg"),
         dragBpsPerPx: paramV(sections["render"], "orbit_drag_bps_per_px"),
         spanBps: paramV(sections["render"], "grade_bps"),
+        targetY: paramV(sections["render"], "island_orbit_target_y"),
       },
     },
     motion: {
@@ -504,27 +514,42 @@ export function loadClientPack(pack: Json): ClientPack {
     bankLimit: asBig(asObj(genScreens["bank_daily_limit_live"])["wei"]),
     quoteLo: asBig(quoteRow["lo"]),
     quoteHi: asBig(quoteRow["hi"]),
-    companionReliefBps: paramV(sections["companion"], "companion_idle_relief_bps"),
-    companionCmdPerTick: paramV(sections["companion"], "companion_commands_per_agent_per_tick"),
-    companionAdvisorDepth: paramV(sections["companion"], "companion_advisor_queue_depth"),
-    companionAdvisorCalls: asBig(asJsonObj(generated["companion"])["advisor_calls_per_city_day"]),
-    companionAdvisorCooldown: asBig(asJsonObj(generated["companion"])["advisor_cooldown_city_hours"]),
-    companionOfflineCap: asBig(genScreens["offline_return_ticks_cap"]),
-    companionCarryOver: paramV(sections["companion"], "companion_carry_over"),
-    companionCommands: loadCompanionCommands(asObj(asObj(sections["companion"])["commands"])),
-    autopilotLive: asFlag(paramV(screens, "autopilot_toggle_live")),
-    lots: placement["reference_layout"],
-    heroCatalog: loadHeroCatalog(asJsonObj(generated["render"])["hero_catalog"]),
-    lodNear: paramV(sections["render"], "hero_lod_near_tiles"),
-    unitHeightBps: paramV(sections["render"], "unit_height_bps"),
-    unitShiftPeriod: paramV(sections["render"], "unit_shift_period_city_minutes"),
-    unitShiftSpanBps: paramV(sections["render"], "unit_shift_span_bps"),
-    decorHeightBps: paramV(sections["render"], "decor_height_bps"),
-    lanternHeightBps: paramV(sections["render"], "lantern_height_bps"),
-    canopyHeightBps: paramV(sections["render"], "canopy_height_bps"),
-    vehicleHeightBps: paramV(sections["render"], "vehicle_height_bps"),
-    droneHoverHeightBps: paramV(sections["render"], "drone_hover_height_bps"),
+    islandOccupied: loadIslandOccupied(asObj(asObj(sections["render"])["island_plants"])),
+    bloomStrengthBps: paramV(sections["render"], "bloom_strength_bps"),
+    bloomRadiusBps: paramV(sections["render"], "bloom_radius_bps"),
+    bloomThresholdBps: paramV(sections["render"], "bloom_threshold_bps"),
+    buildingIds,
+    researchAxes,
+    progressionAxes,
+    mergePairIds,
+    populationThresholdByLevel,
   }
+}
+
+function loadIslandOccupied(rows: { readonly [key: string]: unknown }): OccupiedPlant[] {
+  const out: OccupiedPlant[] = []
+  for (const id of Object.keys(rows)) {
+    const row = asObj(rows[id])
+    out.push({
+      slug: asText(row["slug"]),
+      anchor: asText(row["anchor"]),
+      packId: asText(row["pack_id"]),
+    })
+  }
+  return out
+}
+
+function loadBigById(value: Json | undefined): { readonly [id: string]: bigint } {
+  if (value === undefined || value === null || typeof value !== "object" || Array.isArray(value)) {
+    return {}
+  }
+  const row = value as { readonly [key: string]: Json }
+  const out: { [id: string]: bigint } = {}
+  for (const id of Object.keys(row)) {
+    const raw = row[id]
+    if (typeof raw === "bigint") out[id] = raw
+  }
+  return out
 }
 
 function loadTexts(value: unknown): readonly string[] {
@@ -603,19 +628,6 @@ function loadSettingsRows(rows: { readonly [key: string]: unknown }): SettingRow
       labelKey: asText(row["label_key"]),
       v1: asText(row["v1"]),
     })
-  }
-  return out
-}
-
-function loadCompanionCommands(commands: { readonly [key: string]: unknown }): {
-  readonly id: string
-  readonly effect: string
-}[] {
-  const allowed = asObj(commands["allowed"])
-  const out: { id: string; effect: string }[] = []
-  for (const id of Object.keys(allowed)) {
-    const row = asObj(allowed[id])
-    out.push({ id, effect: asText(row["effect"]) })
   }
   return out
 }

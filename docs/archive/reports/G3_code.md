@@ -44,5 +44,3 @@
 Экономических литералов нет. `prize_live_min_rules_minor` не поднят. Форма денег Rev-A не тронута. `creator_tax_bps` 200.
 
 ## 4. Инертность
-
-Круг 1445, вход 200, выход 910, mint 51, окно A `[12275, 15783]`. `season_prizes_live` 1. `companion_rows_live` 0. Research nodes 5. `demo_companion` 0. `robotics_lab` не тронут.

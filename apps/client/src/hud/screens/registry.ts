@@ -4,7 +4,6 @@ import { AgentsScreen } from "./agents.js"
 import { BankScreen } from "./bank.js"
 import { BuildScreen } from "./build.js"
 import { BuildingCardScreen } from "./building_card.js"
-import { CompanionScreen } from "./companion.js"
 import { DistrictCardScreen } from "./district_card.js"
 import { DistrictsScreen } from "./districts.js"
 import { ExchangeScreen } from "./exchange.js"
@@ -23,7 +22,6 @@ export const PACK_SCREEN_IDS = [
   "bank",
   "build",
   "building_card",
-  "companion",
   "district_card",
   "districts",
   "exchange",
@@ -50,8 +48,6 @@ export function renderPackScreen(id: string, props: ScreenProps): ReactElement |
       return createElement(BuildScreen, props)
     case "building_card":
       return createElement(BuildingCardScreen, props)
-    case "companion":
-      return createElement(CompanionScreen, props)
     case "district_card":
       return createElement(DistrictCardScreen, props)
     case "districts":

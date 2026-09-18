@@ -8,7 +8,6 @@
 
 ## 1. Коды: что было и куда попало
 
-Уже были: все `IDLE_*`, фондовые и банковские refusal, `PAYROLL_TRIMMED`, `STALE_PRICE`, `ORACLE_*`, `DISTRICT_FREEZING/FROZEN`, `MODIFIER_CAP_CLAMPED`, `FRAGMENT_*`, `PRIZE_*`, `COMPANION_*`, `DEMO_NO_*`, `WALLET_NOT_CONNECTED`.
 
 Пять новых (больше не заводилось):
 
@@ -17,7 +16,6 @@
 | `BANK_LIMIT_FROM_DEPTH` | state | `bank` |
 | `MINT_RATE_CAPPED` | state | `bank` |
 | `EXCHANGE_HOP_UNAVAILABLE` | refusal | `exchange_buy` (blocking, tier external) |
-| `FEATURE_NOT_IN_V1` | refusal | `missions`, `menu_missions`, клейм приза, автопилот |
 | `WALLET_WRONG_CHAIN` | refusal | `wallet_confirm` |
 
 Поверхности «не режем» из `HUD.md` §9 закрыты `state_surfaces`. Все `IDLE_*` — на `log_panel` и `agents_panel`.
@@ -68,9 +66,7 @@
 
 ## 5. Закрытые и новые pending
 
-Закрыты (`owner=T9`): `progression_hud_screens`, `fragment_claim_screens`, `season_claim_screens`, `companion_screens`.
 
-Новая: `build_tile_refusal` (`owner=T10`). T8-проба `construction_t8_pending_kept` обновлена: вместо закрытого `companion_screens` проверяется `build_tile_refusal`.
 
 Не трогались: цена LLM и ёмкость очереди (T12), проводка тика (T11), грамматика тайла (T10).
 
@@ -104,8 +100,6 @@
 | 19 | MSFT live без гейта | L160 |
 | 20 | четвёртый узел на `research` | L161 |
 | 21 | клейм приза live | L162 |
-| 22 | снят фильтр `COMPANION_` | L163 |
-| 23 | автопилот live | L163 |
 | 24 | число `99` в SCREENS.md (оверлей) | L164 |
 | 25 | `wallet` снят с `bank_withdraw` | L165 |
 | 26 | `wallet` снят с `districts_open` | L165 |

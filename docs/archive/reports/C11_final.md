@@ -66,6 +66,5 @@
 
 ## 6. Незакрытое
 
-Кодовая фаза C0–C11 закрыта. Спрайты T10. `build_tile_refusal` — T10. `companion_llm_price_snapshot` — owner. `S_min` — T2.
 
 Next: вне кодовой фазы v1 (Solidity не в скоупе). Лежащее — pending.

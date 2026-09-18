@@ -24,6 +24,8 @@ export type BuybackPack = {
   readonly depthTwoWei: bigint
   readonly depthTenWei: bigint
   readonly prizeShareBps: bigint
+  readonly leaderboardBps: bigint
+  readonly farmBps: bigint
   readonly studioShareBps: bigint
   readonly hopHaircutBps: bigint
   readonly tickers: readonly string[]
@@ -111,6 +113,8 @@ export function loadBuybackPack(bytes: Uint8Array): BuybackPack {
   const buyback = asObj(services["buyback"])
   const seasons = asObj(atPath(pack, ["sections", "seasons"]))
   const frag = asObj(atPath(pack, ["sections", "fragments"]))
+  const economyGenerated = asObj(atPath(pack, ["generated", "economy"]))
+  const feeSplit = asObj(economyGenerated["fee_split"])
   const seasonsG = asObj(atPath(pack, ["generated", "seasons"]))
   const fragG = asObj(atPath(pack, ["generated", "fragments"]))
   const tickers = strList(seasonsG["prize_assets"])
@@ -140,6 +144,8 @@ export function loadBuybackPack(bytes: Uint8Array): BuybackPack {
     depthTwoWei: paramV(launch, "risk4_depth_two_eth_day_wei"),
     depthTenWei: paramV(launch, "risk4_depth_ten_eth_day_wei"),
     prizeShareBps: paramV(seasons, "prize_creator_tax_share_bps"),
+    leaderboardBps: asBig(feeSplit["leaderboard_bps"]),
+    farmBps: asBig(feeSplit["farm_bps"]),
     studioShareBps: paramV(economy, "studio_eth_share_bps"),
     hopHaircutBps: paramV(frag, "fragment_hop_haircut_bps"),
     tickers,

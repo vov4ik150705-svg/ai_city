@@ -18,7 +18,6 @@
 4. Этапы «T12: roadmap» — десять строк: `pack_gate`, `engine_from_spec`, `host_db_replay`, `port_mock`, `client_on_mock`, `sampler`, `buyback`, `attestor_no_chain`, `chain_v1_1`, `seasons_prizes_v1_1`.
 5. Слои: `engine` 0 без зависимостей; `protocol` 1; `contentpack` 1 → `protocol`; `chainport` 2 → `protocol`; `services/*` 3; `apps/client` 4 с `preview_only=1`.
 
-Что уже готово как данные и уже не проектируется: порядок шагов тика (`docs/TICK.md` §3), целочисленная арифметика и таблица стоков остатка (§4), стримы PRNG (§5), контуры границы суток (§6), layout v1 и заголовок (§8), дерево и домены keccak (§9), агрегаты (§11), проводка T5/фрагментов/сезонов/компаньона (§12), матрица отказов и биекция команд (`docs/API.md` §2), сцена и спрайты (`art/out/scene.json`, `art/out/sprites.json`).
 
 Что физически отсутствует в дереве: ни одной строки TypeScript, ни одного каталога `packages/`, `services/`, `apps/`, ни одной SQL-миграции, ни одного npm/pnpm-манифеста, ни одного Dockerfile, ни одного файла золотых векторов.
 
@@ -217,7 +216,7 @@
 
 - **цель.** Порт тика из спеки в единственный рантайм, байт-стабильный по layout v1.
 - **строка ROADMAP.** `engine_from_spec`.
-- **входы.** `docs/TICK.md` §3 (порядок шагов), §4 (целочисленная арифметика и стоки остатка), §5 (PRNG и стримы), §6 (время и догон), §7 (цена как записанный вход), §8 (layout v1 и заголовок), §9 (дерево и домены), §10 (публичная проверка), §11 (агрегаты), §12 (проводка T5, фрагментов, сезонов, компаньона); `DESIGN.md` §2, §5, §6; `content/tick.py`, `content/aggregates.py`, `content/record.py`, `content/keccak.py`, `content/pack.py` как оракул; ключи пака `tick.*`, `attest.*`, `economy.*`, `time.*`, `agents.params.slots_cap`, `progression.*`, `fragments.*`, `seasons.params.season_prizes_live`, `companion.*`, `exceptions.exceptions.tick_jitter_bps`; `content/out/vectors/*`.
+- **входы.** `docs/TICK.md` §3 (порядок шагов), §4 (целочисленная арифметика и стоки остатка), §5 (PRNG и стримы), §6 (время и догон), §7 (цена как записанный вход), §8 (layout v1 и заголовок), §9 (дерево и домены), §10 (публичная проверка), §11 (агрегаты), §12 (проводка T5, фрагментов, сезонов); `DESIGN.md` §2, §5, §6; `content/tick.py`, `content/aggregates.py`, `content/record.py`, `content/keccak.py`, `content/pack.py` как оракул; ключи пака `tick.*`, `attest.*`, `economy.*`, `time.*`, `agents.params.slots_cap`, `progression.*`, `fragments.*`, `seasons.params.season_prizes_live`, `exceptions.exceptions.tick_jitter_bps`; `content/out/vectors/*`.
 - **выходы.** `packages/engine/src/**` без внешних зависимостей: канонический сериализатор, свой keccak, merkle с доменными байтами и позиционными узлами, `mul_bps`, `twap_from_samples`, `city_clock`, `catch_up`, `tick`, `tick_header`, агрегаты, публичный верификатор `DESIGN.md` §6.3 без цепочки пакетов; `packages/engine/test/**` с векторными и property-тестами.
 - **команда гейта.** `python content/attack.py --since-rule L196 && pnpm --filter @corporator/engine run gate && pnpm -w run vectors`.
 - **инвариантные тесты.** `L208`, `layout_v1_bytes`, `catchup_eq_replay` (строка `engine_from_spec`); property-тесты `tick_deterministic`, `catchup_equals_replay`, `payroll_trim_proportional`, `no_float_in_bytes`, `record_key_order_irrelevant`, `merkle_odd_level_not_duplicated`.
@@ -321,7 +320,7 @@
 
 - **цель.** Сделать инварианты измеримыми в проде и собрать один гейт, которым закрывается любой этап.
 - **строка ROADMAP.** Строки нет: `R-C-1`.
-- **входы.** `docs/ARCHITECTURE.md` §8, §9; `DESIGN.md` §5.4, §6.4; `docs/CONTENT.md` §5; `docs/reports/GATE_PERF.md`; секции «T12: metrics», «T12: environments»; ключи пака `arch.metrics` (десять строк с `threshold_src`), `arch.readiness`, `arch.environments`, `arch.params.llm_worker_concurrency`, `arch.params.attest_lag_alert_ticks`, `arch.derived.companion_queue_capacity`, `companion.params.companion_advisor_queue_depth`, `arch.toolchain`.
+- **входы.** `docs/ARCHITECTURE.md` §8, §9; `DESIGN.md` §5.4, §6.4; `docs/CONTENT.md` §5; `docs/reports/GATE_PERF.md`; секции «T12: metrics», «T12: environments»; ключи пака `arch.metrics` (десять строк с `threshold_src`), `arch.readiness`, `arch.environments`, `arch.params.llm_worker_concurrency`, `arch.params.attest_lag_alert_ticks`, `arch.toolchain`.
 - **выходы.** Экспортеры десяти метрик с порогами по ключам пака; `readiness` = `pack_hash` + `migration_version`; манифесты `dev` / `staging` / `prod`; образ, пинящий `pack_hash`; единый гейт CI с таблицей «шаг → команда → что ловит»; `services/llm/src/**` снаружи тика с `fail_mode = open` и шаблонной подменой при отказе провайдера.
 - **команда гейта.** `pnpm -w run ci` — таблица шагов, каждый шаг падает независимо.
 - **инвариантные тесты.** `invariants_all_metered`, `readiness_requires_pack`, `services_do_not_block_tick`; `L246`, `L259`, `L260`; новые `image_pins_pack_hash`, `image_has_no_python`, `llm_refusal_falls_back_to_template`, `ci_step_has_red_run`.
@@ -497,7 +496,6 @@
 | `district_stake_usd_assumption` | `T3` | закрывается вместе с `district_stake_threshold`. До тех пор `C3` и `C5` держат допущение прогона через `district_stake_usd_target_8dec`, не порог в токенах |
 | `bank_withdraw_rate_ceiling_only` | `T3` | `C1`: движок считает `economy.derived.bank_withdraw_rate` от потолка `economy.params.capital_anchor`, как записано. Круг остаётся в полосе `meta.params.round_trip_floor_bps` / `round_trip_ceiling_bps`; расхождение `R-T3-1` в кодовой фазе не чинится |
 | `exit_uncovered_at_band_floor` | `owner` | остаётся `owner`. `C3` читает его как `threshold_src` метрики `i7_exit_cover` и значение не пересчитывает |
-| `companion_llm_price_snapshot` | `owner` | остаётся `owner` (`R-T12-7`). Технический адрес — `C9` (`services/llm`, очередь из `arch.derived.companion_queue_capacity`); точка цены не выводится из пака |
 | `build_tile_refusal` | `T10` | `C5`: код отказа в `codes.json` плюс строка в `content/strings/ru.json`; заведение поднимает `pack_version` и проходит `L011`, `L012`. Текст сочиняет автор канона, не код |
 | 19 строк `sprite … not drawn yet` | `T10` | `C5` на силуэтах из `art/pipeline/assets_pending.json` в пределах `L178`; готовность `C5` по арту не объявляется (`R-C-8`) |
 

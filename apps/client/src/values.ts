@@ -12,6 +12,12 @@ export function asBig(value: unknown): bigint {
   throw new Error(codes.API_MALFORMED)
 }
 
+export function asMaybeBig(value: unknown): bigint | undefined {
+  if (value === undefined) return undefined
+  if (typeof value === "bigint") return value
+  return undefined
+}
+
 export function asText(value: unknown): string {
   if (typeof value === "string") return value
   throw new Error(codes.API_MALFORMED)

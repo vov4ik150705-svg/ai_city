@@ -58,6 +58,5 @@ RPC-методы `AssetPort` по-прежнему четыре (mock/rpc); пя
 
 ## Незакрытое
 
-PENDING 5: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner, 409), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner), `burn_reserve_rescue` (owner). `studio_eth_recipient` пуст. `launchToken` запрещён до M7. HUD слива — M6 (`L302`).
 
 Next: M6 — `prize_surface` (L302, HUD).

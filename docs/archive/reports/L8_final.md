@@ -56,6 +56,5 @@
 
 ## 5. Незакрытое
 
-PENDING 3: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3). Адреса `launch.deployed` и подписанный raw tx — L9.
 
 Next Step: **L9** — запуск на pons.

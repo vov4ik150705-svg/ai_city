@@ -41,6 +41,5 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner, к P7). Внешний аудит-подрядчик — календарь владельца. Живой `compose up` — среда `R-P-6`, не пак.
 
 Next Step: **P5** — `time_rehearsal` (нужны зелёные P3 и P4).

@@ -49,6 +49,5 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner).
 
 Next Step: **G2** — `archetypes_live` (Scientist/Manager `v1:true`, величины, `sim.py`).

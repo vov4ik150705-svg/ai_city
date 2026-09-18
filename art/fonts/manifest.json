@@ -1,15 +1,14 @@
 {
-  "note": "Vendored HUD typefaces. D-V-20, R-V-6. Pixel face for numbers and titles; sans for the log.",
-  "src": "HUD.md §7, TZ_ART.md §5, OFL-1.1",
+  "note": "Vendored HUD typefaces. Role keys pixel/log stay stable for pack derived.render (D-V-20, L344). Pixel role is IBM Plex Sans (UI). Log role is JetBrains Mono (technical/data).",
+  "src": "docs/reports/HUD_DESIGN_SYSTEM.md errata 6, OFL-1.1",
   "pixel": {
-    "file": "press_start_2p.woff2",
-    "source_ttf": "press_start_2p.ttf",
-    "family": "Press Start 2P",
-    "license_file": "OFL-PressStart2P.txt"
-  },
-  "log": {
     "file": "ibm_plex_sans.woff2",
     "family": "IBM Plex Sans",
     "license_file": "OFL-IBMPlexSans.txt"
+  },
+  "log": {
+    "file": "jetbrains_mono.woff2",
+    "family": "JetBrains Mono",
+    "license_file": "OFL-JetBrainsMono.txt"
   }
 }

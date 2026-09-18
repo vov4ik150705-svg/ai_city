@@ -87,7 +87,9 @@ export function LoginRoot(props: {
     <div data-app="login" className="hud-root hud-login" style={geo}>
       <FontFaces />
       <section className="hud-panel hud-card hud-login__card">
-        <span className="hud-brand">Corporator</span>
+        <span className="hud-brand" data-key="UI_BRAND">
+          {props.strings["UI_BRAND"] ?? props.strings["UI_TOPBAR"] ?? ""}
+        </span>
         <button type="button" data-key="UI_ENTER_DEMO" onClick={() => void onDemo()}>
           {props.strings["UI_ENTER_DEMO"] ?? ""}
         </button>

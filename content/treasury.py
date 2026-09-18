@@ -2,6 +2,7 @@
 
 Settled/unsettled live on the prize kettle. pool_in is a recorded measurement,
 never an accumulator (PLAN_MONEY §15 D-M-13/D-M-14, L287–L289, L297–L301, L303).
+Vault and PrizeTreasury have no pause state (owner: pause/unpause removed).
 """
 
 from __future__ import annotations
@@ -29,8 +30,16 @@ WITNESS_SETTLED = 700
 WITNESS_PLAYER_BACKING = 100
 WITNESS_BOT_BACKING = 40
 WITNESS_RESERVE = 60
+WITNESS_RESERVED = 40
 
 PROXY_RE = ("delegatecall", "DelegateCall", "upgradeTo", "transparent proxy")
+PAUSE_CONTROL_NEEDLES = (
+    "pauseReadyAt",
+    "unpauseDelay",
+    "function pause(",
+    "function unpause(",
+    "require(!paused",
+)
 
 
 def _custody(data: dict) -> dict:
@@ -75,21 +84,34 @@ def return_unsettled_attack(unsliced: int, owed: dict[str, int], eat_settled: bo
     return {"to_bot": to_bot, "owed_sum": sum(kept.values()), "owed": kept}
 
 
+def pause_controls_present(body: str) -> bool:
+    compact = body.replace(" ", "")
+    for needle in PAUSE_CONTROL_NEEDLES:
+        if needle.replace(" ", "") in compact:
+            return True
+    return False
+
+
 def claim_prize(
     *,
     owed: int,
     pool_in: int,
-    paused: bool,
     demo: bool,
-    honor_pause: bool = True,
 ) -> dict[str, object]:
     if demo:
         return {"paid": 0, "code": seasons.CODE_DEMO_NO_PRIZE}
-    if paused and honor_pause:
-        return {"paid": 0, "code": ""}
     if int(pool_in) < int(owed):
         return {"paid": 0, "code": CODE_UNCOVERED, "owed": int(owed), "asset_pool": int(pool_in)}
     return {"paid": int(owed), "code": ""}
+
+
+def available_of(backing: int, reserved: int) -> int:
+    """Vault.availableOf: backing minus outstanding voucher reservations."""
+    b = int(backing)
+    r = int(reserved)
+    if r >= b:
+        return 0
+    return b - r
 
 
 def refund_player(
@@ -100,9 +122,15 @@ def refund_player(
     anchor: int,
     corp_in_vault: int,
     total_backing: int,
+    reserved: int = 0,
 ) -> dict[str, object]:
-    if int(amount) > int(backing) or int(amount) <= 0:
+    avail = available_of(backing, reserved)
+    if int(amount) <= 0:
         return {"ok": 0, "reason": "over_backing"}
+    if int(amount) > int(backing):
+        return {"ok": 0, "reason": "over_backing"}
+    if int(amount) > avail:
+        return {"ok": 0, "reason": "reserved"}
     if int(amount) > int(corp_in_vault):
         return {"ok": 0, "reason": "over_vault"}
     reserve = int(corp_in_vault) - int(total_backing)
@@ -149,15 +177,12 @@ def safety_witness(data: dict) -> dict[str, object]:
     ret_after = return_unsettled_attack(
         WITNESS_UNSLICED - WITNESS_SETTLED, owed, eat
     )
-    honor_pause = not bool((data.get("arch") or {}).get("treasury_claim_when_paused"))
-    claimed = claim_prize(
+    covered = claim_prize(
         owed=WITNESS_SETTLED,
         pool_in=WITNESS_SETTLED,
-        paused=True,
         demo=False,
-        honor_pause=honor_pause,
     )
-    uncovered = claim_prize(owed=50, pool_in=0, paused=False, demo=False)
+    uncovered = claim_prize(owed=50, pool_in=0, demo=False)
     total_backing = WITNESS_PLAYER_BACKING + WITNESS_BOT_BACKING
     corp_in = total_backing + WITNESS_RESERVE
     player_ok = refund_player(
@@ -192,12 +217,31 @@ def safety_witness(data: dict) -> dict[str, object]:
         corp_in_vault=corp_in,
         total_backing=total_backing,
     )
+    reserved_eat = refund_player(
+        backing=WITNESS_PLAYER_BACKING,
+        amount=WITNESS_PLAYER_BACKING,
+        capital=WITNESS_PLAYER_BACKING * 2,
+        anchor=2000,
+        corp_in_vault=corp_in,
+        total_backing=total_backing,
+        reserved=WITNESS_RESERVED,
+    )
+    reserved_ok = refund_player(
+        backing=WITNESS_PLAYER_BACKING,
+        amount=WITNESS_PLAYER_BACKING - WITNESS_RESERVED,
+        capital=WITNESS_PLAYER_BACKING * 2,
+        anchor=2000,
+        corp_in_vault=corp_in,
+        total_backing=total_backing,
+        reserved=WITNESS_RESERVED,
+    )
     files = _sol_bodies(data)
     vault = files.get("Vault.sol") or ""
     treas = files.get("PrizeTreasury.sol") or ""
     all_sol = "\n".join(files.values())
     keys = (data.get("arch") or {}).get("keys") or {}
     codes = ((data.get("codes") or {}).get("codes") or {})
+    pending = ((data.get("pending") or {}).get("items") or {})
     return {
         "groups_n": len(groups),
         "groups_ok": 1 if list(groups) == list(PORT_GROUPS) or set(groups) == set(PORT_GROUPS) else 0,
@@ -209,12 +253,14 @@ def safety_witness(data: dict) -> dict[str, object]:
         "return_after": ret_after["to_bot"],
         "settled_kept": ret_after["owed_sum"],
         "return_skips_settled": 1 if ret_after["owed_sum"] == WITNESS_SETTLED and not eat else 0,
-        "paused_claim_paid": int(claimed["paid"] or 0),
-        "paused_claim_silent": 1 if int(claimed["paid"] or 0) == 0 and (claimed.get("code") or "") == "" else 0,
+        "claim_paid": int(covered["paid"] or 0),
+        "no_pause_controls": 0 if pause_controls_present(vault) or pause_controls_present(treas) else 1,
         "uncovered_code": uncovered.get("code") or "",
         "uncovered_ok": 1 if uncovered.get("code") == CODE_UNCOVERED else 0,
         "player_refund_ok": int(player_ok.get("ok") or 0),
         "over_backing_rejected": 1 if int(over.get("ok") or 0) == 0 else 0,
+        "reserved_coverage_rejected": 1 if int(reserved_eat.get("ok") or 0) == 0 else 0,
+        "available_refund_ok": int(reserved_ok.get("ok") or 0),
         "bot_whole_rejected": 1 if int(bot_all.get("ok") or 0) == 0 else 0,
         "bot_own_ok": int(bot_ok.get("ok") or 0),
         "reserve_left": int(bot_ok.get("reserve") or 0),
@@ -223,7 +269,7 @@ def safety_witness(data: dict) -> dict[str, object]:
         "has_refundRoot": 1 if "refundRoot" in vault else 0,
         "has_setSigner": 1 if "function setSigner" in all_sol else 0,
         "has_proposeSigner": 1 if "function proposeSigner" in vault and "function proposeSigner" in treas else 0,
-        "has_pauseReadyAt": 1 if "pauseReadyAt" in vault and "pauseReadyAt" in treas else 0,
+        "has_acceptSigner": 1 if "function acceptSigner" in vault and "function acceptSigner" in treas else 0,
         "guardian_ne_require": 1 if "guardian" in vault and "!=" in vault and "signer" in vault else 0,
         "proxy": 1 if _has_proxy(all_sol) else 0,
         "recover_in_vault": 1 if "function recoverWrongToken" in vault else 0,
@@ -237,4 +283,5 @@ def safety_witness(data: dict) -> dict[str, object]:
         "return_fn_ok": 1 if _custody(data).get("return_fn") == RETURN_FN else 0,
         "refund_fn_ok": 1 if _custody(data).get("refund_fn") == REFUND_FN else 0,
         "refund_root_flag": 1 if int(_custody(data).get("refund_root") or 0) == 1 else 0,
+        "pause_ready_pending": 1 if "pause_ready_delay" in pending else 0,
     }

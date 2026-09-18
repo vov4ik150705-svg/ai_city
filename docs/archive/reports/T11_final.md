@@ -8,7 +8,6 @@
 
 ## 1. Что закрыто за шаг T11 целиком
 
-- Канон движка `docs/TICK.md`: сигнатура, 11+ шагов, целочисленная арифметика, PRNG D11, два контура суток, catch-up ≡ реплей, цена как вход, layout v1, merkle/keccak, IPFS `(city_id, city_day)`, fail-open аттестации, агрегаты, проводка T5/фрагментов/сезонов/компаньона, 8 GENERATED-таблиц, §14 `R-T11-1…15`.
 - Пословные правки `DESIGN.md` §5.3 / §6.1–6.3 / §8 и `HUD.md` §4.1.
 - Пак: `tick.json`, `attest.json`, фикстуры BRIEF T11 и keccak/агрегаты, `keccak.py` / `record.py` / `aggregates.py`, проводка `tick.py`, `apply_stack` → `stage_bps`.
 - Layout v1 DecisionRecord + `TickInputHeader` лист 0. `pack_hash` в заголовке, не в записи (R-T11-3).
@@ -83,7 +82,6 @@
 | L218 | вторая формула Stability | `L218  aggregates.py defines stability_bps; the only formula is seasons.stability_bps` |
 | L219 | фрагменты на idle / не-маяке | `L219  idle tick accrued fragments_delta=100, expected 0` |
 | L220 | `season_prizes_live=0` и выплата > 0 | `L220  season_prizes_live=0 but sum_payout=40 at non-zero rank` |
-| L221 | `commands` в DecisionRecord | `L221  DecisionRecord carries commands; companion_commands_hash belongs on the header` |
 | L222 | T11 `state_source` без `producer` | `L222  state_source aggregate.happiness owner T11 has no producer` |
 | L223 | нет исключения jitter `% span` | `L223  exceptions missing tick_jitter_bps / remainder_mod_span` |
 | L224 | пункт BRIEF §6 T11 без раздела в `TICK.md` | `L224  BRIEF item batcher_minute tick_section §9 is not in TICK.md` |
@@ -160,7 +158,6 @@ L210: каталог `REMAINDER_SINK_CATALOG` пинит `floor_divs` на фу�
 - окно A на эндогенном ряде для T2/T3 (R-T11-13): ставки/оборот/связь минт↔пул, не выключение продаж в харнессе;
 - высоты полос HUD (`hud_bottom_menu_height_px`, `hud_stock_strip_height_px` — pending);
 - REST / WebSocket, коды ошибок API, монорепо `packages/*` (`packages/engine` копирует `docs/TICK.md`), деплой, наблюдаемость;
-- снимок цены LLM и ёмкость очереди советника (`pending.companion_llm_price_snapshot`, `companion_queue_capacity`);
 - паковые rows T5 в боевой город (не в калибровочную когорту), когда полосы T2 будут пересчитаны сознательно.
 
 ---

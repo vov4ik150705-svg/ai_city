@@ -11,7 +11,7 @@
 
 Шаги T0–T8 закрыты и переделке не подлежат. Текущее состояние гейта: **143 правила линтера / 0 ошибок**, **284 атаки** (200 + 5 DIRECT + 79 проб), `pack_version = 15`, `rules_version = 0.11.1`, `content/out/pack.json` = 224666 байт, SHA256 `7984c9ac7597b1d44e6c6637e304e226a9147613b60be88e747d1972e0bdb929`, `builds justified 6321 / dominating 0 / dead 0 / uncovered 0`.
 
-Прочитай целиком перед тем как писать: `DESIGN.md` (канон механик, 14 разделов), `HUD.md` (канон интерфейса), `docs/BRIEF.md` (ТЗ: §2 решения, §3 инварианты и запрещённый список, §6 задачи, §7 требования к выходу, §8 критерии приёмки), `docs/CONTENT.md` (законы контент-пака, реестр правил линтера, таблица исключений), `docs/BALANCE.md`, `docs/PROGRESSION.md`, `docs/PRIZES.md`, `docs/COMPANION.md`, `docs/LAUNCH.md`, `docs/SIMULATION.md`. Прочитай `content/README.md`, `content/params/*.json`, `content/schema/corporator.schema.json`, `content/build.py`, `content/lint.py`, `content/attack.py`, `content/companion.py`, `content/fragments.py`, `content/seasons.py`, `content/strings/ru.json`, `content/out/GENERATED.md` (структура секций).
+Прочитай целиком перед тем как писать: `DESIGN.md` (канон механик, 14 разделов), `HUD.md` (канон интерфейса), `docs/BRIEF.md` (ТЗ: §2 решения, §3 инварианты и запрещённый список, §6 задачи, §7 требования к выходу, §8 критерии приёмки), `docs/CONTENT.md` (законы контент-пака, реестр правил линтера, таблица исключений), `docs/BALANCE.md`, `docs/PROGRESSION.md`, `docs/PRIZES.md`, `docs/LAUNCH.md`, `docs/SIMULATION.md`. Прочитай `content/README.md`, `content/params/*.json`, `content/schema/corporator.schema.json`, `content/build.py`, `content/lint.py`, `content/attack.py`, `content/fragments.py`, `content/seasons.py`, `content/strings/ru.json`, `content/out/GENERATED.md` (структура секций).
 
 Правила проекта, которые действуют на этом шаге:
 - Контент задаётся **правилами, а не поэлементно**: схема + параметры + генератор дают конкретные сущности. Значение, выводимое из другого, **не хранится, а считается**. Одно и то же число в двух местах — дефект. Ручная настройка — только именованное исключение со строкой в таблице исключений и причиной (бюджет исключений `meta.params.exception_budget = 6`).
@@ -26,7 +26,7 @@
 
 Полная инвентаризация экранов: BUILD, AGENTS, DISTRICTS и Exchange, BANK, RESEARCH, MISSIONS, LEADERBOARD, карточка здания, карточка агента, экран возвращения после оффлайна, онбординг демо-города, подключение кошелька, настройки. Для каждого: состав, каждый кликабельный элемент, что он делает, все состояния отказа с точным текстом, состояния загрузки и пустоты. Отдельно — экраны, изменённые переходом на ETH: в BANK дневной лимит вывода — **живое число от глубины пула**, а не константа уровня, показывается **вместе с причиной, когда он упал**; там же курс минта с пометкой, что он плавает и заперт потолком; в Exchange покупка идёт через лишнюю ногу, и витрина обязана показывать **итоговую цену в Capital, а не маршрут**. Выход по BRIEF §7 — `docs/SCREENS.md`.
 
-Ты закрываешь четыре строки `content/params/pending.json`, где `owner = "T9"`: `progression_hud_screens`, `fragment_claim_screens`, `season_claim_screens`, `companion_screens`. Каждая должна быть удалена из `pending.items` **только после того**, как соответствующий экран, элементы и коды заведены в реестре и покрыты правилом линтера.
+Ты закрываешь три строки `content/params/pending.json`, где `owner = "T9"`: `progression_hud_screens`, `fragment_claim_screens`, `season_claim_screens`. Каждая должна быть удалена из `pending.items` **только после того**, как соответствующий экран, элементы и коды заведены в реестре и покрыты правилом линтера.
 
 # 3. АРХИТЕКТУРА, КОТОРУЮ НАДО РЕАЛИЗОВАТЬ (принята, не обсуждается)
 
@@ -42,14 +42,10 @@
 
 | tier | группа | смысл | токены → коды |
 |---|---|---|---|
-| 10 | identity | кто ты и где ты | `wallet` → `WALLET_NOT_CONNECTED`; `wallet_chain` → `WALLET_WRONG_CHAIN`; `not_demo_withdraw` → `DEMO_NO_WITHDRAW`; `not_demo_claim` → `DEMO_NO_CLAIM`; `not_demo_prize` → `DEMO_NO_PRIZE`; `not_demo_companion` → `DEMO_NO_COMPANION` |
 | 20 | scope | фича вообще есть в v1 | `v1_feature` → `FEATURE_NOT_IN_V1` |
 | 30 | unlock | открыто ли | `city_level` → `CITY_LEVEL_TOO_LOW`; `district_open` → `DISTRICT_LOCKED`; `stake_threshold` → `STAKE_BELOW_THRESHOLD`; `tier_unlocked` → `TIER_NOT_UNLOCKED`; `stake_mult` → `STAKE_MULT_SHORT`; `node_side` → `NODE_SIDE_LOCKED`; `merge_free` → `MERGE_MATCHING_BLOCKED`; `season_qualified` → `PRIZE_NOT_QUALIFIED`; `season_stake` → `PRIZE_STAKE_REQUIRED` |
-| 40 | slot | есть ли место | `build_slot` → `NO_FREE_BUILD_SLOT`; `agent_slot` → `NO_FREE_AGENT_SLOT`; `advisor_queue` → `COMPANION_QUEUE_FULL` |
 | 50 | funds | есть ли чем платить | `capital` → `NOT_ENOUGH_CAPITAL`; `corp` → `NOT_ENOUGH_CORP` |
-| 60 | window | сейчас ли можно | `bank_open` → `BANK_CLOSED`; `bank_weekday` → `BANK_SUNDAY`; `building_hours` → `IDLE_OUT_OF_HOURS` (warning); `companion_window` → `COMPANION_WINDOW_CLOSED` (warning) |
 | 70 | limit | сколько уже взято | `bank_limit` → `BANK_DAILY_LIMIT_REACHED`; `fragment_pool` → `FRAGMENT_POOL_EMPTY` (warning); `fragment_city_cap` → `FRAGMENT_CITY_CAPPED` (warning); `prize_pool` → `PRIZE_POOL_EMPTY` (warning); `season_open` → `SEASON_SETTLED` (warning) |
-| 80 | external | что сказал внешний источник | `hop_priced` → `EXCHANGE_HOP_UNAVAILABLE` (blocking); `price_fresh` → `STALE_PRICE` (warning); `oracle_fresh` → `ORACLE_STALE` (warning); `oracle_alive` → `ORACLE_DECAYING` (warning); `mint_cap` → `MINT_RATE_CAPPED` (warning); `bank_limit_depth` → `BANK_LIMIT_FROM_DEPTH` (warning); `vault_cover` → `VAULT_EXIT_UNCOVERED` (warning); `companion_hold` → `COMPANION_HOLD_STALE` (warning); `district_freezing` → `DISTRICT_FREEZING` (warning); `district_frozen` → `DISTRICT_FROZEN` (warning); `fragment_hop` → `FRAGMENT_HOP_STALE` (warning); `prize_hop` → `PRIZE_HOP_STALE` (warning) |
 
 Причина порядка: игрок должен видеть **фундаментальный** блокер, а не сиюминутный. «Не хватает Capital» на закрытом районе — дефект доверия: игрок пойдёт зарабатывать деньги вместо того, чтобы стейкать.
 
@@ -70,7 +66,6 @@
 ### `content/params/screens.json`
 Секция `screens`. Только то, что не выводится. Все числа целые, у каждого параметра `v`, `u`, `src`, `why`. Никакой русской строки текста интерфейса — весь текст живёт в `content/strings/ru.json` (см. §3.4). Блоки:
 
-- `params`: `refusal_show_count` (сколько кодов на кнопке; принято **1**, `why` — Закон B), `tooltip_show_all` (1), `stale_display_direction` (только вниз, ссылка на `DESIGN.md` §2.3 и `STALE_PRICE`), `demo_isolated` (1, `docs/BRIEF.md` §2), `autopilot_toggle_live` (**0**, `HUD.md` §9), `leaderboard_claim_live` (**0**, `DESIGN.md` §11 «выплата призов — v1.1»), `fragment_claim_live` (**1**, `DESIGN.md` §11 «окна фрагментов играбельных районов»), `research_nodes_live` (**1**, `DESIGN.md` §11 «три узла research»), `missions_live` (**0**, в §11 миссий нет).
 - `client_allowed_sources`: список из трёх значений с `src` `HUD.md` §8.
 - `mounts`: реестр мест крепления: `topbar`, `left_panel`, `right_panel`, `bottom_bar`, `bottom_menu`, `modal`, `fullscreen`, `overlay`; у каждого `hud_ref`.
 - `loading_kinds`: реестр состояний загрузки: `skeleton` (форма панели без чисел), `spinner_inline`, `stale_freeze` (держим последнее значение серым плюс код состояния — **молчаливого нуля нет**, `DESIGN.md` §5.3). У каждого `why`.
@@ -83,9 +78,7 @@
 - `fields`: строки внутри панели. Поля: `kind` (`int` | `bps` | `ratio` | `text` | `badge` | `bar` | `list` | `timer` | `price` | `interval`), `derived_from` (обязателен для числовых `kind`), `source` (из `client_allowed_sources`), `si` (0/1), `unit`, `state_codes` (какие коды состояния это поле обязано показывать), `src`, `why`. Числовой литерал в поле — ошибка сборки.
 - `actions`: строки. Поля: `screen`, `kind` (`button` | `row` | `tab` | `toggle` | `tile` | `link` | `slider` | `filter`), `label` (латинская заглавная строка **или** ключ `UI_*`), `effect` (`navigate:<screen_id>` | `commit:<op>` | `toggle:<flag>` | `select:<entity>` | `filter:<code_prefix>` | `external:<kind>`), `requires` (список токенов капабилити), `spend` (`none` | `capital` | `corp`), `demo_blocked` (0/1), `v1` (`live` | `stub`), `src`, `why`.
 - `capabilities`: реестр гейтов по §3.1. Поля: `code`, `tier`, `kind`, `predicate` (формула на ключах пака; проверяется на резолв упомянутых путей), `src`, `why`.
-- `state_surfaces`: код состояния → список экранов/панелей, где он **обязан** быть виден. Обязательно покрывает список «не режем ни при каких условиях» из `HUD.md` §9: плашка банка, `PAYROLL_TRIMMED`, причины простоя (все `IDLE_*`), двойные числа сток-бара, `STALE_PRICE`, `BANK_DAILY_LIMIT_REACHED`. Плюс `MODIFIER_CAP_CLAMPED` (`HUD.md` §5.3), все `COMPANION_*`, все `FRAGMENT_*`, все `PRIZE_*`, `VAULT_EXIT_UNCOVERED`, `ORACLE_*`, `DISTRICT_*`.
 - `flows`: `onboarding_demo` и `offline_return`. Шаги строками: `step` (порядковый), `teaches` (какой инвариант или панель показывает), `done_when` (предикат), `blocked_codes` (какие коды в этот момент честно показываются), `src`. Онбординг обязан учить в этом порядке: город и часы → посадка Engineer в Workshop → валидный тик с выплатой → искусственный простой с причиной (`IDLE_NO_ENERGY`) → плашка банка и его часы → предложение подключить кошелёк с `DEMO_NO_WITHDRAW`. Причина порядка: игрок должен увидеть **причину простоя** раньше, чем впервые захочет вывести деньги.
-- `settings_rows`: строки настроек: язык, звук, точные числа вместо SI, анимация тика, тумблер автопилота (`v1 = stub`, `HUD.md` §9), отключить кошелёк, сбросить демо. Поля: `kind` (`toggle` | `select` | `action`), `v1`, `client_only` (0/1), `label_key`, `requires`, `src`.
 - `derived`: объявления формул строками (реализация в `content/screens.py`, см. §3.5). Минимум: `action_gate_order`, `blocking_code`, `refusal_matrix`, `unreachable_refusal_codes`, `state_surface_coverage`, `bank_daily_limit_live`, `exchange_quote_capital_bps`, `screens_by_kind`, `actions_by_screen`, `demo_guard_witness`, `offline_return_ticks_cap`, `field_source_witness`.
 
 ### `content/params/codes.json` и `content/strings/ru.json`
@@ -107,14 +100,13 @@
 2. **`RESEARCH` живой ровно на трёх узлах** Grid / Tools / Handbook: `DESIGN.md` §5.11 и §11 включают их в v1, а `HUD.md` §9 называет `RESEARCH` заглушкой. Это расхождение **R-T9-1**: канон скоупа — §11, поэтому `HUD.md` §9 получает пословную правку (`RESEARCH` — три узла §5.11, заглушкой остаётся `MISSIONS`). Список узлов на экране берётся из `content/params/research.json`, а не дублируется в `screens.json`.
 3. **`MISSIONS` — заглушка**: в §11 миссий нет. Все его элементы гейтятся `FEATURE_NOT_IN_V1`, `spend = none`.
 4. **Клейм фрагментов живой** (§11), **клейм приза — `stub`** (§11: «выплата призов — v1.1»), при этом коды `PRIZE_*` показываются на `leaderboard`. Закрывает `pending.fragment_claim_screens` и `pending.season_claim_screens`.
-5. **Журнал компаньона — фильтр в `log_panel`** по префиксу `COMPANION_` (живой), **тумблер автопилота — `stub`** в `settings_rows` (`HUD.md` §9 режет отдельный HUD-модуль). Закрывает `pending.companion_screens`.
-6. **Экран возвращения не продаёт время.** На нём нет ни одного `commit`-элемента; количество догнанных тиков — `min(прошло, потолок оффлайна)`, потолок читается из параметров времени, а не хранится в `screens.json`. Кнопка «докупить часы догона» — прямое нарушение `DESIGN.md` §4.2 (окно оффлайна — собственность ветки MSFT) и §11.
-7. **Валидность тайла в `BUILD` — не твоя** (`pending.placement_grammar`, owner T10). Заведи новую строку `pending.build_tile_refusal` с `owner = "T10"` и объяснением: текст отказа по геометрии тайла появится вместе с грамматикой планировки. Не выдумывай код.
-8. **Точка цены вызова LLM и ёмкость очереди** остаются в pending (owner T12) — не трогай.
+5. **Экран возвращения не продаёт время.** На нём нет ни одного `commit`-элемента; количество догнанных тиков — `min(прошло, потолок оффлайна)`, потолок читается из параметров времени, а не хранится в `screens.json`. Кнопка «докупить часы догона» — прямое нарушение `DESIGN.md` §4.2 (окно оффлайна — собственность ветки MSFT) и §11.
+6. **Валидность тайла в `BUILD` — не твоя** (`pending.placement_grammar`, owner T10). Заведи новую строку `pending.build_tile_refusal` с `owner = "T10"` и объяснением: текст отказа по геометрии тайла появится вместе с грамматикой планировки. Не выдумывай код.
+7. **Точка цены вызова LLM и ёмкость очереди** остаются в pending (owner T12) — не трогай.
 
 ## 3.4 Генератор `content/screens.py`
 
-Чистый модуль, стиль как `content/companion.py` / `content/fragments.py` / `content/seasons.py`. Только целые. Никаких `random`, `time`, `datetime`, сети, чтения файлов вне пака. Никаких экономических литералов (правило L45 расширяется на этот файл — добавь `screens.py` в его список файлов). Публичная функция `build_screens(data, generated) -> dict`, вызывается из `content/build.py` строкой `generated["screens"] = screens.build_screens(data, generated)` рядом с `generated["companion"] = ...`.
+Чистый модуль, стиль как `content/fragments.py` / `content/seasons.py`. Только целые. Никаких `random`, `time`, `datetime`, сети, чтения файлов вне пака. Никаких экономических литералов (правило L45 расширяется на этот файл — добавь `screens.py` в его список файлов). Публичная функция `build_screens(data, generated) -> dict`, вызывается из `content/build.py` строкой `generated["screens"] = screens.build_screens(data, generated)` .
 
 Обязательные производные:
 - `action_gate_order[action_id]` — список токенов, отсортированный по `(tier, token)`; рядом список кодов в том же порядке.
@@ -160,7 +152,6 @@
 | L160 | `v1` каждого экрана согласован со скоупом `design_11_scope.json`: неиграбельные районы видны, но их играбельные элементы гейтятся `DISTRICT_LOCKED` либо `FEATURE_NOT_IN_V1` | дрейф скоупа через интерфейс |
 | L161 | на `research` ровно `research_nodes_live` × три узла, список берётся из `research.json`, а не дублируется в `screens.json` | расширение research-дерева через экран; дубль списка узлов |
 | L162 | клейм приза `v1 = stub` при `leaderboard_claim_live = 0`, клейм фрагментов `v1 = live` при `fragment_claim_live = 1`, коды `PRIZE_*` показаны | выплата призов в v1; спрятанный клейм фрагментов |
-| L163 | в `log_panel` есть фильтр `filter:COMPANION_`, покрывающий все `COMPANION_*`; тумблер автопилота `v1 = stub` при `autopilot_toggle_live = 0` | откат `HUD.md` §9 |
 | L164 | `docs/SCREENS.md` не содержит числовых литералов длиной ≥ 2 вне белого списка (`§`-ссылки, `T<N>`, `L<N>`, `R-T9-<n>`, `v1.1`, содержимое инлайн-кода и ссылок) | число, поселившееся в двух местах: в паке и в документе |
 
 Если существующий механизм уже делает часть этой работы (например, `L45` со сканом литералов по AST, `L11`/`L12` по кодам и текстам, документный скан, если он есть) — **переиспользуй его**, а не дублируй; расширение существующего правила фиксируй в отчёте отдельной строкой.
@@ -190,9 +181,7 @@
 19. Оживить `MSFT`-элемент как `v1 = live` без гейта → L160.
 20. Добавить четвёртый узел research на экран → L161.
 21. Оживить клейм приза (`v1 = live`) → L162.
-22. Убрать фильтр `COMPANION_` из `log_panel` → L163.
-23. Оживить тумблер автопилота → L163.
-24. Вписать в `docs/SCREENS.md` живое число (например, лимит банка цифрами) → L164.
+22. Вписать в `docs/SCREENS.md` живое число (например, лимит банка цифрами) → L164.
 
 Пробы конструкции (искать дыры в собственной постройке, каждую описать в отчёте — выстояла или нашлась):
 - вход, который формально обходит правило: гейт объявлен, но `predicate` ссылается на несуществующий путь;
@@ -205,7 +194,6 @@
 ## 3.8 Документы
 
 ### `docs/SCREENS.md` (новый, главный выход шага)
-Стиль как `docs/COMPANION.md`: русский текст, английские идентификаторы, плотные таблицы, ссылки вместо дублей, шапка с указанием, где механика, где широкие таблицы, где чистая функция и что передано дальше. **Ни одного числа** — только ссылки на секции GENERATED и ключи параметров (это проверяет L164). Обязательные разделы:
 1. Пять законов экрана (§3.1 этого ТЗ) — по абзацу на закон, с причиной и с указанием правила, которое его держит.
 2. Инвентаризация: пятнадцать экранов и одиннадцать панелей, ссылка на GENERATED «T9: инвентаризация экранов»; объяснение, почему пятнадцать против тринадцати пунктов BRIEF.
 3. По каждому экрану — короткий блок: назначение, состав (id панелей), клики (id элементов и их эффекты), отказы (**только коды**, текст живёт в `strings/ru.json`), пустота и загрузка. Без пересказа таблиц.
@@ -214,19 +202,17 @@
 6. Онбординг демо-города: порядок шагов и почему причина простоя раньше вывода денег.
 7. Кошелёк: четыре состояния (не подключён, чужая сеть, подключается, подключён без $CORP).
 8. Настройки: строки, что живое, что заглушка.
-9. Прогрессия, фрагменты, призы, компаньон на экранах — где именно и какими кодами (закрытие четырёх строк pending).
-10. Расхождения `R-T9-*` таблицей.
-11. Что передано дальше: T10 (геометрия тайла и отказ по планировке), T11 (проводка тика и догон), T12 (контракт REST/WS под эти экраны, коды ошибок).
+9. Расхождения `R-T9-*` таблицей.
+10. Что передано дальше: T10 (геометрия тайла и отказ по планировке), T11 (проводка тика и догон), T12 (контракт REST/WS под эти экраны, коды ошибок).
 
 ### Пословные правки канона (только вставки, каждую перечислить в отчёте и в `docs/SCREENS.md` §10)
-- `HUD.md` §9: `RESEARCH` — три узла §5.11 живые, заглушкой остаётся `MISSIONS`; тумблер автопилота остаётся резом, журнал компаньона — фильтр в `LOG`; ссылка «экраны, элементы и отказы — `docs/SCREENS.md`».
 - `HUD.md` §4.3 и §6.2: одна фраза-ссылка, что дерево узлов тира и клейм фрагментов живут в карточке района (`docs/SCREENS.md`).
 - `HUD.md` §3: одна фраза, что дневной лимит банка и курс минта — живые числа с кодами `BANK_LIMIT_FROM_DEPTH` и `MINT_RATE_CAPPED`.
 - `DESIGN.md`: не больше двух вставок по одному предложению — ссылка на `docs/SCREENS.md` как канон экранов там, где это уместно (кандидаты: §7.2 про банк, §11 про рез). Если считаешь, что правка `DESIGN.md` не нужна вовсе — так и скажи пунктом, это допустимый ответ.
-- Обратные ссылки одной строкой в `docs/PROGRESSION.md`, `docs/PRIZES.md`, `docs/COMPANION.md`, `docs/CONTENT.md` (реестр правил линтера пополняется L144–L164 с описанием, что ловит каждое) — только ссылки, без дублирования содержимого.
+- Обратные ссылки одной строкой в `docs/PROGRESSION.md`, `docs/PRIZES.md`, `docs/CONTENT.md` (реестр правил линтера пополняется L144–L164 с описанием, что ловит каждое) — только ссылки, без дублирования содержимого.
 
 ### `content/params/pending.json`
-Удали четыре строки с `owner = "T9"` (`progression_hud_screens`, `fragment_claim_screens`, `season_claim_screens`, `companion_screens`). Добавь `build_tile_refusal` с `owner = "T10"`. Остальные строки не трогай.
+Удали три строки с `owner = "T9"` (`progression_hud_screens`, `fragment_claim_screens`, `season_claim_screens`). Добавь `build_tile_refusal` с `owner = "T10"`. Остальные строки не трогай.
 
 ### `content/params/meta.json`
 `pack_version` → 16. `rules_version` подними по таблице `compat` и **обоснуй выбор одной строкой** в отчёте: новая секция и новый генератор — это `minor` («добавлена новая сущность, которой раньше не было»), формулы существующих генераторов не менялись, набор подстановок существующих кодов не менялся.

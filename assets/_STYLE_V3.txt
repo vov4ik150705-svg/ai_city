@@ -1,51 +1,89 @@
-Corporator visual v3 — STYLE LOCK (read before every Meshy / concept / GLB pass)
+Corporator live island — STYLE LOCK
 
-LIVE WORK
-  Island = art/island_v3 + models/*.glb (PLAN_ISLAND.md).
-  Do not rebuild the pack-grid island. Do not add required drones, cars, walkers,
-  agents, housing quotas, or "N buildings per district" on the mesh.
+READ FIRST
+  docs/CANON.md
+  docs/reports/TZ_ISLAND_LOOK.md
+  docs/reports/TZ_ISLAND_LOOK_STEPS.md
+  docs/reports/ISLAND_STUDIO.md
 
-WHAT "STYLE" MEANS
-  Same WORLD, not the same BUILDING.
-  Shared language: chunky toy volume, neon in windows, readable silhouette from orbit.
-  NOT photoreal. NOT pixelize. NOT a clone of the NVIDIA research brick on every house.
+WORLD
+  The map is the immutable authored Island from the 2026-09-06 snapshot.
+  Do not cut, remesh, recolor, resize, or regenerate it.
+  Add vertical city volume with separate hardscape decks, retaining walls,
+  stairs, pads, and plazas.
+  No grass roof. No water. No units. No pack-grid geometry.
 
-CAMERA (shared)
-  High orbit around the island. Limited tilt. No first-person fly. No vanishing-point street.
-  Object reads as a diorama piece on the XZ lot, not a 2D rhombus sticker.
+TARGET
+  Stylized low-poly cyber diorama.
+  Bright blue day is the primary frame.
+  Dusk and night strengthen signs, windows, and lamps.
+  The frame must read as one city on a rock, not GLBs on a field.
 
-LIGHT (shared)
-  Night and neon are the native phase. Day keeps the city on but kills signage.
-  Remove baked sun from albedo (Meshy: Remove Lighting ON).
-  Windows MUST glow via a separate emission map. Do not paint sun onto walls.
+COMPOSITION
+  City Hall is the civic dominant.
+  Use four to six asymmetric building groups.
+  Do not place all buildings in an even ring or aim every facade at origin.
+  Use the full useful top with deliberate plazas, garden pockets, and overlooks.
+  Approve the gray blockout before materials or decor.
 
-FINISH (shared language, unique material)
-  One language: toy scale, hard edges, neon slits.
-  Different material per building: granite, enamel, glass, steel, tile, concrete —
-  pick what the FUNCTION needs. Do not paint every hero as dark NVIDIA brick + green eye.
-  NVIDIA dark brick + green eye is legal ONLY on the AI Research Center.
+HEIGHT
+  At least three readable hardscape levels.
+  L0 is exposed Island, never a separate deck or a cut passage.
+  Three levels: two 160–240 m gaps, total 320–480 m.
+  Optional L3: three 100–200 m gaps, total 360–520 m.
+  Final values require owner approval at LOOK-04.
 
-UNIQUENESS (mandatory — fail the asset if it looks like a sibling)
-  Different footprint/silhouette from every other hero already on disk.
-  Different roof language.
-  Accent from the job or district, NOT from one hero:
-    compute/NVDA  — green glow, dark tech (research center only)
-    energy/TSLA   — crimson, industrial
-    logistics/AMZN — ochre/amber warehouse
-    consumer/AAPL — pale glass, retail
-    automation/MSFT — cool metal campus
-    finance/COIN  — deep stone, gold slit
-    civic core    — granite / enamel / civic glass; not district brick
+GROUND
+  Measured categories sum to 100% of the 7200×7200 useful top.
+  Target: 68% hardscape, 28% exposed canonical rock, 4% planter soil.
+  Grass coverage is 0%.
+  Checker paving is local to a civic plaza, never the whole city.
 
-BACKGROUND
-  No HUD. No LV badge. No ground plane painted into the hero GLB
-  (the island mesh is the ground). No rust as a default weathering pass.
+BUILDINGS
+  The 18 files in models/*.glb are immutable sources.
+  Runtime derivatives use local roots at the footprint base.
+  A building GLB owns its signs, windows, and building-specific roof props.
+  Preserve distinct material languages by function; never repaint all assets
+  as dark NVIDIA brick.
 
-LOD / TEXTURE (pipeline, not taste)
-  Hero remesh: Quad 30k + 5k. Do not ship a mid LOD that is not lighter than 30k.
-  All textures 2K. Decor ~3k with instancing.
-  Catalog keys = building ids from content/params/buildings.json.
+MATERIALS
+  Base surfaces remain readable with emissive disabled.
+  Remove baked lighting from albedo.
+  BaseColor is sRGB; data maps are linear.
+  Do not strip normal/AO/ORM maps before a visual A/B comparison.
+  Runtime texture side is 1024 unless an owner-approved measured exception exists.
 
-ARCHIVE
-  assets/_STYLE_LOCK.txt remains the V12 pixelize identity lock.
-  Do not feed v2 PNG through pixelize as the v3 game frame.
+EMISSIVE
+  Separate categories: sign, window, lamp, sky, cloud, buildingSurface.
+  Runtime strength = exported strength multiplied by phase gain.
+  Bright day keeps signs at a visible baseline; windows are faint; lamps are off.
+  Sky and clouds are unlit and never phase-glow or bloom.
+
+DECOR
+  Start from the root decoration/ library and run license/style/scale/budget intake.
+  Use authored groups and GPU instances.
+  Trees, lamps, short rails, benches, planters, bollards, and small roof props are legal.
+  People, cars, drones, robots, mobs, water, alpha-card forests, and random scatter are not.
+
+CLOUDS
+  Four purpose-built closed chunky silhouettes.
+  Do not reuse tree fragments as clouds.
+  Use near/mid/far depth bands and at least two clouds below the island edge.
+  No billboard, particle, CSS glyph, or volumetric system.
+
+RENDER
+  Viewer and client use one loader, anchor path, camera math, material policy,
+  light rig, and post stack.
+  sRGB + ACES Filmic + OutputPass.
+  One shadow-casting key, restrained fill, selective bloom on emissive only.
+  A Blender viewport is not a production visual proof.
+
+CAMERA
+  Fit from scene bounds and the safe frame; do not hardcode 2200 m.
+  Initial lookdev: FOV 32–40°, azimuth 35–50°, elevation 30–40° above horizon.
+  The island fills 72–86% of the frame width while the cliff and spire remain visible.
+
+ACCEPTANCE
+  Every LOOK provides runtime captures and waits for owner GO.
+  A green test, a node count, or a draw-call formula does not accept the picture.
+  Only ACCEPT LOOK-11 unlocks HUD work.

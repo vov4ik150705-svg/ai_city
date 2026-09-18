@@ -9,7 +9,6 @@ Freeze шести `S_min` из датированного снимка Chainlink
 - Снимок 2026-08-29T23:19:30Z, RPC chain 4663, шесть `latestRoundData` (`0xfeaf968c`). `S_min = 10000000000 × 10^18 // answer` в атомах, `u: "tokens"`. Floor ≤ 100 $.
 - `district_stake_reference` derived `equals_s_min`. Pending без `district_stake_*`.
 - L39: доллар, нет снимка, нет `at`, дрейф формулы, дыра в тикерах. Construction `smin_frozen_in_tokens`. Vitest + C2 bigint 63.
-- Критерий PLAN_LIVE «без `companion_llm_price_snapshot`» не выполнен: счёта нет. `L141` держит строку. Это `R-L-19`.
 
 ## 2. Гейт с консоли
 
@@ -49,7 +48,6 @@ Freeze шести `S_min` из датированного снимка Chainlink
 | селектор `0xfeaf827c` | фид 0 | revert | закрыто до записи |
 | RPC без `Origin` | 403/1010 | Cloudflare | lint RPC не зовёт |
 | сток-фиды пятницы в воскресенье | freeze с `updated_at` | записано | heartbeat 86400 |
-| снять `companion_llm_price_snapshot` | L141 | не снимали | `R-L-19` |
 | vitest ∥ lint на Windows | l4 EBUSY | rmdir temp | isolated 2/0 |
 
 ## 4. Расхождения R-L-*
@@ -62,6 +60,5 @@ Freeze шести `S_min` из датированного снимка Chainlink
 
 ## 5. Незакрытое
 
-PENDING 3: `companion_llm_price_snapshot` (owner, R-L-19), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3).
 
 Next Step: **L7** — Solidity четырёх групп.

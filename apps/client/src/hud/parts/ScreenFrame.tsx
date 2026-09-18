@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from "react"
-import type { Json } from "@corporator/contentpack"
 import { Empty } from "./Empty.js"
 import { Loading } from "./Loading.js"
+import type { LiveAdapterResult, UiIntent, CommitExtra } from "../liveAdapter.js"
 import type { HudView } from "../model.js"
 
 export type ScreenProps = {
@@ -16,21 +16,27 @@ export type ScreenProps = {
   readonly pendingCell: string
   readonly pendingTileX: bigint
   readonly pendingTileY: bigint
-  readonly onCommit: (effect: string, extra?: { readonly [key: string]: Json }) => void
+  readonly onIntent: (intent: UiIntent, extra?: CommitExtra) => void | Promise<void | LiveAdapterResult>
+  readonly onCommit: (effect: string, extra?: CommitExtra) => void | Promise<void | LiveAdapterResult>
+  readonly moneyTxn: import("../uiState.js").UiTxnState | undefined
+  readonly onMoneyTxn: (state: import("../uiState.js").UiTxnState | undefined) => void
   readonly onLocal: (effect: string) => void
-  readonly autopilotOn: boolean
-  readonly logNeedle: string
-  readonly journalExtra: readonly { readonly id: string; readonly key: string; readonly text: string }[]
+  readonly lookId?: string
+  readonly selectedObjectId?: string
 }
 
-export function ScreenFrame(props: {
+export type ScreenFrameProps = {
   readonly id: string
   readonly view: HudView
   readonly loading: boolean
   readonly empty: boolean
   readonly onClose: () => void
   readonly children: ReactNode
-}): ReactElement {
+}
+
+export type HudChromeKind = "workspace" | "screen"
+
+export function ScreenFrame(props: ScreenFrameProps): ReactElement {
   const chrome = props.view.chrome[props.id]
   const titleKey = chrome === undefined ? "" : chrome.titleKey
   const title = chrome === undefined ? "" : chrome.title

@@ -507,6 +507,16 @@ export async function mountIsland(opts: IslandOpts): Promise<IslandHandle> {
       )
       return hitFromWorld(worldPt.x, worldPt.y, opts.tileW, scene.map, scene.objects, opts.frames)
     },
+    selectObject(objectId: string): void {
+      void objectId
+    },
+    projectObject(objectId: string) {
+      void objectId
+      return undefined
+    },
+    captureMeta() {
+      return emptyHandle("").captureMeta()
+    },
     destroy(): void {
       app.destroy(
         { removeView: true, releaseGlobalResources: true },

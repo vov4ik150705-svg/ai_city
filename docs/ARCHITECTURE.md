@@ -18,11 +18,19 @@
 
 ## §2. Монорепо и слои
 
-`packages/` — engine, protocol, contentpack, chainport, render. `services/` — api, sampler, buyback, attestor, llm. `apps/` — client. Пакет render не импортирует engine (`L338`, `L339`). Живой кадр — 3D-остров `art/island_v3` и `models/` (`R-V-96`, `R-V-98`, `docs/reports/PLAN_ISLAND.md`); клеточный кадр `V3-0`…`V3-7` и Pixi `V12` — архив (`R-V-77`). Пакет `render` читает остров, а не легенду пака; в коде это ещё не так, долг в `docs/reports/PLAN_ISLAND.md`. Юнитов нет (`R-V-101`). Позы архивного кода сетки, если остаются, — чистая функция `city_time`. Шрифты HUD — вендоренные OFL woff2 в `art/fonts/`, без CDN (`L344`, `HUD.md` §7).
+`packages/` — engine, protocol, contentpack, chainport, render. `services/` —
+api, sampler, buyback, attestor, llm. `apps/` — client. Пакет render не
+импортирует engine (`L338`, `L339`). Живой кадр — runtime авторского
+3D-острова и локальных `18` building assets; клеточный V3 и Pixi `V12` — архив.
+Технический провод существует, но visual rescue требует единого
+preview/client renderer и локальных building roots
+(`docs/reports/PLAN_ISLAND.md`). Юнитов нет (`R-V-101`). Позы архивного кода
+сетки, если остаются, — чистая функция `city_time`. Шрифты HUD — вендоренные
+OFL woff2 в `art/fonts/`, без CDN (`L344`, `docs/reports/HUD_DESIGN_SYSTEM.md`).
 
 <!-- GEN:arch.packages -->
 
-`engine.allowed_deps` пусто. Ни один `services/*` не зависит от другого `services/*`. Клиент не видит `chainport`, БД и сервисы; импорт `engine` помечен `preview_only` и в состояние не пишется (`HUD.md` §8). `L226` `L227` `L228` `L229` `L230`. `derived.layer_order`.
+`engine.allowed_deps` пусто. Ни один `services/*` не зависит от другого `services/*`. Клиент не видит `chainport`, БД и сервисы; импорт `engine` помечен `preview_only` и в состояние не пишется (`docs/SCREENS.md`). `L226` `L227` `L228` `L229` `L230`. `derived.layer_order`.
 
 Версии рантайма и сборки — данные пака, не второй конфиг. Манифесты копируют `engines` из `arch.toolchain`. `L267`.
 
@@ -72,7 +80,7 @@
 
 ## §7. Сэмплер и выкуп
 
-Сэмплер снимает TWAP пула `CORP/ETH` и фид `ETH/USD` по фиксированным шагам и пишет входы тика. Период выводится: `sampler_period_s` делит длину тика и не длиннее минуты (`HUD.md` §8). Агрегация — одна функция `twap_from_samples`. Ряд публикуется (`price_day`). Молчание: `feed_live = 0`, значение старое, возраст растёт. Спот пула в путь минта не входит. Тик сэмплера не ждёт. `L239` `L240` `L241` `L242` `L243`.
+Сэмплер снимает TWAP пула `CORP/ETH` и фид `ETH/USD` по фиксированным шагам и пишет входы тика. Период выводится: `sampler_period_s` делит длину тика и не длиннее минуты (`docs/API.md`). Агрегация — одна функция `twap_from_samples`. Ряд публикуется (`price_day`). Молчание: `feed_live = 0`, значение старое, возраст растёт. Спот пула в путь минта не входит. Тик сэмплера не ждёт. `L239` `L240` `L241` `L242` `L243`.
 
 Выкуп — транспорт над `launch.json`. Нога фонда: ETH со сборов → покупка `$CORP` → депозит в vault подтверждён → минт Capital в фонд. Нога корзины — тот же хост: floor призовой доли, floor студии до свопа, равномерный откуп стоков месяца; haircut hop — ссылка на `fragment_hop_haircut_bps`; кап транша и расписание — те же ключи `buyback_refs`. Отказ свопа оставляет ETH в казне, тик не ждёт. Минт раньше депозита — `I1`/`I3`. Ниже `buyback_min_batch_wei` сбор копится. `L244` `L245` `L285` `L286`.
 
@@ -113,8 +121,6 @@
 **R-T12-5.** Категория `transport` расширяет реестр кодов, который знал только `idle` / `refusal` / `state`. Транспорт не попадает в `DecisionRecord.reason` и не стоит в `requires`.
 
 **R-T12-6.** `R-T10-2` закрыт. Безопасный прямоугольник камеры: высота `520` → `432` (`−88` px: полоса `40` плюс меню `48`). `zoom_min` пересчитан формулой: **было** `1/8`, **стало** `1/8` (остров `252` px в высоту сейфа `432`). Радиус острова не тронут.
-
-**R-T12-7.** `companion_llm_price_snapshot` уходит владельцу проекта: точка цены — выбор провайдера, не вывод. Интервал T8 цел.
 
 **R-T12-8.** `docs/ROADMAP.md` не имел задачи-владельца в BRIEF §6 — назначен T12, потому что этапы опираются на границы пакетов и на инвариантные тесты, которых до шага не существовало.
 

@@ -108,10 +108,10 @@ apps/        client                                        — браузер
 | канал | что несёт | когда |
 |---|---|---|
 | `tick` | Capital, Energy, Compute, статусы агентов, записи смены | по событию запечатанного тика |
+| `log` | события | по событию |
 | `aggregate` | GDP, Productivity, Happiness, Stability, Payroll | раз в тик, агрегатом |
 | `price` | цены стоков и TWAP `$CORP` | по новому сэмплу сэмплера (D8) |
 | `efficiency` | efficiency районов | на ветке `06:00` и при входе |
-| `log` | события и журнал компаньона | по событию |
 
 Часы города и плашка банка канала **не получают**: `HUD.md` §8 — «1 с, локально по формуле, без запроса». Канал для клиентских часов был бы 86400 сообщений в сутки за то, что клиент считает сам.
 
@@ -233,8 +233,6 @@ apps/        client                                        — браузер
 | строка | что делает T12 |
 |---|---|
 | `sampler_corp_eth_endogenous` | **закрыть**: сервис специфицирован (D8), харнесс закрыт T11 |
-| `companion_queue_capacity` | **закрыть выводом**: `companion_advisor_queue_depth × llm_worker_concurrency`. Провайдерский лимит не выдумывается — назначается **наша** конкурентность `llm_worker_concurrency = 1` с `why`, переполнение уже несёт код `COMPANION_QUEUE_FULL` |
-| `companion_llm_price_snapshot` | **переформулировать**, `owner: owner`: точка цены — выбор провайдера, то есть решение владельца. Интервал и формула стоимости уже есть (`companion.llm`, `derived.llm_cost_holder_city_day_range_8dec`); ждём датированный снимок, как `S_min` ждёт фид |
 | `hud_stock_strip_height_px` | **закрыть** (D15) |
 | `hud_bottom_menu_height_px` | **закрыть** (D15) |
 
@@ -292,12 +290,12 @@ apps/        client                                        — браузер
 |---|---|---:|---|---|---|
 | `sampler_samples_per_tick` | api.json | `75` | count | D8, `HUD.md` §8 | сэмплов на тик; период выводится и обязан делить длину тика и быть ≤ `60` с |
 | `ws_heartbeat_s` | api.json | `15` | seconds | D5 | три пульса внутри одного сэмпла: мёртвый сокет замечен раньше, чем придёт следующее число |
-| `llm_worker_concurrency` | arch.json | `1` | count | D16 | наша конкурентность, а не выдуманный лимит провайдера; переполнение несёт `COMPANION_QUEUE_FULL` |
+| `llm_worker_concurrency` | arch.json | `1` | count | D16 | наша конкурентность, а не выдуманный лимит провайдера |
 | `attest_lag_alert_ticks` | arch.json | **назначить** | count | D13 | порог алерта по лагу аттестации; `why` обязан назвать инвариант `DESIGN.md` §6.4 и отказ, который порог предупреждает |
 | `stock_strip_height_px` | fixtures/hud_layout.json | `40` | px | `HUD.md` §6.2, D15 | кратно сетке `56 = 7 × 8`; две строки чисел сток-полосы |
 | `bottom_menu_height_px` | fixtures/hud_layout.json | `48` | px | `HUD.md` §6.3, D15 | та же сетка; семь пунктов нижнего меню одной строкой |
 
-Уже существуют, **не дублировать**: `attest_root_period_s = 60`, `tick_length_city_hours = 1`, `city_day_real_hours = 25`, `twap_window_city_hours`, `price_staleness_max_city_hours`, `price_stale_decay_bps_per_city_day`, `buyback_cadence_city_hours = 1`, `buyback_tranche_cap_bps = 33`, `buyback_min_batch_wei`, `buyback_slippage_safety = 3`, `bank_daily_limit_pool_share_cap_bps = 100`, `companion_advisor_queue_depth = 1`, `companion_commands_per_agent_per_tick = 1`, `efficiency_recalc_hour = 6`, `season_prizes_live = 0`, `topbar_height_px = 56`, `column_width_px = 260`, `BPS = 10000`.
+Уже существуют, **не дублировать**: `attest_root_period_s = 60`, `tick_length_city_hours = 1`, `city_day_real_hours = 25`, `twap_window_city_hours`, `price_staleness_max_city_hours`, `price_stale_decay_bps_per_city_day`, `buyback_cadence_city_hours = 1`, `buyback_tranche_cap_bps = 33`, `buyback_min_batch_wei`, `buyback_slippage_safety = 3`, `bank_daily_limit_pool_share_cap_bps = 100`, `efficiency_recalc_hour = 6`, `season_prizes_live = 0`, `topbar_height_px = 56`, `column_width_px = 260`, `BPS = 10000`.
 
 ## 4.2 Выводимые (в params лежать не имеют права; `L09`)
 
@@ -309,7 +307,6 @@ apps/        client                                        — браузер
 | `command_rate_limit_per_city_tick` | `2 × agents_hard_cap` = `40` | `api.derived` |
 | `voucher_ttl_s` | `tick_length_real_seconds` = `3750` | `api.derived` |
 | `state_snapshot_every_ticks` | `ticks_per_city_day` = `24` | `arch.derived` |
-| `companion_queue_capacity` | `companion_advisor_queue_depth × llm_worker_concurrency` = `1` | `arch.derived` |
 | `sampler_age_alert_city_hours` | `price_staleness_max_city_hours // 2` = `3` | `arch.derived` |
 | `command_endpoints` | различные `commit:*` из `screens.json` | `arch.py` |
 | `endpoint_refusals` | капабилити элемента → коды по матрице T9, порядок `(tier, token)` | `arch.py` |
@@ -459,7 +456,6 @@ apps/        client                                        — браузер
 | `R-T12-4` | `docs/SCREENS.md` строка 3 обещает контракт REST/WS шагом T12 — получает адрес |
 | `R-T12-5` | категория `transport` расширяет реестр кодов, который до этого знал только `idle` / `refusal` / `state` |
 | `R-T12-6` | `R-T10-2` закрыт; безопасный прямоугольник камеры уменьшился, зум пересчитан формулой |
-| `R-T12-7` | `companion_llm_price_snapshot` уходит владельцу проекта: точка цены — выбор провайдера, не вывод |
 | `R-T12-8` | `docs/ROADMAP.md` не имел задачи-владельца в BRIEF §6 — назначен T12 |
 | `R-T12-9` | `R-T11-10` (live-корень) и `R-T11-12` (`wallet.chain`, `wallet.corp_balance`) получают адрес сервиса, но остаются `v1.1` / вне тика |
 

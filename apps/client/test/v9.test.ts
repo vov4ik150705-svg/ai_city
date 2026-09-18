@@ -67,6 +67,9 @@ describe("V9 hud_screens", () => {
     }
     const css = readFileSync(join(repo, "apps/client/src/hud/hud.css"), "utf8")
     expect(cyr.test(css)).toBe(false)
+    const en = loadStringTable(readJson("content/strings/en.json"))
+    expect(en["UI_OVERVIEW"]).toBe("Overview")
+    expect(cyr.test(en["UI_OVERVIEW"] ?? "")).toBe(false)
     loadStringTable(readJson("content/strings/ru.json"))
   })
 })

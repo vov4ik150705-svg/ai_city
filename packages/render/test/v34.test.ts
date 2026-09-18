@@ -3,7 +3,10 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 import { routeSceneClick } from "../src/camera.ts"
+import { emptyHandle } from "../src/frame.ts"
 import type { HeroLot } from "../src/heroes.ts"
+import { authoredObjectId } from "../src/islandPlant.ts"
+import { isSceneTap } from "../src/input.ts"
 import { heroAtTile, hudSurfaceBlocksPick, pickFromRay } from "../src/pick.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
@@ -26,7 +29,8 @@ describe.sequential("V3-4 construction", () => {
     expect(water.cell).toBe("~")
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
     expect(threeSrc.includes("setFromCamera")).toBe(true)
-    expect(threeSrc.includes("pickFromRay")).toBe(true)
+    expect(threeSrc.includes("intersectObjects")).toBe(true)
+    expect(threeSrc.includes("pickFromRay")).toBe(false)
     expect(threeSrc.includes("tileFromWorld")).toBe(false)
   })
 
@@ -74,5 +78,30 @@ describe.sequential("V3-4 construction", () => {
     const inputSrc = readFileSync(join(repo, "apps/client/src/hud/sceneInput.ts"), "utf8")
     expect(inputSrc.includes("hudBlocksPick")).toBe(true)
     expect(inputSrc.includes("hudSurfaceBlocksPick")).toBe(true)
+    expect(hudSurfaceBlocksPick("selection")).toBe(true)
+    expect(hudSurfaceBlocksPick("workspace")).toBe(true)
+    const handle = emptyHandle("gpu")
+    handle.selectObject("city_hall")
+    expect(handle.projectObject("city_hall")).toBeUndefined()
+    expect(authoredObjectId("", "amazon_warehouse")).toBe("amazon_warehouse")
+    const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
+    expect(threeSrc.includes("applyBuildingSelection")).toBe(true)
+    expect(threeSrc.includes("clearBuildingSelection(selection)")).toBe(true)
+    expect(threeSrc.includes("selectObject(objectId: string)")).toBe(true)
+    const selectSrc = readFileSync(join(repo, "packages/render/src/islandSelect.ts"), "utf8")
+    expect(selectSrc.includes("mat.clone()")).toBe(true)
+    expect(selectSrc.includes("mat.dispose()")).toBe(true)
+    const pixiSrc = readFileSync(join(repo, "packages/render/src/pixi.ts"), "utf8")
+    expect(pixiSrc.includes("applyBuildingSelection")).toBe(false)
+    const app = readFileSync(join(repo, "apps/client/src/hud/App.tsx"), "utf8")
+    expect(app.includes('setRoute("build")')).toBe(false)
+    expect(app.includes("sceneClickOpensWorkspace")).toBe(true)
+    const navSrc = readFileSync(join(repo, "apps/client/src/hud/navigation.ts"), "utf8")
+    expect(navSrc.includes("function sceneClickOpensWorkspace")).toBe(true)
+    expect(navSrc.includes('id === "build" || id === "missions"')).toBe(true)
+    expect(isSceneTap(10n, 10n, 9n)).toBe(false)
+    expect(isSceneTap(9n, 10n, 9n)).toBe(true)
+    expect(isSceneTap(10n, 10n, 10n)).toBe(true)
+    expect(inputSrc.includes("isSceneTap")).toBe(true)
   })
 })

@@ -2,18 +2,60 @@
   "note": "Literal BRIEF.md §6 T9 inventory. Not a source: the screens registry must reproduce it. Edit only together with BRIEF.",
   "src": "docs/BRIEF.md §6 T9",
   "items": [
-    { "id": "build", "brief": "BUILD" },
-    { "id": "agents", "brief": "AGENTS" },
-    { "id": "districts", "brief": "DISTRICTS и Exchange", "also": ["exchange"] },
-    { "id": "bank", "brief": "BANK" },
-    { "id": "research", "brief": "RESEARCH" },
-    { "id": "missions", "brief": "MISSIONS" },
-    { "id": "leaderboard", "brief": "LEADERBOARD" },
-    { "id": "building_card", "brief": "карточка здания" },
-    { "id": "agent_card", "brief": "карточка агента" },
-    { "id": "offline_return", "brief": "экран возвращения после оффлайна" },
-    { "id": "onboarding_demo", "brief": "онбординг демо-города" },
-    { "id": "wallet_connect", "brief": "подключение кошелька" },
-    { "id": "settings", "brief": "настройки", "also": ["companion"] }
+    {
+      "id": "build",
+      "brief": "BUILD"
+    },
+    {
+      "id": "agents",
+      "brief": "AGENTS"
+    },
+    {
+      "id": "districts",
+      "brief": "DISTRICTS и Exchange",
+      "also": [
+        "exchange"
+      ]
+    },
+    {
+      "id": "bank",
+      "brief": "BANK"
+    },
+    {
+      "id": "research",
+      "brief": "RESEARCH"
+    },
+    {
+      "id": "missions",
+      "brief": "MISSIONS"
+    },
+    {
+      "id": "leaderboard",
+      "brief": "LEADERBOARD"
+    },
+    {
+      "id": "building_card",
+      "brief": "карточка здания"
+    },
+    {
+      "id": "agent_card",
+      "brief": "карточка агента"
+    },
+    {
+      "id": "offline_return",
+      "brief": "экран возвращения после оффлайна"
+    },
+    {
+      "id": "onboarding_demo",
+      "brief": "онбординг демо-города"
+    },
+    {
+      "id": "wallet_connect",
+      "brief": "подключение кошелька"
+    },
+    {
+      "id": "settings",
+      "brief": "настройки"
+    }
   ]
 }

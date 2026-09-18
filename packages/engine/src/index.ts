@@ -18,10 +18,30 @@ export {
   population,
   gdpDay,
   happinessBps,
+  housingBaseOf,
+  housingCapacityOf,
+  cityLevelFromPopulation,
+  stickyCityLevel,
+  buildSlotsOf,
+  ordinaryActiveCount,
+  clipOfflineHours,
 } from "./aggregates.js"
+export {
+  authorize,
+  present,
+  expire,
+  remainingGlobal,
+  bankShareBps,
+  unstake,
+  refundAllowed,
+} from "./bank.js"
+export { awardPaidTick, awardTrain, grantWithRemainder } from "./xp.js"
+export { settleFromData, settleCities, windowSettleDue, fragmentGrossBase } from "./fragments.js"
+export { accumulateDay, consumeAfterSettle, positiveDay, iDay } from "./seasons.js"
 export { publicVerify, encodeLeaves } from "./verify.js"
 export { TickError } from "./values.js"
 export { applySpend, mintFromBacking, researchProgressStep, advanceResearch } from "./economy.js"
+export { applyDexTurnover, creditCreatorTax, splitCreatorTaxAtoms } from "./economy.js"
 export {
   returnUnsettled,
   returnUnsettledAttack,

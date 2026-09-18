@@ -111,6 +111,7 @@ describe.sequential("P5 construction", () => {
 
     const mock = createMockPort(cfg, { corp: { a: 100n } })
     expect((await mock.vault.deposit("a", 10n)).ok).toBe(true)
+    expect((await mock.vault.mintCapital("a", 1n)).ok).toBe(true)
     const voucher: Voucher = { nonce: "hop-tx-1", account: "a", corpAmount: 1n, issuedAtS: 0n }
     expect((await mock.vault.issueVoucher(voucher)).ok).toBe(true)
     const issuedTwice = await mock.vault.issueVoucher(voucher)

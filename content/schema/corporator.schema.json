@@ -1710,14 +1710,33 @@
         "derived": { "$ref": "#/$defs/derived_map" }
       }
     },
+    "island_plant": {
+      "type": "object",
+      "required": ["slug", "anchor", "pack_id", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": { "$ref": "#/$defs/id" },
+        "anchor": { "type": "string", "pattern": "^anchor_[a-z0-9_]+$" },
+        "pack_id": { "type": "string", "pattern": "^$|^[a-z][a-z0-9_]*$" },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
     "render_file": {
       "type": "object",
-      "required": ["section", "note", "params", "derived"],
+      "required": ["section", "note", "params", "island_plants", "derived"],
       "additionalProperties": false,
       "properties": {
         "section": { "const": "render" },
         "note": { "$ref": "#/$defs/note" },
         "params": { "$ref": "#/$defs/param_map" },
+        "island_plants": {
+          "type": "object",
+          "minProperties": 18,
+          "maxProperties": 18,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/island_plant" }
+        },
         "derived": { "$ref": "#/$defs/derived_map" }
       }
     },

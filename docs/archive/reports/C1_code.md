@@ -11,7 +11,6 @@
 | путь | роль |
 |---|---|
 | `packages/engine/src/keccak.ts` | Ethereum keccak-256, pad `0x01` |
-| `packages/engine/src/sha256.ts` | SHA-256; PRNG `digest[:8]` BE; `companion_commands_hash` |
 | `packages/engine/src/utf8.ts` | UTF-8 без `TextEncoder` (`types: []`) |
 | `packages/engine/src/canonical.ts` | `sort_keys`, separators `,` `:`, `ensure_ascii=False` |
 | `packages/engine/src/merkle.ts` | positional; нечётный узел **продвигается**, не дублируется |

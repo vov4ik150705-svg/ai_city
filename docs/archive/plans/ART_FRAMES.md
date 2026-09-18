@@ -47,4 +47,4 @@ Append-only `*_v2.png` (D-V-12). `launch.deployed` empty. Not P7. Not a new visu
 
 ## Незакрытое
 
-`attest_testnet` owner (R-V-5); `pause_ready_delay` owner (P7); `companion_llm_price_snapshot`; `exit_uncovered_at_band_floor`; `bank_withdraw_rate_ceiling_only` T3.
+`attest_testnet` owner (R-V-5); `pause_ready_delay` owner (P7); `exit_uncovered_at_band_floor`; `bank_withdraw_rate_ceiling_only` T3.

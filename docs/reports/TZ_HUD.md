@@ -1,7 +1,8 @@
-# TZ_HUD — интерфейс Corporator
+# TZ_HUD — legacy-справка интерфейса Corporator
 
-Каркас HTML/CSS. **После** принятого вида острова (`PLAN_ISLAND.md`). Этапы V8/V9 из `docs/archive/plans/PLAN_VISUAL.md` — архив, не старт острова.
-Канон — `HUD.md` и `docs/SCREENS.md`. Мокап — `docs/mockups/hud_mockup_v1.png`.
+Старый HTML/CSS-каркас V8/V9. **Не** является визуальным или интеракционным
+источником нового HUD: дизайн задаёт `docs/reports/HUD_DESIGN_SYSTEM.md`;
+`hud_prompt.md` — legacy, не visual authority. Контракт экранов — `docs/SCREENS.md`. Мокап — `docs/mockups/hud_mockup_v1.png`.
 Числа геометрии — `content/fixtures/hud_layout.json`. Тексты — `content/strings/ru.json`.
 
 > **Восстановлено 2026-09-01** из ТЗ до пивота 31 августа (`R-V-55`). Баннер «стройка
@@ -214,7 +215,7 @@ vault, стоки котлов `farm` и `month`, ETH студии. Кнопок
 ### 6.3. `LOG`
 
 Лента событий по времени города. Вкладка `AGENT LOG` в v1 срезана (`HUD.md` §9) — но
-фильтры остаются: `все`, `COMPANION_`, `выплаты`, `отказы`.
+фильтры остают: `все`, `выплаты`, `отказы`.
 
 ```
 12:43  Agent #71 расширил Robotics Lab до LV 3
@@ -328,8 +329,7 @@ funds → window → limit → external. Внутри identity: демо, зат
 | `offline_return` | сколько тиков догнано, не больше капа | `IDLE_OFFLINE_CAP_REACHED` |
 | `onboarding_demo` | шесть шагов, §8.4 | `DEMO_NO_WITHDRAW` на финале |
 | `wallet_connect` | четыре состояния кошелька | `WALLET_NOT_CONNECTED`, `WALLET_WRONG_CHAIN` |
-| `settings` | язык, звук, точные числа, анимация тика, тумблер автопилота | — |
-| `companion` | новый экран, V10, `docs/archive/plans/TZ_FEATURES.md` §2 | `DEMO_NO_COMPANION`, `COMPANION_*` |
+| `settings` | язык, звук, точные числа, анимация тика | ? |
 
 `exchange`: поля `kind=route` нет. Витрина показывает интервал итога в Capital
 (`exchange_quote_capital_bps`): vault, иммутабельный `creatorTaxBps`, лишняя нога как
@@ -359,7 +359,7 @@ funds → window → limit → external. Внутри identity: демо, зат
 Причина порядка: игрок видит **причину простоя** раньше, чем впервые захочет вывести
 деньги.
 
-Демо изолирован: нет `wallet`, нет `corp`, нет `spend ≠ none`, нет компаньона, нет приза,
+Демо изолирован: нет `wallet`, нет `corp`, нет `spend ≠ none`, нет приза,
 нет фарма, `demo_transfer_edges` пуст. Барьер демо не ослабляется ни на пиксель.
 
 ---
@@ -452,7 +452,7 @@ apps/client/src/hud/
 2. У каждого экрана есть пустота и загрузка; молчаливого нуля нет.
 3. На кнопке вывода без кошелька виден `WALLET_NOT_CONNECTED`, а не «не хватает Capital».
 4. Демо-поток проходит шесть шагов онбординга в заданном порядке.
-5. Демо не получает компаньона, приза и фарма; коды `DEMO_NO_*` идут раньше остальных.
+5. Демо не получает приз и фарм; коды `DEMO_NO_*` идут раньше остальных.
 6. На бирже нет поля маршрута; итог показан интервалом в Capital.
 7. В банке нет спота пула; курс минта — из `anchor_mint_rate`.
 

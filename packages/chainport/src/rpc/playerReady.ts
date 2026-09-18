@@ -37,7 +37,7 @@ export function readPlayerReady(env: EnvMap): PlayerReady {
     prizeTreasury.length > 0
   return {
     depositsOpen: env[OPEN] === "1" && complete,
-    contracts: complete ? { corpToken, vault, stakeRegistry, merkleRoots } : undefined,
+    contracts: complete ? { corpToken, vault, stakeRegistry, merkleRoots, prizeTreasury } : undefined,
     prizeTreasury,
   }
 }

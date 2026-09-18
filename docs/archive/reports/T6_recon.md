@@ -98,7 +98,6 @@ TZ: `produced × fragment_stack / BPS`. Прокси суммы величин `
 | cap 2500 режет 50/50 → 25+25 | L96 | 50/50 при 5000 живы |
 | `force_cap_n1` → N=1 выплата 50 | L96 | N=1 выплата 100 |
 | `fragments.rows` unpaid output +700 | L97 | fragments.json без rows |
-| nft share 1000 без companion | L98 | 0 |
 | `demo_claim_real=1` | L99 | DEMO_NO_CLAIM |
 | `fragments_season_proxy=1` | L100 | прокси снят; paper жив |
 | `pools.corp_nvda` | L101 | quote только USDG/WETH |
@@ -154,5 +153,3 @@ Construction T6 (все held): floor тройка; N=1 без капа; 50/50; �
 ---
 
 ## 9. Дальше
-
-**T7** — сезоны / Influence / топ-N, кран `protocol_prizes_bps=4000`, антисивил **R-T6-5**. T9 — экраны клейма. T11 — проводка settlement и дельта фрагментов в запись. T8 — NFT-кран, цена не выдумывается до компаньона. T12 — транш hop / slip COIN (**R-T6-2**).

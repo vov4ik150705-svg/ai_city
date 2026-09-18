@@ -8,6 +8,6 @@ alwaysApply: false
 
 Конвейер `art/raw` → `pixelize.py` → `art/out` закрыт. Не pixelize, не snap в 53 цвета, не ромбы атласа, не закон кадра.
 
-Живой арт — GLB: `art/island_v3/island.glb` и `models/*.glb` по `assets/_STYLE_V3.txt`. Эти файлы не заменять. Юнитов в работе нет (`R-V-101`); агент не добавляет их по своей инициативе. Живой план — `docs/reports/PLAN_ISLAND.md`.
+Живой арт — GLB Terra `runtime_terra19/` и 18 `models/*.glb` по `assets/_STYLE_V3.txt`. Восемнадцать зданий не заменять. Жирный `island.glb` и снимок 2026-09-06 — не runtime. Юнитов в работе нет (`R-V-101`); агент не добавляет их по своей инициативе. Живой план — `docs/reports/PLAN_ISLAND.md`.
 
 Подробности закрытого конвейера — только история: `docs/archive/plans/TZ_ART.md`. Не исполнять.

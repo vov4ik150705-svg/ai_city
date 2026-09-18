@@ -2,7 +2,6 @@
   "section": "pending",
   "note": "То, что канон ещё не зафиксировал. Здесь нет чисел и не должно быть: пустое поле честнее выдуманного. Линтер печатает эти строки отдельным блоком PENDING с указанием задачи-владельца, поэтому ни один параметр не может потеряться между задачами.",
   "items": {
-    "companion_llm_price_snapshot": { "owner": "owner", "kind": "param", "why": "Точка цены вызова LLM — выбор провайдера, не вывод из пака. Интервал уже есть (companion.llm, derived.llm_cost_holder_city_day_range_8dec). Хост C9 отдаёт шаблон при отказе; снимок цены не выдумывается. R-T12-7. R-L-19: L6 заморозил S_min, счёта провайдера нет" },
     "exit_uncovered_at_band_floor": {
       "owner": "owner",
       "kind": "param",
@@ -13,11 +12,6 @@
       "owner": "T3",
       "kind": "derived",
       "why": "economy.derived.bank_withdraw_rate записан от потолка 2000, не от рабочего курса. Круг из ставок, L13/L14 не трогать. R-T3-1. Code-phase address C1"
-    },
-    "pause_ready_delay": {
-      "owner": "owner",
-      "kind": "param",
-      "why": "P3 finding constructor_unpause_delay is accepted: delay > 0 is locked; owner seconds are signed at P7. Do not invent blocks or seconds here"
     },
     "attest_testnet": {
       "owner": "owner",

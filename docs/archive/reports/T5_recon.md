@@ -100,7 +100,6 @@ L77 был декорацией для нового контента. Воспр
 | строки T5 не в `tick.py` / `sim.py` | T11 |
 | HUD показ клипа и запаса до потолка | T9 |
 | `fragment_rate_bps` без пула | T6 |
-| компаньон без нового ключа | T8 |
 | веса Influence vs cap 3500 | T7 |
 | Scientist magnitude 0 | v1.1 |
 | compute floor ниже cap_min | клип L87; якорь не меняли |

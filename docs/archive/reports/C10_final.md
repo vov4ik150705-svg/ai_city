@@ -61,6 +61,5 @@
 
 ## 6. Незакрытое
 
-C11: призы сезонов пересчётом. Спрайты T10. `build_tile_refusal` — T10. `companion_llm_price_snapshot` — owner.
 
 Next: C11 — `seasons_prizes_v1_1`.

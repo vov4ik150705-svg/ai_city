@@ -33,5 +33,3 @@
 - Пороги из чисел P5, не из головы: круг 1445 vs 1400; payroll 10000 vs 24; vault 0 vs 2000; fund 100 vs 4802.
 
 ## 4. Инертность
-
-Круг 1445, вход 200, выход 910, mint 51, окно A `[12275, 15783]`. `creator_tax_bps` 200. `window_a_ratified` 1. `prize_live_min_rules_minor` 19. `rules_version` 0.20.0. `companion_revenue_live` 0. Краны NFT 0.

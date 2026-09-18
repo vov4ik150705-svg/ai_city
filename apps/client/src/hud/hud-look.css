@@ -1,0 +1,1093 @@
+/* Approved island HUD look, ported from studio into the game client.
+   Pixel knobs live as --hud-look-* on .hud-root so layout rules stay tokenized. */
+
+.hud-root {
+  --hud-look-panel-width: 240px;
+  --hud-look-panel-height: 266px;
+  --hud-look-panel-scale: 0.86;
+  --hud-look-panel-radius: 16px;
+  --hud-look-panel-border: rgba(255, 255, 255, 0.1);
+  --hud-look-panel-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  --hud-look-gradient-top: rgba(44, 103, 170, 0.86);
+  --hud-look-gradient-bottom: rgba(30, 79, 140, 0.86);
+  --hud-look-pad-x: 12px;
+  --hud-look-pad-top: 3px;
+  --hud-look-pad-bottom: 18px;
+  --hud-look-header-height: 38px;
+  --hud-look-header-gap: 8px;
+  --hud-look-header-bottom: 8px;
+  --hud-look-header-y: 10px;
+  --hud-look-capital-icon: 36px;
+  --hud-look-capital-gap: 12px;
+  --hud-look-capital-label-value: 4px;
+  --hud-look-capital-value-supporting: 6px;
+  --hud-look-capital-divider-top: 8px;
+  --hud-look-divider-next: 6px;
+  --hud-look-payroll-height: 20px;
+  --hud-look-payroll-progress-top: 6px;
+  --hud-look-payroll-coverage-top: 6px;
+  --hud-look-payroll-divider-top: 8px;
+  --hud-look-resource-icon: 22px;
+  --hud-look-resource-icon-gap: 8px;
+  --hud-look-resource-height: 24px;
+  --hud-look-resource-gap: 6px;
+  --hud-look-k: 12px;
+  --hud-look-hero: 32px;
+  --hud-look-row: 12px;
+  --hud-look-hint: 11px;
+  --hud-look-icon: 20px;
+  --hud-look-title: 14px;
+  --hud-look-meter: 8px;
+  --hud-look-meter-radius: 4px;
+  --hud-look-paid-gap: 6px;
+  --hud-look-qty-gap: 4px;
+  --hud-look-city-header-bottom: 4px;
+  --hud-look-city-res-gap: 8px;
+  --hud-look-city-go-gap: 4px;
+  --hud-look-city-go-top: 10px;
+  --hud-look-city-go-icon: 14px;
+  --hud-look-clock-width: 280px;
+  --hud-look-clock-height: 44px;
+  --hud-look-clock-pad-y: 6px;
+  --hud-look-clock-pad-x: 12px;
+  --hud-look-clock-col-gap: 8px;
+  --hud-look-clock-row-gap: 4px;
+  --hud-look-clock-sun: 14px;
+  --hud-look-clock-sun-nudge: 5px;
+  --hud-look-clock-sun-shift: -2px;
+  --hud-look-clock-day: 12px;
+  --hud-look-clock-bound: 9px;
+  --hud-look-clock-track: 8px;
+  --hud-look-clock-sun-face: 18px;
+  --hud-look-status-gap: 14px;
+  --hud-look-status-bank-pad-y: 5px;
+  --hud-look-status-bank-pad-x: 9px;
+  --hud-look-status-dot: 7px;
+  --hud-look-status-split: 14px;
+  --hud-look-status-season: 12px;
+  --hud-look-status-bank: 11px;
+  --hud-look-status-badge: 12px;
+  --hud-look-status-badge-shift-y: -5px;
+  --hud-look-status-badge-shift-x: -6px;
+  --hud-look-status-badge-font: 8px;
+  --hud-look-activity-width: 330px;
+  --hud-look-activity-height: 158px;
+  --hud-look-activity-pad-top: 3px;
+  --hud-look-activity-pad-x: 20px;
+  --hud-look-activity-pad-bottom: 12px;
+  --hud-look-activity-time: 42px;
+  --hud-look-activity-building: 32px;
+  --hud-look-activity-dot-col: 8px;
+  --hud-look-activity-row-gap: 8px;
+  --hud-look-activity-row: 31px;
+  --hud-look-activity-thumb-w: 28px;
+  --hud-look-activity-thumb-h: 32px;
+  --hud-look-activity-name: 8px;
+  --hud-look-activity-text: 7px;
+  --hud-look-activity-copy-gap: 4px;
+  --hud-look-functions-width: 350px;
+  --hud-look-functions-height: 150px;
+  --hud-look-functions-pad-top: 3px;
+  --hud-look-functions-pad-x: 12px;
+  --hud-look-functions-pad-bottom: 10px;
+  --hud-look-functions-list: 108px;
+  --hud-look-functions-label: 24px;
+  --hud-look-functions-card-pad-y: 6px;
+  --hud-look-functions-card-pad-x: 5px;
+  --hud-look-functions-card-pad-b: 2px;
+  --hud-look-functions-thumb-w: 48px;
+  --hud-look-functions-thumb-h: 58px;
+  --hud-look-functions-status: 8px;
+  --hud-look-functions-name: 9px;
+  --hud-look-functions-gap: 8px;
+  --hud-look-detail-width: 280px;
+  --hud-look-detail-height: 168px;
+  --hud-look-detail-art: 104px;
+  --hud-look-detail-gap: 12px;
+  --hud-look-detail-pad: 12px;
+  --hud-look-detail-thumb-w: 96px;
+  --hud-look-detail-thumb-h: 112px;
+  --hud-look-detail-title: 15px;
+  --hud-look-detail-fact: 12px;
+  --hud-look-detail-fact-h: 18px;
+  --hud-look-detail-icon-col: 24px;
+  --hud-look-detail-icon: 20px;
+  --hud-look-detail-dot: 10px;
+  --hud-look-detail-dot-left: 5px;
+  --hud-look-detail-body-gap: 5px;
+  --hud-look-detail-manage-h: 28px;
+  --hud-look-detail-manage-radius: 7px;
+  --hud-look-detail-manage-go: 16px;
+  --hud-look-select-border: rgba(255, 182, 74, 0.85);
+  --hud-look-art-fill: rgba(19, 66, 123, 0.28);
+  --hud-look-rule: rgba(255, 255, 255, 0.08);
+  --hud-look-meter-track: rgba(255, 255, 255, 0.12);
+  --hud-look-coin-fill: #ffb64a;
+  --hud-look-sun: #ffcf4a;
+  --hud-look-card-border: rgba(255, 255, 255, 0.04);
+  --hud-look-selected-ring: rgba(69, 199, 244, 0.55);
+}
+
+.hud-economy,
+.hud-functions,
+.hud-activity,
+.hud-popover {
+  pointer-events: auto;
+}
+
+.hud-col--left,
+.hud-col--right {
+  overflow: visible;
+}
+
+.hud-economy {
+  --eco-panel-width: var(--hud-look-panel-width);
+  --eco-panel-height: var(--hud-look-panel-height);
+  --eco-panel-scale: var(--hud-look-panel-scale);
+  --eco-panel-radius: var(--hud-look-panel-radius);
+  --eco-panel-border: var(--hud-look-panel-border);
+  --eco-panel-shadow: var(--hud-look-panel-shadow);
+  --eco-panel-gradient-top: var(--hud-look-gradient-top);
+  --eco-panel-gradient-bottom: var(--hud-look-gradient-bottom);
+  --eco-panel-padding-x: var(--hud-look-pad-x);
+  --eco-panel-padding-top: var(--hud-look-pad-top);
+  --eco-panel-padding-bottom: var(--hud-look-pad-bottom);
+  --eco-header-height: var(--hud-look-header-height);
+  --eco-header-gap: var(--hud-look-header-gap);
+  --eco-header-bottom: var(--hud-look-header-bottom);
+  --eco-header-y: var(--hud-look-header-y);
+  --eco-capital-icon: var(--hud-look-capital-icon);
+  --eco-capital-gap: var(--hud-look-capital-gap);
+  --eco-capital-label-value: var(--hud-look-capital-label-value);
+  --eco-capital-value-supporting: var(--hud-look-capital-value-supporting);
+  --eco-capital-divider-top: var(--hud-look-capital-divider-top);
+  --eco-divider-next: var(--hud-look-divider-next);
+  --eco-payroll-height: var(--hud-look-payroll-height);
+  --eco-payroll-progress-top: var(--hud-look-payroll-progress-top);
+  --eco-payroll-coverage-top: var(--hud-look-payroll-coverage-top);
+  --eco-payroll-divider-top: var(--hud-look-payroll-divider-top);
+  --eco-resource-icon: var(--hud-look-resource-icon);
+  --eco-resource-icon-gap: var(--hud-look-resource-icon-gap);
+  --eco-resource-height: var(--hud-look-resource-height);
+  --eco-resource-gap: var(--hud-look-resource-gap);
+  --eco-k: var(--hud-look-k);
+  --eco-hero: var(--hud-look-hero);
+  --eco-row: var(--hud-look-row);
+  --eco-hint: var(--hud-look-hint);
+  --eco-icon: var(--hud-look-icon);
+  --eco-title: var(--hud-look-title);
+  --eco-meter: var(--hud-look-meter);
+  box-sizing: border-box;
+  position: relative;
+  width: var(--eco-panel-width);
+  height: var(--eco-panel-height);
+  display: flex;
+  flex-direction: column;
+  padding: var(--eco-panel-padding-top) var(--eco-panel-padding-x) var(--eco-panel-padding-bottom);
+  overflow: hidden;
+  transform: scale(var(--eco-panel-scale));
+  transform-origin: top left;
+  background: linear-gradient(
+    180deg,
+    var(--eco-panel-gradient-top) 0%,
+    var(--eco-panel-gradient-bottom) 100%
+  );
+  border: var(--hud-hair) solid var(--eco-panel-border);
+  border-radius: var(--eco-panel-radius);
+  box-shadow: var(--eco-panel-shadow);
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: var(--hud-weight-regular);
+  letter-spacing: var(--hud-tracking-neutral);
+  line-height: 1;
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-col--right .hud-economy {
+  margin-left: auto;
+  transform-origin: top right;
+}
+
+.hud-economy .hud-ico {
+  width: var(--eco-icon);
+  height: var(--eco-icon);
+  overflow: visible;
+  color: inherit;
+}
+
+.hud-economy__h {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--eco-header-gap);
+  height: var(--eco-header-height);
+  margin: 0 0 var(--eco-header-bottom);
+  padding: var(--eco-header-y) 0;
+  box-sizing: border-box;
+  background: none;
+  border: 0;
+}
+
+.hud-economy__h-ico,
+.hud-economy__go {
+  display: grid;
+  place-items: center;
+  width: var(--eco-icon);
+  height: var(--eco-icon);
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-economy__title {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-title);
+  font-weight: var(--hud-weight-semibold);
+  letter-spacing: var(--hud-tracking-eyebrow);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-economy__go,
+.hud-economy__city-go,
+.hud-active-functions__view,
+.hud-recent-activity__view,
+.hud-status-bar__notification,
+.hud-status-bar__wallet,
+.hud-building-detail__manage {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hud-economy__go:focus-visible,
+.hud-economy__payroll:focus-visible,
+.hud-economy__res-row:focus-visible,
+.hud-economy__city-go:focus-visible,
+.hud-active-functions__view:focus-visible,
+.hud-recent-activity__view:focus-visible,
+.hud-status-bar__notification:focus-visible,
+.hud-status-bar__wallet:focus-visible,
+.hud-building-detail__manage:focus-visible,
+.hud-tile:focus-visible {
+  outline: var(--hud-focus) solid var(--hud-tone-cyan-accent);
+  outline-offset: var(--hud-focus-offset);
+}
+
+.hud-economy__capital {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  margin: 0;
+}
+
+.hud-economy__capital-top {
+  display: grid;
+  grid-template-columns: var(--eco-capital-icon) minmax(0, 1fr);
+  gap: var(--eco-capital-gap);
+  align-items: center;
+}
+
+.hud-economy__plus {
+  display: grid;
+  place-items: center;
+  width: var(--eco-capital-icon);
+  height: var(--eco-capital-icon);
+  border-radius: 50%;
+  background: var(--hud-look-coin-fill);
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-economy__capital-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--eco-capital-label-value);
+}
+
+.hud-economy__k {
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-k);
+  font-weight: var(--hud-weight-medium);
+  letter-spacing: var(--hud-tracking-eyebrow);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-economy__hero {
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hero);
+  font-weight: var(--hud-weight-semibold);
+  line-height: 1;
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-economy__paid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--hud-look-paid-gap);
+  margin: var(--eco-capital-value-supporting) 0 0;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  line-height: 1;
+}
+
+.hud-economy__dot,
+.hud-economy__slash {
+  font-weight: var(--hud-weight-regular);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-economy__paid-amt {
+  font-weight: var(--hud-weight-medium);
+  color: var(--hud-tone-green-success);
+}
+
+.hud-economy__paid-lbl {
+  font-weight: var(--hud-weight-regular);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-economy__rule {
+  flex: 0 0 auto;
+  height: var(--hud-hair);
+  margin: 0;
+  background: var(--hud-look-rule);
+}
+
+.hud-economy__capital + .hud-economy__rule {
+  margin-top: var(--eco-capital-divider-top);
+}
+
+.hud-economy__payroll,
+.hud-economy__res-row {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.hud-economy__rule + .hud-economy__payroll {
+  flex: 0 0 auto;
+  padding-top: var(--eco-divider-next);
+  padding-bottom: 0;
+}
+
+.hud-economy__payroll .hud-economy__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--eco-header-gap);
+  height: var(--eco-payroll-height);
+  min-height: var(--eco-payroll-height);
+}
+
+.hud-economy__row-l {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--eco-header-gap);
+  min-width: 0;
+  color: var(--hud-tone-secondary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: var(--hud-weight-medium);
+  letter-spacing: var(--hud-tracking-eyebrow);
+  text-transform: uppercase;
+}
+
+.hud-economy__row-v {
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: var(--hud-weight-semibold);
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-economy__payroll .hud-economy__meter {
+  margin-top: var(--eco-payroll-progress-top);
+}
+
+.hud-economy__meter .hud-meter {
+  width: 100%;
+  gap: 0;
+}
+
+.hud-economy__meter .hud-meter__label {
+  display: none;
+}
+
+.hud-economy__meter .hud-meter__track {
+  height: var(--eco-meter);
+  background: var(--hud-look-meter-track);
+  border-radius: var(--hud-look-meter-radius);
+  overflow: hidden;
+}
+
+.hud-economy__meter .hud-meter__fill {
+  display: block;
+  height: 100%;
+  background: var(--hud-tone-cyan-accent);
+}
+
+.hud-economy__payroll .hud-economy__hint {
+  margin-top: var(--eco-payroll-coverage-top);
+}
+
+.hud-economy__hint {
+  display: block;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hint);
+  font-weight: var(--hud-weight-regular);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-economy__payroll + .hud-economy__rule {
+  margin-top: var(--eco-payroll-divider-top);
+}
+
+.hud-economy__rule + .hud-economy__res {
+  gap: var(--eco-resource-gap);
+  padding-top: var(--eco-divider-next);
+  padding-bottom: 0;
+}
+
+.hud-economy__res {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--eco-resource-gap);
+}
+
+.hud-economy__res-row {
+  display: grid;
+  grid-template-columns: var(--eco-resource-icon) minmax(0, 1fr) auto;
+  column-gap: var(--eco-resource-icon-gap);
+  height: var(--eco-resource-height);
+  min-height: var(--eco-resource-height);
+  align-items: center;
+}
+
+.hud-economy__res-row .hud-economy__row-l {
+  display: contents;
+}
+
+.hud-economy__res-row .hud-economy__row-l .hud-ico {
+  grid-column: 1;
+  width: var(--eco-resource-icon);
+  height: var(--eco-resource-icon);
+}
+
+.hud-economy__res-row .hud-economy__row-l > span:last-child {
+  grid-column: 2;
+}
+
+.hud-economy__res-row .hud-economy__qty {
+  grid-column: 3;
+}
+
+.hud-economy__qty {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--hud-look-qty-gap);
+  color: var(--hud-tone-primary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: var(--hud-weight-semibold);
+  white-space: nowrap;
+}
+
+.hud-economy--city .hud-economy__h {
+  margin-bottom: var(--hud-look-city-header-bottom);
+}
+
+.hud-economy--city .hud-economy__res {
+  flex: 1 1 auto;
+  justify-content: space-evenly;
+  gap: var(--hud-look-city-res-gap);
+  padding-top: 0;
+}
+
+.hud-economy--city .hud-economy__res-row .hud-economy__row-l {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: var(--hud-weight-regular);
+}
+
+.hud-economy--city .hud-economy__pop-track {
+  display: grid;
+  grid-template-columns: var(--eco-resource-icon) minmax(0, 1fr) auto;
+  column-gap: var(--eco-resource-icon-gap);
+  align-items: center;
+  margin-top: var(--hud-look-city-header-bottom);
+}
+
+.hud-economy--city .hud-economy__pop-track .hud-economy__meter {
+  grid-column: 2;
+  margin-top: 0;
+}
+
+.hud-economy--city .hud-economy__pop-next {
+  grid-column: 3;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hint);
+  font-weight: var(--hud-weight-regular);
+  letter-spacing: 0;
+  text-transform: capitalize;
+  color: var(--hud-tone-muted-text);
+  white-space: nowrap;
+}
+
+.hud-economy--city .hud-economy__city-go {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hud-look-city-go-gap);
+  margin-top: var(--hud-look-city-go-top);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-economy--city .hud-economy__city-go .hud-ico {
+  width: var(--hud-look-city-go-icon);
+  height: var(--hud-look-city-go-icon);
+}
+
+.hud-header__clock:has(.hud-day-time),
+.hud-header__tools:has(.hud-status-bar) {
+  background: none;
+  background-image: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  min-width: 0;
+  width: max-content;
+}
+
+.hud-day-time {
+  width: var(--hud-look-clock-width);
+  height: var(--hud-look-clock-height);
+  padding: var(--hud-look-clock-pad-y) var(--hud-look-clock-pad-x);
+  transform-origin: top center;
+}
+
+.hud-day-time .hud-clock {
+  height: auto;
+  column-gap: var(--hud-look-clock-col-gap);
+  row-gap: var(--hud-look-clock-row-gap);
+}
+
+.hud-day-time .hud-clock__day-sun {
+  display: inline-block;
+  width: var(--hud-look-clock-sun);
+  height: var(--hud-look-clock-sun);
+  margin-right: var(--hud-look-clock-sun-nudge);
+  color: var(--hud-look-sun);
+  vertical-align: var(--hud-look-clock-sun-shift);
+}
+
+.hud-day-time .hud-clock__day,
+.hud-day-time .hud-clock__v {
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-clock-day);
+  font-weight: var(--hud-weight-semibold);
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-day-time .hud-clock__bound {
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-clock-bound);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-day-time .hud-cycle {
+  height: var(--hud-look-clock-track);
+  background: var(--hud-clock-rest);
+}
+
+.hud-day-time .hud-cycle__on {
+  background: var(--hud-tone-cyan-accent);
+}
+
+.hud-day-time .hud-clock__sun-ico {
+  width: var(--hud-look-clock-sun-face);
+  height: var(--hud-look-clock-sun-face);
+}
+
+.hud-status-bar {
+  width: max-content;
+  height: var(--hud-look-clock-height);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--hud-look-status-gap);
+  padding: var(--hud-look-clock-pad-y) var(--hud-look-clock-pad-x);
+  transform-origin: top right;
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-status-bar__bank,
+.hud-status-bar__season {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-status-bank);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hud-status-bar__bank {
+  gap: var(--hud-look-clock-row-gap);
+  padding: var(--hud-look-status-bank-pad-y) var(--hud-look-status-bank-pad-x);
+  border-radius: var(--hud-radius-pill);
+  background: color-mix(in srgb, var(--hud-clock-navy) 62%, transparent);
+  color: var(--hud-tone-green-success);
+  font-weight: var(--hud-weight-semibold);
+}
+
+.hud-status-bar__dot {
+  width: var(--hud-look-status-dot);
+  height: var(--hud-look-status-dot);
+  border-radius: 50%;
+  background: var(--hud-tone-green-success);
+}
+
+.hud-status-bar__season {
+  flex: 0 0 auto;
+  overflow: hidden;
+  padding-left: var(--hud-look-status-split);
+  border-left: var(--hud-hair) solid var(--hud-look-rule);
+  text-overflow: ellipsis;
+  color: var(--hud-tone-primary-text);
+  font-size: var(--hud-look-status-season);
+  font-weight: var(--hud-weight-semibold);
+}
+
+.hud-status-bar__notification,
+.hud-status-bar__wallet {
+  position: relative;
+  display: inline-flex;
+  color: var(--hud-tone-primary-text);
+  padding-left: var(--hud-look-status-split);
+  border-left: var(--hud-hair) solid var(--hud-look-rule);
+}
+
+.hud-status-bar__badge {
+  position: absolute;
+  top: var(--hud-look-status-badge-shift-y);
+  right: var(--hud-look-status-badge-shift-x);
+  min-width: var(--hud-look-status-badge);
+  height: var(--hud-look-status-badge);
+  padding: 0 var(--hud-look-qty-gap);
+  border-radius: var(--hud-radius-pill);
+  background: var(--hud-tone-red-error);
+  color: var(--hud-tone-primary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-status-badge-font);
+  line-height: var(--hud-look-status-badge);
+  text-align: center;
+}
+
+.hud-status-bar > .hud-ico,
+.hud-status-bar__wallet .hud-ico {
+  flex: 0 0 auto;
+  color: var(--hud-tone-primary-text);
+}
+
+.hud-functions.hud-economy {
+  width: var(--hud-look-functions-width);
+  height: var(--hud-look-functions-height);
+  max-width: none;
+  max-height: none;
+  padding: var(--hud-look-functions-pad-top) var(--hud-look-functions-pad-x) var(--hud-look-functions-pad-bottom);
+  overflow: hidden;
+  transform-origin: bottom left;
+}
+
+.hud-functions .hud-economy__h,
+.hud-activity .hud-economy__h {
+  margin-bottom: var(--hud-look-city-header-bottom);
+}
+
+.hud-active-functions__view,
+.hud-recent-activity__view {
+  margin-left: auto;
+  color: var(--hud-tone-muted-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hint);
+  font-weight: var(--hud-weight-regular);
+  white-space: nowrap;
+}
+
+.hud-functions__list.hud-active-functions__list,
+.hud-active-functions__list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--hud-look-functions-gap);
+  height: var(--hud-look-functions-list);
+  overflow: hidden;
+}
+
+.hud-active-functions__item {
+  min-width: 0;
+  width: 100%;
+}
+
+.hud-functions .hud-tile.hud-active-functions__card,
+.hud-active-functions__card {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) var(--hud-look-functions-label);
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: var(--hud-look-functions-card-pad-y) var(--hud-look-functions-card-pad-x) var(--hud-look-functions-card-pad-b);
+  border: var(--hud-hair) solid var(--hud-look-card-border);
+  border-radius: var(--hud-radius-small);
+  background: var(--hud-look-art-fill);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-active-functions__card--selected {
+  border-color: var(--hud-tone-cyan-accent);
+  box-shadow: 0 0 0 var(--hud-hair) var(--hud-look-selected-ring);
+}
+
+.hud-active-functions__art {
+  display: grid;
+  place-items: center;
+}
+
+.hud-active-functions__thumb {
+  width: var(--hud-look-functions-thumb-w);
+  height: var(--hud-look-functions-thumb-h);
+}
+
+.hud-active-functions__thumb .hud-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-active-functions__status {
+  flex: 0 0 auto;
+  width: var(--hud-look-functions-status);
+  height: var(--hud-look-functions-status);
+  border-radius: 50%;
+  background: var(--hud-tone-green-success);
+}
+
+.hud-active-functions__label {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--hud-look-qty-gap);
+}
+
+.hud-functions .hud-active-functions__name,
+.hud-active-functions__name {
+  position: static;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  color: var(--hud-tone-secondary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-functions-name);
+  font-weight: var(--hud-weight-medium);
+  line-height: 1;
+  white-space: normal;
+}
+
+.hud-activity.hud-economy {
+  width: var(--hud-look-activity-width);
+  height: var(--hud-look-activity-height);
+  max-width: none;
+  max-height: none;
+  padding: var(--hud-look-activity-pad-top) var(--hud-look-activity-pad-x) var(--hud-look-activity-pad-bottom);
+  overflow: hidden;
+  transform-origin: bottom right;
+}
+
+.hud-recent-activity__list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.hud-activity .hud-event.hud-recent-activity__row,
+.hud-recent-activity__row {
+  display: grid;
+  grid-template-columns: var(--hud-look-activity-time) var(--hud-look-activity-building) var(--hud-look-activity-dot-col) minmax(0, 1fr);
+  column-gap: var(--hud-look-activity-row-gap);
+  align-items: center;
+  height: var(--hud-look-activity-row);
+  min-height: var(--hud-look-activity-row);
+  padding: var(--hud-look-qty-gap) 0;
+  border-top: var(--hud-hair) solid var(--hud-look-rule);
+  border-bottom: 0;
+}
+
+.hud-recent-activity__time {
+  color: var(--hud-tone-secondary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+}
+
+.hud-recent-activity__time.hud-unavailable {
+  margin: 0;
+  font-size: var(--hud-look-activity-text);
+}
+
+.hud-recent-activity__building {
+  display: grid;
+  place-items: center;
+  width: var(--hud-look-activity-thumb-w);
+  height: var(--hud-look-activity-thumb-h);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-recent-activity__thumb {
+  width: var(--hud-look-activity-thumb-w);
+  height: var(--hud-look-activity-thumb-h);
+}
+
+.hud-recent-activity__thumb .hud-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-recent-activity__dot {
+  width: var(--hud-look-activity-dot-col);
+  height: var(--hud-look-activity-dot-col);
+  border-radius: 50%;
+  background: var(--hud-tone-green-success);
+}
+
+.hud-recent-activity__dot--muted {
+  background: var(--hud-tone-muted-text);
+}
+
+.hud-recent-activity__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--hud-look-activity-copy-gap);
+  padding: var(--hud-look-qty-gap) 0;
+}
+
+.hud-recent-activity__name {
+  min-width: 0;
+  color: var(--hud-tone-secondary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-activity-name);
+  font-weight: var(--hud-weight-medium);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+  white-space: normal;
+}
+
+.hud-recent-activity__text {
+  min-width: 0;
+  color: var(--hud-tone-muted-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-activity-text);
+  line-height: 1;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.hud-popover.hud-panel {
+  background: none;
+  background-image: none;
+  border: 0;
+  box-shadow: none;
+  max-width: none;
+  overflow: visible;
+}
+
+.hud-building-detail {
+  width: var(--hud-look-detail-width);
+  height: var(--hud-look-detail-height);
+  display: grid;
+  grid-template-columns: var(--hud-look-detail-art) minmax(0, 1fr);
+  gap: var(--hud-look-detail-gap);
+  padding: var(--hud-look-detail-pad);
+  border: var(--hud-hair) solid var(--hud-look-select-border);
+  transform-origin: top center;
+}
+
+.hud-building-detail__art {
+  display: grid;
+  place-items: center;
+  border-radius: var(--hud-radius-small);
+  background: var(--hud-look-art-fill);
+}
+
+.hud-building-detail__thumb {
+  width: var(--hud-look-detail-thumb-w);
+  height: var(--hud-look-detail-thumb-h);
+}
+
+.hud-building-detail__thumb .hud-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-building-detail__body {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--hud-look-detail-body-gap);
+  padding-top: var(--hud-look-qty-gap);
+}
+
+.hud-building-detail__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.hud-building-detail__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--hud-look-header-gap);
+}
+
+.hud-building-detail__title,
+.hud-building-detail__level {
+  color: var(--hud-tone-primary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-detail-title);
+  font-weight: var(--hud-weight-semibold);
+  text-transform: uppercase;
+}
+
+.hud-building-detail__level {
+  white-space: nowrap;
+}
+
+.hud-building-detail__status,
+.hud-building-detail__fact {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--hud-look-paid-gap);
+  min-height: var(--hud-look-detail-fact-h);
+  padding-left: var(--hud-look-detail-icon-col);
+  color: var(--hud-tone-secondary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-detail-fact);
+}
+
+.hud-building-detail__status {
+  color: var(--hud-tone-green-success);
+  font-weight: var(--hud-weight-semibold);
+  text-transform: uppercase;
+}
+
+.hud-building-detail__dot {
+  position: absolute;
+  left: var(--hud-look-detail-dot-left);
+  width: var(--hud-look-detail-dot);
+  height: var(--hud-look-detail-dot);
+  border-radius: 50%;
+  background: var(--hud-tone-green-success);
+}
+
+.hud-building-detail__fact .hud-ico {
+  position: absolute;
+  left: 0;
+  width: var(--hud-look-detail-icon);
+  height: var(--hud-look-detail-icon);
+  color: var(--hud-tone-secondary-text);
+}
+
+.hud-building-detail__manage {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--hud-look-paid-gap);
+  min-height: var(--hud-look-detail-manage-h);
+  margin-top: auto;
+  border-radius: var(--hud-look-detail-manage-radius);
+  background: var(--hud-tone-cyan-accent);
+  color: var(--hud-tone-primary-text);
+  font-family: var(--hud-font-ui);
+  font-size: var(--hud-look-detail-fact);
+  font-weight: var(--hud-weight-semibold);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.hud-building-detail__manage .hud-ico {
+  position: absolute;
+  right: var(--hud-look-detail-manage-go);
+}
+
+@media (max-width: 64rem) {
+  .hud-functions.hud-economy,
+  .hud-activity.hud-economy {
+    width: auto;
+    height: auto;
+    max-width: none;
+    transform: none;
+  }
+
+  .hud-functions.hud-economy {
+    max-height: var(--hud-active-functions-height);
+  }
+
+  .hud-activity.hud-economy {
+    max-height: var(--hud-recent-activity-height);
+  }
+
+  .hud-day-time,
+  .hud-status-bar {
+    transform: none;
+    width: auto;
+    max-width: 100%;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 48rem) {
+  .hud-activity.hud-economy {
+    max-height: var(--hud-recent-activity-height);
+  }
+}
+
+@media (max-width: 24.375rem) {
+  .hud-activity.hud-economy {
+    width: auto;
+    max-width: none;
+    max-height: var(--hud-recent-activity-height);
+  }
+}

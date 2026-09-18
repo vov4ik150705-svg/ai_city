@@ -1,6 +1,5 @@
 # V5 final
 
-`render_light`: четыре фазы суток грейдом (D-V-4), слой свечения из `city_glow.png`. `launch.deployed` пуст. Водяной знак 19. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **75**, хеш **`a8b41502d98303997761e95528bde00f217721457a97f5a73ead1e56aca8b45a`**, 615849 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 179 кадров, magenta 0, sha `acd419041ca4`. `layout_hash` `63aa7ce8cc09…` (геометрия не сдвинулась). Объектов сцены **466**.
 

@@ -35,7 +35,6 @@
 | hire pool на пять ролей | не мандат | 50/25/25 держится |
 | `set_manager_focus` | G5 | остался forbidden |
 | повторный флип призов | A-G-17 | `season_prizes_live` остался 1 |
-| демо + компаньон | A-G-15 | `demo_companion=0` |
 | `launch.deployed` | A-G-2 | пять полей пустые |
 | подгонка окна A | A-G-11 | не подогнано |
 
@@ -47,8 +46,6 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner).
 
-Research nodes = 3 (G3). `companion_rows_live` 0, `set_manager_focus` forbidden (G5). Hire pool без весов учёного и менеджера.
 
 Next Step: **G3** — `research_tree` (дерево шире трёх; объектив research открывает узел за compute).

@@ -61,6 +61,5 @@
 
 ## 5. Незакрытое
 
-PENDING 3: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3).
 
 Живая фаза L0–L9 закрыта. Следующее — факт владельца: подписать `launchToken` без ETH, записать адреса в `launch.deployed.*`.

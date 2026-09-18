@@ -1,7 +1,7 @@
 # Сгенерированные таблицы
 
 Артефакт сборки. Источник — `content/params/`, генератор — `content/build.py`,
-версия правил `0.23.0`, пак `133`, хеш `e997446659ee88bf…`.
+версия правил `0.24.0`, пак `144`, хеш `dc58998f9a46f00a…`.
 Руками не править: следующая сборка перезапишет.
 
 ## Соответствие роли и здания
@@ -44,7 +44,7 @@
 | Круг с максимальным Trader | 11.64% | то же с курсом 2130 |
 | Сбор, видимый трейдеру на DEX | 3.00% на сторону | наш сбор + комиссия кривой pons |
 | Эффективная ставка фонда | 100 bps оборота | тело ставки; приращение в корзину |
-| Сплит сбора (фонд / стоки / студия) | 100 / 80 / 20 bps | D-M-12 |
+| Сплит сбора (фонд / leaderboard / active-work / студия) | 100 / 30 / 50 / 20 bps | D-M-12 |
 | Сумма долей траты | 100% | сжигание + фонд + протокол |
 
 ## Время
@@ -373,18 +373,18 @@ bank_level_max = 4. L=0 — банка нет, лимит 0. Персональ�
 | Величина | bps |
 |---|---:|
 | deposit_to_capital_bps | 9604 |
-| fund_contribution_bps | 4802 |
+| fund_contribution_bps | 5762 |
 | bank_exit_return_bps | 8908 |
-| return_at_unit_capture_bps | 4277 (42.77%) |
+| return_at_unit_capture_bps | 5132 (51.32%) |
 | uptime_minimalist_bps | 4750 |
 | uptime_optimizer_bps | 9500 |
-| capture_min_bps | 9333 |
-| capture_opt_bps | 18666 |
-| return_min_bps | 3991 (39.91%) |
-| return_opt_bps | 7983 (79.83%) |
-| amplification_window A | [12275, 15783] |
+| capture_min_bps | 7800 |
+| capture_opt_bps | 15600 |
+| return_min_bps | 4002 (40.02%) |
+| return_opt_bps | 8005 (80.05%) |
+| amplification_window A | [10230, 13154] |
 
-Окно A в разах: [1.2275, 1.5783]. T3: проверить, что при сценариях `docs/LAUNCH.md` §3 усиление попадает в это окно, и назвать число активных городов.
+Окно A в разах: [1.0230, 1.3154]. T3: проверить, что при сценариях `docs/LAUNCH.md` §3 усиление попадает в это окно, и назвать число активных городов.
 
 ## T2: дрожь и энергия
 
@@ -402,7 +402,7 @@ jitter_bps = 10000 + (sha256(`city_id:tick_index:agent_id`)[:8] mod 1001) − 50
 
 ## M1: состав трения при 2%
 
-Сгенерировано. Источники: `economy.json` ставка и vault, `seasons.json` `prize_creator_tax_share_bps`, `fragments.json` `fragment_creator_tax_share_bps`, `meta.json` `fund_effective_tax_floor_bps`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `economy.json` ставка и vault, `seasons.json` `prize_creator_tax_share_bps`, `fragments.json` `active_work_creator_tax_bps`, `meta.json` `fund_effective_tax_floor_bps`. Команда: `python content/build.py`.
 
 | величина | значение |
 |---|---:|
@@ -417,7 +417,7 @@ jitter_bps = 10000 + (sha256(`city_id:tick_index:agent_id`)[:8] mod 1001) − 50
 | creator_tax_fund_bps | 100 |
 | creator_tax_prize_bps | 100 |
 | tax_split_total_bps | 200 |
-| fee_split fund/stocks/studio | 100 / 80 / 20 |
+| fee_split fund/leaderboard/farm/studio | 100 / 30 / 50 / 20 |
 | external_vs_internal_breakeven_bps | 72250 |
 | protocol_take_breakeven_bps | 36125 |
 | vault_mint_rate | 1960 |
@@ -502,7 +502,7 @@ jitter_bps = 10000 + (sha256(`city_id:tick_index:agent_id`)[:8] mod 1001) − 50
 
 Сгенерировано. Источники: `arch.port.groups`, `arch.custody`, `contracts/src/Vault.sol`, `contracts/src/PrizeTreasury.sol`, `codes.json`. Команда: `python content/build.py`.
 
-Пять групп порта. returnUnsettled не трогает owed. refundPlayer ≤ backingOf. Бот не забирает весь vault.
+Пять групп порта. returnUnsettled не трогает owed. refundPlayer ≤ availableOf. Бот не забирает весь vault.
 
 | величина | значение |
 |---|---:|
@@ -512,9 +512,11 @@ jitter_bps = 10000 + (sha256(`city_id:tick_index:agent_id`)[:8] mod 1001) − 50
 | pool_in_measured | 1 |
 | forbidden_ok | 1 |
 | return_skips_settled | 1 |
-| paused_claim_silent | 1 |
+| no_pause_controls | 1 |
 | uncovered_ok | 1 |
 | over_backing_rejected | 1 |
+| reserved_coverage_rejected | 1 |
+| available_refund_ok | 1 |
 | bot_whole_rejected | 1 |
 | has_setSigner | 0 |
 | proxy | 0 |
@@ -663,7 +665,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 | `energy_cost_bps` | mul | base | building | 6250 | 16000 | balance.energy_growth_bps | 12325 | 3675 |
 | `fragment_rate_bps` | mul | post | building | 5555 | 18000 | balance.output_growth_bps | 11500 | 6500 |
 | `fund_share_bps` | add | post | city | 0 | 3500 | node_effect_base_bps * sum_1_to(tier_count) + merge | 3500 | 0 |
-| `idle_reduction_bps` | mul_remainder | base | building | 0 | 9500 | 10000 - balance.residual_idle_bps | 4970 | 4530 |
+| `idle_reduction_bps` | mul_remainder | base | building | 0 | 9500 | 10000 - balance.residual_idle_bps | 5523 | 3977 |
 | `jitter_bps` | mul_remainder | jitter | building | 0 | 5000 | modifiers.trait_relief_share_bps | 5000 | 0 |
 | `offline_cap_hours` | add | post | city | 0 | 6 | countable_unit * sum_1_to(tier_count) | 6 | 0 |
 | `output_bps` | mul | post | building | 5555 | 18000 | balance.output_growth_bps | 16802 | 1198 |
@@ -700,7 +702,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 | `research_lathe` | `lathe` | research | `upgrade_speed_bps` | 1000 | always | research axis unit*t*sign |
 | `research_tools` | `tools` | research | `output_bps` | 1000 | always | research axis unit*t*sign |
 
-Всего строк в паке 93, из них авторских черт/задач 15.
+Всего строк в паке 92, из них авторских черт/задач 15.
 
 ## T5: стек и окупаемость
 
@@ -750,9 +752,9 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 
 ## T6: источники пула
 
-Сгенерировано. Источники: `fragments.json`, `economy.json` spend_protocol_bps и payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
-Краны. Creator tax и пробка фонда — ноль (R-T6-1). NFT — ноль до T8. Живой кран — `spend_protocol` после изъятия из vault, сплит 6000/4000.
+Краны. Creator tax и пробка фонда — ноль (R-T6-1). NFT — ноль до T8. Живой кран — creator-tax active-work leg; `spend_protocol` закрыт.
 
 | кран | bps |
 |---|---:|
@@ -767,7 +769,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 
 ## T6: маршруты тикеров
 
-Сгенерировано. Источники: `fragments.json`, `economy.json` spend_protocol_bps и payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 Один параметр `weth_quote_ticker`. Haircut hop 3 bps на всех, включая COIN (R-T6-2). Пар CORP/сток нет.
 
@@ -782,7 +784,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 
 ## T6: свидетели settlement
 
-Сгенерировано. Источники: `fragments.json`, `economy.json` spend_protocol_bps и payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 | свидетель | выплаты | сумма | пыль | кап | инвариант |
 |---|---|---:|---:|---|---|
@@ -792,28 +794,28 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 | N=1 10000 × пул 100 | 100 | 100 | 0 |  | да |
 | sum_frag=0, пул 50 | 0,0 | 0 | 50 |  | да |
 
-## T6: бюджет окна (только spend_protocol)
+## T6: бюджет окна (DEX active-work leg)
 
-Сгенерировано. Источники: `fragments.json`, `economy.json` spend_protocol_bps и payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
-Не линейный налог LAUNCH §3. Активность T1 масштабирует внутреннюю трату референсного депозита за окно. Доллар — производная снимка ETH/USD 2026-08-27.
+Сценарий LAUNCH §3 даёт месячный оборот DEX. Для farm берётся доля active-work за 14-дневное окно и применяется hop haircut. Доллар — производная снимка ETH/USD 2026-08-27.
 
 | сценарий | оборот T1 $ | Capital в пул / город | $ / город (8dec) | < 1$ |
 |---|---:|---:|---:|---|
-| low | 50000 | 1524444 | 152398666 |  |
-| mid | 300000 | 9146666 | 914392200 |  |
-| hype | 2000000 | 60977776 | 6095948266 |  |
+| low | 50000 | 116665000 | 11663000050 |  |
+| mid | 300000 | 700000000 | 69979000000 |  |
+| hype | 2000000 | 4666665000 | 466526500050 |  |
 
 ## T6: fragments_season
 
-Сгенерировано. Источники: `fragments.json`, `economy.json` spend_protocol_bps и payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 Метод `produced_x_stack`. Прокси суммы величин `paper` снят. Счёт: линия нормировки (`gdp` сценария) × `fragment_stack_bps / BPS`, скоуп района как T4 spot. Не `produced` после `output_bps` (R-T6-6). Пул settlement в цель доминирования не входит.
 
 
 ## T7: длина сезона
 
-Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` spend_protocol_bps и stake_bonus_max_bps, `fragments.json` protocol_prizes_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
+Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` creator_tax_bps/studio_eth_share_bps и stake_bonus_max_bps, `fragments.json` active_work_creator_tax_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
 
 Длина = `season_city_days`, не второй параметр. Реальные часы — вывод. Окно фрагментов ≠ период призов ≠ сезон (R-T6-3). Settlement периода в `efficiency_recalc_hour` первого часа нового периода.
 
@@ -834,7 +836,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 
 ## T7: Influence свидетели
 
-Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` spend_protocol_bps и stake_bonus_max_bps, `fragments.json` protocol_prizes_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
+Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` creator_tax_bps/studio_eth_share_bps и stake_bonus_max_bps, `fragments.json` active_work_creator_tax_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
 
 uptime_opt 9500, uptime_lazy 4750. optimizer_beats_lazy=1. active_beats_optimizer=1 (R-T7-5: гейт — вялый кит).
 
@@ -847,7 +849,7 @@ uptime_opt 9500, uptime_lazy 4750. optimizer_beats_lazy=1. active_beats_optimize
 
 ## T7: Zipf топ-N
 
-Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` spend_protocol_bps и stake_bonus_max_bps, `fragments.json` protocol_prizes_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
+Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` creator_tax_bps/studio_eth_share_bps и stake_bonus_max_bps, `fragments.json` active_work_creator_tax_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
 
 n=10, α=10000, pool свидетеля 10000. Floor. Пыль остаётся. Ceil — шов L107.
 
@@ -870,165 +872,35 @@ N=1: [10000] пыль 0. N=0: pool_left 10000.
 
 ## T7: бюджет сезона
 
-Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` spend_protocol_bps и stake_bonus_max_bps, `fragments.json` protocol_prizes_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
+Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` creator_tax_bps/studio_eth_share_bps и stake_bonus_max_bps, `fragments.json` active_work_creator_tax_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
 
-Горизонт — сезон (fraction 1), доля `protocol_prizes_bps`. Не tax, не cork. Таблицы считают пул как при live=1 (сайзинг); флаг выплаты отдельно.
+Горизонт — месячный prize period, доля leaderboard creator-tax leg. Не Capital spending и не cork. Таблицы считают пул как при live=1 (сайзинг); флаг выплаты отдельно.
 
 | сценарий | оборот T1 $ | Capital в пул / город | $ / город (8dec) | < 1$ |
 |---|---:|---:|---:|---|
-| low | 50000 | 0 | 0 | да |
-| mid | 300000 | 0 | 0 | да |
-| hype | 2000000 | 0 | 0 | да |
-
-R-T7-6: на low выплата на город за сезон < 1$. Не доливать из налога фонда.
+| low | 50000 | 150000000 | 15000000000 |  |
+| mid | 300000 | 900000000 | 90000000000 |  |
+| hype | 2000000 | 6000000000 | 600000000000 |  |
 
 ## T7: антисивил
 
-Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` spend_protocol_bps и stake_bonus_max_bps, `fragments.json` protocol_prizes_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
+Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` creator_tax_bps/studio_eth_share_bps и stake_bonus_max_bps, `fragments.json` active_work_creator_tax_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
 
 qualify_days 6, слот `wallet`, живой стейк на settlement, интеграл не снимок. Кап фрагментов на город не менялся.
 
 | N_cities / сценарий | пул $ 8dec | rank1 | rank10 | rank10>депозит |
 |---|---:|---:|---:|---|
-| n=1000 hype | 0 | 0 | 0 |  |
-| n=1000 low | 0 | 0 | 0 |  |
-| n=1000 mid | 0 | 0 | 0 |  |
-| n=100 hype | 0 | 0 | 0 |  |
-| n=100 low | 0 | 0 | 0 |  |
-| n=100 mid | 0 | 0 | 0 |  |
-| n=1 hype | 0 | 0 | 0 |  |
-| n=1 low | 0 | 0 | 0 |  |
-| n=1 mid | 0 | 0 | 0 |  |
+| n=1000 hype | 600000000000000 | 204862059546571 | 20486205954657 | да |
+| n=1000 low | 15000000000000 | 5121551488664 | 512155148866 | да |
+| n=1000 mid | 90000000000000 | 30729308931985 | 3072930893198 | да |
+| n=100 hype | 60000000000000 | 20486205954657 | 2048620595465 | да |
+| n=100 low | 1500000000000 | 512155148866 | 51215514886 | да |
+| n=100 mid | 9000000000000 | 3072930893198 | 307293089319 | да |
+| n=1 hype | 600000000000 | 600000000000 | 0 |  |
+| n=1 low | 15000000000 | 15000000000 | 0 |  |
+| n=1 mid | 90000000000 | 90000000000 | 0 |  |
 
 Стоимость защит: депозит 10000000000 usd_8dec, стейк 10000000000 usd_8dec, время 150 реальных часов. N ключей × 90 суток — остаточный сивил R-T7-4, не KYC.
-
-
-## T8: реестр команд
-
-Сгенерировано. Источники: `companion.json` реестр и политика, `time.json` schedules и efficiency_recalc_hour, `economy.json` twap_window_city_hours, `agents.json` slots_cap, `balance.json` residual_idle_bps / season_city_days / окно A, `modifier_keys.json` тринадцать ключей, `modifiers.json` форточка L77. Команда: `python content/build.py`.
-
-| id | live | эффект | тик читает | журнал | почему разрешена |
-|---|---:|---|---|---|---|
-| `seat_agent` | 1 | reseat an already hired agent into an already built free slot | `seat` | `COMPANION_ACTED` | Reseat is instant and free. Not a build and not a hire, so it does not spend Capital |
-| `set_manager_focus` | 1 | set the manager contour focus, effective next tick | `objective` | `COMPANION_ACTED` | Manager focus picks a contour. No Capital and not a modifier row; live because Manager is live since G2 |
-| `set_objective` | 1 | change the agent objective, effective next tick | `objective` | `COMPANION_ACTED` | Objective swap costs only the row it selects. The companion does not pay Capital to flip a task |
-
-Запрещённые. Пересечение с разрешёнными пусто.
-
-| id | reason_kind | отказ | почему |
-|---|---|---|---|
-| `build` | spend | `COMPANION_REFUSED` | Building spends Capital. Autopilot must not grow the city while the holder is away |
-| `buy_stock` | wallet | `COMPANION_REFUSED` | Buying a stock token is a wallet swap. Companion has no DEX rights |
-| `claim_fragment` | irreversible | `COMPANION_REFUSED` | Claim spends a fragment requirement. An auto-claim would hide DEMO_NO_CLAIM and city-cap policy |
-| `claim_prize` | irreversible | `COMPANION_REFUSED` | Prize claim is a $CORP payout. Companion must not collect a seasonal prize unattended |
-| `deposit` | wallet | `COMPANION_REFUSED` | Deposit mints Capital through the vault. Companion does not mint and does not touch the vault |
-| `fire` | irreversible | `COMPANION_REFUSED` | Fire has no refund. An away-from-keyboard fire is an irreversible loss of a paid slot |
-| `hire` | spend | `COMPANION_REFUSED` | Hire spends Capital and consumes a slot. Companion reseats, it does not recruit |
-| `open_district` | stake | `COMPANION_REFUSED` | Opening a district requires a live stake. Companion does not stake |
-| `research_start` | spend | `COMPANION_REFUSED` | Research spends Compute and Capital-priced nodes. Companion does not start a tree walk |
-| `respec_node` | irreversible | `COMPANION_REFUSED` | Respec is forbidden in v1 even for the player. Companion must not bypass exclusive pairs |
-| `sell_stock` | wallet | `COMPANION_REFUSED` | Selling a stock token is a wallet swap. Companion has no DEX rights |
-| `stake` | stake | `COMPANION_REFUSED` | Stake is a wallet act on a real stock token. Companion never touches the wallet |
-| `unstake` | stake | `COMPANION_REFUSED` | Unstake can freeze a district. Companion must not drop a holder's paper |
-| `upgrade` | spend | `COMPANION_REFUSED` | Upgrade spends Capital and moves T2 payback. Companion does not buy growth |
-| `withdraw` | wallet | `COMPANION_REFUSED` | Withdraw is the bank exit. Companion must not move $CORP while the holder is away |
-
-## T8: запрещённые ключи
-
-Сгенерировано. Источники: `companion.json` реестр и политика, `time.json` schedules и efficiency_recalc_hour, `economy.json` twap_window_city_hours, `agents.json` slots_cap, `balance.json` residual_idle_bps / season_city_days / окно A, `modifier_keys.json` тринадцать ключей, `modifiers.json` форточка L77. Команда: `python content/build.py`.
-
-| ключ | разрешён | владелец оси | причина |
-|---|---|---|---|
-| `output_bps` | нет | building_level_trait | Direct output multiplier is paid fund dilution under section 2.5, forbidden by BRIEF section 2 |
-| `energy_cost_bps` | нет | tsla_frugal_overclock | Cheaper energy is the same as more output. a_l77_energy_relief already dragged net payback under 240 |
-| `compute_cost_bps` | нет | nvda_frugal | Cheaper compute is the energy relief vector with a different name |
-| `idle_reduction_bps` | да | companion | единственный разрешённый ключ, величина 1000 |
-| `agent_slots` | нет | msft_automation | Slots are the same Automation branch. Companion reseats existing agents, it does not buy seats |
-| `offline_cap_hours` | нет | msft_automation | The only branch that sells time. Companion fills the window and must not lengthen it, even at zero |
-| `fund_share_bps` | нет | coin_finance | Weight in proportional payroll: a companion share literally takes payout from everyone else |
-| `fragment_rate_bps` | нет | t6_district_stake | Selling real-paper fragment tempo for cash is pay-to-earn on the stock token |
-| `build_cost_bps` | нет | research_nodes | Buying city growth speed with cash moves the T2 return bands |
-| `upgrade_speed_bps` | нет | research_nodes | Faster upgrades are the same growth purchase as a build-cost discount |
-| `xp_rate_bps` | нет | handbook | Buying progression speed is Handbook territory, not an NFT perk |
-| `population_conversion_bps` | нет | aapl_consumer | Retail conversion is the Consumer axis. Companion has no right to another district's key |
-| `jitter_bps` | нет | trait_steady | Narrower jitter is a real edge and belongs to the Steady trait |
-
-## T8: лимиты и производные
-
-Сгенерировано. Источники: `companion.json` реестр и политика, `time.json` schedules и efficiency_recalc_hour, `economy.json` twap_window_city_hours, `agents.json` slots_cap, `balance.json` residual_idle_bps / season_city_days / окно A, `modifier_keys.json` тринадцать ключей, `modifiers.json` форточка L77. Команда: `python content/build.py`.
-
-| величина | значение | формула |
-|---|---:|---|
-| advisor_calls_per_city_day | 6 | \|{h mod ticks : h ∈ open/close schedules} ∪ {efficiency_recalc_hour}\| = {0,6,8,9,20,21} |
-| advisor_cooldown_city_hours | 4 | ticks_per_city_day // advisor_calls_per_city_day |
-| commands_per_agent_per_tick | 1 | структурный максимум: тик читает одно (seat, objective) |
-| commands_per_city_day_bound | 480 | ticks_per_city_day × slots_cap |
-| companion_advisor_queue_depth | 1 | одна просьба в работе |
-| live commands | 3 | seat_agent + set_manager_focus + set_objective |
-
-## T8: стоимость инференса
-
-Сгенерировано. Источники: `companion.json` реестр и политика, `time.json` schedules и efficiency_recalc_hour, `economy.json` twap_window_city_hours, `agents.json` slots_cap, `balance.json` residual_idle_bps / season_city_days / окно A, `modifier_keys.json` тринадцать ключей, `modifiers.json` форточка L77. Команда: `python content/build.py`.
-
-| величина | значение |
-|---|---:|
-| вызовов советника на холдера / сутки города | 6 |
-| вызовов при BPS холдерах (проба 10k) | 60000 |
-| стоимость холдера, usd_8dec / сутки [lo, hi) | 600000 … 6000000 |
-| стоимость холдера, usd_8dec / сезон [lo, hi) | 54000000 … 540000000 |
-| nft_proceeds_sink | inference_bill |
-| companion_revenue_live | 0 |
-| prize_nft_share_bps | 0 |
-| fragment_nft_share_bps | 0 |
-| отношение к базовой строке §5.2 | 7× вместе со сводкой |
-
-Единица — вызов. Доллар — интервал из §5.2, не замер. Точка ждёт `companion_llm_price_snapshot` (T12). G6: sink `inference_bill`, краны NFT 0 (D-G-9).
-
-## T8: свидетели
-
-Сгенерировано. Источники: `companion.json` реестр и политика, `time.json` schedules и efficiency_recalc_hour, `economy.json` twap_window_city_hours, `agents.json` slots_cap, `balance.json` residual_idle_bps / season_city_days / окно A, `modifier_keys.json` тринадцать ключей, `modifiers.json` форточка L77. Команда: `python content/build.py`.
-
-| величина | значение |
-|---|---:|
-| uptime minimalist | 4750 |
-| uptime companion | 4775 |
-| uptime optimizer | 9500 |
-| окно A lo/hi | 12275 / 15783 |
-| бесплатный стек o | 12650 |
-| форточка L77 | 13300 |
-| запас до форточки | 650 |
-
-Величины компаньона по тринадцати ключам (ненуль только `idle_reduction_bps`):
-
-| ключ | величина |
-|---|---:|
-| `output_bps` | 0 |
-| `energy_cost_bps` | 0 |
-| `compute_cost_bps` | 0 |
-| `idle_reduction_bps` | 1000 |
-| `agent_slots` | 0 |
-| `offline_cap_hours` | 0 |
-| `fund_share_bps` | 0 |
-| `fragment_rate_bps` | 0 |
-| `build_cost_bps` | 0 |
-| `upgrade_speed_bps` | 0 |
-| `xp_rate_bps` | 0 |
-| `population_conversion_bps` | 0 |
-| `jitter_bps` | 0 |
-
-Полосы T2 пересчитываются со свидетелем окна A: аптайм компаньона читает величину через mul_remainder, не флаг (L140, L143).
-
-## T8: политика автопилота
-
-Сгенерировано. Источники: `companion.json` реестр и политика, `time.json` schedules и efficiency_recalc_hour, `economy.json` twap_window_city_hours, `agents.json` slots_cap, `balance.json` residual_idle_bps / season_city_days / окно A, `modifier_keys.json` тринадцать ключей, `modifiers.json` форточка L77. Команда: `python content/build.py`.
-
-| priority | условие | команда | селектор | журнал |
-|---:|---|---|---|---|
-| 1 | `schedule_closed` | `seat_agent` | `open_built_slot` | `COMPANION_ACTED` |
-| 2 | `idle_wrong_role` | `seat_agent` | `home_contour_slot` | `COMPANION_ACTED` |
-| 3 | `energy_deficit_overclock` | `set_objective` | `drop_overclock` | `COMPANION_ACTED` |
-| 4 | `energy_surplus_reserve` | `set_objective` | `restore_overclock` | `COMPANION_ACTED` |
-| 5 | `logistics_input_idle` | `set_objective` | `route_or_stockpile` | `COMPANION_ACTED` |
 
 
 ## T9: инвентаризация экранов
@@ -1046,7 +918,6 @@ qualify_days 6, слот `wallet`, живой стейк на settlement, инт
 | `build` | screen | `fullscreen` | live | `skeleton` | `no_entities_yet` |
 | `building_card` | screen | `modal` | live | `skeleton` | `no_entities_yet` |
 | `city_card` | panel | `right_panel` | live | `skeleton` | `no_events_yet` |
-| `companion` | screen | `fullscreen` | live | `skeleton` | `no_events_yet` |
 | `district_card` | screen | `modal` | live | `skeleton` | `nothing_to_claim` |
 | `district_overview` | panel | `right_panel` | live | `skeleton` | `no_entities_yet` |
 | `districts` | screen | `fullscreen` | live | `skeleton` | `no_entities_yet` |
@@ -1073,7 +944,7 @@ qualify_days 6, слот `wallet`, живой стейк на settlement, инт
 | `topbar` | panel | `topbar` | live | `stale_freeze` | `no_events_yet` |
 | `wallet_connect` | screen | `fullscreen` | live | `spinner_inline` | `no_entities_yet` |
 
-kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов против тринадцати пунктов BRIEF: `exchange` выделен из `DISTRICTS и Exchange`, `district_card` несёт дерево узлов и клейм фрагментов.
+kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов против тринадцати пунктов BRIEF: `exchange` выделен из `DISTRICTS и Exchange`, `district_card` несёт дерево узлов и клейм фрагментов.
 
 ## T9: панели и поля
 
@@ -1090,7 +961,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `build_catalog` | `build` | `build_slots` |
 | `building_detail` | `building_card` | `building_level` |
 | `city_card` | `city_card` | `city_rank`, `city_card_treasury` |
-| `companion_desk` | `companion` | `companion_idle_relief`, `companion_cmd_cap`, `companion_advisor_depth`, `companion_advisor_calls`, `companion_advisor_cool`, `companion_window`, `companion_journal`, `companion_commands`, `companion_carry` |
 | `district_overview` | `district_overview` | `overview_zones` |
 | `district_tree` | `district_card` | `district_stake`, `fragment_stock` |
 | `districts_list` | `districts` | `districts_stake` |
@@ -1120,15 +990,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `building_level` | int | live_state | server | `tick.building_level` |
 | `city_card_treasury` | int | live_state | server | `tick.capital` |
 | `city_rank` | int | live_state | server | `seasons.influence_rank` |
-| `companion_advisor_calls` | int | pack_derived | server | `generated.companion.advisor_calls_per_city_day` |
-| `companion_advisor_cool` | int | pack_derived | server | `generated.companion.advisor_cooldown_city_hours` |
-| `companion_advisor_depth` | int | pack_derived | server | `companion.params.companion_advisor_queue_depth` |
-| `companion_carry` | text | client_local | client_format |  |
-| `companion_cmd_cap` | int | pack_derived | server | `companion.params.companion_commands_per_agent_per_tick` |
-| `companion_commands` | list | client_local | client_format |  |
-| `companion_idle_relief` | bps | pack_derived | server | `companion.params.companion_idle_relief_bps` |
-| `companion_journal` | list | live_state | server | `log.events` |
-| `companion_window` | int | pack_derived | server | `generated.screens.offline_return_ticks_cap` |
 | `district_stake` | int | live_state | server | `wallet.stake_tokens` |
 | `districts_rows` | list | live_state | server | `oracle.district_efficiency` |
 | `districts_stake` | int | live_state | server | `wallet.stake_tokens` |
@@ -1180,9 +1041,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `bank` | `bank_withdraw` | `commit:withdraw` | capital | live | `DEMO_NO_WITHDRAW`, `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CAPITAL`, `BANK_CLOSED`, `BANK_SUNDAY`, `BANK_DAILY_LIMIT_REACHED` | `DEMO_NO_WITHDRAW` | `WALLET_NOT_CONNECTED` |
 | `build` | `build_place` | `commit:build` | capital | live | `CITY_LEVEL_TOO_LOW`, `BUILD_TILE_ILLEGAL`, `NO_FREE_BUILD_SLOT`, `NOT_ENOUGH_CAPITAL` | `CITY_LEVEL_TOO_LOW` | `CITY_LEVEL_TOO_LOW` |
 | `building_card` | `building_upgrade` | `commit:upgrade` | capital | live | `NOT_ENOUGH_CAPITAL` | `NOT_ENOUGH_CAPITAL` | `NOT_ENOUGH_CAPITAL` |
-| `companion` | `companion_ask_advisor` | `external:advisor` | none | live | `DEMO_NO_COMPANION`, `COMPANION_QUEUE_FULL` | `DEMO_NO_COMPANION` | `COMPANION_QUEUE_FULL` |
-| `companion` | `companion_filter` | `filter:COMPANION_` | none | live |  |  |  |
-| `companion` | `companion_toggle` | `toggle:autopilot` | none | live | `DEMO_NO_COMPANION` | `DEMO_NO_COMPANION` |  |
 | `district_card` | `district_claim_fragment` | `commit:claim_fragment` | none | live | `DEMO_NO_CLAIM`, `WALLET_NOT_CONNECTED` | `DEMO_NO_CLAIM` | `WALLET_NOT_CONNECTED` |
 | `district_card` | `district_merge` | `commit:merge` | none | live | `MERGE_MATCHING_BLOCKED` | `MERGE_MATCHING_BLOCKED` | `MERGE_MATCHING_BLOCKED` |
 | `district_card` | `district_pick_node` | `commit:pick_node` | none | live | `NODE_SIDE_LOCKED` | `NODE_SIDE_LOCKED` | `NODE_SIDE_LOCKED` |
@@ -1198,9 +1056,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `leaderboard` | `leaderboard_claim` | `commit:claim_prize` | none | live | `DEMO_NO_PRIZE`, `WALLET_NOT_CONNECTED` | `DEMO_NO_PRIZE` | `WALLET_NOT_CONNECTED` |
 | `leaderboard` | `leaderboard_inspect` | `select:city` | none | live | `DEMO_NO_PRIZE`, `PRIZE_NOT_QUALIFIED` | `DEMO_NO_PRIZE` | `PRIZE_NOT_QUALIFIED` |
 | `leaderboard` | `leaderboard_stake_gate` | `select:stake` | none | live | `PRIZE_STAKE_REQUIRED` | `PRIZE_STAKE_REQUIRED` | `PRIZE_STAKE_REQUIRED` |
-| `log_panel` | `log_ask_advisor` | `external:advisor` | none | live | `DEMO_NO_COMPANION`, `COMPANION_QUEUE_FULL` | `DEMO_NO_COMPANION` | `COMPANION_QUEUE_FULL` |
-| `log_panel` | `log_companion_row` | `select:companion_event` | none | live | `COMPANION_REFUSED` | `COMPANION_REFUSED` | `COMPANION_REFUSED` |
-| `log_panel` | `log_filter_companion` | `filter:COMPANION_` | none | live |  |  |  |
 | `bottom_menu` | `menu_agents` | `navigate:agents` | none | live |  |  |  |
 | `bottom_menu` | `menu_bank` | `navigate:bank` | none | live |  |  |  |
 | `bottom_menu` | `menu_build` | `navigate:build` | none | live |  |  |  |
@@ -1219,7 +1074,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `research` | `research_unlock_tools` | `commit:research_start` | capital | live | `CITY_LEVEL_TOO_LOW`, `NOT_ENOUGH_CAPITAL` | `CITY_LEVEL_TOO_LOW` | `CITY_LEVEL_TOO_LOW` |
 | `scene` | `scene_building` | `navigate:building_card` | none | live |  |  |  |
 | `settings` | `settings_language` | `toggle:language` | none | live |  |  |  |
-| `settings` | `settings_open_companion` | `navigate:companion` | none | live |  |  |  |
 | `topbar` | `topbar_corp` | `navigate:bank` | none | live | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` |
 | `topbar` | `topbar_settings` | `navigate:settings` | none | live |  |  |  |
 | `wallet_connect` | `wallet_confirm` | `external:chain` | none | live | `WALLET_WRONG_CHAIN` | `WALLET_WRONG_CHAIN` | `WALLET_WRONG_CHAIN` |
@@ -1231,9 +1085,7 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 
 | token | tier | kind | code |
 |---|---:|---|---|
-| `companion_cmd` | 10 | blocking | `COMPANION_REFUSED` |
 | `not_demo_claim` | 10 | blocking | `DEMO_NO_CLAIM` |
-| `not_demo_companion` | 10 | blocking | `DEMO_NO_COMPANION` |
 | `not_demo_prize` | 10 | blocking | `DEMO_NO_PRIZE` |
 | `not_demo_withdraw` | 10 | blocking | `DEMO_NO_WITHDRAW` |
 | `wallet` | 11 | blocking | `WALLET_NOT_CONNECTED` |
@@ -1249,7 +1101,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `stake_threshold` | 30 | blocking | `STAKE_BELOW_THRESHOLD` |
 | `tier_unlocked` | 30 | blocking | `TIER_NOT_UNLOCKED` |
 | `build_tile` | 31 | blocking | `BUILD_TILE_ILLEGAL` |
-| `advisor_queue` | 40 | blocking | `COMPANION_QUEUE_FULL` |
 | `agent_slot` | 40 | blocking | `NO_FREE_AGENT_SLOT` |
 | `build_slot` | 40 | blocking | `NO_FREE_BUILD_SLOT` |
 | `capital` | 50 | blocking | `NOT_ENOUGH_CAPITAL` |
@@ -1257,7 +1108,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `bank_open` | 60 | blocking | `BANK_CLOSED` |
 | `bank_weekday` | 60 | blocking | `BANK_SUNDAY` |
 | `building_hours` | 60 | warning | `IDLE_OUT_OF_HOURS` |
-| `companion_window` | 60 | warning | `COMPANION_WINDOW_CLOSED` |
 | `bank_limit` | 70 | blocking | `BANK_DAILY_LIMIT_REACHED` |
 | `fragment_city_cap` | 70 | warning | `FRAGMENT_CITY_CAPPED` |
 | `fragment_pool` | 70 | warning | `FRAGMENT_POOL_EMPTY` |
@@ -1268,7 +1118,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `prize_unsettled` | 70 | warning | `PRIZE_UNSETTLED_RETURNED` |
 | `season_open` | 70 | warning | `SEASON_SETTLED` |
 | `bank_limit_depth` | 80 | warning | `BANK_LIMIT_FROM_DEPTH` |
-| `companion_hold` | 80 | warning | `COMPANION_HOLD_STALE` |
 | `district_freezing` | 80 | warning | `DISTRICT_FREEZING` |
 | `district_frozen` | 80 | warning | `DISTRICT_FROZEN` |
 | `fragment_hop` | 80 | warning | `FRAGMENT_HOP_STALE` |
@@ -1292,15 +1141,6 @@ kind=screen 16, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `BANK_DAILY_LIMIT_REACHED` | `bank`, `topbar` |
 | `BANK_LIMIT_FROM_DEPTH` | `bank` |
 | `BANK_SUNDAY` | `topbar`, `bank` |
-| `COMPANION_ACTED` | `log_panel`, `companion` |
-| `COMPANION_HOLD_STALE` | `log_panel`, `companion` |
-| `COMPANION_LLM_TEMPLATE` | `log_panel`, `companion` |
-| `COMPANION_OFF` | `log_panel`, `companion` |
-| `COMPANION_QUEUE_FULL` | `log_panel`, `companion` |
-| `COMPANION_RATE_LIMITED` | `log_panel`, `companion` |
-| `COMPANION_REFUSED` | `log_panel`, `companion` |
-| `COMPANION_WINDOW_CLOSED` | `log_panel`, `companion` |
-| `DEMO_NO_COMPANION` | `log_panel`, `companion` |
 | `DISTRICT_FREEZING` | `districts_panel`, `district_card` |
 | `DISTRICT_FROZEN` | `districts_panel`, `district_card`, `district_overview` |
 | `EXCHANGE_HOP_UNAVAILABLE` | `exchange` |
@@ -1361,7 +1201,7 @@ idle_codes_surfaced: 10.
 | код | экраны | элементы |
 |---|---|---|
 | `DEMO_NO_CLAIM` | `district_card` | `district_claim_fragment` |
-| `DEMO_NO_COMPANION` | `companion`, `log_panel` | `companion_ask_advisor`, `companion_toggle`, `log_ask_advisor` |
+| `DEMO_NO_COMPANION` |  |  |
 | `DEMO_NO_PRIZE` | `leaderboard` | `leaderboard_claim`, `leaderboard_inspect` |
 | `DEMO_NO_WITHDRAW` | `bank`, `onboarding_demo` | `bank_withdraw`, `onboard_wallet_offer` |
 
@@ -1394,11 +1234,11 @@ idle_codes_surfaced: 10.
 | exchange_quote hi | 399 |
 | hop_lo/hi bps | 1/3 |
 | offline_return_ticks_cap | 12 |
-| screens_total | 35 |
-| actions_total | 51 |
-| panels_total | 28 |
-| fields_total | 54 |
-| field sources server/clock/format | 45/3/6 |
+| screens_total | 34 |
+| actions_total | 44 |
+| panels_total | 27 |
+| fields_total | 45 |
+| field sources server/clock/format | 38/3/4 |
 | economic_non_server | 0 |
 | unreachable_refusal | пусто |
 
@@ -1512,7 +1352,8 @@ safe_rect 504×432 px; iso 4032×2016; min 1/8.
 
 | функция | `//` | смысл | сток остатка |
 |---|---:|---|---|
-| `_apply_spend` | `5` | burn / fund / protocol | protocol is the accounting residual |
+| `_apply_spend` | `6` | burn / fund / protocol with explicit dust | dust is routed to the fund; protocol is never the residual |
+| `split_creator_tax_atoms` | `3` | creator-tax fund / prize / active-work floors | integer remainder stays in the prize-derived split |
 | `_assert_i1` | `1` | vault coverage identity | slack floor stays unminted |
 | `_assert_i2` | `2` | entry vs exit bps | identity remainder is not a second printer |
 | `_bank_withdraw` | `14` | Capital to CORP at markup | wei dust stays as Capital |
@@ -1546,7 +1387,6 @@ safe_rect 504×432 px; iso 4032×2016; min 1/8.
 | `productivity_bps` | `1` | realized / nominal | gauge only, not a second fuse |
 | `rate_raw_from_samples` | `2` | usd per capital unit | dust stays unminted |
 | `split_bank_limit` | `1` | ask x cap / sum asks | floor, remainder undistributed |
-| `split_creator_tax_atoms` | `1` | prize leg floor of tax atoms | remainder of the prize share goes to the fund |
 | `tick` | `1` | I7 coverage bps | remainder of vault vs exit |
 
 ## T11: prng streams
@@ -1672,7 +1512,7 @@ park_capacity_jobs 2. energy_buffer_ticks 12.
 
 ## T12: packages
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | id | path | layer | deps | preview |
 |---|---|---:|---|---|
@@ -1692,7 +1532,7 @@ layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`
 
 ## T12: services
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | id | package | fail_mode | blocks_tick | money |
 |---|---|---|---:|---|
@@ -1705,7 +1545,7 @@ layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`
 
 ## T12: codegen
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | id | source | artifact | consumer |
 |---|---|---|---|
@@ -1735,7 +1575,7 @@ layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`
 
 ## T12: schema
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | table | key | holds | storage | money | account_kind |
 |---|---|---|---|---:|---|
@@ -1766,7 +1606,7 @@ Field homes: `agent_id`→`records`, `building_id`→`records`, `city_id`→`tic
 
 ## T12: port
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | group | DESIGN.md §10 |
 |---|---|
@@ -1780,7 +1620,7 @@ implementations `mock`, `rpc`; rpc_import_only `rpc`.
 
 ## T12: metrics
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | metric | invariant | service | threshold_src |
 |---|---|---|---|
@@ -1797,7 +1637,7 @@ implementations `mock`, `rpc`; rpc_import_only `rpc`.
 
 ## T12: environments
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | env | migrations |
 |---|---|
@@ -1807,11 +1647,11 @@ implementations `mock`, `rpc`; rpc_import_only `rpc`.
 
 readiness requires `pack_hash`, `migration_version`.
 
-derived: snapshot_every `24`, queue `1`, sampler_age_alert `3`, sampler_period_s `50`, samples_per_window `1800`, rate_limit `40`, voucher_ttl_s `3750`.
+derived: snapshot_every `24`, sampler_age_alert `3`, sampler_period_s `50`, samples_per_window `1800`, rate_limit `40`, voucher_ttl_s `3750`.
 
 ## T12: endpoints
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | effect | path | refusals |
 |---|---|---|
@@ -1833,7 +1673,7 @@ derived: snapshot_every `24`, queue `1`, sampler_age_alert `3`, sampler_period_s
 
 ## T12: channels
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | state_source | channel |
 |---|---|
@@ -1863,7 +1703,7 @@ price_channel_period_s `50`.
 
 ## T12: http
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | code | http |
 |---|---:|
@@ -1878,7 +1718,7 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 
 ## T12: snapshot
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | section |
 |---|
@@ -1906,7 +1746,7 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 
 ## T12: roadmap
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | stage | gate_cmd | ts_gate_cmd | tests | invariants |
 |---|---|---|---|---|
@@ -1986,14 +1826,14 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 | `island_light` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
 | `island_compose` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
 | `island_anchors` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/contentpack run gate` | `L385` | `layout_v1_bytes` |
-| `island_client` | `python content/lint.py && python content/build.py && python content/attack.py --only L385` | `pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate` | `L385` | `layout_v1_bytes` |
+| `island_client` | `python content/lint.py && python content/build.py && python content/attack.py --only L333,L338,L340,L351,L352,L362,L371,L372,L375,L377,L378,L379,L380,L381,L382,L383,L384,L385,L386` | `pnpm --filter @corporator/render run gate && pnpm --filter @corporator/contentpack run gate && pnpm --filter @corporator/client run gate` | `L385`, `L386` | `layout_v1_bytes` |
 | `island_close` | `python content/lint.py && python content/build.py && python content/attack.py --jobs 8 && python content/sim.py` | `pnpm -w run gate` | `L385`, `L13`, `L14` | `L13_L14`, `I1_I3`, `layout_v1_bytes` |
 | `mainnet_launch` | `python content/build.py && python content/lint.py && python content/attack.py --only L13,L14,L24,L279,L293` | `pnpm -w run gate` | `L13`, `L14`, `L24`, `L279`, `L293` | `L13_L14`, `I1_I3` |
 | `season_one` | `python content/lint.py && python content/attack.py --only L282,L283,L284,L289,L291,L292,L294,L304` | `pnpm -w run gate` | `L282`, `L283`, `L284`, `L289`, `L291`, `L292`, `L294`, `L304` | `demo_isolated`, `I7`, `I11` |
 
 ## T12: toolchain
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | id | version | kind | npm | engines |
 |---|---|---|---|---|
@@ -2015,6 +1855,7 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 | `react_dom` | `19.2.8` | `package` | `react-dom` | `—` |
 | `types_react` | `19.2.8` | `package` | `@types/react` | `—` |
 | `types_react_dom` | `19.2.5` | `package` | `@types/react-dom` | `—` |
+| `lucide_react` | `1.46.0` | `package` | `lucide-react` | `—` |
 | `pg` | `8.23.0` | `package` | `pg` | `—` |
 | `postgres` | `16` | `database` | `—` | `—` |
 | `embedded_postgres` | `18.4.0-beta.17` | `package` | `embedded-postgres` | `—` |
@@ -2032,7 +1873,7 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 
 ## T12: vector_classes
 
-Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. Команда: `python content/build.py`.
+Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, `codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, `economy.params.twap_window_city_hours`. Команда: `python content/build.py`.
 
 | id | src |
 |---|---|

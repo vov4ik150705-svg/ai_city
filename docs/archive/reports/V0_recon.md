@@ -14,7 +14,6 @@
 
 Вход на диске: пак **69**, `rules_version` **0.20.0**, хеш `e823c7296b8bd7fcfbe3e86ae99ab38c2f180627dc9d1bca04e1136dbd2057ad`, lint **327/0**.
 
-`season_prizes_live=1`, `window_a_ratified=1`, `prize_live_min_rules_minor=19`, краны NFT 0, `companion_revenue_live=0`, `missions_live=0`, `launch.deployed` пуст.
 
 ## Прочитано
 

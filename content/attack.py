@@ -45,6 +45,16 @@ import record as record_mod
 # --------------------------------------------------------------------- attacks
 
 
+def _ensure_companion(d: dict) -> dict:
+    """Inject the attack-only T8 fixture when Companion is absent from the live pack."""
+    sec = d.get("companion")
+    if isinstance(sec, dict) and isinstance(sec.get("params"), dict):
+        return sec
+    probe = copy.deepcopy(fixture("companion_probe"))
+    d["companion"] = probe
+    return probe
+
+
 def a_l02_dangling_beacon(d: dict) -> None:
     d["districts"]["districts"]["compute"]["beacon"] = "ghost_tower"
 
@@ -909,7 +919,7 @@ def a_l121_snapshot_last_day(d: dict) -> None:
 
 
 def a_l122_withdraw_allowed(d: dict) -> None:
-    d["companion"]["commands"]["allowed"]["withdraw"] = {
+    _ensure_companion(d)["commands"]["allowed"]["withdraw"] = {
         "live": 1,
         "effect": "withdraw Capital through the bank",
         "reads": "wallet",
@@ -920,16 +930,16 @@ def a_l122_withdraw_allowed(d: dict) -> None:
 
 
 def a_l123_stake_unclassified(d: dict) -> None:
-    d["companion"]["commands"]["forbidden"].pop("stake", None)
+    _ensure_companion(d)["commands"]["forbidden"].pop("stake", None)
 
 
 def a_l124_idle_relief_live(d: dict) -> None:
-    d["companion"]["params"]["companion_rows_live"]["v"] = 0
-    d["companion"]["params"]["companion_idle_relief_bps"]["v"] = 1000
+    _ensure_companion(d)["params"]["companion_rows_live"]["v"] = 0
+    _ensure_companion(d)["params"]["companion_idle_relief_bps"]["v"] = 1000
 
 
 def a_l125_companion_output_row(d: dict) -> None:
-    d["companion"]["rows"]["companion_output"] = {
+    _ensure_companion(d)["rows"]["companion_output"] = {
         "source_kind": "companion",
         "source": "companion",
         "key": "output_bps",
@@ -942,7 +952,7 @@ def a_l125_companion_output_row(d: dict) -> None:
 
 
 def a_l126_offline_zero_row(d: dict) -> None:
-    d["companion"]["rows"]["companion_offline"] = {
+    _ensure_companion(d)["rows"]["companion_offline"] = {
         "source_kind": "companion",
         "source": "companion",
         "key": "offline_cap_hours",
@@ -955,10 +965,10 @@ def a_l126_offline_zero_row(d: dict) -> None:
 
 
 def a_l127_fourteenth_key(d: dict) -> None:
-    allowed = list(d["companion"]["keys"]["allowed"])
+    allowed = list(_ensure_companion(d)["keys"]["allowed"])
     allowed.append("companion_bonus_bps")
-    d["companion"]["keys"]["allowed"] = allowed
-    d["companion"]["rows"]["companion_bonus"] = {
+    _ensure_companion(d)["keys"]["allowed"] = allowed
+    _ensure_companion(d)["rows"]["companion_bonus"] = {
         "source_kind": "companion",
         "source": "companion",
         "key": "companion_bonus_bps",
@@ -975,38 +985,39 @@ def a_l128_fragment_nft_on(d: dict) -> None:
 
 
 def a_l129_stored_advisor_calls(d: dict) -> None:
-    d["companion"]["params"]["advisor_calls_per_city_day"] = _attack_param(
+    _ensure_companion(d)["params"]["advisor_calls_per_city_day"] = _attack_param(
         24, "stored advisor calls equal to a city day", "count"
     )
 
 
 def a_l130_stored_cooldown_zero(d: dict) -> None:
-    d["companion"]["params"]["advisor_cooldown_city_hours"] = _attack_param(
+    _ensure_companion(d)["params"]["advisor_cooldown_city_hours"] = _attack_param(
         0, "stored cooldown zero would burst advisor calls", "city_hours"
     )
 
 
 def a_l131_two_commands_per_tick(d: dict) -> None:
-    d["companion"]["params"]["companion_commands_per_agent_per_tick"]["v"] = 2
+    _ensure_companion(d)["params"]["companion_commands_per_agent_per_tick"]["v"] = 2
 
 
 def a_l132_policy_llm(d: dict) -> None:
-    d["companion"]["policy_kind"]["v"] = "llm"
+    _ensure_companion(d)["policy_kind"]["v"] = "llm"
 
 
 def a_l133_tie_random(d: dict) -> None:
-    d["companion"]["tie_break"]["v"] = "random"
+    _ensure_companion(d)["tie_break"]["v"] = "random"
 
 
 def a_l134_carry_over(d: dict) -> None:
-    d["companion"]["params"]["companion_carry_over"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_carry_over"]["v"] = 1
 
 
 def a_l135_replan_on_login(d: dict) -> None:
-    d["companion"]["params"]["companion_replan_on_login"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_replan_on_login"]["v"] = 1
 
 
 def a_l136_window_code_removed(d: dict) -> None:
+    _ensure_companion(d)
     d["codes"]["codes"].pop("COMPANION_WINDOW_CLOSED", None)
     table = dict(strings("ru")["strings"])
     table.pop("COMPANION_WINDOW_CLOSED", None)
@@ -1014,31 +1025,31 @@ def a_l136_window_code_removed(d: dict) -> None:
 
 
 def a_l137_objective_code_removed(d: dict) -> None:
-    d["companion"]["commands"]["allowed"]["set_objective"]["journal_code"] = ""
+    _ensure_companion(d)["commands"]["allowed"]["set_objective"]["journal_code"] = ""
 
 
 def a_l138_hold_keep(d: dict) -> None:
-    d["companion"]["hold_stale_action"]["v"] = "keep"
+    _ensure_companion(d)["hold_stale_action"]["v"] = "keep"
 
 
 def a_l139_demo_companion_on(d: dict) -> None:
-    d["companion"]["params"]["demo_companion"]["v"] = 1
+    _ensure_companion(d)["params"]["demo_companion"]["v"] = 1
 
 
 def a_l140_extends_window(d: dict) -> None:
-    d["companion"]["companion_extends_window"] = 1
-    d["companion"]["uptime_probe_bps"] = 9600
+    _ensure_companion(d)["companion_extends_window"] = 1
+    _ensure_companion(d)["uptime_probe_bps"] = 9600
 
 
 def a_l141_point_price(d: dict) -> None:
-    d["companion"]["params"]["companion_llm_cost_usd_8dec"] = _attack_param(
+    _ensure_companion(d)["params"]["companion_llm_cost_usd_8dec"] = _attack_param(
         500000, "point inference price without a dated snapshot", "usd_8dec"
     )
 
 
 def a_l142_predicate_rollback(d: dict) -> None:
     d["modifiers"]["free_kinds_no_companion"] = 1
-    d["companion"]["rows"]["companion_output"] = {
+    _ensure_companion(d)["rows"]["companion_output"] = {
         "source_kind": "companion",
         "source": "companion",
         "key": "output_bps",
@@ -1052,7 +1063,7 @@ def a_l142_predicate_rollback(d: dict) -> None:
 
 
 def a_t8_companion_free_output_700(d: dict) -> None:
-    d["companion"]["rows"]["companion_output"] = {
+    _ensure_companion(d)["rows"]["companion_output"] = {
         "source_kind": "companion",
         "source": "companion",
         "key": "output_bps",
@@ -1066,7 +1077,7 @@ def a_t8_companion_free_output_700(d: dict) -> None:
 
 
 def a_t8_companion_offline_plus_6(d: dict) -> None:
-    d["companion"]["rows"]["companion_offline"] = {
+    _ensure_companion(d)["rows"]["companion_offline"] = {
         "source_kind": "companion",
         "source": "companion",
         "key": "offline_cap_hours",
@@ -1080,7 +1091,7 @@ def a_t8_companion_offline_plus_6(d: dict) -> None:
 
 
 def a_t8_companion_fund_share(d: dict) -> None:
-    d["companion"]["rows"]["companion_fund"] = {
+    _ensure_companion(d)["rows"]["companion_fund"] = {
         "source_kind": "companion",
         "source": "companion",
         "key": "fund_share_bps",
@@ -1094,24 +1105,24 @@ def a_t8_companion_fund_share(d: dict) -> None:
 
 
 def a_t8_companion_beats_optimizer(d: dict) -> None:
-    d["companion"]["companion_extends_window"] = 1
-    d["companion"]["uptime_probe_bps"] = 9600
+    _ensure_companion(d)["companion_extends_window"] = 1
+    _ensure_companion(d)["uptime_probe_bps"] = 9600
 
 
 def a_t8_companion_llm_in_tick(d: dict) -> None:
-    d["companion"]["policy_kind"]["v"] = "llm"
-    d["companion"]["policy"]["closed_schedule"]["why"] = (
+    _ensure_companion(d)["policy_kind"]["v"] = "llm"
+    _ensure_companion(d)["policy"]["closed_schedule"]["why"] = (
         "policy row that names an llm source inside the economic tick"
     )
 
 
 def a_t8_companion_burst_on_return(d: dict) -> None:
-    d["companion"]["params"]["companion_carry_over"]["v"] = 1
-    d["companion"]["params"]["companion_replan_on_login"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_carry_over"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_replan_on_login"]["v"] = 1
 
 
 def a_t8_companion_hold_fail_open(d: dict) -> None:
-    d["companion"]["hold_stale_action"]["v"] = "keep"
+    _ensure_companion(d)["hold_stale_action"]["v"] = "keep"
 
 
 def a_t8_companion_taps_on(d: dict) -> None:
@@ -1120,12 +1131,12 @@ def a_t8_companion_taps_on(d: dict) -> None:
 
 
 def a_t8_companion_rows_live_on(d: dict) -> None:
-    d["companion"]["params"]["companion_rows_live"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_rows_live"]["v"] = 1
 
 
 def a_t8_companion_live_relief_smuggled(d: dict) -> None:
-    d["companion"]["params"]["companion_rows_live"]["v"] = 1
-    d["companion"]["params"]["companion_idle_relief_bps"]["v"] = 1000
+    _ensure_companion(d)["params"]["companion_rows_live"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_idle_relief_bps"]["v"] = 1000
 
 
 def _t9_clone_action(d: dict, src: str, dst: str, **over) -> None:
@@ -1667,18 +1678,35 @@ def a_l162_prize_keeps_v1_feature(d: dict) -> None:
 
 
 def a_l163_drop_companion_filter(d: dict) -> None:
-    d["screens"]["actions"].pop("log_filter_companion", None)
+    d["screens"]["actions"]["log_filter_companion"] = {
+        "screen": "log_panel",
+        "kind": "filter",
+        "label": "UI_FILTER_COMPANION",
+        "effect": "filter:COMPANION_",
+        "requires": [],
+        "spend": "none",
+        "demo_blocked": 0,
+        "v1": "live",
+        "src": "attack",
+        "why": "restored Companion journal filter after the cut",
+    }
 
 
 def a_l163_autopilot_live(d: dict) -> None:
-    live = int(((d["screens"]["params"] or {}).get("autopilot_toggle_live") or {}).get("v") or 0)
-    auto = d["screens"]["settings_rows"]["autopilot"]
-    if live == 0:
-        auto["v1"] = "live"
-        auto["requires"] = []
-    else:
-        auto["v1"] = "stub"
-        auto["requires"] = ["v1_feature"]
+    d["screens"]["params"]["autopilot_toggle_live"] = {
+        "v": 1,
+        "u": "flag",
+        "src": "attack",
+        "why": "restored autopilot flag after Companion cut",
+    }
+    d["screens"]["settings_rows"]["autopilot"] = {
+        "kind": "toggle",
+        "v1": "live",
+        "client_only": 0,
+        "label_key": "UI_AUTOPILOT",
+        "requires": [],
+        "src": "attack",
+    }
 
 
 def a_l164_number_in_screens_md(d: dict) -> None:
@@ -2617,8 +2645,11 @@ def a_l294_corp_in_list(d: dict) -> None:
 
 
 def a_l304_split_6000_4000(d: dict) -> None:
-    d["fragments"]["params"]["protocol_fragments_bps"]["v"] = 6000
-    d["fragments"]["params"]["protocol_prizes_bps"]["v"] = 4000
+    d["economy"]["params"]["spend_protocol_bps"]["v"] = 1000
+
+
+def a_l304_active_work_51(d: dict) -> None:
+    d["fragments"]["params"]["active_work_creator_tax_bps"]["v"] = 51
 
 
 def a_l305_pending_reopened(d: dict) -> None:
@@ -3054,20 +3085,20 @@ def a_l310_scope_lists_drone(d: dict) -> None:
 
 
 def a_l143_without_recount(d: dict) -> None:
-    d["companion"]["params"]["companion_rows_live"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_rows_live"]["v"] = 1
     d["balance"]["params"]["fund_amplification_target_bps"]["v"] = 10000
 
 
 def a_l311_relief_zero(d: dict) -> None:
-    d["companion"]["params"]["companion_idle_relief_bps"]["v"] = 0
+    _ensure_companion(d)["params"]["companion_idle_relief_bps"]["v"] = 0
 
 
 def a_l311_floor_punched(d: dict) -> None:
-    d["companion"]["params"]["companion_idle_relief_bps"]["v"] = 10000
+    _ensure_companion(d)["params"]["companion_idle_relief_bps"]["v"] = 10000
 
 
 def a_l311_focus_forbidden(d: dict) -> None:
-    allowed = d["companion"]["commands"]["allowed"]
+    allowed = _ensure_companion(d)["commands"]["allowed"]
     row = allowed.pop("set_manager_focus", None)
     if row is None:
         row = {
@@ -3083,11 +3114,11 @@ def a_l311_focus_forbidden(d: dict) -> None:
             "src": row.get("src") or "DESIGN.md §5.7 T8 D6",
             "why": "attack moved set_manager_focus back to forbidden",
         }
-    d["companion"]["commands"]["forbidden"]["set_manager_focus"] = row
+    _ensure_companion(d)["commands"]["forbidden"]["set_manager_focus"] = row
 
 
 def a_l311_live_off(d: dict) -> None:
-    d["companion"]["params"]["companion_rows_live"]["v"] = 0
+    _ensure_companion(d)["params"]["companion_rows_live"]["v"] = 0
 
 
 def a_l312_prize_tap(d: dict) -> None:
@@ -3099,20 +3130,20 @@ def a_l312_fragment_tap(d: dict) -> None:
 
 
 def a_l312_revenue_live_on(d: dict) -> None:
-    d["companion"]["params"]["companion_revenue_live"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_revenue_live"]["v"] = 1
 
 
 def a_l312_sink_pool(d: dict) -> None:
-    d["companion"]["nft_proceeds_sink"]["v"] = "prize_pool"
+    _ensure_companion(d)["nft_proceeds_sink"]["v"] = "prize_pool"
 
 
 def a_l312_sink_missing(d: dict) -> None:
-    d["companion"].pop("nft_proceeds_sink", None)
+    _ensure_companion(d).pop("nft_proceeds_sink", None)
 
 
 def a_l312_interval_empty(d: dict) -> None:
-    d["companion"]["llm"]["cost_usd_per_call_lo_8dec"]["v"] = 0
-    d["companion"]["llm"]["cost_usd_per_call_hi_8dec"]["v"] = 0
+    _ensure_companion(d)["llm"]["cost_usd_per_call_lo_8dec"]["v"] = 0
+    _ensure_companion(d)["llm"]["cost_usd_per_call_hi_8dec"]["v"] = 0
 
 
 def a_l313_unratified(d: dict) -> None:
@@ -3170,14 +3201,32 @@ def a_l298_eat_settled(d: dict) -> None:
     d["arch"]["treasury_return_settled"] = True
 
 
-def a_l298_claim_when_paused(d: dict) -> None:
-    d["arch"]["treasury_claim_when_paused"] = True
+def a_l298_claim_pause_gated(d: dict) -> None:
+    files = _sol_disk()
+    treas = files.get("PrizeTreasury.sol") or ""
+    files["PrizeTreasury.sol"] = treas.replace(
+        "function claimPrize(address token, uint8 kettle) external {",
+        'function claimPrize(address token, uint8 kettle) external { require(!paused, "paused");',
+        1,
+    )
+    d["_sol_source"] = files
 
 
 def a_l299_drop_backing_cap(d: dict) -> None:
     files = _sol_disk()
     vault = files.get("Vault.sol") or ""
-    files["Vault.sol"] = vault.replace('require(amount <= backing, "backing");', "")
+    files["Vault.sol"] = vault.replace('require(amount <= avail, "backing");', "")
+    d["_sol_source"] = files
+
+
+def a_l299_ignore_reserved(d: dict) -> None:
+    files = _sol_disk()
+    vault = files.get("Vault.sol") or ""
+    files["Vault.sol"] = vault.replace(
+        "uint256 avail = availableOf(player);",
+        "uint256 avail = backingOf[player];",
+        1,
+    )
     d["_sol_source"] = files
 
 
@@ -3195,6 +3244,23 @@ def a_l300_guardian_eq_signer(d: dict) -> None:
     d["_sol_source"] = files
 
 
+def a_l300_pause_reintroduced(d: dict) -> None:
+    files = _sol_disk()
+    vault = files.get("Vault.sol") or ""
+    files["Vault.sol"] = vault + "\nuint256 public pauseReadyAt;\nfunction unpause() external {}\n"
+    d["_sol_source"] = files
+
+
+def a_l300_pending_delay(d: dict) -> None:
+    items = dict(((d.get("pending") or {}).get("items") or {}))
+    items["pause_ready_delay"] = {
+        "owner": "owner",
+        "kind": "param",
+        "why": "seconds still treated as an owner P7 input after pause removal",
+    }
+    d.setdefault("pending", {})["items"] = items
+
+
 def a_l301_recover_corp(d: dict) -> None:
     files = _sol_disk()
     vault = files.get("Vault.sol") or ""
@@ -3206,8 +3272,8 @@ def a_l303_refund_uses_vault_balance(d: dict) -> None:
     files = _sol_disk()
     vault = files.get("Vault.sol") or ""
     files["Vault.sol"] = vault.replace(
-        "uint256 backing = backingOf[player];",
-        "uint256 backing = corp.balanceOf(address(this));",
+        "uint256 avail = availableOf(player);",
+        "uint256 avail = corp.balanceOf(address(this));",
         1,
     )
     d["_sol_source"] = files
@@ -3870,6 +3936,18 @@ def a_l344_hash_mismatch(d: dict) -> None:
     d["_lint_render"] = fonts
 
 
+def a_l344_stale_pack_serif(d: dict) -> None:
+    fonts = dict(build.hud_font_derived(d))
+    serif = REPO / "art" / "fonts" / "source_serif_4.woff2"
+    fonts["hud_font_pixel_family"] = "Source Serif 4"
+    fonts["hud_font_pixel_file"] = "source_serif_4.woff2"
+    if serif.is_file():
+        fonts["hud_font_pixel_sha256"] = hashlib.sha256(serif.read_bytes()).hexdigest()
+    else:
+        fonts["hud_font_pixel_sha256"] = "b" * 64
+    d["_packed_hud_fonts"] = fonts
+
+
 def a_l352_drop_code(d: dict) -> None:
     codes = ((d.get("codes") or {}).get("codes") or {})
     codes.pop("RENDER_NO_GPU", None)
@@ -3923,7 +4001,7 @@ def a_l347_live_effect(d: dict) -> None:
 
 
 def a_l348_companion_revenue(d: dict) -> None:
-    d["companion"]["params"]["companion_revenue_live"]["v"] = 1
+    _ensure_companion(d)["params"]["companion_revenue_live"]["v"] = 1
 
 
 def a_l348_missions_live(d: dict) -> None:
@@ -3936,17 +4014,54 @@ def a_l346_nft_on_screen(d: dict) -> None:
     d["_hud_screen_files"] = files
 
 
+def a_l346_restore_screen(d: dict) -> None:
+    d["screens"]["screens"]["companion"] = {
+        "kind": "screen",
+        "mount": "fullscreen",
+        "hud_ref": "attack",
+        "doc_ref": "attack",
+        "v1": "live",
+        "entry": "settings_open_companion",
+        "panels": ["companion_desk"],
+        "loading_kind": "skeleton",
+        "empty_kind": "no_events_yet",
+        "src": "attack",
+        "why": "restored Companion screen after the cut",
+    }
+
+
 def a_l346_flag_zero(d: dict) -> None:
-    d["screens"]["params"]["autopilot_toggle_live"]["v"] = 0
+    a_l346_restore_screen(d)
+    d["screens"]["params"]["autopilot_toggle_live"] = {
+        "v": 1,
+        "u": "flag",
+        "src": "attack",
+        "why": "restored autopilot flag after Companion cut",
+    }
 
 
 def a_l346_toggle_stub(d: dict) -> None:
-    d["screens"]["settings_rows"]["autopilot"]["v1"] = "stub"
-    d["screens"]["settings_rows"]["autopilot"]["requires"] = ["v1_feature"]
+    a_l346_flag_zero(d)
+    d["screens"]["settings_rows"]["autopilot"] = {
+        "kind": "toggle",
+        "v1": "stub",
+        "client_only": 0,
+        "label_key": "UI_AUTOPILOT",
+        "requires": ["v1_feature"],
+        "src": "attack",
+    }
 
 
 def a_l346_omit_screen(d: dict) -> None:
-    d["screens"]["screens"].pop("companion", None)
+    a_l346_restore_screen(d)
+
+
+def a_l388_restore_section(d: dict) -> None:
+    _ensure_companion(d)
+
+
+def a_l388_restore_screen(d: dict) -> None:
+    a_l346_restore_screen(d)
 
 
 def a_l349_blocks_tick(d: dict) -> None:
@@ -4421,8 +4536,32 @@ def a_l379_kind_object(d: dict) -> None:
 
 def a_l379_hud_hole(d: dict) -> None:
     d["_hud_css"] = (
+        ".hud-overlay { pointer-events: none; }\n"
         ".hud-topbar { pointer-events: auto; }\n"
         ".hud-col { pointer-events: none; }\n"
+        ".hud-stocks { pointer-events: auto; }\n"
+        ".hud-menu { pointer-events: auto; }\n"
+        ".hud-screen { pointer-events: auto; }\n"
+    )
+
+
+def a_l379_overlay_auto(d: dict) -> None:
+    d["_hud_css"] = (
+        ".hud-overlay { pointer-events: auto; }\n"
+        ".hud-topbar { pointer-events: auto; }\n"
+        ".hud-col { pointer-events: auto; }\n"
+        ".hud-stocks { pointer-events: auto; }\n"
+        ".hud-menu { pointer-events: auto; }\n"
+        ".hud-screen { pointer-events: auto; }\n"
+    )
+
+
+def a_l379_right_rail_hole(d: dict) -> None:
+    d["_hud_css"] = (
+        ".hud-overlay { pointer-events: none; }\n"
+        ".hud-topbar { pointer-events: auto; }\n"
+        ".hud-col { pointer-events: auto; }\n"
+        ".hud-col--right { pointer-events: none; }\n"
         ".hud-stocks { pointer-events: auto; }\n"
         ".hud-menu { pointer-events: auto; }\n"
         ".hud-screen { pointer-events: auto; }\n"
@@ -4679,7 +4818,7 @@ def a_l385_close_drop_sim(d: dict) -> None:
 
 
 def a_l385_minor_low(d: dict) -> None:
-    d["meta"]["rules_version"] = "0.22.0"
+    d["meta"]["rules_version"] = "0.23.0"
 
 
 def a_l385_reuse_prior_name(d: dict) -> None:
@@ -4891,6 +5030,160 @@ def a_l383_vehicle_pick(d: dict) -> None:
             "export function vehiclePose() { return 0 }\n"
         ),
         "pick.ts": "vehicle_\nexport function pickFromRay() { return 0 }\n",
+    }
+
+
+def a_l386_no_meshopt(d: dict) -> None:
+    d["_render_source"] = {
+        "three.ts": (
+            "import { GLTFLoader } from \"three/addons/loaders/GLTFLoader.js\"\n"
+            "export async function mountIsland3() { collectAnchors(); return 0 }\n"
+        ),
+        "islandPlant.ts": "export function collectAnchors() { return {} }\n",
+    }
+
+
+def a_l386_live_units(d: dict) -> None:
+    d["_render_source"] = {
+        "three.ts": (
+            "import { GLTFLoader } from \"three/addons/loaders/GLTFLoader.js\"\n"
+            "import { MeshoptDecoder } from \"three/addons/libs/meshopt_decoder.module.js\"\n"
+            "plantUnits\n"
+            "export async function mountIsland3() { collectAnchors(); return 0 }\n"
+        ),
+        "islandPlant.ts": "export function collectAnchors() { return {} }\n",
+    }
+
+
+def a_l386_heroes_url(d: dict) -> None:
+    d["_client_source"] = {
+        "hud/SceneHost.tsx": (
+            "const MASS = 'art/island_v3/runtime/island_mass.glb'\n"
+            "const HEROES = import.meta.glob('../../../../content/out/heroes/*.glb')\n"
+        ),
+    }
+
+
+def a_l386_warehouse_pack(d: dict) -> None:
+    plants = ((d.get("render") or {}).get("island_plants") or {})
+    row = plants.get("amazon_warehouse")
+    if isinstance(row, dict):
+        row["pack_id"] = "retail_complex"
+
+
+def a_l386_island_seed(d: dict) -> None:
+    d["_api_source"] = {
+        "services/api/src/session.ts": "export async function createCity() { return { island_seed: 1 } }\n",
+    }
+
+
+def a_l386_drop_from_gate(d: dict) -> None:
+    row = ((d.get("arch") or {}).get("roadmap") or {}).get("island_client")
+    if isinstance(row, dict):
+        row["gate_cmd"] = (
+            "python content/lint.py && python content/build.py && "
+            "python content/attack.py --only L385"
+        )
+
+
+def a_l386_jobs8(d: dict) -> None:
+    row = ((d.get("arch") or {}).get("roadmap") or {}).get("island_client")
+    if isinstance(row, dict):
+        row["gate_cmd"] = (
+            "python content/lint.py && python content/build.py && "
+            "python content/attack.py --jobs 8"
+        )
+
+
+def a_l386_few_anchors(d: dict) -> None:
+    d["_island_anchor_names"] = ["anchor_city_hall", "anchor_bank"]
+
+
+def a_l386_drop_orbit(d: dict) -> None:
+    params = ((d.get("render") or {}).get("params") or {})
+    row = params.get("island_orbit_distance_min")
+    if isinstance(row, dict):
+        row["v"] = 0
+
+
+
+def a_l387_sign_day_zero(d: dict) -> None:
+    row = ((d.get("render") or {}).get("params") or {}).get("sign_day_gain_bps")
+    if isinstance(row, dict):
+        row["v"] = 0
+
+
+def a_l387_sign_day_high(d: dict) -> None:
+    row = ((d.get("render") or {}).get("params") or {}).get("sign_day_gain_bps")
+    if isinstance(row, dict):
+        row["v"] = 9000
+
+
+def a_l387_shadows_off(d: dict) -> None:
+    row = ((d.get("render") or {}).get("params") or {}).get("island_shadows")
+    if isinstance(row, dict):
+        row["v"] = 0
+
+
+def a_l387_bloom_live_bad(d: dict) -> None:
+    row = ((d.get("render") or {}).get("params") or {}).get("island_bloom_live")
+    if isinstance(row, dict):
+        row["v"] = 2
+
+
+def a_l387_max_gain(d: dict) -> None:
+    d["_render_source"] = {
+        "sun.ts": "export const signDayGainBps = 1n\n",
+        "three.ts": (
+            "signDayGainBps\nbloomLive\nPCFSoftShadowMap\napplyClassifiedGlow\n"
+            "const gainW = 1\nconst gainS = 0\nmat.emissiveIntensity = gainW > gainS ? gainW : gainS\n"
+        ),
+        "islandLook.ts": "export function applyClassifiedGlow() {}\n",
+        "islandMaterials.ts": "metalness = 0\n",
+    }
+
+
+def a_l387_emissive_zero(d: dict) -> None:
+    row = ((d.get("render") or {}).get("params") or {}).get("emissive_gain_bps")
+    if isinstance(row, dict):
+        row["v"] = 0
+
+
+def a_l387_windows_follow_lights(d: dict) -> None:
+    d["_render_source"] = {
+        "sun.ts": (
+            "export const signDayGainBps = 1n\n"
+            "export function windowGainBps(lightsFlag, emissiveBps) {\n"
+            "  return glowGainBps(lightsFlag, emissiveBps)\n"
+            "}\n"
+        ),
+        "three.ts": "signDayGainBps\nbloomLive\nPCFSoftShadowMap\napplyClassifiedGlow\n",
+        "islandLook.ts": "export function applyClassifiedGlow() {}\n",
+        "islandMaterials.ts": "metalness = 0\n",
+    }
+
+
+def a_l387_body_as_window(d: dict) -> None:
+    d["_render_source"] = {
+        "sun.ts": "export const signDayGainBps = 1n\n",
+        "three.ts": "signDayGainBps\nbloomLive\nPCFSoftShadowMap\napplyClassifiedGlow\n",
+        "islandLook.ts": "export function applyClassifiedGlow() {}\n",
+        "islandMaterials.ts": 'glow.push({ mat, kind: "window" })\nmetalness = 0\n',
+    }
+
+
+def a_l387_drop_from_gate(d: dict) -> None:
+    row = ((d.get("arch") or {}).get("roadmap") or {}).get("island_client")
+    if isinstance(row, dict):
+        row["gate_cmd"] = (
+            "python content/lint.py && python content/build.py && "
+            "python content/attack.py --only L385,L386"
+        )
+
+
+def a_l387_no_packview(d: dict) -> None:
+    d["_client_source"] = {
+        "packview.ts": "export type ClientLight = {}\n",
     }
 
 
@@ -5173,8 +5466,8 @@ ATTACKS = [
     ("L162", "клейм приза live при флаге 0", a_l162_prize_claim_live),
     ("L162", "клейм приза stub при флаге 1", a_l162_prize_claim_stub),
     ("L162", "клейм приза live с v1_feature", a_l162_prize_keeps_v1_feature),
-    ("L163", "фильтр COMPANION_ снят из log_panel", a_l163_drop_companion_filter),
-    ("L163", "тумблер автопилота не соответствует флагу", a_l163_autopilot_live),
+    ("L163", "фильтр COMPANION_ возвращён в log_panel", a_l163_drop_companion_filter),
+    ("L163", "тумблер автопилота возвращён после выреза", a_l163_autopilot_live),
     ("L164", "живое число в docs/SCREENS.md", a_l164_number_in_screens_md),
     ("L165", "wallet снят с bank_withdraw", a_l165_withdraw_without_wallet),
     ("L165", "wallet снят с districts_open", a_l165_open_district_without_wallet),
@@ -5365,6 +5658,7 @@ ATTACKS = [
     ("L293", "потолок фабрики в паке поднят до 2000", a_l293_ceiling_raised),
     ("L294", "CORP в prize_assets", a_l294_corp_in_list),
     ("L304", "сплит 6000/4000 вернул T7 $CORP", a_l304_split_6000_4000),
+    ("L304", "active-work pool изменён с 50 на 51 bps", a_l304_active_work_51),
     ("L305", "burn_reserve_rescue снова в pending", a_l305_pending_reopened),
     ("L305", "returnBurnReserve на vault", a_l305_return_burn_fn),
     ("L305", "returnUnsettled на vault", a_l305_vault_return_unsettled),
@@ -5456,11 +5750,12 @@ ATTACKS = [
     ("L344", "@import шрифта с CDN", a_l344_cdn_import),
     ("L344", "вендоренные woff2 опущены", a_l344_omit_files),
     ("L344", "sha256 шрифта не совпал с файлом", a_l344_hash_mismatch),
+    ("L344", "пак Source Serif 4 при IBM Plex Sans в manifest", a_l344_stale_pack_serif),
     ("L345", "обнулён render.label_min_zoom_num", a_l345_zero_label_zoom),
     ("L346", "nft в companion.tsx", a_l346_nft_on_screen),
-    ("L346", "autopilot_toggle_live=0 при живом экране", a_l346_flag_zero),
-    ("L346", "тумблер stub при живом флаге", a_l346_toggle_stub),
-    ("L346", "экран companion снят", a_l346_omit_screen),
+    ("L346", "экран companion возвращён с автопилотом", a_l346_flag_zero),
+    ("L346", "тумблер stub при возвращённом экране", a_l346_toggle_stub),
+    ("L346", "экран companion возвращён", a_l346_omit_screen),
     ("L349", "attestor.blocks_tick=1", a_l349_blocks_tick),
     ("L349", "hex-адрес в attestor src", a_l349_hex_in_src),
     ("L349", "void attestor без submit", a_l349_void_attestor),
@@ -5475,7 +5770,6 @@ ATTACKS = [
     ("L352", "fallback с непрозрачной магентой", a_l352_magenta_fallback),
     ("L347", "missions_live=1", a_l347_missions_live),
     ("L347", "missions_start живой commit", a_l347_live_effect),
-    ("L348", "companion_revenue_live=1", a_l348_companion_revenue),
     ("L348", "missions_live=1", a_l348_missions_live),
     ("L348", "window_a_ratified снят", a_l348_window_a_off),
     ("L348", "season_prizes_live снят", a_l348_prizes_off),
@@ -5563,6 +5857,8 @@ ATTACKS = [
     ("L378", "нет повторного луча в воду", a_l378_no_water),
     ("L379", "kind не building", a_l379_kind_object),
     ("L379", "pointer-events none на .hud-col", a_l379_hud_hole),
+    ("L379", "overlay pointer-events auto", a_l379_overlay_auto),
+    ("L379", "pointer-events none на .hud-col--right", a_l379_right_rail_hole),
     ("L379", "нет hudBlocksPick", a_l379_no_hud_block),
     ("L370", "visual3_units.construction_tests ghost", a_l370_units_ghost_ct),
     ("L370", "visual3_units.construction_tests пуст", a_l370_units_empty_ct),
@@ -5608,9 +5904,30 @@ ATTACKS = [
     ("L385", "--jobs 8 в island_terrain.gate_cmd", a_l385_jobs8_terrain),
     ("L385", "island_close.gate_cmd без --jobs 8", a_l385_close_drop_jobs),
     ("L385", "island_close.gate_cmd без sim.py", a_l385_close_drop_sim),
-    ("L385", "rules_version minor 22", a_l385_minor_low),
+    ("L385", "rules_version minor 23", a_l385_minor_low),
     ("L385", "hud_shell в окне острова", a_l385_reuse_prior_name),
     ("L385", "дубль island_form в order", a_l385_dup_island_form),
+    ("L386", "нет MeshoptDecoder в three.ts", a_l386_no_meshopt),
+    ("L386", "plantUnits в живом three.ts", a_l386_live_units),
+    ("L386", "SceneHost грузит content/out/heroes", a_l386_heroes_url),
+    ("L386", "amazon_warehouse.pack_id = retail_complex", a_l386_warehouse_pack),
+    ("L386", "island_seed в session.ts", a_l386_island_seed),
+    ("L386", "island_client.gate_cmd без L386", a_l386_drop_from_gate),
+    ("L386", "--jobs 8 в island_client.gate_cmd", a_l386_jobs8),
+    ("L386", "якорей меньше 26", a_l386_few_anchors),
+    ("L386", "island_orbit_distance_min=0", a_l386_drop_orbit),
+    ("L387", "sign_day_gain_bps=0", a_l387_sign_day_zero),
+    ("L387", "sign_day_gain_bps=9000", a_l387_sign_day_high),
+    ("L387", "island_shadows=0", a_l387_shadows_off),
+    ("L387", "island_bloom_live=2", a_l387_bloom_live_bad),
+    ("L387", "gainW > gainS в three.ts", a_l387_max_gain),
+    ("L387", "island_client.gate_cmd без L387", a_l387_drop_from_gate),
+    ("L387", "packview не читает sign_day_gain_bps", a_l387_no_packview),
+    ("L387", "emissive_gain_bps=0", a_l387_emissive_zero),
+    ("L387", "windowGainBps следует lightsFlag", a_l387_windows_follow_lights),
+    ("L387", "unknown emissive как window", a_l387_body_as_window),
+    ("L388", "секция companion возвращена в пак", a_l388_restore_section),
+    ("L388", "экран companion возвращён", a_l388_restore_screen),
     ("L307", "logistics.playable_v1 оставлен false", a_l307_logistics_cut),
     ("L307", "automation.playable_v1 снят: оффлайн 18 недостижим", a_l307_automation_cut),
     ("L307", "finance.playable_v1 снят: доля фонда не набирается", a_l307_finance_cut),
@@ -5643,10 +5960,13 @@ ATTACKS = [
     ("L297", "refundPlayer на казне стоков", a_l297_treasury_refund),
     ("L297", "delegatecall в казне", a_l297_delegatecall),
     ("L298", "returnUnsettled ест settled", a_l298_eat_settled),
-    ("L298", "клейм на паузе платит", a_l298_claim_when_paused),
-    ("L299", "рефанд без потолка backing", a_l299_drop_backing_cap),
+    ("L298", "клейм снова с паузой", a_l298_claim_pause_gated),
+    ("L299", "рефанд без потолка availableOf", a_l299_drop_backing_cap),
+    ("L299", "рефанд ест reservation ваучера", a_l299_ignore_reserved),
     ("L300", "setSigner одним ключом", a_l300_set_signer),
     ("L300", "страж равен подписанту", a_l300_guardian_eq_signer),
+    ("L300", "pauseReadyAt возвращён", a_l300_pause_reintroduced),
+    ("L300", "pause_ready_delay снова pending", a_l300_pending_delay),
     ("L301", "recoverWrongToken своего $CORP", a_l301_recover_corp),
     ("L303", "рефанд бота по балансу vault", a_l303_refund_uses_vault_balance),
     ("L302", "кнопка слива на лидерборде", a_l302_drain_button),
@@ -6885,10 +7205,14 @@ def construction_t7_live_zero(data: dict) -> str | None:
 
 
 def construction_t7_split(data: dict) -> str | None:
-    a = data["fragments"]["params"]["protocol_fragments_bps"]["v"]
-    b = data["fragments"]["params"]["protocol_prizes_bps"]["v"]
-    if a + b != BPS or a != BPS or b != 0:
-        return f"split {a}+{b} != 10000+0"
+    econ = data["economy"]["params"]
+    spend = (
+        int(econ["spend_burn_bps"]["v"])
+        + int(econ["spend_fund_bps"]["v"])
+        + int(econ["spend_protocol_bps"]["v"])
+    )
+    if spend != BPS or int(econ["spend_burn_bps"]["v"]) != 4000 or int(econ["spend_fund_bps"]["v"]) != 6000:
+        return f"spend split != 4000+6000+0: {spend}"
     caught93 = [e for e in _run_one(lint.l93_protocol_split, data) if e.startswith("L93")]
     caught108 = [e for e in _run_one(lint.l108_prizes_not_fragments, data) if e.startswith("L108")]
     caught304 = [e for e in _run_one(lint.l304_spend_tenth_is_farm, data) if e.startswith("L304")]
@@ -7013,8 +7337,8 @@ def construction_t8_named_eighteen(data: dict) -> str | None:
 
 def construction_t8_pending_kept(data: dict) -> str | None:
     items = (data.get("pending") or {}).get("items") or {}
-    if "companion_llm_price_snapshot" not in items:
-        return "pending lost companion_llm_price_snapshot"
+    if "companion_llm_price_snapshot" in items:
+        return "pending still has companion_llm_price_snapshot after Companion cut"
     for closed in (
         "district_stake_threshold",
         "district_stake_reference",
@@ -7134,8 +7458,14 @@ def construction_t8_plan_deterministic(data: dict) -> str | None:
         ],
         "buildings": {"workshop": {"built": 1, "schedule_open": 1, "free_slots": 1}},
     }
-    first = companion.plan(state, data)
-    second = companion.plan(state, data)
+    if "companion" in data:
+        return "companion section still live after the cut"
+    if companion.plan(state, data):
+        return "cut pack still emitted companion commands"
+    d = copy.deepcopy(data)
+    _ensure_companion(d)
+    first = companion.plan(state, d)
+    second = companion.plan(state, d)
     if first != second:
         return "plan is not deterministic"
     if not first:
@@ -7146,25 +7476,35 @@ def construction_t8_plan_deterministic(data: dict) -> str | None:
 
 
 def construction_t8_uptime_from_magnitude(data: dict) -> str | None:
-    w = companion.uptime_witness(data)
-    relief = companion.cp(data, "companion_idle_relief_bps")
+    if "companion" in data:
+        return "companion section still live after the cut"
+    w_cut = companion.uptime_witness(data)
+    if w_cut["companion"] != w_cut["minimalist"]:
+        return (
+            f"cut pack companion uptime {w_cut['companion']} "
+            f"!= minimalist {w_cut['minimalist']}"
+        )
+    d = copy.deepcopy(data)
+    _ensure_companion(d)
+    w = companion.uptime_witness(d)
+    relief = companion.cp(d, "companion_idle_relief_bps")
     if relief == 0:
         if w["companion"] != w["minimalist"]:
             return f"zero relief moved companion {w['companion']} off minimalist {w['minimalist']}"
     elif w["companion"] <= w["minimalist"]:
         return f"relief {relief} did not raise companion uptime: {w}"
-    d_flag = copy.deepcopy(data)
-    live = companion.cp(data, "companion_rows_live")
+    d_flag = copy.deepcopy(d)
+    live = companion.cp(d, "companion_rows_live")
     d_flag["companion"]["params"]["companion_rows_live"]["v"] = 0 if live else 1
     w_flag = companion.uptime_witness(d_flag)
     if w_flag["companion"] != w["companion"]:
         return "toggling companion_rows_live moved uptime: witness keys off the flag"
-    d_zero = copy.deepcopy(data)
+    d_zero = copy.deepcopy(d)
     d_zero["companion"]["params"]["companion_idle_relief_bps"]["v"] = 0
     w_zero = companion.uptime_witness(d_zero)
     if w_zero["companion"] != w_zero["minimalist"]:
         return "relief=0 left companion != minimalist: magnitude formula is decorative"
-    d_rel = copy.deepcopy(data)
+    d_rel = copy.deepcopy(d)
     d_rel["companion"]["params"]["companion_idle_relief_bps"]["v"] = 1000
     w_rel = companion.uptime_witness(d_rel)
     if w_rel["companion"] <= w_rel["minimalist"]:
@@ -7805,34 +8145,56 @@ def construction_hour_6_branch(data: dict) -> str | None:
 
     _t, cfg, state = _t11_live()
     recalc = cfg["efficiency_recalc_hour"]
-    idx = None
-    i = 1
-    while i < cfg["ticks_day"] * 2:
-        _day, hour, _wd = t.city_clock(cfg, i)
-        if hour == recalc:
-            idx = i
-            break
-        i += 1
-    if idx is None:
-        return "no tick with hour == efficiency_recalc_hour"
-    state["cities"]["a"]["fragment_ledger"] = [1]
+    window = fragments.window_days(data)
+    settle_day = window + 1
+    if window <= 0 or not fragments.window_settle_due(data, settle_day, recalc):
+        return f"day {settle_day} hour {recalc} is not the global farm settle"
+    idx = (settle_day - cfg["anchor_day"]) * cfg["ticks_day"] + recalc - cfg["anchor_hour"]
+    day, hour, _wd = t.city_clock(cfg, idx)
+    if idx < 1 or day != settle_day or hour != recalc:
+        return f"tick {idx} clock {(day, hour)} != settle {(settle_day, recalc)}"
+    tickers = fragments.ledgers_v1(data)
+    ticker = tickers[0] if tickers else ""
+    if not ticker:
+        return "no playable v1 fragment ledger"
+    state["cities"]["a"]["fragment_ledger"] = {ticker: 1}
     state["cities"]["a"]["fragment_pool"] = 10
     flags = []
     ratchet_at_six = 0
+    ledger_after = None
+    owed_after = None
+    codes_after: list = []
     j = 0
     while j <= idx + 1:
         state["cities"]["a"].pop("fragment_settlement", None)
         binds0 = state["acc"].get("ratchet_binds", 0)
         state, _recs = t.tick(state, _t11_inp(cfg, j))
+        city = state["cities"]["a"]
+        clock_day, clock_hour, _clock_wd = t.city_clock(cfg, j)
+        if (
+            clock_hour == recalc
+            and clock_day != settle_day
+            and "fragment_settlement" in city
+        ):
+            return f"day {clock_day} hour {clock_hour} settled off the global window"
         if j in (idx - 1, idx, idx + 1):
-            flags.append(1 if "fragment_settlement" in state["cities"]["a"] else 0)
+            flags.append(1 if "fragment_settlement" in city else 0)
         if j == idx:
             ratchet_at_six = state["acc"].get("ratchet_binds", 0) - binds0
+            ledger_after = city.get("fragment_ledger")
+            owed_after = city.get("fragment_owed")
+            codes_after = list((city.get("fragment_settlement") or {}).get("codes") or [])
         j += 1
     if ratchet_at_six:
         return f"tick {idx} hour {recalc}: ratchet stepped at 06:00"
     if flags != [0, 1, 0]:
         return f"06:00 settlement flags {flags} != [0, 1, 0] around tick {idx}"
+    if ledger_after != {}:
+        return f"ledger not cleared after window settle: {ledger_after}"
+    if not isinstance(owed_after, dict) or int(owed_after.get(ticker) or 0) <= 0:
+        return f"owed[{ticker}] not written"
+    if fragments.CODE_WINDOW_SETTLED not in codes_after:
+        return f"codes {codes_after} miss {fragments.CODE_WINDOW_SETTLED}"
     return None
 
 
@@ -8634,12 +8996,47 @@ HUD_SHELL_CONSTRUCTION = (
     "bank_plaque_always_present",
     "payroll_row_appears_when_trimmed",
     "stock_bar_shows_two_numbers",
+    "building_select_opens_popover_not_route",
+    "keeps FunctionStrip as keyboard non-3D access at narrow widths",
+    "keeps compact chrome copy unclipped without hiding primary state",
+    "announces loading and error distinctly from empty/unavailable/stale",
+    "uses shared 120-180ms motion token and reduced-motion without perpetual HUD animation",
+    "localizes clock updates without remounting the Three scene",
+    "centralizes presentation thresholds without contradicting pack geometry",
+    "returns focus after workspace close without focusing a detached trigger",
+    "treats only ready FieldView as an exact numeric value",
+    "value renderers do not use exact zero for non-ready fields",
+    "keeps StatusChip loading/stale/error distinct from unavailable",
+    "does not treat a missing payroll request as PAYROLL_TRIMMED",
+    "keeps EventsView rows on the snapshot log shape",
+    "keeps live adapter intent contracts without new routes",
+    "function strip does not substitute zero for unavailable functions",
+    "recent activity default presents at most three event rows",
+    "expands BANK_CLOSED journal copy instead of leaving {opens_in}",
+    "keeps Desktop v1.1 bright-blue tokens in palette and CSS",
+    "resolves local building thumbs and excludes the decorative 19th plus sheets",
+    "resolves role portraits and keeps sheets/brand as non-agent fallbacks",
+    "documents Lucide registry names and accessible labels without a Settings destination",
+    "loads verified local IBM Plex Sans and JetBrains Mono without a CDN",
+    "refuses decorative and unknown IDs as a functional BuildingCard thumbnail",
+    "keeps ResearchCard artwork explicit unavailable without invented assets",
 )
 
 HUD_SCREENS_CONSTRUCTION = (
     "every_screen_has_empty_and_loading",
     "refusal_shows_one_blocking_code",
     "no_cyrillic_in_components",
+    "keeps unsupported action unavailable without posting",
+    "does not treat claim_prize as confirmed custody",
+    "does not present a stale or missing quote as executable live quote",
+    "disables bank withdraw when live daily limit is unavailable or zero",
+    "labels bank and exchange amounts with Capital, $CORP, and selected Stock Token",
+    "blocks duplicate money submit and does not confirm without applied live result",
+    "maps only existing routes and tabs without new destination IDs",
+    "opens existing overlays for manage and keeps decorative buildings out of the functional catalog",
+    "shows unavailable live industry fields and keeps progression/merge off the overview cards",
+    "renders five research items with pack cost/duration and unavailable artwork/start/detail",
+    "keeps journal timestamp/entity/unread unavailable and seasons/farm/claims on existing overlays",
 )
 
 COMPANION_SCREEN_CONSTRUCTION = (
@@ -9141,6 +9538,148 @@ def construction_command_posts_intent(data: dict) -> str | None:
         if construction_command_posts_intent(ghost) is None:
             return "command overlay without intent_id did not fail"
     return None
+
+
+def _hud_txn_disk() -> dict[str, str]:
+    root = REPO / "apps" / "client" / "src"
+    names = {
+        "command.ts": root / "command.ts",
+        "clock.ts": root / "clock.ts",
+        "boot.ts": root / "boot.ts",
+        "hud/liveAdapter.ts": root / "hud" / "liveAdapter.ts",
+        "hud/snapshot.ts": root / "hud" / "snapshot.ts",
+        "hud/LiveRoot.tsx": root / "hud" / "LiveRoot.tsx",
+        "hud/parts/ActionButton.tsx": root / "hud" / "parts" / "ActionButton.tsx",
+        "hud/screens/bank.tsx": root / "hud" / "screens" / "bank.tsx",
+        "hud/screens/exchange.tsx": root / "hud" / "screens" / "exchange.tsx",
+        "hud/workspace/JournalFromLog.tsx": root / "hud" / "workspace" / "JournalFromLog.tsx",
+    }
+    out: dict[str, str] = {}
+    for key, path in names.items():
+        if path.is_file():
+            out[key] = path.read_text(encoding="utf-8")
+    return out
+
+
+def _hud_txn_files(data: dict) -> dict[str, str]:
+    disk = _hud_txn_disk()
+    overlay = data.get("_hud_txn_src")
+    if isinstance(overlay, dict):
+        merged = dict(disk)
+        for key, val in overlay.items():
+            merged[str(key)] = str(val)
+        return merged
+    return disk
+
+
+def _hud_txn_check(files: dict[str, str]) -> str | None:
+    action = files.get("hud/parts/ActionButton.tsx", "")
+    if "props.onIntent" not in action or "data-intent" not in action:
+        return "ActionButton is not a typed UiIntent control"
+    if "props.onCommit(" in action:
+        return "ActionButton still posts by raw onCommit"
+    adapter = files.get("hud/liveAdapter.ts", "")
+    if "dispatchFromEffect" not in adapter:
+        return "liveAdapter has no effect→intent adapter"
+    if 'support === "unsupported"' not in adapter or 'support === "refusal-only"' not in adapter:
+        return "unsupported/refusal-only are not gated before POST"
+    if "scopedIntentId" not in adapter:
+        return "live adapter does not session-scope intent_id"
+    if 'kind: "claim_prize"' in adapter and "MONEY_REVIEW_INTENTS" in adapter:
+        review_block = adapter.split("MONEY_REVIEW_INTENTS", 1)[-1].split("\n\n", 1)[0]
+        if "claim_prize" in review_block:
+            return "claim_prize is treated as a money-review confirm"
+    command = files.get("command.ts", "")
+    if "function scopedIntentId" not in command or "corporator.intentSeq." not in command:
+        return "intent seq is not scoped across reload"
+    if "Date" in command:
+        return "command.ts uses Date"
+    clock = files.get("clock.ts", "")
+    if "function marketWindowOpen" not in clock:
+        return "market/bank hours gate is missing"
+    snap = files.get("hud/snapshot.ts", "")
+    if "log: undefined" not in snap:
+        return "emptySnapshot log is not explicit missing"
+    boot = files.get("boot.ts", "")
+    if 'log.events' not in boot or "return undefined" not in boot:
+        return "missing log.events still becomes a fake list"
+    live_root = files.get("hud/LiveRoot.tsx", "")
+    if "loadIntentSeq" not in live_root or "storeIntentSeq" not in live_root:
+        return "LiveRoot does not persist intent seq"
+    if "dispatchFromEffect" not in live_root:
+        return "LiveRoot onCommit is not an intent adapter"
+    bank = files.get("hud/screens/bank.tsx", "")
+    if "TransactionStepper" not in bank or "withdrawLiveEnabled" not in bank:
+        return "Bank is missing shared stepper or live limit lock"
+    if "marketWindowOpen" not in bank or "data-hours-open" not in bank:
+        return "Bank hours are not an explicit gate"
+    if "moneySubmitLock" not in bank:
+        return "Bank duplicate submit is unlocked"
+    exchange = files.get("hud/screens/exchange.tsx", "")
+    if "TransactionStepper" not in exchange:
+        return "Exchange does not share TransactionStepper"
+    if "liveQuoteExecutable" not in exchange or "return false" not in exchange:
+        return "stale/missing quotes can still execute"
+    if "exchangeLevelGate" not in exchange or "data-city-level-gate" not in exchange:
+        return "Exchange City Level gate is missing"
+    if "MARKET_CLOSED" in exchange or "CITY_LEVEL_TOO_LOW" in exchange:
+        return "Exchange invented a refusal code"
+    if "marketWindowOpen" not in exchange:
+        return "Exchange market schedule is not gated"
+    journal = files.get("hud/workspace/JournalFromLog.tsx", "")
+    if 'logKind === "unavailable"' not in journal:
+        return "missing log is not unavailable"
+    if "props.extra.map" in journal:
+        extra_arm = journal.split("props.extra.map", 1)[0]
+        if 'logKind === "unavailable"' not in extra_arm:
+            return "journal extras can fill a missing log"
+    return None
+
+
+def construction_hud_txn_truth(data: dict) -> str | None:
+    files = _hud_txn_files(data)
+    problem = _hud_txn_check(files)
+    if data.get("_hud_txn_src") is None:
+        if problem is not None:
+            return problem
+        ghost = dict(data)
+        ghost["_hud_txn_src"] = {
+            **files,
+            "hud/parts/ActionButton.tsx": "export function ActionButton() { return null }\n",
+        }
+        if construction_hud_txn_truth(ghost) is None:
+            return "ActionButton without onIntent did not fail"
+        ghost2 = dict(data)
+        ghost2["_hud_txn_src"] = {
+            **files,
+            "hud/snapshot.ts": files.get("hud/snapshot.ts", "").replace("log: undefined", "log: []", 1),
+        }
+        if construction_hud_txn_truth(ghost2) is None:
+            return "emptySnapshot log [] did not fail"
+        ghost3 = dict(data)
+        ghost3["_hud_txn_src"] = {
+            **files,
+            "hud/screens/exchange.tsx": files.get("hud/screens/exchange.tsx", "").replace(
+                "return false",
+                "return true",
+                1,
+            ),
+        }
+        if construction_hud_txn_truth(ghost3) is None:
+            return "executable pack quote did not fail"
+        ghost4 = dict(data)
+        ghost4["_hud_txn_src"] = {
+            **files,
+            "hud/workspace/JournalFromLog.tsx": files.get("hud/workspace/JournalFromLog.tsx", "").replace(
+                'if (logKind === "unavailable")',
+                'if (logKind === "never-unavailable")',
+                1,
+            ),
+        }
+        if construction_hud_txn_truth(ghost4) is None:
+            return "missing log as fake history did not fail"
+        return None
+    return problem
 
 
 def construction_compose_from_pack(data: dict) -> str | None:
@@ -9827,6 +10366,11 @@ def construction_return_unsettled_skips_settled(data: dict) -> str | None:
     missed = [e for e in _run_one(lint.l298_return_skips_settled, d) if e.startswith("L298")]
     if not missed:
         return "returnUnsettled eating settled was accepted"
+    d2 = copy.deepcopy(data)
+    a_l298_claim_pause_gated(d2)
+    missed2 = [e for e in _run_one(lint.l298_return_skips_settled, d2) if e.startswith("L298")]
+    if not missed2:
+        return "claimPrize pause guard was accepted"
     return None
 
 
@@ -9862,7 +10406,12 @@ def construction_refund_player_capped_by_backing(data: dict) -> str | None:
     a_l299_drop_backing_cap(d)
     missed = [e for e in _run_one(lint.l299_refund_capped_by_backing, d) if e.startswith("L299")]
     if not missed:
-        return "refund without backing cap was accepted"
+        return "refund without availableOf cap was accepted"
+    d2 = copy.deepcopy(data)
+    a_l299_ignore_reserved(d2)
+    missed2 = [e for e in _run_one(lint.l299_refund_capped_by_backing, d2) if e.startswith("L299")]
+    if not missed2:
+        return "refund that consumes reserved coverage was accepted"
     return None
 
 
@@ -9904,6 +10453,16 @@ def construction_guardian_not_signer(data: dict) -> str | None:
     missed = [e for e in _run_one(lint.l300_guardian_not_signer, d) if e.startswith("L300")]
     if not missed:
         return "setSigner was accepted"
+    d2 = copy.deepcopy(data)
+    a_l300_pause_reintroduced(d2)
+    missed2 = [e for e in _run_one(lint.l300_guardian_not_signer, d2) if e.startswith("L300")]
+    if not missed2:
+        return "pauseReadyAt reintroduction was accepted"
+    d3 = copy.deepcopy(data)
+    a_l300_pending_delay(d3)
+    missed3 = [e for e in _run_one(lint.l300_guardian_not_signer, d3) if e.startswith("L300")]
+    if not missed3:
+        return "pause_ready_delay pending was accepted"
     return None
 
 
@@ -9948,11 +10507,8 @@ def _live_flags_errors(data: dict) -> str | None:
     for oid in ("train", "research", "focus"):
         if (objectives.get(oid) or {}).get("v1") is not True:
             return f"{oid}.v1 is not true"
-    companion = (data.get("companion") or {}).get("params") or {}
-    if _param_v(companion, "companion_rows_live") != 1:
-        return "companion_rows_live is not 1"
-    if _param_v(companion, "companion_revenue_live") != 0:
-        return "companion_revenue_live is not 0"
+    if "companion" in data:
+        return "companion section still live after the cut"
     seasons_p = (data.get("seasons") or {}).get("params") or {}
     if _param_v(seasons_p, "season_prizes_live") != 1:
         return "season_prizes_live was flipped off"
@@ -9961,9 +10517,6 @@ def _live_flags_errors(data: dict) -> str | None:
     fragments_p = (data.get("fragments") or {}).get("params") or {}
     if _param_v(fragments_p, "fragment_nft_share_bps") != 0:
         return "fragment_nft_share_bps is not 0"
-    sink = ((data.get("companion") or {}).get("nft_proceeds_sink") or {}).get("v")
-    if sink != "inference_bill":
-        return "nft_proceeds_sink is not inference_bill"
     ratified = _param_v((data.get("meta") or {}).get("params") or {}, "window_a_ratified")
     if ratified != 1:
         return "window_a_ratified is not 1"
@@ -10440,12 +10993,8 @@ def construction_autonomous_slot_present(data: dict) -> str | None:
 
 
 def construction_companion_relief_non_zero(data: dict) -> str | None:
-    relief = companion.cp(data, "companion_idle_relief_bps")
-    live = companion.cp(data, "companion_rows_live")
-    if live != 1:
-        return f"companion_rows_live={live} != 1"
-    if relief <= 0:
-        return f"companion_idle_relief_bps {relief} is zero"
+    if "companion" in data:
+        return "companion section still live after the cut"
     missed = [e for e in _run_one(lint.l311_companion_live, data) if e.startswith("L311")]
     if missed:
         return f"healthy pack failed L311: {missed[0]}"
@@ -10454,17 +11003,13 @@ def construction_companion_relief_non_zero(data: dict) -> str | None:
     a_l311_relief_zero(d)
     missed = [e for e in _run_one(lint.l311_companion_live, d) if e.startswith("L311")]
     if not missed:
-        return "zero companion_idle_relief_bps was not detected by L311"
+        return "restored companion section was not detected by L311"
     return None
 
 
 def construction_manager_focus_allowed(data: dict) -> str | None:
-    allowed = set(companion.allowed_command_ids(data))
-    forbidden = set(companion.forbidden_command_ids(data))
-    if "set_manager_focus" not in allowed:
-        return "set_manager_focus is not allowed"
-    if "set_manager_focus" in forbidden:
-        return "set_manager_focus is still forbidden"
+    if "companion" in data:
+        return "companion section still live after the cut"
     missed = [e for e in _run_one(lint.l311_companion_live, data) if e.startswith("L311")]
     if missed:
         return f"healthy pack failed L311: {missed[0]}"
@@ -10473,14 +11018,16 @@ def construction_manager_focus_allowed(data: dict) -> str | None:
     a_l311_focus_forbidden(d)
     missed = [e for e in _run_one(lint.l311_companion_live, d) if e.startswith("L311")]
     if not missed:
-        return "set_manager_focus moved to forbidden was not detected by L311"
+        return "restored companion section was not detected by L311"
     return None
 
 
 def construction_residual_idle_floor_held(data: dict) -> str | None:
-    reduced = companion.residual_after_relief(data)
-    if reduced <= 0:
-        return f"healthy residual after relief is {reduced}"
+    if "companion" in data:
+        return "companion section still live after the cut"
+    residual = data["balance"]["params"]["residual_idle_bps"]["v"]
+    if residual <= 0:
+        return f"healthy residual_idle_bps is {residual}"
     missed = [e for e in _run_one(lint.l311_companion_live, data) if e.startswith("L311")]
     if missed:
         return f"healthy pack failed L311: {missed[0]}"
@@ -10489,7 +11036,7 @@ def construction_residual_idle_floor_held(data: dict) -> str | None:
     a_l311_floor_punched(d)
     missed = [e for e in _run_one(lint.l311_companion_live, d) if e.startswith("L311")]
     if not missed:
-        return "relief=10000 punching residual floor was not detected by L311"
+        return "restored companion section was not detected by L311"
     return None
 
 
@@ -10510,9 +11057,8 @@ def construction_window_a_in_envelope_after_companion(data: dict) -> str | None:
 
 
 def construction_nft_crane_zero_by_default(data: dict) -> str | None:
-    live = companion.cp(data, "companion_revenue_live")
-    if live != 0:
-        return f"companion_revenue_live={live} != 0"
+    if "companion" in data:
+        return "companion section still live after the cut"
     frag = data["fragments"]["params"]["fragment_nft_share_bps"]["v"]
     prize = data["seasons"]["params"]["prize_nft_share_bps"]["v"]
     if frag != 0 or prize != 0:
@@ -10530,9 +11076,8 @@ def construction_nft_crane_zero_by_default(data: dict) -> str | None:
 
 
 def construction_revenue_not_in_pool_without_ratification(data: dict) -> str | None:
-    sink = companion.nft_proceeds_sink(data)
-    if sink != companion.SINK_INFERENCE_BILL:
-        return f"nft_proceeds_sink {sink!r} != inference_bill"
+    if "companion" in data:
+        return "companion section still live after the cut"
     proto = data["fragments"]["params"]["protocol_prizes_bps"]["v"]
     if proto != 0:
         return f"protocol_prizes_bps {proto} != 0"
@@ -10555,14 +11100,8 @@ def construction_revenue_not_in_pool_without_ratification(data: dict) -> str | N
 
 
 def construction_inference_account_present(data: dict) -> str | None:
-    sink = companion.nft_proceeds_sink(data)
-    if sink != companion.SINK_INFERENCE_BILL:
-        return f"nft_proceeds_sink {sink!r} != inference_bill"
-    bounds = companion.llm_cost_bounds(data)
-    call_lo = int(bounds.get("per_call_lo_8dec") or 0)
-    call_hi = int(bounds.get("per_call_hi_8dec") or 0)
-    if call_lo <= 0 or call_hi <= call_lo:
-        return f"inference interval [{call_lo}, {call_hi}) is empty on healthy pack"
+    if "companion" in data:
+        return "companion section still live after the cut"
     missed = [e for e in _run_one(lint.l312_companion_revenue, data) if e.startswith("L312")]
     if missed:
         return f"healthy pack failed L312: {missed[0]}"
@@ -10571,7 +11110,7 @@ def construction_inference_account_present(data: dict) -> str | None:
     a_l312_interval_empty(d)
     missed = [e for e in _run_one(lint.l312_companion_revenue, d) if e.startswith("L312")]
     if not missed:
-        return "empty inference interval was not detected by L312"
+        return "restored companion inference account was not detected by L312"
     return None
 
 
@@ -11324,6 +11863,14 @@ def construction_visual3_hud_not_a_hole(data: dict) -> str | None:
     a_l379_hud_hole(d)
     if not [e for e in _run_one(lint.l379_click_routes_and_hud_blocks, d) if e.startswith("L379")]:
         return "pointer-events none on .hud-col was not detected by L379"
+    d_overlay = copy.deepcopy(data)
+    a_l379_overlay_auto(d_overlay)
+    if not [e for e in _run_one(lint.l379_click_routes_and_hud_blocks, d_overlay) if e.startswith("L379")]:
+        return "overlay pointer-events auto was not detected by L379"
+    d_rail = copy.deepcopy(data)
+    a_l379_right_rail_hole(d_rail)
+    if not [e for e in _run_one(lint.l379_click_routes_and_hud_blocks, d_rail) if e.startswith("L379")]:
+        return "pointer-events none on .hud-col--right was not detected by L379"
     d2 = copy.deepcopy(data)
     a_l379_no_hud_block(d2)
     if not [e for e in _run_one(lint.l379_click_routes_and_hud_blocks, d2) if e.startswith("L379")]:
@@ -11478,7 +12025,7 @@ def construction_visual3_budgets_measured(data: dict) -> str | None:
     d2 = copy.deepcopy(data)
     a_l384_drop_fn(d2)
     if not [e for e in _run_one(lint.l384_visual3_close_measured, d2) if e.startswith("L384")]:
-        return "missing observeVisual3Budgets was not detected by L384"
+        return "missing observeIslandBudgets was not detected by L384"
     d3 = copy.deepcopy(data)
     a_l384_drop_jobs(d3)
     if not [e for e in _run_one(lint.l384_visual3_close_measured, d3) if e.startswith("L384")]:
@@ -11556,7 +12103,6 @@ def construction_visual_flag_inventory_holds(data: dict) -> str | None:
     if missed:
         return f"healthy pack failed L348: {missed[0]}"
     mutators = (
-        a_l348_companion_revenue,
         a_l348_missions_live,
         a_l348_window_a_off,
         a_l348_prizes_off,
@@ -12074,6 +12620,10 @@ def construction_stock_bar_shows_two_numbers(data: dict) -> str | None:
     a_l344_hash_mismatch(d5)
     if not [e for e in _run_one(lint.l344_font_vendored, d5) if e.startswith("L344")]:
         return "font hash mismatch was not detected by L344"
+    d6 = copy.deepcopy(data)
+    a_l344_stale_pack_serif(d6)
+    if not [e for e in _run_one(lint.l344_font_vendored, d6) if e.startswith("L344")]:
+        return "stale Source Serif 4 pack was not detected by L344"
     return None
 
 
@@ -12684,6 +13234,7 @@ CONSTRUCTION = (
     ("планировщик читает city_time, не Date и не tick(", construction_tick_scheduler_uses_city_time),
     ("boot без city_time сервера не рисует пустой HUD", construction_client_boot_requires_city_time),
     ("POST /command несёт intent_id и expected_city_time", construction_command_posts_intent),
+    ("HUD txn truth: typed intent, hours/level/quote/log, no fake confirm", construction_hud_txn_truth),
     ("compose из пака: пять сервисов + postgres, образ без pglite", construction_compose_from_pack),
     ("openPg на pg, PGlite остаётся харнессом", construction_postgres_replay_matches_pglite),
     ("минт Capital только после депозита; Bank.sol роняет L277", construction_vault_deposit_then_mint),
@@ -12709,13 +13260,13 @@ CONSTRUCTION = (
     ("отказ hop: spend 0, lag 1, ETH в carry; blocks_tick остаётся 0", construction_basket_failure_does_not_block_tick),
     ("floor корзины, остаток фонду; ceil призовой ноги роняет L286", construction_basket_leg_floor_favours_fund),
     ("vault и фонд не в drain; снятие vault из forbidden роняет L287", construction_vault_and_fund_not_drainable),
-    ("returnUnsettled не ест owed; флаг eat_settled роняет L298", construction_return_unsettled_skips_settled),
+    ("returnUnsettled не ест owed; eat_settled и пауза на клейме роняют L298", construction_return_unsettled_skips_settled),
     ("pool_in measured; accumulated роняет L288", construction_pool_in_is_measured_not_accumulated),
     ("клейм без покрытия даёт PRIZE_CLAIM_UNCOVERED; снятие кода роняет L289", construction_settled_claim_uncovered_is_reported),
-    ("refundPlayer не выше backing; снятие cap роняет L299", construction_refund_player_capped_by_backing),
+    ("refundPlayer не выше availableOf; снятие cap и игнор reservation роняют L299", construction_refund_player_capped_by_backing),
     ("рефанд бота не весь vault; cap по balanceOf роняет L303", construction_bot_refund_not_whole_vault),
     ("нет селектора резерва; pending и returnBurnReserve роняют L305", construction_no_burn_reserve_rescue),
-    ("страж ≠ подписант; setSigner роняет L300", construction_guardian_not_signer),
+    ("страж ≠ подписант; setSigner и pauseReadyAt роняют L300", construction_guardian_not_signer),
     ("recover не берёт свой актив; снятие require corp роняет L301", construction_recover_wrong_token_skips_own),
     ("пак 200 = PackConstants и ≠ кривая 100; drift/KOTS 100 роняют L293", construction_pack_tax_equals_deploy_rate),
     ("витрина ≤ maxCreatorTaxBps; 1100 и curve 900 роняют L293", construction_vitrine_under_factory_ceiling),
@@ -12823,7 +13374,7 @@ CONSTRUCTION = (
     ("геометрия HUD из фикстуры; 260px в CSS и column=200 роняют L341", construction_hud_geometry_from_fixture),
     ("плашка банка на оболочке; снятие BankPlaque роняет L342", construction_bank_plaque_always_present),
     ("Payroll при урезании; снятие PAYROLL_TRIMMED роняет L342", construction_payroll_row_appears_when_trimmed),
-    ("два числа сток-бара; одна строка и кириллица/CDN роняют L342/L343/L344", construction_stock_bar_shows_two_numbers),
+    ("два числа сток-бара; одна строка и кириллица/CDN/stale-serif роняют L342/L343/L344", construction_stock_bar_shows_two_numbers),
     ("у каждого экрана пустота и загрузка; снятие empty_kind и bank.tsx роняют L145/L358", construction_every_screen_has_empty_and_loading),
     ("на кнопке один blocking; два unlock-гейта роняют L150", construction_refusal_shows_one_blocking_code),
     ("кириллица не в компонентах; ghost_screen и commit:build роняют L343/L358", construction_no_cyrillic_in_components),

@@ -43,7 +43,6 @@ PARAM_FILES = {
     "sim.json": "sim_file",
     "fragments.json": "fragments_file",
     "seasons.json": "seasons_file",
-    "companion.json": "companion_file",
     "screens.json": "screens_file",
     "placement.json": "placement_file",
     "tick.json": "tick_file",
@@ -123,15 +122,24 @@ def param(sections_data: dict, section: str, name: str) -> int:
     return sections_data[section]["params"][name]["v"]
 
 
+def _replace_out(path: Path, *, blob: bytes | None = None, text: str | None = None) -> None:
+    tmp = path.with_name(path.name + ".tmp")
+    if blob is not None:
+        tmp.write_bytes(blob)
+    else:
+        tmp.write_text(text or "", encoding="utf-8")
+    tmp.replace(path)
+
+
 def write_out(name: str, text: str) -> Path:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUT_DIR / name
-    path.write_text(text, encoding="utf-8")
+    _replace_out(path, text=text)
     return path
 
 
 def write_out_bytes(name: str, blob: bytes) -> Path:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUT_DIR / name
-    path.write_bytes(blob)
+    _replace_out(path, blob=blob)
     return path

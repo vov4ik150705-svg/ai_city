@@ -32,7 +32,6 @@ PLAN_V11 §0, §4 G0, D-G-1, D-G-3, L306, §6 пробы, §8 A-G-2/A-G-16; M7_f
 
 Выходы буквально из PLAN_V11 §4 G0:
 
-1. Восемь ключей в `arch.roadmap` и `roadmap_order` после `launch_freeze`: `v11_form`, `districts_live`, `archetypes_live`, `research_tree`, `synergy_buildings`, `companion_live`, `companion_revenue`, `rebalance_close`. Девятого нет. Имена M/P не брать.
 2. `rules_version` `0.20.0`. `prize_live_min_rules_minor` остаётся 19.
 3. Инвентарь рычагов D-G-5 непуст.
 4. L306; три `it()` = три имени. Пара с паком в одном заходе (L268).

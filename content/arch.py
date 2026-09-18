@@ -367,9 +367,6 @@ def build_arch(data: dict, generated: dict | None = None) -> dict:
     if ticks_day <= 0:
         length = _pv(data.get("time") or {}, "tick_length_city_hours")
         ticks_day = 24 // length if length else 0
-    companion = data.get("companion") or {}
-    queue_depth = _pv(companion, "companion_advisor_queue_depth")
-    concurrency = _pv(arch, "llm_worker_concurrency")
     staleness = _pv(data.get("economy") or {}, "price_staleness_max_city_hours")
     slots_cap = _pv(data.get("agents") or {}, "slots_cap")
     tick_len = tick_length_real_seconds(data, generated)
@@ -393,7 +390,6 @@ def build_arch(data: dict, generated: dict | None = None) -> dict:
         "record_field_homes": homes,
         "invariant_metrics": invariant_metrics(arch),
         "state_snapshot_every_ticks": ticks_day,
-        "companion_queue_capacity": companion_queue_capacity(queue_depth, concurrency),
         "sampler_age_alert_city_hours": sampler_age_alert_city_hours(staleness),
         "command_rate_limit_per_city_tick": command_rate_limit(slots_cap),
         "session_ttl_s": session_ttl_s(ticks_day, tick_len),
@@ -429,7 +425,7 @@ def build_arch(data: dict, generated: dict | None = None) -> dict:
         "envelope_error_fields": list(api.get("envelope_error_fields") or []),
         "replay_code": api.get("replay_code") or "",
         "price_day_published": _pv(arch, "price_day_published"),
-        "llm_worker_concurrency": concurrency,
+        "llm_worker_concurrency": _pv(arch, "llm_worker_concurrency"),
         "attest_lag_alert_ticks": _pv(arch, "attest_lag_alert_ticks"),
         "sampler_samples_per_tick": samples,
         "ws_heartbeat_s": _pv(api, "ws_heartbeat_s"),

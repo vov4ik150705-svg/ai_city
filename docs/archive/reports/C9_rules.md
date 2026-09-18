@@ -28,5 +28,3 @@ L259 дополнительно сканирует `services/api/src/metrics.ts`
 | `Date` в llm src | eslint | banned |
 | `import` engine в llm src | eslint / depcruise | banned |
 | полный `attack.py --jobs` в cmd | construction | red_input / запрет в таблице |
-
-Цена вызова LLM не заводилась: `companion_llm_price_snapshot` остаётся owner.

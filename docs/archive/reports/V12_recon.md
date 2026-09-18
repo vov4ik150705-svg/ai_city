@@ -1,6 +1,5 @@
 # V12 recon — `visual_close`
 
-`launch.deployed` empty (token/curve/pool/hook/tx). P7 not started. V11 closed: pack 81, hash `05628a0b…e938f8e8`, lint 356/0, round 1445 / entry 200 / exit 910, A `[12275, 15783]`, `missions_live=0`, NFT cranes 0, `companion_revenue_live=0`.
 
 ## Tree
 

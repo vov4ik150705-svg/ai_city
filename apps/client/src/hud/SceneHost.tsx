@@ -1,99 +1,66 @@
 import { useEffect, useRef, useState, type ReactElement } from "react"
 import { codes } from "@corporator/protocol"
 import { gpuCode, probeCanvas } from "@corporator/render"
-import type { HeroCatalogRow } from "@corporator/render"
-import { mountIsland3, type IslandHandle } from "@corporator/render/three"
+import type { IslandHandle, IslandObjectProjection, OccupiedPlant } from "@corporator/render"
+import {
+  mountIsland3,
+  WORLD_HEMI_GROUND,
+  WORLD_HEMI_SKY,
+  azimuthToBps,
+  elevationToTiltBps,
+  lookOrbitLimits,
+} from "@corporator/render/three"
 import { wallNowMs } from "../clock.js"
-import { hexToPixi, rampHex } from "../palette.js"
 import type { Palette } from "../palette.js"
-import type { ClientCamera, ClientLight, ClientMotion } from "../packview.js"
+import type { ClientCamera, ClientLight } from "../packview.js"
 import { applyCam, bindSceneInput, lookCam, startCam, type CamPos } from "./sceneInput.js"
+import {
+  fetchCloudBytes,
+  fetchIslandLook,
+  fetchLookProp,
+  fetchMassBytes,
+} from "../islandLookAssets.js"
 
+/** Live Terra mass: art/island_v3/runtime_terra19/island_mass.glb */
 const FALLBACK_PNG = new URL("../../../../content/out/atlas/fallback.png", import.meta.url).href
-const HERO_GLB = import.meta.glob("../../../../content/out/heroes/*.glb", {
-  eager: true,
-  query: "?url",
-  import: "default",
-}) as { readonly [path: string]: string }
-
-function heroUrl(file: string): string {
-  for (const [path, url] of Object.entries(HERO_GLB)) {
-    if (path.endsWith("/" + file) || path.endsWith("\\" + file)) return url
-  }
-  return ""
-}
-
-async function heroBytes(file: string): Promise<ArrayBuffer> {
-  const url = heroUrl(file)
-  if (url.length === 0) return new ArrayBuffer(0)
-  const res = await fetch(url)
-  return await res.arrayBuffer()
-}
-
-function kindColors(palette: Palette): { readonly [ch: string]: number } {
-  const hex = (ramp: string, index: bigint): number => hexToPixi(rampHex(palette, ramp, index))
-  const two = 1n + 1n
-  const three = two + 1n
-  const four = two + two
-  const five = four + 1n
-  const six = three + three
-  return {
-    "~": hex("navy", 0n),
-    ".": hex("green", two),
-    r: hex("concrete", two),
-    s: hex("concrete", four),
-    c: hex("concrete", five),
-    p: hex("concrete", three),
-    m: hex("concrete", 1n),
-    k: hex("concrete", two),
-    b: hex("amber", two),
-    d: hex("amber", 1n),
-    w: hex("blue", two),
-    object: hex("concrete", six),
-    walker: hex("amber", 1n),
-    robot: hex("concrete", six),
-    foam: hex("blue", 1n),
-    lantern: hex("amber", 0n),
-    furniture: hex("concrete", three),
-    plant: hex("green", 1n),
-    hull: hex("navy", 1n),
-    vehicle: hex("concrete", 0n),
-    drone: hex("concrete", five),
-  }
-}
 
 export function SceneHost(props: {
-  readonly scene: unknown
   readonly palette: Palette
-  readonly gridSize: bigint
   readonly camera: ClientCamera
   readonly cityTime: bigint
   readonly lookId: string
   readonly lookRev: bigint
   readonly opened: { readonly [district: string]: bigint }
+  readonly selectedObjectId: string
+  readonly onProjection: (proj: IslandObjectProjection | undefined) => void
   readonly onSceneRoute: (screen: string, objectId: string, cell: string, tileX: bigint, tileY: bigint) => void
   readonly noGpuText: string
-  readonly lots: unknown
-  readonly heroCatalog: { readonly [id: string]: HeroCatalogRow }
-  readonly lodNear: bigint
   readonly light: ClientLight
   readonly ticksDay: bigint
-  readonly unitHeightBps: bigint
-  readonly unitShiftPeriod: bigint
-  readonly unitShiftSpanBps: bigint
-  readonly motion: ClientMotion
-  readonly decorHeightBps: bigint
-  readonly lanternHeightBps: bigint
-  readonly canopyHeightBps: bigint
-  readonly vehicleHeightBps: bigint
-  readonly droneHoverHeightBps: bigint
+  readonly occupied: readonly OccupiedPlant[]
+  readonly bloomStrengthBps: bigint
+  readonly bloomRadiusBps: bigint
+  readonly bloomThresholdBps: bigint
 }): ReactElement {
   const hostRef = useRef<HTMLDivElement>(null)
   const handleRef = useRef<IslandHandle | undefined>(undefined)
   const camRef = useRef<CamPos>(startCam(props.camera))
   const routeRef = useRef(props.onSceneRoute)
   routeRef.current = props.onSceneRoute
+  const selectedRef = useRef(props.selectedObjectId)
+  selectedRef.current = props.selectedObjectId
+  const projectRef = useRef(props.onProjection)
+  projectRef.current = props.onProjection
   const [code, setCode] = useState("")
+
+  function emitProjection(handle: IslandHandle, objectId: string): void {
+    if (objectId.length === 0) {
+      projectRef.current(undefined)
+      return
+    }
+    projectRef.current(handle.projectObject(objectId))
+  }
+
   useEffect(() => {
     const host = hostRef.current
     if (host === null) return
@@ -106,16 +73,20 @@ export function SceneHost(props: {
     }
     let alive = true
     let unbind: (() => void) | undefined
-    const colors = kindColors(props.palette)
     const orbit = props.camera.orbit
     void (async () => {
+      const look = await fetchIslandLook()
+      if (!alive) return
+      if (look === null) {
+        const el = document.createElement("p")
+        el.dataset.lookError = "terra-look.json"
+        el.textContent = "terra-look.json"
+        host.appendChild(el)
+        return
+      }
       const mounted = await mountIsland3({
         host,
-        scene: props.scene,
         probe,
-        gridSize: props.gridSize,
-        landY: 1n,
-        waterY: 0n,
         azimuthBps: orbit.azimuthBps,
         tiltBps: clampMid(orbit.tiltMinBps, orbit.tiltMaxBps),
         distance: orbit.distanceDefault,
@@ -125,12 +96,17 @@ export function SceneHost(props: {
         distanceMax: orbit.distanceMax,
         fovDeg: orbit.fovDeg,
         spanBps: orbit.spanBps,
-        kindColor: colors,
-        objectColor: colors["object"] ?? 0,
-        lots: props.lots,
-        catalog: props.heroCatalog,
-        lodNear: props.lodNear,
-        heroBytes,
+        targetY: orbit.targetY,
+        massBytes: await fetchMassBytes(),
+        buildingBytes: (slug, packId) => {
+          void packId
+          return fetchLookProp("building", slug)
+        },
+        occupied: props.occupied,
+        occupancyMode: "production",
+        look,
+        propBytes: fetchLookProp,
+        cloudBytes: fetchCloudBytes,
         sun: {
           phases: props.light.phases,
           lanternsOn: props.light.lanternsOn,
@@ -141,36 +117,11 @@ export function SceneHost(props: {
           gradeBps: props.light.gradeBps,
           sunDistance: props.light.sunDistance,
         },
-        walkerColor: colors["walker"] ?? 0,
-        robotColor: colors["robot"] ?? 0,
-        unitHeightBps: props.unitHeightBps,
-        unitShiftPeriod: props.unitShiftPeriod,
-        unitShiftSpanBps: props.unitShiftSpanBps,
-        fillSky: colors["~"] ?? 0,
-        fillGround: colors["."] ?? 0,
-        lanternColor: colors["lantern"] ?? 0,
-        furnitureColor: colors["furniture"] ?? 0,
-        plantColor: colors["plant"] ?? 0,
-        hullColor: colors["hull"] ?? 0,
-        vehicleColor: colors["vehicle"] ?? 0,
-        droneColor: colors["drone"] ?? 0,
-        foamColor: colors["foam"] ?? 0,
-        decorHeightBps: props.decorHeightBps,
-        lanternHeightBps: props.lanternHeightBps,
-        canopyHeightBps: props.canopyHeightBps,
-        vehicleHeightBps: props.vehicleHeightBps,
-        droneHoverHeightBps: props.droneHoverHeightBps,
-        layoutSeed: props.motion.layoutSeed,
-        vehicleSpeed: props.motion.vehicleSpeed,
-        vehicleStride: props.motion.vehicleStride,
-        prngBytes: props.motion.prngBytes,
-        droneSpeed: props.motion.droneSpeed,
-        droneAlt: props.motion.droneAlt,
-        droneBob: props.motion.droneBob,
-        droneBobPeriod: props.motion.droneBobPeriod,
-        vehicles: props.motion.vehicles,
-        drones: props.motion.drones,
-        blocks: props.motion.blocks,
+        fillSky: WORLD_HEMI_SKY,
+        fillGround: WORLD_HEMI_GROUND,
+        bloomStrengthBps: 0n,
+        bloomRadiusBps: props.bloomRadiusBps,
+        bloomThresholdBps: props.bloomThresholdBps,
       })
       if (!alive) {
         mounted.destroy()
@@ -182,17 +133,31 @@ export function SceneHost(props: {
         return
       }
       handleRef.current = mounted
-      applyCam(mounted, camRef.current, props.camera)
+      const meta = mounted.captureMeta()
+      const dist = BigInt(Math.round(meta.camera.distance > 0 ? meta.camera.distance : 1))
+      const lim = lookOrbitLimits(dist)
+      camRef.current.azimuthBps = azimuthToBps(meta.camera.azimuthDeg, orbit.spanBps)
+      camRef.current.tiltBps = elevationToTiltBps(meta.camera.elevationDeg, orbit.spanBps)
+      camRef.current.distance = dist
+      const cameraForInput = {
+        ...props.camera,
+        orbit: { ...orbit, distanceMin: lim.min, distanceMax: lim.max },
+      }
+      mounted.selectObject(selectedRef.current)
+      emitProjection(mounted, selectedRef.current)
       unbind = bindSceneInput({
         host,
         handle: mounted,
-        camera: props.camera,
+        camera: cameraForInput,
         tileW: 1n,
         gradeBps: orbit.spanBps,
         opened: props.opened,
         wallNowMs,
         onRoute: (screen, objectId, cell, tileX, tileY) => {
           routeRef.current(screen, objectId, cell, tileX, tileY)
+        },
+        onCamChange: () => {
+          emitProjection(mounted, selectedRef.current)
         },
         cam: camRef,
       })
@@ -203,20 +168,57 @@ export function SceneHost(props: {
       handleRef.current?.destroy()
       handleRef.current = undefined
     }
-  }, [props.scene, props.palette, props.gridSize, props.camera, props.opened, props.lots, props.heroCatalog, props.lodNear, props.light, props.ticksDay, props.unitHeightBps, props.unitShiftPeriod, props.unitShiftSpanBps, props.motion, props.decorHeightBps, props.lanternHeightBps, props.canopyHeightBps, props.vehicleHeightBps, props.droneHoverHeightBps])
+  }, [
+    props.palette,
+    props.camera,
+    props.opened,
+    props.light,
+    props.ticksDay,
+    props.occupied,
+    props.bloomStrengthBps,
+    props.bloomRadiusBps,
+    props.bloomThresholdBps,
+  ])
   useEffect(() => {
     if (props.lookId.length === 0) return
     camRef.current = lookCam(props.camera, props.lookId, camRef.current)
     const handle = handleRef.current
-    if (handle !== undefined) applyCam(handle, camRef.current, props.camera)
+    if (handle !== undefined) {
+      applyCam(handle, camRef.current, props.camera)
+      emitProjection(handle, selectedRef.current)
+    }
   }, [props.lookId, props.lookRev, props.camera])
   useEffect(() => {
     const handle = handleRef.current
     if (handle === undefined) return
     handle.setCityTime(props.cityTime)
   }, [props.cityTime])
+  useEffect(() => {
+    const handle = handleRef.current
+    if (handle === undefined) return
+    handle.selectObject(props.selectedObjectId)
+    emitProjection(handle, props.selectedObjectId)
+  }, [props.selectedObjectId])
+  useEffect(() => {
+    const host = hostRef.current
+    if (host === null) return
+    function project(): void {
+      const handle = handleRef.current
+      if (handle === undefined) return
+      emitProjection(handle, selectedRef.current)
+    }
+    const ro = new ResizeObserver(() => {
+      project()
+    })
+    ro.observe(host)
+    window.addEventListener("resize", project)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener("resize", project)
+    }
+  }, [])
   return (
-    <div ref={hostRef} data-surface="scene" className="hud-scene" style={{ position: "absolute", inset: 0 }}>
+    <div ref={hostRef} data-surface="scene" className="hud-scene" style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
       {code.length > 0 ? (
         <div data-code={codes.RENDER_NO_GPU} data-key={codes.RENDER_NO_GPU}>
           <img src={FALLBACK_PNG} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />

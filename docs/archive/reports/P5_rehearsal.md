@@ -41,7 +41,6 @@
 | пин IPFS | `submitMinuteRoot` на silent → `SERVICE_DEGRADED`; attestor `ipfs:false` растит lag (существующие l8/c8) | не блокирован |
 | LLM отказал | `fail_mode=open`, `blocks_tick=0`; текст шаблона | не блокирован |
 
-Тонкий пул тестовой сети — принятое ограничение, не дефект пака. Демо-барьер не трогался (`L112`, `L292`, `DEMO_NO_COMPANION`).
 
 ## Сверка с пином образа
 

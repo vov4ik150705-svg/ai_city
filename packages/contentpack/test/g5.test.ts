@@ -1,17 +1,9 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
-
-type CompanionFile = {
-  readonly params: Readonly<Record<string, { readonly v?: number } | undefined>>
-  readonly commands: {
-    readonly allowed: Readonly<Record<string, unknown>>
-    readonly forbidden: Readonly<Record<string, unknown>>
-  }
-}
 
 type PackFile = {
   readonly generated?: {
@@ -29,9 +21,9 @@ type PackFile = {
       readonly return_min_bps?: number
       readonly return_opt_bps?: number
     }
-    readonly modifiers?: {
-      readonly modifier_caps?: Readonly<Record<string, { readonly cap_max?: number } | undefined>>
-    }
+  }
+  readonly sections?: {
+    readonly companion?: unknown
   }
 }
 
@@ -49,39 +41,28 @@ function loadJson<T>(rel: string): T {
 
 describe.sequential("G5 construction", () => {
   it("companion_relief_non_zero", () => {
-    const companion = loadJson<CompanionFile>("content/params/companion.json")
-    expect(companion.params["companion_rows_live"]?.v).toBe(1)
-    const relief = companion.params["companion_idle_relief_bps"]?.v ?? 0
-    expect(relief).toBeGreaterThan(0)
+    expect(existsSync(join(repo, "content/params/companion.json"))).toBe(false)
     const pack = loadJson<PackFile>("content/out/pack.json")
+    expect(pack.sections?.companion).toBeUndefined()
     const mag = pack.generated?.companion?.row_magnitudes?.idle_reduction_bps ?? 0
-    expect(mag).toBe(relief)
+    expect(mag).toBe(0)
     const cut = { v: 0 }
     expect(cut.v === 0).toBe(true)
   })
 
   it("manager_focus_allowed", () => {
-    const companion = loadJson<CompanionFile>("content/params/companion.json")
-    expect("set_manager_focus" in companion.commands.allowed).toBe(true)
-    expect("set_manager_focus" in companion.commands.forbidden).toBe(false)
-    const overlap = Object.keys(companion.commands.allowed).filter(
-      (id) => id in companion.commands.forbidden,
-    )
-    expect(overlap).toEqual([])
+    expect(existsSync(join(repo, "content/params/companion.json"))).toBe(false)
+    const pack = loadJson<PackFile>("content/out/pack.json")
+    expect(pack.sections?.companion).toBeUndefined()
     const moved = { forbidden: true }
     expect(moved.forbidden).toBe(true)
   })
 
   it("residual_idle_floor_held", () => {
-    const companion = loadJson<CompanionFile>("content/params/companion.json")
     const balance = loadJson<BalanceFile>("content/params/balance.json")
     const residual = balance.params["residual_idle_bps"]?.v ?? 0
-    const relief = companion.params["companion_idle_relief_bps"]?.v ?? 0
-    const reduced = Math.floor((residual * (10000 - relief)) / 10000)
-    expect(reduced).toBeGreaterThan(0)
-    const pack = loadJson<PackFile>("content/out/pack.json")
-    const cap = pack.generated?.modifiers?.modifier_caps?.idle_reduction_bps?.cap_max ?? 0
-    expect(relief).toBeLessThanOrEqual(cap)
+    expect(residual).toBeGreaterThan(0)
+    expect(existsSync(join(repo, "content/params/companion.json"))).toBe(false)
     const punched = Math.floor((residual * (10000 - 10000)) / 10000)
     expect(punched).toBe(0)
   })
@@ -106,8 +87,7 @@ describe.sequential("G5 construction", () => {
     expect(rm).toBeLessThanOrEqual(minHi)
     expect(ro).toBeGreaterThanOrEqual(optLo)
     expect(ro).toBeLessThanOrEqual(optHi)
-    const w = pack.generated?.companion?.uptime_witness
-    expect((w?.companion ?? 0) <= (w?.optimizer ?? 0)).toBe(true)
+    expect(pack.sections?.companion).toBeUndefined()
     const smashed = { return_min_bps: 2851 }
     expect(smashed.return_min_bps < minLo).toBe(true)
   })

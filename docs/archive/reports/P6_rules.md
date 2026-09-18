@@ -34,5 +34,3 @@
 Vitest `metric_observed_is_measured`: genesis `observeFromState` + `exportLive`; ни одна строка не копирует порог; `/ready` отдаёт тот же набор.
 
 Vitest `alert_fires_before_decay_cuts_rate`: 3 < 6; в окне `[3, 6)` алерт горит, на 6 окно закрыто (срез курса уже должен резать).
-
-Vitest `incident_has_runbook_and_code`: семь строк, коды `SERVICE_DEGRADED` / `STALE_PRICE` / `COMPANION_LLM_TEMPLATE` / `PRIZE_CLAIM_UNCOVERED`.

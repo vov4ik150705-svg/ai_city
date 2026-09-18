@@ -7,9 +7,9 @@ interface IERC20Vault {
     function balanceOf(address account) external view returns (uint256);
 }
 
-/// Deposit $CORP, then mint Capital. Withdraw via signed voucher. Safety: pause,
-/// refundPlayer ≤ backingOf, Merkle refundRoot. Bank hours stay on the server.
-/// DESIGN.md §2.3, §10, §10.1. PLAN_MONEY §15 D-M-14.
+/// Deposit $CORP, then mint Capital. Withdraw via signed voucher. Safety: coverage
+/// reservation on issue, refundPlayer ≤ available backing, Merkle refundRoot.
+/// Bank hours stay on the server. DESIGN.md §2.3, §10, §10.1. PLAN_MONEY §15 D-M-14.
 contract Vault {
     IERC20Vault public immutable corp;
     address public immutable minter;
@@ -19,15 +19,13 @@ contract Vault {
     address public pendingSigner;
     uint256 public immutable capitalAnchor;
     uint256 public immutable voucherTtlS;
-    uint256 public immutable unpauseDelay;
-    bool public paused;
-    uint256 public pauseReadyAt;
     bytes32 public refundRoot;
     uint256 public totalBacking;
 
     mapping(address => uint256) public capitalOf;
     mapping(address => uint256) public pending;
     mapping(address => uint256) public backingOf;
+    mapping(address => uint256) public reservedOf;
     mapping(string => Issued) public issued;
     mapping(string => bool) public used;
     mapping(address => bool) public refundClaimed;
@@ -47,13 +45,12 @@ contract Vault {
         address guardian_,
         address signer_,
         uint256 capitalAnchor_,
-        uint256 voucherTtlS_,
-        uint256 unpauseDelay_
+        uint256 voucherTtlS_
     ) {
         require(corp_ != address(0) && minter_ != address(0) && voucherSigner_ != address(0), "roles");
         require(guardian_ != address(0) && signer_ != address(0), "safety");
         require(guardian_ != signer_, "roles");
-        require(capitalAnchor_ > 0 && voucherTtlS_ > 0 && unpauseDelay_ > 0, "params");
+        require(capitalAnchor_ > 0 && voucherTtlS_ > 0, "params");
         corp = IERC20Vault(corp_);
         minter = minter_;
         voucherSigner = voucherSigner_;
@@ -61,9 +58,8 @@ contract Vault {
         signer = signer_;
         capitalAnchor = capitalAnchor_;
         voucherTtlS = voucherTtlS_;
-        unpauseDelay = unpauseDelay_;
         DOMAIN_SEPARATOR = keccak256(
-            abi.encode(keccak256("Vault"), address(this), capitalAnchor_, unpauseDelay_)
+            abi.encode(keccak256("Vault"), address(this), capitalAnchor_)
         );
     }
 
@@ -75,8 +71,14 @@ contract Vault {
         return corp.balanceOf(address(this));
     }
 
+    function availableOf(address account) public view returns (uint256) {
+        uint256 backing = backingOf[account];
+        uint256 reserved = reservedOf[account];
+        if (reserved >= backing) return 0;
+        return backing - reserved;
+    }
+
     function deposit(address account, uint256 corpAmount) external {
-        require(!paused, "paused");
         require(account != address(0) && corpAmount > 0, "deposit");
         uint256 before = corp.balanceOf(address(this));
         require(corp.transferFrom(account, address(this), corpAmount), "pull");
@@ -105,13 +107,15 @@ contract Vault {
         require(msg.sender == voucherSigner, "signer");
         require(bytes(nonce).length > 0 && account != address(0) && corpAmount > 0, "voucher");
         require(!used[nonce] && issued[nonce].account == address(0), "replay");
+        uint256 avail = availableOf(account);
+        require(corpAmount <= avail, "cover");
+        reservedOf[account] += corpAmount;
         issued[nonce] = Issued({account: account, corpAmount: corpAmount, issuedAtS: issuedAtS});
     }
 
     function presentVoucher(string calldata nonce, address account, uint256 corpAmount, uint256 issuedAtS)
         external
     {
-        require(!paused, "paused");
         require(bytes(nonce).length > 0 && account != address(0) && corpAmount > 0, "voucher");
         require(block.timestamp <= issuedAtS + voucherTtlS, "expired");
         Issued memory known = issued[nonce];
@@ -120,23 +124,19 @@ contract Vault {
         require(corp.balanceOf(address(this)) >= corpAmount, "cover");
         used[nonce] = true;
         delete issued[nonce];
+        _consumeReserved(account, corpAmount);
         _releaseBacking(account, corpAmount);
         require(corp.transfer(account, corpAmount), "push");
     }
 
-    function pause() external {
-        require(msg.sender == guardian, "guardian");
-        require(!paused, "paused");
-        paused = true;
-        pauseReadyAt = block.timestamp + unpauseDelay;
-    }
-
-    function unpause() external {
-        require(msg.sender == guardian, "guardian");
-        require(paused, "not paused");
-        require(block.timestamp >= pauseReadyAt, "delay");
-        paused = false;
-        refundRoot = bytes32(0);
+    function releaseExpiredVoucher(string calldata nonce) external {
+        Issued memory known = issued[nonce];
+        require(known.account != address(0) && known.corpAmount > 0, "unknown");
+        require(!used[nonce], "replay");
+        require(block.timestamp > known.issuedAtS + voucherTtlS, "ttl");
+        used[nonce] = true;
+        delete issued[nonce];
+        _consumeReserved(known.account, known.corpAmount);
     }
 
     function proposeSigner(address next) external {
@@ -152,13 +152,11 @@ contract Vault {
     }
 
     function refundPlayer(address player, uint256 amount) external {
-        require(paused, "paused");
         require(msg.sender == signer, "signer");
         _refund(player, amount);
     }
 
     function batchRefundPlayers(address[] calldata players, uint256[] calldata amounts) external {
-        require(paused, "paused");
         require(msg.sender == signer, "signer");
         require(players.length == amounts.length, "len");
         uint256 i;
@@ -169,13 +167,11 @@ contract Vault {
     }
 
     function setRefundRoot(bytes32 root) external {
-        require(paused, "paused");
         require(msg.sender == guardian, "guardian");
         refundRoot = root;
     }
 
     function claimRefund(uint256 amount, bytes32[] calldata proof) external {
-        require(paused, "paused");
         require(!refundClaimed[msg.sender], "claimed");
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender, amount));
         require(_verify(refundRoot, leaf, proof), "proof");
@@ -194,15 +190,21 @@ contract Vault {
 
     function _refund(address player, uint256 amount) internal {
         require(player != address(0) && amount > 0, "refund");
-        uint256 backing = backingOf[player];
-        require(amount <= backing, "backing");
-        backingOf[player] = backing - amount;
+        uint256 avail = availableOf(player);
+        require(amount <= avail, "backing");
+        backingOf[player] = backingOf[player] - amount;
         totalBacking -= amount;
         uint256 cap = backingOf[player] * capitalAnchor;
         if (capitalOf[player] > cap) {
             capitalOf[player] = cap;
         }
         require(corp.transfer(player, amount), "push");
+    }
+
+    function _consumeReserved(address account, uint256 corpAmount) internal {
+        uint256 reserved = reservedOf[account];
+        require(reserved >= corpAmount, "reserved");
+        reservedOf[account] = reserved - corpAmount;
     }
 
     function _releaseBacking(address account, uint256 corpAmount) internal {

@@ -1,0 +1,63 @@
+{
+  "id": "look11-pre-msaa",
+  "saved": "2026-09-15",
+  "why": "Snapshot of runtime present before owner GO to match island_master MSAA. Restore these values to undo.",
+  "restore": [
+    "Set packages/render/src/islandConfig.ts ANTIALIAS back to false.",
+    "In packages/render/src/three.ts present only via composer.render unless canvasAntialias (capture-only).",
+    "WebGLRenderer antialias: canvasAntialias ? true : ANTIALIAS.",
+    "captureMeta.antialias reports canvasAntialias only.",
+    "Leave islandPreview captureMode canvasAntialias: true.",
+    "Do not change terra-look.json, ENV_LOOK_REV, lights, or GLBs."
+  ],
+  "islandConfig": {
+    "SHARED_ISLAND_RUNTIME": true,
+    "RENDERER_REVISION": "look11-terra-canon",
+    "WORLD_HEMI_SKY": "0xe4eef8",
+    "WORLD_HEMI_GROUND": "0x5c6672",
+    "WORLD_CLEAR": "0x6fb4f0",
+    "SELECT_EMISSIVE": "0xffb54a",
+    "WORLD_EXPOSURE": 1.2,
+    "DPR_CAP": 2,
+    "ANTIALIAS": false
+  },
+  "present": {
+    "path": "composer",
+    "canvasAntialias": "capture-only",
+    "skipComposerWhenMsaa": false
+  },
+  "envLookRev": 27,
+  "defaultSkyEnv": {
+    "zenith": "0x2a8fd6",
+    "horizon": "0x8ecff6",
+    "nadir": "0x4aa8e4",
+    "fogColor": "0x8ecff6",
+    "fogNearSpan": 4.2,
+    "fogFarSpan": 6.4,
+    "atmosphere": 0.05,
+    "sunColor": "0xfff1d4",
+    "sunIntensity": 1.48,
+    "sunX": 0.68,
+    "sunY": 0.82,
+    "sunZ": 0.42,
+    "fillIntensity": 0,
+    "hemiSky": "0xe2f2fc",
+    "hemiGround": "0x8a9aaa",
+    "hemiIntensity": 0.92,
+    "ambientIntensity": 0.34,
+    "shadows": true,
+    "shadowMapSize": 1024,
+    "shadowBias": -0.00035,
+    "shadowNormalBias": 0.048,
+    "shadowRadius": 3.2,
+    "cloudScale": 1,
+    "cloudDensity": 1,
+    "environmentIntensity": 0.32
+  },
+  "untouched": [
+    "art/island_v3/maps/terra-look.json",
+    "art/island_v3/runtime_terra19/island_mass.glb",
+    "models/*.glb",
+    "content/params"
+  ]
+}

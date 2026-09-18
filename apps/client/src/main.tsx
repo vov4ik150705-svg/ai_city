@@ -10,7 +10,7 @@ import { loadStringTable } from "./strings.js"
 import { parsePalette } from "./palette.js"
 import type { SessionOk } from "./session.js"
 
-import stringsUrl from "../../../content/strings/ru.json?url"
+import stringsUrl from "../../../content/strings/en.json?url"
 import hudUrl from "../../../content/fixtures/hud_layout.json?url"
 import paletteUrl from "../../../art/palette/corporator.hex?url"
 

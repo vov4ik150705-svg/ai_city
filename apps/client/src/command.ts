@@ -43,3 +43,60 @@ export async function postCommand(args: {
 export function nextIntentId(cityId: string, cityTime: bigint, seq: bigint): string {
   return cityId + ":" + cityTime.toString() + ":" + seq.toString()
 }
+
+/** Session-scoped id. Backend keys (city_id, intent_id) with no session field. */
+export function scopedIntentId(
+  cityId: string,
+  sessionId: string,
+  cityTime: bigint,
+  seq: bigint,
+): string {
+  const base = nextIntentId(cityId, cityTime, seq)
+  if (sessionId.length === 0) return base
+  return base + ":" + sessionId
+}
+
+const INTENT_SEQ_PREFIX = "corporator.intentSeq."
+
+type SeqStorage = {
+  readonly getItem: (key: string) => string | null
+  readonly setItem: (key: string, value: string) => void
+}
+
+function seqKey(sessionId: string): string {
+  return INTENT_SEQ_PREFIX + sessionId
+}
+
+function liveSeqStorage(): SeqStorage | undefined {
+  try {
+    if (typeof sessionStorage === "undefined") return undefined
+    return sessionStorage
+  } catch {
+    return undefined
+  }
+}
+
+/** Survives reload of the same session. New sessionId starts at 0. */
+export function loadIntentSeq(sessionId: string, storage?: SeqStorage): bigint {
+  if (sessionId.length === 0) return 0n
+  const store = storage ?? liveSeqStorage()
+  if (store === undefined) return 0n
+  try {
+    const raw = store.getItem(seqKey(sessionId))
+    if (raw === null || raw.length === 0) return 0n
+    return BigInt(raw)
+  } catch {
+    return 0n
+  }
+}
+
+export function storeIntentSeq(sessionId: string, seq: bigint, storage?: SeqStorage): void {
+  if (sessionId.length === 0) return
+  const store = storage ?? liveSeqStorage()
+  if (store === undefined) return
+  try {
+    store.setItem(seqKey(sessionId), seq.toString())
+  } catch {
+    return
+  }
+}

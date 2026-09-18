@@ -41,8 +41,7 @@ contract M5Test {
             guardian,
             safetySigner,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S,
-            1
+            PackConstants.VOUCHER_TTL_S
         );
         address[] memory stocks = new address[](6);
         stocks[0] = address(nvda);
@@ -51,7 +50,7 @@ contract M5Test {
         stocks[3] = address(uint160(0x103));
         stocks[4] = address(uint160(0x104));
         stocks[5] = address(uint160(0x105));
-        prizes = new PrizeTreasury(bot, guardian, safetySigner, 1, stocks);
+        prizes = new PrizeTreasury(bot, guardian, safetySigner, stocks);
         corp.transfer(player, 100);
         corp.transfer(bot, 40);
         nvda.mint(bot, 1000);
@@ -67,8 +66,6 @@ contract M5Test {
         vault.deposit(player, 100);
         vm.stopPrank();
         vault.mintCapital(player, 100);
-        vm.prank(guardian);
-        vault.pause();
         vm.prank(safetySigner);
         vm.expectRevert();
         vault.refundPlayer(player, 101);
@@ -90,15 +87,37 @@ contract M5Test {
         amounts[0] = 700;
         vm.prank(safetySigner);
         prizes.slice(address(nvda), 0, players, amounts);
-        vm.prank(guardian);
-        prizes.pause();
         vm.prank(bot);
         prizes.returnUnsettled(address(nvda), 0);
         assertEq(nvda.balanceOf(bot), 300);
         assertEq(prizes.owed(0, address(nvda), player), 700);
         vm.prank(player);
-        vm.expectRevert();
         prizes.claimPrize(address(nvda), 0);
+        assertEq(nvda.balanceOf(player), 700);
+        assertEq(prizes.owed(0, address(nvda), player), 0);
+    }
+
+    function test_issue_requires_available_backing() public {
+        vm.startPrank(player);
+        corp.approve(address(vault), 100);
+        vault.deposit(player, 100);
+        vm.stopPrank();
+        vm.expectRevert();
+        vault.issueVoucher("early", player, 1, block.timestamp);
+        vault.mintCapital(player, 100);
+        vault.issueVoucher("ok", player, 100, block.timestamp);
+        vm.expectRevert();
+        vault.issueVoucher("over", player, 1, block.timestamp);
+        address[] memory players = new address[](1);
+        players[0] = player;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+        vm.prank(safetySigner);
+        vm.expectRevert();
+        vault.batchRefundPlayers(players, amounts);
+        vm.prank(guardian);
+        vault.setRefundRoot(bytes32(uint256(1)));
+        require(vault.refundRoot() == bytes32(uint256(1)), "root");
     }
 
     function test_recover_skips_corp_and_stock() public {

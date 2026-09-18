@@ -23,6 +23,7 @@ import {
   type BatchStamps,
   type BuybackPack,
 } from "../src/index.ts"
+import { assertConveyorBotOnlyAndFailures } from "./conveyor.cases.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
@@ -121,6 +122,7 @@ describe.sequential("C7 construction", () => {
       4n,
     )
     expect(overAnchor.ok).toBe(false)
+    await assertConveyorBotOnlyAndFailures(pack, cfg)
   })
 
   it("buyback_tranche_at_three_depths", () => {

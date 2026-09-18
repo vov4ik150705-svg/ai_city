@@ -17,7 +17,9 @@ import ast
 import hashlib
 import json
 import math
+import struct
 import sys
+from pathlib import Path
 
 import arch
 import companion
@@ -244,16 +246,6 @@ IMPLEMENTED_DERIVED = frozenset(
         "split_check",
         "basket_conveyor_witness",
         "treasury_safety_witness",
-        "advisor_calls_per_city_day",
-        "advisor_cooldown_city_hours",
-        "commands_per_city_day_bound",
-        "llm_calls_per_holder_city_day",
-        "llm_cost_holder_city_day_range_8dec",
-        "llm_cost_holder_season_range_8dec",
-        "llm_calls_at_10k_holders",
-        "uptime_witness",
-        "command_counts",
-        "forbidden_key_count",
         "action_gate_order",
         "blocking_code",
         "blocking_code_live",
@@ -365,7 +357,6 @@ IMPLEMENTED_DERIVED = frozenset(
         "attest_failure_mode",
         "attest_params",
         "state_snapshot_every_ticks",
-        "companion_queue_capacity",
         "sampler_age_alert_city_hours",
         "command_endpoints",
         "endpoint_refusals",
@@ -419,6 +410,11 @@ IMPLEMENTED_DERIVED = frozenset(
         "orbit_distance_default_tiles",
         "hero_catalog",
         "hero_sha256",
+        "island_mass_bytes",
+        "island_buildings_bytes",
+        "island_first_load_bytes",
+        "island_mass_primitives",
+        "island_building_primitives",
     }
 )
 
@@ -763,17 +759,17 @@ def diff_v1_scope(data: dict, generated: list[str]) -> list[str]:
 
 
 def tax_share_bps(data: dict) -> tuple[int, int]:
-    """prize_creator_tax_share_bps, fragment_creator_tax_share_bps. Missing section → 0."""
+    """prize leg share and active-work share of creator tax."""
     seasons = (data.get("seasons") or {}).get("params") or {}
     frags = (data.get("fragments") or {}).get("params") or {}
     prize = int((seasons.get("prize_creator_tax_share_bps") or {}).get("v") or 0)
-    frag = int((frags.get("fragment_creator_tax_share_bps") or {}).get("v") or 0)
-    return prize, frag
+    active_work = int((frags.get("active_work_creator_tax_bps") or {}).get("v") or 0)
+    return prize, active_work
 
 
-def split_tax_bps(tax: int, prize_share: int, frag_share: int) -> tuple[int, int]:
-    """D-M-3 fund rate; prize is the remainder so the two sum to tax."""
-    fund = tax * (BPS - prize_share - frag_share) // BPS
+def split_tax_bps(tax: int, prize_share: int, _active_work_share: int) -> tuple[int, int]:
+    """D-M-12: creator tax body is payroll plus one prize leg."""
+    fund = tax * (BPS - prize_share) // BPS
     return fund, tax - fund
 
 
@@ -787,11 +783,15 @@ def build_economy(data: dict) -> dict:
     p = {k: v["v"] for k, v in data["economy"]["params"].items()}
     anchor = p["capital_anchor"]
     tax, vault = p["creator_tax_bps"], p["vault_fee_bps"]
-    prize_share, frag_share = tax_share_bps(data)
-    fund_bps, prize_bps = split_tax_bps(tax, prize_share, frag_share)
+    prize_share, active_work_share = tax_share_bps(data)
+    fund_bps, prize_bps = split_tax_bps(tax, prize_share, active_work_share)
     studio_share = int(p.get("studio_eth_share_bps") or 0)
     studio_bps = prize_bps * studio_share // BPS
     stocks_bps = prize_bps - studio_bps
+    farm_bps = active_work_share
+    leaderboard_bps = stocks_bps - farm_bps
+    if leaderboard_bps < 0:
+        raise ValueError("active-work stock share exceeds the stock prize leg")
 
     mint_rate = mul_bps(anchor, BPS - vault)
     withdraw_rate = mul_bps(anchor, BPS + p["bank_markup_bps"])
@@ -821,6 +821,8 @@ def build_economy(data: dict) -> dict:
         "fee_split": {
             "fund_bps": fund_bps,
             "stocks_bps": stocks_bps,
+            "leaderboard_bps": leaderboard_bps,
+            "farm_bps": farm_bps,
             "studio_bps": studio_bps,
         },
         "spend_split_total_bps": p["spend_burn_bps"] + p["spend_fund_bps"] + p["spend_protocol_bps"],
@@ -2867,7 +2869,8 @@ TICK_PATH_FLOORDIV_FILES = ("tick.py", "aggregates.py", "record.py")
 # Named remainder sink per function that floor-divides on the tick path.
 # floor_divs is pinned: a new // inside a listed function is a catalog edit, not a silent pass.
 REMAINDER_SINK_CATALOG: tuple[tuple[str, int, str, str], ...] = (
-    ("_apply_spend", 5, "burn / fund / protocol", "protocol is the accounting residual"),
+    ("_apply_spend", 6, "burn / fund / protocol with explicit dust", "dust is routed to the fund; protocol is never the residual"),
+    ("split_creator_tax_atoms", 3, "creator-tax fund / prize / active-work floors", "integer remainder stays in the prize-derived split"),
     ("_assert_i1", 1, "vault coverage identity", "slack floor stays unminted"),
     ("_assert_i2", 2, "entry vs exit bps", "identity remainder is not a second printer"),
     ("_bank_withdraw", 14, "Capital to CORP at markup", "wei dust stays as Capital"),
@@ -2901,7 +2904,6 @@ REMAINDER_SINK_CATALOG: tuple[tuple[str, int, str, str], ...] = (
     ("productivity_bps", 1, "realized / nominal", "gauge only, not a second fuse"),
     ("rate_raw_from_samples", 2, "usd per capital unit", "dust stays unminted"),
     ("split_bank_limit", 1, "ask x cap / sum asks", "floor, remainder undistributed"),
-    ("split_creator_tax_atoms", 1, "prize leg floor of tax atoms", "remainder of the prize share goes to the fund"),
     ("tick", 1, "I7 coverage bps", "remainder of vault vs exit"),
 )
 
@@ -3280,7 +3282,55 @@ def build_render(data: dict) -> dict:
         **fonts,
         "orbit_distance_default_tiles": _orbit_distance_default(data),
         **_hero_derived(data),
+        **_island_runtime_derived(data),
     }
+
+
+def _island_runtime_derived(data: dict) -> dict[str, int]:
+    """Byte and primitive counts from the thin runtime GLBs (I7 / L386)."""
+    overlay = data.get("_island_runtime")
+    if isinstance(overlay, dict):
+        return {
+            "island_mass_bytes": int(overlay.get("island_mass_bytes") or 0),
+            "island_buildings_bytes": int(overlay.get("island_buildings_bytes") or 0),
+            "island_first_load_bytes": int(overlay.get("island_first_load_bytes") or 0),
+            "island_mass_primitives": int(overlay.get("island_mass_primitives") or 0),
+            "island_building_primitives": int(overlay.get("island_building_primitives") or 0),
+        }
+    mass = REPO / "art" / "island_v3" / "runtime" / "island_mass.glb"
+    bdir = REPO / "art" / "island_v3" / "runtime" / "buildings"
+    mass_bytes = mass.stat().st_size if mass.is_file() else 0
+    mass_prims = _glb_primitive_count(mass) if mass.is_file() else 0
+    b_bytes = 0
+    b_prims = 0
+    if bdir.is_dir():
+        for path in sorted(bdir.glob("*.glb")):
+            b_bytes += path.stat().st_size
+            b_prims += _glb_primitive_count(path)
+    return {
+        "island_mass_bytes": mass_bytes,
+        "island_buildings_bytes": b_bytes,
+        "island_first_load_bytes": mass_bytes + b_bytes,
+        "island_mass_primitives": mass_prims,
+        "island_building_primitives": b_prims,
+    }
+
+
+def _glb_primitive_count(path: Path) -> int:
+    blob = path.read_bytes()
+    if blob[:4] != b"glTF" or len(blob) < 20:
+        return 0
+    json_len, json_type = struct.unpack_from("<I4s", blob, 12)
+    if json_type != b"JSON":
+        return 0
+    doc = json.loads(blob[20 : 20 + json_len].rstrip(b"\x00 "))
+    if not isinstance(doc, dict):
+        return 0
+    total = 0
+    for mesh in doc.get("meshes") or []:
+        if isinstance(mesh, dict):
+            total += len(mesh.get("primitives") or [])
+    return total
 
 
 def hud_font_derived(data: dict) -> dict[str, str]:
@@ -3433,7 +3483,7 @@ def report(pack: dict) -> str:
         f"| Круг с максимальным Trader | {econ['trader_round_trip_cost_bps'] / 100:.2f}% | то же с курсом {econ['bank_withdraw_rate_best']} |",
         f"| Сбор, видимый трейдеру на DEX | {econ['dex_visible_fee_bps'] / 100:.2f}% на сторону | наш сбор + комиссия кривой pons |",
         f"| Эффективная ставка фонда | {econ['creator_tax_fund_bps']} bps оборота | тело ставки; приращение в корзину |",
-        f"| Сплит сбора (фонд / стоки / студия) | {econ['fee_split']['fund_bps']} / {econ['fee_split']['stocks_bps']} / {econ['fee_split']['studio_bps']} bps | D-M-12 |",
+        f"| Сплит сбора (фонд / leaderboard / active-work / студия) | {econ['fee_split']['fund_bps']} / {econ['fee_split']['leaderboard_bps']} / {econ['fee_split']['farm_bps']} / {econ['fee_split']['studio_bps']} bps | D-M-12 |",
         f"| Сумма долей траты | {econ['spend_split_total_bps'] / 100:.0f}% | сжигание + фонд + протокол |",
         "",
         "## Время",
@@ -3796,7 +3846,7 @@ def report_m1(pack: dict) -> list[str]:
     split = econ["fee_split"]
     src = (
         "Сгенерировано. Источники: `economy.json` ставка и vault, `seasons.json` "
-        "`prize_creator_tax_share_bps`, `fragments.json` `fragment_creator_tax_share_bps`, "
+        "`prize_creator_tax_share_bps`, `fragments.json` `active_work_creator_tax_bps`, "
         "`meta.json` `fund_effective_tax_floor_bps`. Команда: `python content/build.py`."
     )
     return [
@@ -3818,7 +3868,7 @@ def report_m1(pack: dict) -> list[str]:
         f"| creator_tax_fund_bps | {econ['creator_tax_fund_bps']} |",
         f"| creator_tax_prize_bps | {econ['creator_tax_prize_bps']} |",
         f"| tax_split_total_bps | {econ['tax_split_total_bps']} |",
-        f"| fee_split fund/stocks/studio | {split['fund_bps']} / {split['stocks_bps']} / {split['studio_bps']} |",
+        f"| fee_split fund/leaderboard/farm/studio | {split['fund_bps']} / {split['leaderboard_bps']} / {split['farm_bps']} / {split['studio_bps']} |",
         f"| external_vs_internal_breakeven_bps | {ln['external_vs_internal_breakeven_bps']} |",
         f"| protocol_take_breakeven_bps | {ln['protocol_take_breakeven_bps']} |",
         f"| vault_mint_rate | {econ['vault_mint_rate']} |",
@@ -3971,7 +4021,7 @@ def report_m5(pack: dict) -> list[str]:
         "",
         src,
         "",
-        "Пять групп порта. returnUnsettled не трогает owed. refundPlayer ≤ backingOf. "
+        "Пять групп порта. returnUnsettled не трогает owed. refundPlayer ≤ availableOf. "
         "Бот не забирает весь vault.",
         "",
         "| величина | значение |",
@@ -3982,9 +4032,11 @@ def report_m5(pack: dict) -> list[str]:
         f"| pool_in_measured | {wit.get('pool_in_measured')} |",
         f"| forbidden_ok | {wit.get('forbidden_ok')} |",
         f"| return_skips_settled | {wit.get('return_skips_settled')} |",
-        f"| paused_claim_silent | {wit.get('paused_claim_silent')} |",
+        f"| no_pause_controls | {wit.get('no_pause_controls')} |",
         f"| uncovered_ok | {wit.get('uncovered_ok')} |",
         f"| over_backing_rejected | {wit.get('over_backing_rejected')} |",
+        f"| reserved_coverage_rejected | {wit.get('reserved_coverage_rejected')} |",
+        f"| available_refund_ok | {wit.get('available_refund_ok')} |",
         f"| bot_whole_rejected | {wit.get('bot_whole_rejected')} |",
         f"| has_setSigner | {wit.get('has_setSigner')} |",
         f"| proxy | {wit.get('proxy')} |",
@@ -4238,8 +4290,8 @@ def report_t6(pack: dict) -> list[str]:
     if not g:
         return []
     src = (
-        "Сгенерировано. Источники: `fragments.json`, `economy.json` spend_protocol_bps и "
-        "payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` "
+        "Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и "
+        "`economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` "
         "city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и "
         "eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`."
     )
@@ -4254,7 +4306,7 @@ def report_t6(pack: dict) -> list[str]:
         src,
         "",
         "Краны. Creator tax и пробка фонда — ноль (R-T6-1). NFT — ноль до T8. "
-        "Живой кран — `spend_protocol` после изъятия из vault, сплит 6000/4000.",
+        "Живой кран — creator-tax active-work leg; `spend_protocol` закрыт.",
         "",
         "| кран | bps |",
         "|---|---:|",
@@ -4310,12 +4362,13 @@ def report_t6(pack: dict) -> list[str]:
         )
     lines += [
         "",
-        "## T6: бюджет окна (только spend_protocol)",
+        "## T6: бюджет окна (DEX active-work leg)",
         "",
         src,
         "",
-        "Не линейный налог LAUNCH §3. Активность T1 масштабирует внутреннюю трату "
-        "референсного депозита за окно. Доллар — производная снимка ETH/USD 2026-08-27.",
+        "Сценарий LAUNCH §3 даёт месячный оборот DEX. Для farm берётся доля "
+        "active-work за 14-дневное окно и применяется hop haircut. Доллар — "
+        "производная снимка ETH/USD 2026-08-27.",
         "",
         "| сценарий | оборот T1 $ | Capital в пул / город | $ / город (8dec) | < 1$ |",
         "|---|---:|---:|---:|---|",
@@ -4357,8 +4410,9 @@ def report_t7(pack: dict) -> list[str]:
     src = (
         "Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, "
         "`time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, "
-        "`economy.json` spend_protocol_bps и stake_bonus_max_bps, `fragments.json` "
-        "protocol_prizes_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`."
+        "`economy.json` creator_tax_bps/studio_eth_share_bps и stake_bonus_max_bps, "
+        "`fragments.json` active_work_creator_tax_bps, `launch.json` T1 scenarios. "
+        "Команда: `python content/build.py`."
     )
     wits = g.get("influence_witnesses") or {}
     zipf = g.get("zipf_payout_witness") or {}
@@ -4447,8 +4501,9 @@ def report_t7(pack: dict) -> list[str]:
         "",
         src,
         "",
-        "Горизонт — сезон (fraction 1), доля `protocol_prizes_bps`. Не tax, не cork. "
-        "Таблицы считают пул как при live=1 (сайзинг); флаг выплаты отдельно.",
+        "Горизонт — месячный prize period, доля leaderboard creator-tax leg. "
+        "Не Capital spending и не cork. Таблицы считают пул как при live=1 "
+        "(сайзинг); флаг выплаты отдельно.",
         "",
         "| сценарий | оборот T1 $ | Capital в пул / город | $ / город (8dec) | < 1$ |",
         "|---|---:|---:|---:|---|",
@@ -5096,7 +5151,7 @@ def report_t12(pack: dict) -> list[str]:
     src = (
         "Сгенерировано. Источники: `arch.json`, `api.json`, `screens.json`, "
         "`codes.json`, `launch.json`, `time.json`, `agents.params.slots_cap`, "
-        "`economy.params.twap_window_city_hours`, `companion.params.companion_advisor_queue_depth`. "
+        "`economy.params.twap_window_city_hours`. "
         "Команда: `python content/build.py`."
     )
     lines = [
@@ -5206,7 +5261,6 @@ def report_t12(pack: dict) -> list[str]:
         f"readiness requires {req}.",
         "",
         f"derived: snapshot_every `{g.get('state_snapshot_every_ticks')}`, "
-        f"queue `{g.get('companion_queue_capacity')}`, "
         f"sampler_age_alert `{g.get('sampler_age_alert_city_hours')}`, "
         f"sampler_period_s `{g.get('sampler_period_s')}`, "
         f"samples_per_window `{g.get('samples_per_twap_window')}`, "
@@ -5358,8 +5412,8 @@ def main() -> int:
     print(f"breakeven  : fund {g['launch']['external_vs_internal_breakeven_bps']} bps"
           f" / protocol {g['launch']['protocol_take_breakeven_bps']} bps")
     split = g['economy']['fee_split']
-    print(f"fee split  : fund {split['fund_bps']} / stocks {split['stocks_bps']}"
-          f" / studio {split['studio_bps']} bps of turnover")
+    print(f"fee split  : fund {split['fund_bps']} / leaderboard {split['leaderboard_bps']}"
+          f" / farm {split['farm_bps']} / studio {split['studio_bps']} bps of turnover")
     print(f"mint rate  : {g['economy']['anchor_mint_rate']} Capital/$CORP"
           f" (raw {g['economy']['anchor_rate_raw']}, ceiling {pack['sections']['economy']['params']['capital_anchor']['v']})")
     b = g["balance"]

@@ -34,8 +34,7 @@
 `acc` — `empty_acc()` 1078–1109. `mon` — slack I1 и покрытие I7. `day_mon` — `empty_day_mon()` 333–344.
 
 Город (`sim.spawn_city` 97–132): `id`, `arch`, `weight`, `capital`, `earned_life`, `earned_left`, `deposit_spent`, `earned_spent`, `output_base`, `energy_ok` (флаг 0/1, не склад), `affinity_bps`, `level_mult_bps`, `mod_bps`, `schedule`, `bank_level`, `bank_usage`, `login_period`, `last_login` (**в `tick.py` не читается**), `sell_share_bps`, `reinvest_bps`, `deposit_multiple_bps`, `withdraw_intent`, `spend_intent`, `spend_from_earned`, `withdrawn_day`, `withdrawn_life_wei`, `withdrawn_capital`, `idle`, `request`, `payout`, `districts`, `offline_denied`, `corp_held`, `codes`.
-
-Нет в `state`: `city_time`, склады Energy/Compute, здания, агенты, леджер фрагментов, `park_slots`, Happiness/Stability/GDP/Population, команды компаньона.
+Нет в `state`: `city_time`, склады Energy/Compute, здания, агенты, леджер фрагментов, `park_slots`, Happiness/Stability/GDP/Population.
 
 `cfg` — плоский срез `load_config` (48–160). В `cfg` кладутся и не используются тиком: `night_energy_premium_bps` (93), `season_city_days` (96). `efficiency_recalc_hour` в `cfg` **не попадает**.
 
@@ -88,8 +87,8 @@
 - `efficiency_recalc_hour` — не в `cfg`, не в `tick()`.
 - Energy/Compute не списываются (шаги 2–4 канона `DESIGN.md` §5.3).
 - Нет `IDLE_NO_COMPUTE`.
+- Фрагменты, сезоны, `apply_stack`, Happiness — не вызываются.
 - `last_login` спавна в тике не используется.
-- Фрагменты, сезоны, компаньон, `apply_stack`, Happiness — не вызываются.
 - `canonical(rec)` в `_records` (982) — побочный `assert_no_floats`; байты записи никуда не пишутся.
 - Merkle / keccak / CID / IPFS в коде тика нет.
 - `packages/engine` нет.
@@ -189,7 +188,7 @@ prng = int.from_bytes(hashlib.sha256(msg).digest()[:8], "big")
 
 `canonical(rec)` вызывается и результат **отбрасывается**. Байт-точный снимок записи не хранится.
 
-Нет: `city_time`, `building_id`, `objective`, `inputs.{energy,compute,materials}`, `district_efficiency`, `seed`, `output`, `status`. Нет дельты фрагментов, стадий T5, команд компаньона.
+Нет: `city_time`, `building_id`, `objective`, `inputs.{energy,compute,materials}`, `district_efficiency`, `seed`, `output`, `status`. Нет дельты фрагментов и стадий T5.
 
 ### 3.2 Канон `DESIGN.md` §6.1 (529–539)
 
@@ -262,7 +261,6 @@ json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encod
 |---|---|---|
 | `fragment_tick_wiring` | entity | `fragments.py` settlement в тик; дельта фрагментов в DecisionRecord. Строка 8 |
 | `season_tick_wiring` | entity | `seasons.py` Influence + `settle_prizes`; писать `I_day`. Строка 9 |
-| `companion_tick_wiring` | entity | команды — записанный вход; догон без `companion_replan_on_login`. Строка 12 |
 | `sampler_corp_eth_endogenous` | entity | эндогенный ряд `corp_eth` вместо заморозки на `seed_corp_wei` (R-T3-20). Строка 26. BRIEF относит сэмплер и к T12 |
 
 Других `owner: T11` в `pending.json` нет.
@@ -304,7 +302,6 @@ L168 требует: каждый ключ использован полем и 
 | стадии `base`/`post` в порядке движка, байт-точный сплав в записи | `PROGRESSION.md` T5.2 187–195, R-T5-12 строка 266, T5.9 строка 274 | вставить стадии вокруг шагов 2/5/6 канона §5.3; сейчас `tick.py`/`sim.py` строк T5 не применяют |
 | проводка фрагментов, заморозка леджера на границе окна, settlement в 06:00 | `PRIZES.md` строки 3, 15, 23, 39 | начисление с gross до `payroll_ratio`; клейм по замороженному леджеру |
 | `I_day` в тик, `season_prizes_live=0` | `PRIZES.md` 91, 108–114; pending `season_tick_wiring` | считать ранг; выплату $CORP не включать |
-| команды как записанный вход, `companion_replan_on_login=0` | `COMPANION.md` 3, 46–56, 121 | `plan()` до тика; догон без пересчёта; layout записи без новых полей |
 | Happiness ← `park_slots`, формула | `WORLD.md` 17, 157 R-T10-1 | формула, не слова; счётчик уже `1 + open districts` |
 | догон оффлайна; экран возвращения только показывает потолок | `SCREENS.md` 3, 81–85, 145 | посчитать catch-up; `IDLE_OFFLINE_CAP_REACHED`; без `commit:*` |
 | копировать порядок §1 включая cork, I11, `split_bank_limit` | `SIMULATION.md` §9 119–121 | эталон `tick.py` |
@@ -329,7 +326,6 @@ L168 требует: каждый ключ использован полем и 
 | | `stability_bps` | `valid_ticks, data` | `valid_ticks * BPS // ticks_per_city_day` |
 | | `settle_prizes` | `data, rows, pool, hop_stale=False` | rank + payout; при `season_prizes_live=0` shares=0 |
 | | `settle_hour` | `data` | тот же 06:00 |
-| `companion.py` | `plan` | `state, data` | list команд; до тика |
 | | `journal_lines` | `commands, data` | журнал |
 | `screens.py` | `offline_return_ticks_cap` | `data, generated` | int тиков |
 | | остальные | `data` пака | UI-derived, не экономика тика |
@@ -339,18 +335,16 @@ L168 требует: каждый ключ использован полем и 
 ### 5.2 Что мешает вызвать из `tick()` сейчас
 
 - В `state` нет зданий (маяк/`tier`/`district`), агентов, леджера фрагментов, `pool_in`, GDP/capex суток, `park_slots`, команд.
-- `cfg` не содержит params фрагментов/сезонов/компаньона.
-- Импортов `fragments`/`seasons`/`companion` в `tick.py` нет.
+- `cfg` не содержит params фрагментов/сезонов.
+- Импортов `fragments`/`seasons` в `tick.py` нет.
 - Город T3 — скаляр `output_base`, не слоты §5.3.
-- L45 смотрит `tick.py` (и `sim.py`, `builds.py`, `screens.py`) — новые литералы только из whitelist `{0,1,2,3,8,10,16}` (`sim.json` 156–159). `fragments.py`/`seasons.py`/`companion.py` в L45 не входят.
-
+- L45 смотрит `tick.py` (и `sim.py`, `builds.py`, `screens.py`) — новые литералы только из whitelist `{0,1,2,3,8,10,16}` (`sim.json` 156–159). `fragments.py`/`seasons.py` в L45 не входят.
 ### 5.3 No-op на базовых сценариях T3?
 
 | проводка | no-op для Capital/fund/vault T3? | условие |
 |---|---|---|
 | фрагменты | **да**, если нет beacon+paid | у спавна нет зданий; workshop не маяк (`tick_accrues` 111–112). Пустой леджер → `FRAGMENT_NO_CLAIMS`, пул не трогать |
 | сезоны / `I_day` | **да** для кассы | `season_prizes_live=0` (`seasons.json` 53–57, L115): выплата 0. Ранг — счёт, не минт |
-| компаньон | **да** при пустом входе | `plan` без агентов не двигает выход; величины ключей v1 = 0 (`DESIGN.md` §5.14). Команды `seat_agent`/`set_objective` на T3-спавне некуда применить |
 | `offline_return_ticks_cap` | **да** при `tick_length=1` | 12 часов = 12 тиков. Смена модели на `last_login` **сломает** аптайм минималиста T3 |
 | `apply_stack` с **пустыми** rows | **да** | пустой mul → тождество `BPS` (`compose_key_mags` / пустые `mul_terms` → BPS, `build.py` 2412–2414) |
 | `apply_stack` со **строками пака** | **нет** | R-T5-12: строки не применяются, полосы T2 не сдвинуты. Бесплатный стек T5 ненулевой (`PROGRESSION.md` / L77). `city["mod_bps"]=BPS` (spawn 110). Включение паковых rows сдвинет `output_base` |
@@ -509,8 +503,8 @@ PENDING          → collect_pending из pending.json
 
 `DESIGN.md` §6.1 539: «Дельта фрагментов войдёт в запись на T11, как стадии T5; layout здесь не меняется.»
 
-Факт кода: текущий layout уже **не** равен §6.1 (восемь полей, другие имена). `CONTENT.md` R2 держит `inputs.materials=0`, чтобы не мигрировать. `COMPANION.md` 50, 121: команды во **входах**, не в новых полях записи. Два требования в одном предложении: добавить дельту и не менять layout. Версионирования записи в каноне нет.
 
+Факт кода: текущий layout уже **не** равен §6.1 (восемь полей, другие имена). `CONTENT.md` R2 держит `inputs.materials=0`, чтобы не мигрировать. Два требования в одном предложении: добавить дельту и не менять layout. Версионирования записи в каноне нет.
 ### 8.5 Личные часы vs общий `tick_index`
 
 - `DESIGN.md` §3 174–179: отдельный календарь на аккаунт; `city_time = anchor + (now − first_login) × rate`.
@@ -546,8 +540,8 @@ PENDING          → collect_pending из pending.json
 
 1. **Кадр аттестации (час × сутки-на-город vs минута × IPFS-сутки).** BRIEF уже помечает противоречие с §6.2. От этого зависят контракт корня, CID-нагрузка и то, что реплейер считает «батчем». Молчание = два несовместимых TICK.md.
 
-2. **Версия DecisionRecord.** §6.1 запрещает менять layout и одновременно требует дельту фрагментов и стадии T5. Код уже не равен §6.1. Стоит миграция истории vs опциональные хвосты vs команды только во входах (как компаньон). Без решения L-правила на байт-точность не написать.
 
+2. **Версия DecisionRecord.** §6.1 запрещает менять layout и одновременно требует дельту фрагментов и стадии T5. Код уже не равен §6.1. Стоит миграция истории vs опциональные хвосты vs команды только во входах. Без решения L-правила на байт-точность не написать.
 3. **keccak листьев vs sha256 всего кода.** Паковый sha256 назван осознанным (`CONTENT.md` 166). Лист merkle по канону — keccak, реализации нет. Стоит зависимость верификатора (§6.3 «без keccak в каждом языке») против пословной правки §6.2.
 
 4. **Граница суток: полночь / 06:00 / tick 0 = полдень.** Сейчас бюджет, EMA, храповик и stale-decay — в `hour==0` плюс особый полдень tick 0. Канон efficiency и fragment/season settlement — `efficiency_recalc_hour=6`. Свести к одному часу или держать два контура. Это двигает все «целыми сутками».

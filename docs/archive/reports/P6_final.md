@@ -48,6 +48,5 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner, к P7). Внешний аудит-подрядчик — календарь владельца. Живой compose / тестнет — среда, не пак. Числа P7 (`pause_ready_delay`, `studio_eth_recipient`, `guardian`, `signer`) — владелец (`R-P-3`).
 
 Next Step: **P7** — `mainnet_launch` (не начинать без чисел владельца из `PLAN_RELEASE` §9).

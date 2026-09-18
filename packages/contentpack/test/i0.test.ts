@@ -17,6 +17,22 @@ const ISLAND_STAGE_IDS = [
   "island_close",
 ] as const
 
+const ISLAND_FORM_CONSTRUCTION = ["island_stage_keys_exist"] as const
+
+/** Exact L268 / arch.json island_client.construction_tests names (LOOK Vitest it()). */
+const ISLAND_CLIENT_CONSTRUCTION = [
+  "applies full translation including Y and forces scale 1",
+  "collectAnchors reads world pose and ignores local parent offset",
+  "fits island width into 72-86% at 1920x1080 and 1366x768",
+  "pulls back when City Hall is raised so the spire stays in the frustum",
+  "review occupancy is 18 studio assets and warehouse pack_id stays empty",
+  "wheel zoom is multiplicative, not a 1 m step",
+  "MeshoptDecoder missing is a visible error, not a silent ready",
+  "parity check fails on a different exposure",
+  "SkyDome and clouds classify as unlit categories",
+  "projected width fill is the camera-fit number, not a copied ceiling",
+] as const
+
 const PRIOR_PHASE = new Set([
   "live_form",
   "prize_claim_live",
@@ -147,7 +163,9 @@ describe.sequential("I0 construction", () => {
       if (stage === undefined) continue
       expect(stageFieldGaps(stage), id).toEqual([])
       if (id === "island_form") {
-        expect(stage.construction_tests ?? []).toEqual(["island_stage_keys_exist"])
+        expect(stage.construction_tests ?? []).toEqual([...ISLAND_FORM_CONSTRUCTION])
+      } else if (id === "island_client") {
+        expect(stage.construction_tests ?? [], id).toEqual([...ISLAND_CLIENT_CONSTRUCTION])
       } else {
         expect(stage.construction_tests ?? [], id).toEqual([])
       }

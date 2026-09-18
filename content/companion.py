@@ -428,6 +428,8 @@ def forbidden_key_count(data: dict) -> int:
 
 def build_companion(data: dict, generated: dict | None = None) -> dict:
     """Derived block for the pack. Names must match companion.json derived and IMPLEMENTED_DERIVED."""
+    if "companion" not in data:
+        return {}
     calls = advisor_calls_per_city_day(data)
     cool = advisor_cooldown_city_hours(data)
     bound = commands_per_city_day_bound(data)

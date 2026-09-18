@@ -17,6 +17,7 @@ export type { ZoomLevel, CamBounds, Camera, TileHit } from "./camera.js"
 export {
   isTap,
   isPan,
+  isSceneTap,
   isDoubleTap,
   pinchZoomDir,
   keyPanDir,
@@ -48,10 +49,11 @@ export {
 export {
   observeVisualBudgets,
   observeVisual3Budgets,
+  observeIslandBudgets,
   underVisualCaps,
   copiedFromCaps,
 } from "./budget.js"
-export type { VisualCaps, VisualObserved, ObserveArgs, Observe3Args } from "./budget.js"
+export type { VisualCaps, VisualObserved, ObserveArgs, Observe3Args, ObserveIslandArgs } from "./budget.js"
 export {
   keepTiles,
   firstHitTile,
@@ -72,6 +74,42 @@ export {
 export type { IslandCell, IslandBox, WaterPlane } from "./island.js"
 export { loadHeroCatalog, plantHeroes, pickHeroLod } from "./heroes.js"
 export type { HeroLot, HeroCatalogRow } from "./heroes.js"
+export type { OccupiedPlant, AnchorPose } from "./islandPlant.js"
+export {
+  STUDIO_PLANTS,
+  occupiedForMode,
+  warehousePackId,
+} from "./islandOccupancy.js"
+export type { OccupancyMode } from "./islandOccupancy.js"
+export {
+  fitHeroCamera,
+  projectedWidthFill,
+  aabbUnion,
+  aabbCenter,
+  aabbSize,
+  azimuthToBps,
+  elevationToTiltBps,
+} from "./islandCamera.js"
+export type { Aabb, HeroFit, Vec3 } from "./islandCamera.js"
+export { zoomOrbitDistance, meshoptDecoderReady } from "./islandZoom.js"
+export { bindIslandPreviewOrbit } from "./islandOrbitInput.js"
+export type { IslandOrbitState } from "./islandOrbitInput.js"
+export { parityMismatch } from "./islandCapture.js"
+export type { IslandCaptureMeta } from "./islandCapture.js"
+export { classifyIslandMaterial, applyIslandMaterials } from "./islandMaterials.js"
+export {
+  SHARED_ISLAND_RUNTIME,
+  RENDERER_REVISION,
+  WORLD_HEMI_SKY,
+  WORLD_HEMI_GROUND,
+  WORLD_EXPOSURE,
+  HERO_FOV_DEG,
+  HERO_AZIMUTH_DEG,
+  HERO_ELEVATION_DEG,
+  WIDTH_FILL_MIN,
+  WIDTH_FILL_MAX,
+  ZOOM_FACTOR,
+} from "./islandConfig.js"
 export { isPackedWalker, plantUnits, unitShiftBps, unitWorldPos } from "./units.js"
 export type { PackedUnit, UnitPos } from "./units.js"
 export {
@@ -102,7 +140,7 @@ export {
   orbitDefaultDistance,
   orbitEye,
 } from "./orbit.js"
-export type { IslandHandle } from "./frame.js"
+export type { IslandHandle, IslandObjectProjection } from "./frame.js"
 export {
   cloudLift,
   painterDepth,

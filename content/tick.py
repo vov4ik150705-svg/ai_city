@@ -13,10 +13,12 @@ import hashlib
 from pack import BPS, canonical
 
 import aggregates
+import bank
 import build
 import fragments
 import record as record_mod
 import seasons
+import xp
 
 
 class TickError(Exception):
@@ -66,6 +68,9 @@ def load_config(pack: dict) -> dict:
     workshop_energy = 0
     power_out = 0
     bank_l1_share = 0
+    bank_levels_loaded = {}
+    population_thresholds = {}
+    xp_curve = {}
     if gen.get("balance"):
         gb = gen["balance"]
         workshop_out = (gb.get("level_output") or {}).get("workshop", [0])[0]
@@ -73,6 +78,15 @@ def load_config(pack: dict) -> dict:
         workshop_energy = (gb.get("level_energy") or {}).get("workshop", [0])[0]
         power_out = gb.get("power_node_output_per_tick") or 0
         bank_l1_share = (gb.get("bank_levels") or {}).get("1", {}).get("share_bps") or 0
+        bank_levels_loaded = gb.get("bank_levels") or {}
+        population_thresholds = gb.get("population_threshold") or {}
+        if not population_thresholds and gb.get("city_levels"):
+            population_thresholds = {
+                k: int((v or {}).get("population_threshold") or 0)
+                for k, v in gb["city_levels"].items()
+            }
+    ga = gen.get("agents") or {}
+    xp_curve = ga.get("xp_to_next") or {}
     cfg = {
         "wei": wei,
         "ticks_day": ticks_day,
@@ -87,9 +101,15 @@ def load_config(pack: dict) -> dict:
         "bank_markup_floor_bps": _pv(econ, "bank_markup_floor_bps"),
         "creator_tax_bps": _pv(econ, "creator_tax_bps"),
         "prize_creator_tax_share_bps": _pv(d["seasons"], "prize_creator_tax_share_bps"),
+        "active_work_creator_tax_bps": _pv(d["fragments"], "active_work_creator_tax_bps"),
+        "studio_eth_share_bps": _pv(econ, "studio_eth_share_bps"),
         "spend_burn_bps": _pv(econ, "spend_burn_bps"),
         "spend_fund_bps": _pv(econ, "spend_fund_bps"),
         "spend_protocol_bps": _pv(econ, "spend_protocol_bps"),
+        "spend_bps": _pv(econ, "spend_burn_bps")
+        + _pv(econ, "spend_fund_bps")
+        + _pv(econ, "spend_protocol_bps"),
+        "share_bps": BPS,
         "payroll_daily_divisor": _pv(econ, "payroll_daily_divisor"),
         "payroll_fund_cap_days": _pv(econ, "payroll_fund_cap_days"),
         "reserve_weekly_drain_bps": _pv(econ, "reserve_weekly_drain_bps"),
@@ -145,6 +165,15 @@ def load_config(pack: dict) -> dict:
         "workshop_energy": workshop_energy,
         "power_out": power_out,
         "bank_l1_share_bps": bank_l1_share,
+        "bank_levels": bank_levels_loaded,
+        "population_thresholds": population_thresholds,
+        "xp_to_next": xp_curve,
+        "slots_at_city_level": (gen.get("agents") or {}).get("slots_at_city_level") or {},
+        "city_level_max": int((gen.get("agents") or {}).get("city_level_at_slots_cap") or 0),
+        "agent_level_max": _pv(bal, "agent_level_max"),
+        "agent_level_gain_bps": _pv(bal, "agent_level_gain_bps"),
+        "offline_hard_cap": _pv(time, "offline_cap_city_hours_base") + 1 + 2 + 3,
+        "unstake_grace_city_hours": _pv(econ, "unstake_grace_city_hours"),
         "schedules": time["schedules"],
         "stale_code": "STALE_PRICE",
         "bank_limit_code": "BANK_DAILY_LIMIT_REACHED",
@@ -166,7 +195,7 @@ def load_config(pack: dict) -> dict:
         "happiness_penalty_threshold_bps": _pv(d["tick"], "happiness_penalty_threshold_bps"),
         "layout_version": _pv(d["tick"], "layout_version"),
         "season_prizes_live": _pv(d["seasons"], "season_prizes_live"),
-        "companion_replan_on_login": _pv(d["companion"], "companion_replan_on_login"),
+        "companion_replan_on_login": int((((d.get("companion") or {}).get("params") or {}).get("companion_replan_on_login") or {}).get("v") or 0),
         "research_objective": "research",
         "research_time_ticks": dict((gen.get("balance") or {}).get("research_node_time_ticks") or {}),
         "efficiency_k_bps": _pv(econ, "efficiency_k_bps"),
@@ -373,17 +402,28 @@ def _recalc_efficiency(cfg: dict, state: dict) -> None:
             )
 
 
-def _settle_fragments_hour(cfg: dict, state: dict) -> None:
+def _settle_fragments_hour(cfg: dict, state: dict, day: int, hour: int) -> None:
     data = cfg.get("data")
-    if not data:
+    if not data or not fragments.window_settle_due(data, day, hour):
         return
+    cities = {}
     for cid in sorted(state["cities"]):
         city = state["cities"][cid]
-        ledger = city.get("fragment_ledger")
-        if not ledger:
+        if city.get("fragment_ledger") is None and city.get("fragment_pool") is None:
             continue
-        pool = int(city.get("fragment_pool") or 0)
-        city["fragment_settlement"] = fragments.settle_from_data(data, list(ledger), pool)
+        cities[cid] = city
+    if not cities:
+        return
+    pools = state.get("fragment_pools")
+    if not isinstance(pools, dict):
+        pools = 0
+        for city in cities.values():
+            pools = int(city.get("fragment_pool") or 0)
+            if pools:
+                break
+    fragments.settle_cities(data, cities, pools)
+    if isinstance(state.get("fragment_pools"), dict) and isinstance(pools, dict):
+        state["fragment_pools"] = pools
 
 
 def _settle_seasons_hour(cfg: dict, state: dict, day: int, hour: int) -> None:
@@ -414,19 +454,109 @@ def _settle_seasons_hour(cfg: dict, state: dict, day: int, hour: int) -> None:
     state["season_settlement"] = seasons.settle_prizes(
         data, rows, pool, city_day=day, hour=hour
     )
+    if seasons.period_settle_due(data, day, hour) or seasons.season_settle_due(data, day, hour):
+        for cid in sorted(state["cities"]):
+            city = state["cities"][cid]
+            if "influence" not in city and "season_row" not in city:
+                continue
+            seasons.consume_after_settle(city)
 
 
 def _hour_six(cfg: dict, state: dict, day: int, hour: int) -> None:
     if hour != cfg["efficiency_recalc_hour"]:
         return
     _recalc_efficiency(cfg, state)
-    _settle_fragments_hour(cfg, state)
+    _settle_fragments_hour(cfg, state, day, hour)
     data = cfg.get("data")
     if data and seasons.period_settle_due(data, day, hour):
         _settle_seasons_hour(cfg, state, day, hour)
 
 
+def _accumulate_influence_day(cfg: dict, state: dict, day: int, hour: int) -> None:
+    """Close the previous global day at hour 0. Tick 0 is genesis, not a close."""
+    if hour != 0 or int(state.get("tick_index") or 0) == 0:
+        return
+    data = cfg.get("data")
+    if not data:
+        return
+    closed = day - 1
+    for cid in sorted(state["cities"]):
+        city = state["cities"][cid]
+        if "influence" not in city and "season_row" not in city:
+            continue
+        created = int(city.get("created_day") or 0)
+        gdp = int(city.get("day_gdp") or 0)
+        valid = int(city.get("day_valid_ticks") or 0)
+        seasons.accumulate_day(city, gdp, valid, data, created, closed)
+        city["day_gdp"] = 0
+        city["day_valid_ticks"] = 0
+
+
+def _award_xp(cfg: dict, state: dict) -> None:
+    curve = cfg.get("xp_to_next") or {}
+    if not curve:
+        return
+    level_max = int(cfg.get("agent_level_max") or 0)
+    gain = int(cfg.get("agent_level_gain_bps") or 0)
+    for cid in sorted(state["cities"]):
+        city = state["cities"][cid]
+        if not isinstance(city.get("agents"), list) or not city["agents"]:
+            continue
+        city_mags = list(city.get("xp_rate_mags") or [])
+        xp.award_paid_tick(city, curve, level_max, gain, city_mags)
+        for agent in city["agents"]:
+            if not isinstance(agent, dict):
+                continue
+            if not (agent.get("train_target") or city.get("train_target")):
+                continue
+            if as_str_obj(city.get("objective")) not in ("train", "") and not agent.get("train_target"):
+                continue
+            extra = 0
+            mags = list(agent.get("compute_cost_mags") or agent.get("train_compute_mags") or [])
+            if mags and "compute_stock" in city:
+                extra = xp.train_compute_cost(int(city.get("compute_draw") or 0), mags)
+                if extra > int(city.get("compute_stock") or 0):
+                    continue
+                city["compute_stock"] = int(city["compute_stock"]) - extra
+            xp.award_train(city, agent, curve, level_max, gain, city_mags)
+
+
+def as_str_obj(value: object) -> str:
+    return str(value or "")
+
+
+def _refresh_city_progress(cfg: dict, state: dict) -> None:
+    thresholds = cfg.get("population_thresholds") or {}
+    level_max = int(cfg.get("city_level_max") or 0)
+    per = int(cfg.get("population_per_job") or 0)
+    defs = {}
+    data = cfg.get("data")
+    if data:
+        defs = ((data.get("buildings") or {}).get("buildings") or {})
+    for cid in sorted(state["cities"]):
+        city = state["cities"][cid]
+        functions = city.get("functions")
+        if functions is None and "occupied_jobs" not in city:
+            continue
+        if functions is not None:
+            add = int(city.get("housing_capacity_add") or 0)
+            city["housing_capacity"] = aggregates.housing_capacity_of(functions, thresholds, add)
+            city["build_slots_used"] = aggregates.ordinary_active_count(functions, defs)
+        if "occupied_jobs" in city or functions is not None:
+            jobs = int(city.get("occupied_jobs") or 0)
+            housing = int(city.get("housing_capacity") or 0)
+            city["population"] = aggregates.population(jobs, per, housing)
+            derived = aggregates.city_level_from_population(city["population"], thresholds, level_max)
+            city["city_level"] = aggregates.sticky_city_level(int(city.get("city_level") or 1), derived)
+            pack_slots = cfg.get("slots_at_city_level") or {}
+            agent_slots = int(city.get("agent_slots") or pack_slots.get(str(city["city_level"])) or 0)
+            if agent_slots:
+                city["build_slots"] = aggregates.build_slots_of(agent_slots)
+
+
 def _apply_companion_commands(cfg: dict, state: dict, commands: object) -> None:
+    if not (cfg.get("data") or {}).get("companion"):
+        return
     if not commands:
         return
     if cfg.get("companion_replan_on_login"):
@@ -439,6 +569,33 @@ def _apply_companion_commands(cfg: dict, state: dict, commands: object) -> None:
             state["cities"][cid].setdefault("companion_journal", []).append(cmd)
 
 
+def _fragment_gross_of(cfg: dict, building: dict) -> int:
+    data = cfg.get("data")
+    bid = str(building.get("id") or building.get("archetype") or "")
+    level = int(building.get("level") or 1)
+    authored = building.get("fragment_gross_base")
+    if authored is None and data and bid:
+        spec = ((data.get("buildings") or {}).get("buildings") or {}).get(bid) or {}
+        authored = spec.get("fragment_gross_base")
+    cost_l1 = 0
+    ow = None
+    growth = BPS
+    payback = 0
+    if data:
+        try:
+            payback = build.bp(data, "normalization_payback_ticks")
+        except (KeyError, TypeError, ValueError):
+            payback = 0
+    if data and bid:
+        try:
+            cost_l1 = build.building_cost(data, bid, 1, int(cfg.get("workshop_cost") or 0))
+            ow = build.output_weight_bps(data, bid)
+            growth = build.bp(data, "output_growth_bps")
+        except (KeyError, TypeError, ValueError):
+            cost_l1 = int(building.get("cost_l1") or 0)
+    return fragments.fragment_gross_base(authored, cost_l1, ow, growth, level, payback)
+
+
 def _accrue_fragments(cfg: dict, state: dict, city: dict) -> int:
     data = cfg.get("data")
     building = city.get("building")
@@ -449,15 +606,28 @@ def _accrue_fragments(cfg: dict, state: dict, city: dict) -> int:
     status = cfg["status_paid"] if payout > 0 and not idle else cfg["status_idle"]
     if city.get("construction"):
         status = cfg["status_construction"]
+    gross = _fragment_gross_of(cfg, building)
+    if gross <= 0 and building.get("force_fragment_accrual"):
+        gross = payout
     delta = fragments.accrue_amount(
         data,
-        payout,
+        gross,
         city.get("fragment_rate_mags") or [],
         building,
         status,
         idle=idle,
     )
     city["fragments"] = int(city.get("fragments") or 0) + delta
+    if delta > 0:
+        did = building.get("district")
+        ticker = ""
+        if did and data:
+            row = ((data.get("districts") or {}).get("districts") or {}).get(did) or {}
+            ticker = str(row.get("ticker") or "")
+        if ticker:
+            ledger = city.setdefault("fragment_ledger", {})
+            if isinstance(ledger, dict):
+                ledger[ticker] = int(ledger.get(ticker) or 0) + delta
     return delta
 
 
@@ -711,9 +881,15 @@ def _bank_open(cfg: dict, hour: int, weekday: int) -> int:
     return 1
 
 
+def _offline_hours(cfg: dict, city: dict) -> int:
+    added = int(city.get("offline_cap_hours") or 0)
+    hard = int(cfg.get("offline_hard_cap") or 0)
+    return aggregates.clip_offline_hours(int(cfg["offline_cap"]), added, hard)
+
+
 def _in_offline_window(cfg: dict, city: dict, tick_index: int) -> int:
     """I8: catch-up credits at most offline_cap ticks and at most elapsed ticks."""
-    cap = cfg["offline_cap"]
+    cap = _offline_hours(cfg, city)
     period = city["login_period"]
     if period <= 1:
         return 1
@@ -902,6 +1078,10 @@ def _pay(cfg: dict, state: dict, rows: list[dict]) -> None:
         paid_sum += payout
         state["acc"]["payroll_paid"] += payout
         state["day_payroll"] = state.get("day_payroll", 0) + payout
+        if "influence" in city or "season_row" in city or "day_gdp" in city:
+            city["day_gdp"] = int(city.get("day_gdp") or 0) + unit
+            if unit > 0:
+                city["day_valid_ticks"] = int(city.get("day_valid_ticks") or 0) + 1
     if paid_sum > budget:
         raise TickError("I4_OVER_BUDGET", state["tick_index"], "-", paid=paid_sum, budget=budget)
     state["acc"]["payout_ticks"] += 1
@@ -948,17 +1128,21 @@ def _apply_spend(cfg: dict, state: dict, city: dict, amount: int, from_earned: i
         return
     if amount > city["capital"]:
         amount = city["capital"]
+    spend_bps = cfg["spend_bps"]
+    if spend_bps <= 0:
+        raise TickError("INDEX", state.get("tick_index", 0), "spend_bps", i=spend_bps)
     city["capital"] -= amount
-    burn = amount * cfg["spend_burn_bps"] // BPS
-    to_fund = amount * cfg["spend_fund_bps"] // BPS
-    proto = amount - burn - to_fund
+    burn = amount * cfg["spend_burn_bps"] // spend_bps
+    to_fund = amount * cfg["spend_fund_bps"] // spend_bps
+    proto = amount * cfg["spend_protocol_bps"] // spend_bps
+    to_fund += amount - burn - to_fund - proto
     w = city["weight"] if city["weight"] else 1
     state["fund"] += to_fund * w
     state["capital_outstanding"] -= (burn + proto) * w
     rate = state["mint_rate"]
     if rate > 0:
         burn_corp = burn * cfg["wei"] // rate
-        proto_corp = proto * cfg["wei"] // rate
+        proto_corp = 0 if proto <= 0 else proto * cfg["wei"] // rate
         state["reserve_corp"] += burn_corp * w
         state["acc"]["reserve_in_corp"] = state["acc"].get("reserve_in_corp", 0) + burn_corp * w
         proto_out = proto_corp * w
@@ -975,7 +1159,7 @@ def _apply_spend(cfg: dict, state: dict, city: dict, amount: int, from_earned: i
         if leftover_deposit_share > 0:
             city["deposit_spent"] += leftover_deposit_share
             state["acc"]["f_deposit"] += (
-                leftover_deposit_share * cfg["spend_fund_bps"] // BPS * w
+                leftover_deposit_share * cfg["spend_fund_bps"] // spend_bps * w
             )
     else:
         city["deposit_spent"] += amount
@@ -1000,16 +1184,11 @@ def split_bank_limit(asks: list[int], cap: int) -> list[int]:
 
 def _bank_withdraw(cfg: dict, state: dict, day: int, hour: int, weekday: int) -> None:
     live = state["pool_eth"]
+    bank.reset_day_counters(state, day)
     global_lim = live * cfg["bank_pool_share_bps"] // BPS
-    used_today = state.get("bank_used_today_wei", 0)
-    if state.get("bank_day") != day:
-        state["bank_day"] = day
-        used_today = 0
-        for cid in state["cities"]:
-            state["cities"][cid]["withdrawn_day"] = 0
-    remaining_global = global_lim - used_today
-    if remaining_global < 0:
-        remaining_global = 0
+    remaining_global = bank.remaining_global(state, live, cfg["bank_pool_share_bps"])
+    if remaining_global > global_lim:
+        remaining_global = global_lim
     asks: list[tuple[str, int]] = []
     for cid in sorted(state["cities"]):
         city = state["cities"][cid]
@@ -1030,10 +1209,12 @@ def _bank_withdraw(cfg: dict, state: dict, day: int, hour: int, weekday: int) ->
         markup = cfg["bank_markup_bps"]
         if rate <= 0:
             continue
-        # Personal cap: share of 1% live depth.
-        share = cfg["bank_l1_share_bps"] if city["bank_level"] > 0 else 0
+        # Personal cap: share of 1% live depth. Full L1–L4 ladder.
+        share = bank.bank_share_bps(cfg.get("bank_levels") or {}, int(city.get("bank_level") or 0))
+        if share <= 0 and int(city.get("bank_level") or 0) > 0:
+            share = cfg["bank_l1_share_bps"]
         personal = live * cfg["bank_pool_share_bps"] // BPS * share // BPS
-        already = city["withdrawn_day"]
+        already = int(city.get("withdrawn_day") or 0) + int(city.get("reserved_day") or 0)
         room = personal - already
         if room < 0:
             room = 0
@@ -1109,7 +1290,7 @@ def _bank_withdraw(cfg: dict, state: dict, day: int, hour: int, weekday: int) ->
         sold_eth += got_scaled
         if cut:
             city.setdefault("codes", []).append(cfg["bank_limit_code"])
-    state["bank_used_today_wei"] = used_today + sold_eth
+    state["bank_used_today_wei"] = int(state.get("bank_used_today_wei") or 0) + sold_eth
     if sold_eth > remaining_global:
         raise TickError(
             "I10_BANK_OVER",
@@ -1339,20 +1520,50 @@ def _records(state: dict) -> list[dict]:
     return out
 
 
-def split_creator_tax_atoms(tax: int, prize_share_bps: int) -> tuple[int, int]:
-    """Floor the prize/basket leg; remainder to the fund. docs/reports/PLAN_MONEY.md D-M-12."""
-    prize = tax * prize_share_bps // BPS
-    return tax - prize, prize
+def split_creator_tax_atoms(
+    tax: int,
+    prize_share_bps: int,
+    active_work_creator_tax_bps: int,
+    studio_share_bps: int,
+    creator_tax_bps: int,
+) -> tuple[int, int, int, int]:
+    """Split creator tax into payroll, leaderboard stocks, farm stocks, and studio ETH."""
+    if creator_tax_bps <= 0:
+        raise TickError("INDEX", 0, "creator_tax_bps", i=creator_tax_bps)
+    prize_leg = tax * prize_share_bps // BPS
+    studio = prize_leg * studio_share_bps // BPS
+    stock_leg = prize_leg - studio
+    farm = tax * active_work_creator_tax_bps // creator_tax_bps
+    leaderboard = stock_leg - farm
+    if leaderboard < 0:
+        raise TickError(
+            "TAX_SPLIT_NEG",
+            0,
+            "-",
+            farm=farm,
+            leaderboard=leaderboard,
+            stock_leg=stock_leg,
+        )
+    return tax - prize_leg, leaderboard, farm, studio
 
 
 def credit_creator_tax(cfg: dict, state: dict, tax: int, *, spec: bool) -> None:
-    """Split collected ETH: fund leg to buyback treasury, prize leg to the basket pot."""
+    """Split collected ETH into payroll, leaderboard, and active-work stock pots."""
     if tax <= 0:
         return
-    fund, prize = split_creator_tax_atoms(tax, int(cfg.get("prize_creator_tax_share_bps") or 0))
+    fund, leaderboard, farm, studio = split_creator_tax_atoms(
+        tax,
+        cfg["prize_creator_tax_share_bps"],
+        cfg["active_work_creator_tax_bps"],
+        cfg["studio_eth_share_bps"],
+        cfg["creator_tax_bps"],
+    )
     state["treasury_eth"] = state.get("treasury_eth", 0) + fund
     state["treasury_fund_eth"] = state.get("treasury_fund_eth", 0) + fund
-    state["treasury_basket_eth"] = state.get("treasury_basket_eth", 0) + prize
+    state["treasury_basket_eth"] = state.get("treasury_basket_eth", 0) + leaderboard + farm
+    state["treasury_leaderboard_eth"] = state.get("treasury_leaderboard_eth", 0) + leaderboard
+    state["treasury_farm_eth"] = state.get("treasury_farm_eth", 0) + farm
+    state["treasury_studio_eth"] = state.get("treasury_studio_eth", 0) + studio
     if spec:
         state["treasury_spec_eth"] = state.get("treasury_spec_eth", 0) + fund
     else:
@@ -1366,8 +1577,9 @@ def apply_dex_turnover(cfg: dict, state: dict, turnover_usd_8dec: int) -> None:
     eth_usd = cfg["eth_usd_8dec"]
     if eth_usd <= 0:
         return
+    share_bps = cfg["share_bps"]
     # turnover is both sides in USD 8dec. Tax = creator_tax of that, in ETH wei.
-    tax_usd_8dec = turnover_usd_8dec * cfg["creator_tax_bps"] // BPS
+    tax_usd_8dec = turnover_usd_8dec * cfg["creator_tax_bps"] // share_bps
     tax_wei = tax_usd_8dec * cfg["wei"] // eth_usd
     credit_creator_tax(cfg, state, tax_wei, spec=True)
     state["acc"]["tax_spec_eth"] = state["acc"].get("tax_spec_eth", 0) + tax_wei
@@ -1401,6 +1613,7 @@ def tick(state: dict, inputs: dict) -> tuple[dict, list[dict]]:
         raise TickError("I1_RATE_CEILING", state["tick_index"], "-", rate=state["mint_rate"])
 
     apply_dex_turnover(cfg, state, int(inputs.get("dex_turnover_usd_8dec") or 0))
+    _accumulate_influence_day(cfg, state, day, hour)
     _hour_six(cfg, state, day, hour)
 
     # 3. Freeze daily budget at the day boundary only.
@@ -1410,6 +1623,8 @@ def tick(state: dict, inputs: dict) -> tuple[dict, list[dict]]:
     rows = _collect_requests(cfg, state, hour, weekday)
     _pay(cfg, state, rows)
     _advance_research(cfg, state)
+    _award_xp(cfg, state)
+    _refresh_city_progress(cfg, state)
 
     # 6. Spends: burn / fund / protocol.
     for cid in sorted(state["cities"]):
@@ -1521,6 +1736,9 @@ def new_state(cfg: dict, cities: dict, flags: dict | None = None) -> dict:
         "treasury_eth": 0,
         "treasury_fund_eth": 0,
         "treasury_basket_eth": 0,
+        "treasury_leaderboard_eth": 0,
+        "treasury_farm_eth": 0,
+        "treasury_studio_eth": 0,
         "treasury_spec_eth": 0,
         "treasury_city_eth": 0,
         "day_budget": 0,
@@ -1599,7 +1817,9 @@ def catch_up(state: dict, inputs_now: dict, last_city_time: int) -> tuple[dict, 
     elapsed = (now - last_city_time) // length if length else 0
     if elapsed <= 0:
         return state, []
-    cap = cfg["offline_cap"] // length if length else 0
+    added = int(state.get("offline_cap_hours") or 0)
+    cap_hours = aggregates.clip_offline_hours(int(cfg["offline_cap"]), added, int(cfg.get("offline_hard_cap") or 0))
+    cap = cap_hours // length if length else 0
     credited = elapsed if elapsed < cap else cap
     skipped = elapsed - credited
     records: list[dict] = []

@@ -25,7 +25,7 @@ OUT_UNDER = os.path.join(ROOT, "preview_under.png")
 PLAZA_Z = 0.06
 ISLAND_SCALE = 10.0
 BUILDING_SCALE = 4.0
-HALL_HEIGHT = 280.0 * BUILDING_SCALE
+HALL_HEIGHT = 450.0 * BUILDING_SCALE  # 1800; I5 journal, do not run main()
 MSFT_HEIGHT = 230.0 * BUILDING_SCALE
 DISTRICT_SPAN = 140.0 * BUILDING_SCALE
 YARD_SPAN = 170.0 * BUILDING_SCALE
@@ -33,32 +33,33 @@ ARCH_SPAN = 160.0 * BUILDING_SCALE
 BANK_SPAN = 130.0 * BUILDING_SCALE
 
 # (name, filename, unscaled_x, unscaled_y, height|None, span|None)
+# I5 journal: world xy / ISLAND_SCALE after compose_island.py. Do not run main().
 PLANTS: tuple[tuple[str, str, float, float, float | None, float | None], ...] = (
-    ("CityHall", "city_hall_0904163823_texture.glb", 0.0, 8.0, HALL_HEIGHT, None),
-    ("Tesla", "tesla_building_red_qu_0904132734_texture.glb", -200.0, 190.0, None, DISTRICT_SPAN),
-    ("Apple", "Apple_Store_Building__0904122206_texture.glb", 190.0, 190.0, None, DISTRICT_SPAN),
-    ("Coinbase", "Coinbase_Archway_Quad_0904174803_texture.glb", -250.0, 10.0, None, ARCH_SPAN),
-    ("Microsoft", "microsoft_building_qu_0904171619_texture.glb", 250.0, 10.0, MSFT_HEIGHT, None),
-    ("Bank", "bank_building_qu_0906034155_texture.glb", -190.0, -190.0, None, BANK_SPAN),
-    ("Amazon", "amazon_building_0904183325_texture.glb", 190.0, -190.0, None, DISTRICT_SPAN),
-    ("FleetYard", "fleet_yard_Q_0904132541_texture.glb", 10.0, -250.0, None, YARD_SPAN),
-    ("NvidiaDepot", "NVIDIA_Amazon_Depot_Q_0904222124_texture.glb", 0.0, 245.0, None, DISTRICT_SPAN),
-    ("Workshop", "workshop_building_qua_0906031738_texture.glb", 245.0, -120.0, None, BANK_SPAN),
-    ("PowerNode", "Power_Node_Device_Qua_0905063753_texture.glb", -300.0, -90.0, None, BANK_SPAN),
-    ("AmazonWarehouse", "Amazon_warehouse_Buil_0905061632_texture.glb", 280.0, -280.0, None, DISTRICT_SPAN),
-    ("AgentHub", "Agent_Hub_0906001529_texture.glb", 90.0, -90.0, None, BANK_SPAN),
-    ("Clearinghouse", "clearinghouse_0906002912_texture.glb", -280.0, -260.0, None, DISTRICT_SPAN),
+    ("CityHall", "city_hall_0904163823_texture.glb", 0.0, 22.0, HALL_HEIGHT, None),
+    ("Tesla", "tesla_building_red_qu_0904132734_texture.glb", -176.0, 114.0, None, DISTRICT_SPAN),
+    ("Apple", "Apple_Store_Building__0904122206_texture.glb", 176.0, 114.0, None, DISTRICT_SPAN),
+    ("Coinbase", "Coinbase_Archway_Quad_0904174803_texture.glb", -180.0, -28.0, None, ARCH_SPAN),
+    ("Microsoft", "microsoft_building_qu_0904171619_texture.glb", 114.0, 163.0, MSFT_HEIGHT, None),
+    ("Bank", "bank_building_qu_0906034155_texture.glb", -114.0, -174.0, None, BANK_SPAN),
+    ("Amazon", "amazon_building_0904183325_texture.glb", 176.0, -114.0, None, DISTRICT_SPAN),
+    ("FleetYard", "fleet_yard_Q_0904132541_texture.glb", 36.0, -182.0, None, YARD_SPAN),
+    ("NvidiaDepot", "NVIDIA_Amazon_Depot_Q_0904222124_texture.glb", -114.0, 176.0, None, DISTRICT_SPAN),
+    ("Workshop", "workshop_building_qua_0906031738_texture.glb", 174.0, -42.0, None, BANK_SPAN),
+    ("PowerNode", "Power_Node_Device_Qua_0905063753_texture.glb", -174.0, -114.0, None, BANK_SPAN),
+    ("AmazonWarehouse", "Amazon_warehouse_Buil_0905061632_texture.glb", 114.0, -176.0, None, DISTRICT_SPAN),
+    ("AgentHub", "Agent_Hub_0906001529_texture.glb", -36.0, -174.0, None, BANK_SPAN),
+    ("Clearinghouse", "clearinghouse_0906002912_texture.glb", -176.0, 176.0, None, DISTRICT_SPAN),
     (
         "DataCenter",
         "data_center_Buil_0905182303_texture (1).glb",
-        90.0,
-        280.0,
+        40.0,
+        176.0,
         None,
         DISTRICT_SPAN,
     ),
-    ("Exchange", "Exchange_Building_Nav_0905175315_texture.glb", -310.0, 180.0, None, DISTRICT_SPAN),
-    ("NvidiaTower", "nvidia_tower_0906011341_texture.glb", 140.0, 250.0, MSFT_HEIGHT, None),
-    ("RoboticLab", "robotic_lab_0905215549_texture.glb", 280.0, 90.0, None, DISTRICT_SPAN),
+    ("Exchange", "Exchange_Building_Nav_0905175315_texture.glb", -176.0, 40.0, None, DISTRICT_SPAN),
+    ("NvidiaTower", "nvidia_tower_0906011341_texture.glb", -40.0, 178.6, MSFT_HEIGHT, None),
+    ("RoboticLab", "robotic_lab_0905215549_texture.glb", 176.0, 42.0, None, DISTRICT_SPAN),
 )
 
 
@@ -188,37 +189,10 @@ def plant(
 
 
 def main() -> None:
-    if not os.path.isfile(OUT_BLEND):
-        raise RuntimeError(f"missing {OUT_BLEND}")
-    on_disk = {n for n in os.listdir(MODELS) if n.lower().endswith(".glb")}
-    planned = {row[1] for row in PLANTS}
-    if on_disk != planned:
-        raise RuntimeError(f"models mismatch extra={on_disk - planned} missing={planned - on_disk}")
-    bpy.ops.wm.open_mainfile(filepath=OUT_BLEND)
-    island = bpy.data.objects.get("Island")
-    if island is None:
-        raise RuntimeError("no Island object in blend")
-    plant_names = {row[0] for row in PLANTS}
-    for ob in list(bpy.data.objects):
-        if ob.type == "MESH" and ob.name in plant_names:
-            bpy.data.objects.remove(ob, do_unlink=True)
-    bpy.data.orphans_purge(do_recursive=True)
-    buildings = [plant(*row) for row in PLANTS]
-    yaw_objects(buildings, math.radians(45.0))
-    orbit = bpy.data.objects.get("CamOrbit")
-    under = bpy.data.objects.get("CamUnder")
-    if orbit is None or under is None:
-        raise RuntimeError("missing CamOrbit/CamUnder")
-    sc = bpy.context.scene
-    sc.camera = orbit
-    sc.render.filepath = OUT_PREVIEW
-    bpy.ops.render.render(write_still=True)
-    sc.camera = under
-    sc.render.filepath = OUT_UNDER
-    bpy.ops.render.render(write_still=True)
-    export_meshes([island, *buildings])
-    bpy.ops.wm.save_as_mainfile(filepath=OUT_BLEND)
-    log(f"planted {len(buildings)} buildings")
+    raise RuntimeError(
+        "build_island.main is forbidden after I5 (island_compose). "
+        "Move live plants with compose_island.py; see TZ_ISLAND_LOOK.md I5."
+    )
 
 
 if __name__ == "__main__":

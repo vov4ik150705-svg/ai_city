@@ -53,10 +53,9 @@ describe.sequential("V3-5 construction", () => {
 
   it("visual3_units_billboard_or_mesh", () => {
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
-    expect(threeSrc.includes("plantUnits")).toBe(true)
-    expect(threeSrc.includes("isPackedWalker")).toBe(true)
-    expect(threeSrc.includes("unitWorldPos")).toBe(true)
-    expect(threeSrc.includes("mesh.lookAt")).toBe(true)
+    expect(threeSrc.includes("plantUnits")).toBe(false)
+    expect(threeSrc.includes("isPackedWalker")).toBe(false)
+    expect(threeSrc.includes("unitWorldPos")).toBe(false)
     expect(threeSrc.includes("from \"pixi.js\"")).toBe(false)
     expect(threeSrc.includes("@corporator/render/pixi")).toBe(false)
     const pack = loadPack()

@@ -17,7 +17,6 @@
 
 ## 3. Ключи, которые читает C1
 
-`economy.*`, `time.*` + `generated.time.ticks_per_city_day`, `launch.*`, `sim.wei_decimals`, `balance.*`, `meta` полосы возврата, `tick.layout_version` / happiness, `seasons.season_prizes_live`, `companion.companion_replan_on_login`, `attest.merkle_*_domain_byte`, `generated.tick.record_spec` / `header_spec` / happiness_weights, `generated.balance` (workshop, bank L1 share, deposit), `generated.launch.pool_token_amount`, `modifier_keys`, `modifiers.cap_anchors`, `codes` idle, `arch.params.property_runs`.
 
 BPS в движке = `spend_burn_bps + spend_fund_bps + spend_protocol_bps`, не литерал 10000. `ticks_day` из `generated.time.ticks_per_city_day`, не литерал 24. `wei = 10**wei_decimals` циклом по десятице из единиц.
 
@@ -27,7 +26,6 @@ BPS в движке = `spend_burn_bps + spend_fund_bps + spend_protocol_bps`, н
 
 ## 5. ТЗ на шаг
 
-1. `packages/engine/src/**`: canonical UTF-8 sort_keys separators `,` `:`, keccak pad `0x01`, sha256 (PRNG и `companion_commands_hash`), merkle positional odd-promote, `mul_bps`, `twap_from_samples`, `loadConfig`, `newState`, `spawnCity`, `cityClock`, `catchUp`, `tick`, `tickHeader`, aggregates, `applyStack`, публичный `verify` (proof + rerun tick, без npm-цепочки).
 2. `dependencies: {}`. vitest + fast-check только `devDependencies`. gate = `tsc --noEmit` + `vitest run`.
 3. Тесты: `layout_v1_bytes`, `catchup_eq_replay`, `tick_deterministic`, `catchup_equals_replay`, `payroll_trim_proportional`, `no_float_in_bytes`, `record_key_order_irrelevant`, `merkle_odd_level_not_duplicated`. Сравнение `Uint8Array` с hex вектора. `numRuns` из пака.
 4. Пак 26: `engine_from_spec.construction_tests` = эти восемь имён.

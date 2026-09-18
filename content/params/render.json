@@ -9,10 +9,10 @@
       "why": "Target frames per second for the island scene. Frame budget is derived; raising this without a V12 measurement is a silent perf lie"
     },
     "draw_calls_max": {
-      "v": 4096,
+      "v": 100,
       "u": "count",
-      "src": "PLAN_VISUAL_V3 V3-7, GATE_VISUAL.md",
-      "why": "Ceiling of GPU draw calls on a static v3 frame after measurement. The V12 sprite-chunk cap of 96 would fail L351 on the Three.js land-cell graph; observe stays strictly below this number"
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Ceiling of GPU draw calls on the authored island. The V3 land-cell graph of 4096 is archive; observe stays strictly below this number"
     },
     "sprite_instances_max": {
       "v": 1024,
@@ -583,6 +583,224 @@
       "u": "bps",
       "src": "PLAN_VISUAL_V3 V3-6, TZ_RENDER.md §8.2, D-V3-8",
       "why": "World hover of a drone as a share of one tile. Iso drone_altitude_px stays the V12 pixel ceiling; orbit needs a packed world height"
+    },
+    "island_mass_bytes_max": {
+      "v": 1572864,
+      "u": "bytes",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Ceiling for runtime island_mass.glb after diet. Crossing it is a second download the phone cannot hold"
+    },
+    "island_building_bytes_max": {
+      "v": 358400,
+      "u": "bytes",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Ceiling for one runtime building GLB. A 10 MB Meshy file would miss the first-load budget"
+    },
+    "island_decor_bytes_max": {
+      "v": 614400,
+      "u": "bytes",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Ceiling for the unique decor mesh library baked into the mass. Copies are GPU instances, not extra files"
+    },
+    "island_first_load_bytes_max": {
+      "v": 12582912,
+      "u": "bytes",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Ceiling for mass plus 18 buildings plus decor on first paint. The live 236 MB bake is not this number"
+    },
+    "island_tris_max": {
+      "v": 250000,
+      "u": "count",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Triangle ceiling for the authored diorama. A Meshy scan would miss the cheap-frame law"
+    },
+    "island_materials_max": {
+      "v": 16,
+      "u": "count",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Unique material ceiling. Vertex color on ground and decor; texture only on signs"
+    },
+    "island_texture_px": {
+      "v": 1024,
+      "u": "px",
+      "src": "docs/reports/TZ_ISLAND_LOOK.md §4",
+      "why": "Runtime texture side after diet. Packed so 2K cannot sneak back as a TypeScript literal"
+    },
+    "island_orbit_distance_min": {
+      "v": 800,
+      "u": "count",
+      "src": "art/island_v3/view.html, TZ_ISLAND_LOOK.md I7",
+      "why": "Nearest orbit distance in meters. Tile orbit_distance_min_tiles stays the V3 archive and must not drive the island camera"
+    },
+    "island_orbit_distance_max": {
+      "v": 44000,
+      "u": "count",
+      "src": "art/island_v3/view.html, TZ_ISLAND_LOOK.md I7",
+      "why": "Farthest orbit distance in meters. Wider than min so zoom is a distance, not a packed iso fraction"
+    },
+    "island_orbit_distance_default": {
+      "v": 2200,
+      "u": "count",
+      "src": "art/island_v3/view.html, TZ_ISLAND_LOOK.md I7",
+      "why": "Start orbit distance in meters. Not the midpoint of min/max; packed so render src does not invent 2200"
+    },
+    "island_orbit_target_y": {
+      "v": 160,
+      "u": "count",
+      "src": "art/island_v3/view.html, TZ_ISLAND_LOOK.md I7",
+      "why": "Orbit look-at height in meters. Packed so the camera does not aim at a pack-grid landY of 1"
+    },
+    "island_sun_distance": {
+      "v": 12000,
+      "u": "count",
+      "src": "TZ_ISLAND_LOOK.md I7, L340",
+      "why": "Directional sun distance from the island centre in meters. sun_distance_tiles stays the V3 archive and would hide the sun inside the mass"
+    },
+    "bloom_strength_bps": {
+      "v": 3500,
+      "u": "bps",
+      "src": "TZ_ISLAND_LOOK.md I4 R4, I7 bloom",
+      "why": "UnrealBloomPass strength as a share of grade_bps. Packed so three.ts does not invent a float strength"
+    },
+    "bloom_radius_bps": {
+      "v": 4000,
+      "u": "bps",
+      "src": "TZ_ISLAND_LOOK.md I4 R4, I7 bloom",
+      "why": "UnrealBloomPass radius as a share of grade_bps. Packed so the bloom kernel is not a TypeScript literal"
+    },
+    "bloom_threshold_bps": {
+      "v": 8500,
+      "u": "bps",
+      "src": "TZ_ISLAND_LOOK.md I4 R4, I7 bloom",
+      "why": "UnrealBloomPass luminance threshold as a share of grade_bps. Day with lights=0 stays under this cut"
+    }
+  },
+  "island_plants": {
+    "city_hall": {
+      "slug": "city_hall",
+      "anchor": "anchor_city_hall",
+      "pack_id": "city_hall",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio CityHall occupies the plaza hall anchor; pack id matches the filename slug"
+    },
+    "tesla": {
+      "slug": "tesla",
+      "anchor": "anchor_tesla",
+      "pack_id": "energy_plant",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Tesla mesh is the energy plant; pack id is the function, not the filename"
+    },
+    "apple": {
+      "slug": "apple",
+      "anchor": "anchor_apple",
+      "pack_id": "flagship_store",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Apple mesh is the flagship store; pack id is the function, not the filename"
+    },
+    "coinbase": {
+      "slug": "coinbase",
+      "anchor": "anchor_coinbase",
+      "pack_id": "finance_tower",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Coinbase mesh is the finance tower; pack id is the function, not the filename"
+    },
+    "microsoft": {
+      "slug": "microsoft",
+      "anchor": "anchor_microsoft",
+      "pack_id": "cloud_campus",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Microsoft mesh is the cloud campus; pack id is the function, not the filename"
+    },
+    "bank": {
+      "slug": "bank",
+      "anchor": "anchor_bank",
+      "pack_id": "bank",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Bank occupies the finance ring anchor; pack id matches the filename slug"
+    },
+    "amazon": {
+      "slug": "amazon",
+      "anchor": "anchor_amazon",
+      "pack_id": "logistics_hub",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Amazon mesh is the logistics hub; pack id is the function, not the filename"
+    },
+    "fleet_yard": {
+      "slug": "fleet_yard",
+      "anchor": "anchor_fleet_yard",
+      "pack_id": "fleet_yard",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio FleetYard occupies the yard anchor; pack id matches the filename slug"
+    },
+    "nvidia_depot": {
+      "slug": "nvidia_depot",
+      "anchor": "anchor_nvidia_depot",
+      "pack_id": "drone_depot",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio NvidiaDepot mesh is the drone depot; pack id is the function, not the filename"
+    },
+    "workshop": {
+      "slug": "workshop",
+      "anchor": "anchor_workshop",
+      "pack_id": "workshop",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Workshop occupies the ring workshop anchor; pack id matches the filename slug"
+    },
+    "power_node": {
+      "slug": "power_node",
+      "anchor": "anchor_power_node",
+      "pack_id": "power_node",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio PowerNode occupies the energy device anchor; pack id matches the filename slug"
+    },
+    "amazon_warehouse": {
+      "slug": "amazon_warehouse",
+      "anchor": "anchor_amazon_warehouse",
+      "pack_id": "",
+      "src": "docs/reports/ISLAND_STUDIO.md §3 R-V-95",
+      "why": "Studio AmazonWarehouse has no pack id; retail_complex stays unglued from this filename"
+    },
+    "agent_hub": {
+      "slug": "agent_hub",
+      "anchor": "anchor_agent_hub",
+      "pack_id": "agent_hub",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio AgentHub occupies the plaza hub anchor; pack id matches the filename slug"
+    },
+    "clearinghouse": {
+      "slug": "clearinghouse",
+      "anchor": "anchor_clearinghouse",
+      "pack_id": "clearing_house",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Clearinghouse mesh uses a packed id with an underscore the filename slug lacks"
+    },
+    "data_center": {
+      "slug": "data_center",
+      "anchor": "anchor_data_center",
+      "pack_id": "data_center",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio DataCenter occupies the compute ring anchor; pack id matches the filename slug"
+    },
+    "exchange": {
+      "slug": "exchange",
+      "anchor": "anchor_exchange",
+      "pack_id": "exchange",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio Exchange occupies the finance ring anchor; pack id matches the filename slug"
+    },
+    "nvidia_tower": {
+      "slug": "nvidia_tower",
+      "anchor": "anchor_nvidia_tower",
+      "pack_id": "ai_research_center",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio NvidiaTower mesh is the research centre; pack id is the function, not the filename"
+    },
+    "robotic_lab": {
+      "slug": "robotic_lab",
+      "anchor": "anchor_robotic_lab",
+      "pack_id": "robotics_lab",
+      "src": "docs/reports/ISLAND_STUDIO.md §3",
+      "why": "Studio RoboticLab mesh uses a packed id with a plural the filename slug lacks"
     }
   },
   "derived": {
@@ -617,6 +835,11 @@
     "hud_font_log_file": "log woff2 filename from art/fonts/manifest.json",
     "orbit_distance_default_tiles": "(orbit_distance_min_tiles + orbit_distance_max_tiles) // 2; start distance, not a zoom_levels row",
     "hero_catalog": "building id → lod files, quad counts, material, sha; keys equal buildings.json (D-V3-6)",
-    "hero_sha256": "sha256 of sorted id:sha_high:sha_low from the written GLB catalog"
+    "hero_sha256": "sha256 of sorted id:sha_high:sha_low from the written GLB catalog",
+    "island_mass_bytes": "byte length of art/island_v3/runtime/island_mass.glb",
+    "island_buildings_bytes": "sum of art/island_v3/runtime/buildings/*.glb byte lengths",
+    "island_first_load_bytes": "island_mass_bytes + island_buildings_bytes",
+    "island_mass_primitives": "primitive count in island_mass.glb",
+    "island_building_primitives": "sum of primitives in runtime building GLBs"
   }
 }

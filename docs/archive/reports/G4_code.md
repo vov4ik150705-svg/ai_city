@@ -34,5 +34,3 @@
 Экономических литералов нет. Форма денег Rev-A не тронута. `creator_tax_bps` 200.
 
 ## 4. Инертность
-
-Круг 1445, вход 200, выход 910, mint 51, окно A `[12275, 15783]`. 18 зданий playable. `season_prizes_live` 1. `companion_rows_live` 0. `demo_companion` 0. `inputs lab`: energy, compute.

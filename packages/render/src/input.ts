@@ -8,6 +8,11 @@ export function isPan(moved: bigint, deadzone: bigint): boolean {
   return moved > deadzone
 }
 
+/** Pointer-up click: tap wins only when the gesture is not also a pan. */
+export function isSceneTap(moved: bigint, tapMax: bigint, panDeadzone: bigint): boolean {
+  return isTap(moved, tapMax) && !isPan(moved, panDeadzone)
+}
+
 export function isDoubleTap(nowMs: bigint, lastMs: bigint, windowMs: bigint): boolean {
   if (lastMs < 0n) return false
   if (nowMs < lastMs) return false

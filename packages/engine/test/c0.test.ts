@@ -1,11 +1,26 @@
 import { execFileSync } from "node:child_process"
-import { readFileSync, writeFileSync } from "node:fs"
+import { readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const python = process.env["PYTHON"] ?? "python"
+
+function replaceFileSync(file: string, data: string | Uint8Array): void {
+  const tmp = `${file}.${String(process.pid)}.tmp`
+  writeFileSync(tmp, data)
+  try {
+    renameSync(tmp, file)
+  } catch (err) {
+    try {
+      unlinkSync(tmp)
+    } catch {
+      /* keep rename error */
+    }
+    throw err
+  }
+}
 
 function run(
   file: string,
@@ -80,35 +95,38 @@ describe.sequential("C0 construction", () => {
     const target = join(repo, "packages/protocol/src/codes.ts")
     const original = readFileSync(target)
     try {
-      writeFileSync(target, Buffer.concat([original, Buffer.from("\n")]))
+      replaceFileSync(target, Buffer.concat([original, Buffer.from("\n")]))
       const result = run(python, ["content/codegen.py", "--check"], repo)
       expect(result.status).not.toBe(0)
     } finally {
-      writeFileSync(target, original)
+      replaceFileSync(target, original)
     }
+    expect(Buffer.compare(readFileSync(target), original)).toBe(0)
   })
 
   it("engine_eslint_rejects_date_now", () => {
     const src = join(repo, "packages/engine/src/index.ts")
-    const original = readFileSync(src, "utf8")
+    const original = readFileSync(src)
     try {
-      writeFileSync(src, `${original}\nexport const leakedNow = Date.now()\n`)
+      replaceFileSync(src, Buffer.concat([original, Buffer.from("\nexport const leakedNow = Date.now()\n")]))
       const result = runEslint("packages/engine/src/index.ts")
       expect(result.status).not.toBe(0)
     } finally {
-      writeFileSync(src, original)
+      replaceFileSync(src, original)
     }
+    expect(Buffer.compare(readFileSync(src), original)).toBe(0)
   })
 
   it("engine_eslint_rejects_magic_number", () => {
     const src = join(repo, "packages/engine/src/index.ts")
-    const original = readFileSync(src, "utf8")
+    const original = readFileSync(src)
     try {
-      writeFileSync(src, `${original}\nexport const leakedTwo = 2\n`)
+      replaceFileSync(src, Buffer.concat([original, Buffer.from("\nexport const leakedTwo = 2\n")]))
       const result = runEslint("packages/engine/src/index.ts")
       expect(result.status).not.toBe(0)
     } finally {
-      writeFileSync(src, original)
+      replaceFileSync(src, original)
     }
+    expect(Buffer.compare(readFileSync(src), original)).toBe(0)
   })
 })

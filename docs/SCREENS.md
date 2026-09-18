@@ -1,6 +1,6 @@
 # Экраны и клики
 
-Канон интерфейсных экранов Corporator. Механика — `DESIGN.md` и `HUD.md`. Широкие таблицы — `content/out/GENERATED.md` секции «T9: …», команда `python content/build.py`. Чистая функция — `content/screens.py`. Геометрия тайла — экономический слой, `docs/WORLD.md` часть B. Догон тика — **T11**. Контракт REST/WS — **T12**, канон `docs/API.md`.
+Канон интерфейсных экранов Corporator. Визуальный дизайн — `docs/reports/HUD_DESIGN_SYSTEM.md`; механика — `DESIGN.md`. Широкие таблицы — `content/out/GENERATED.md` секции «T9: …», команда `python content/build.py`. Чистая функция — `content/screens.py`. Геометрия тайла — экономический слой, `docs/WORLD.md` часть B. Догон тика — **T11**. Контракт REST/WS — **T12**, канон `docs/API.md`.
 
 Ни одного экранного числа в этом файле: величины живут в паке и в GENERATED.
 
@@ -16,7 +16,7 @@
 
 **D. Число на экране либо выводится из пака с совпадающим семейством единиц, либо приходит живым состоянием от названного владельца, либо считается клиентом из часов и формата. Фикция запрещена.** `pack_derived` несёт `derived_from`; `live_state` несёт `state_source`; `client_local` не несёт ни того, ни другого. Дневной лимит банка — `min` лестницы и доли глубины пула, свидетель `bank_daily_limit_live`. Держит `L147`, `L167`, `L168`.
 
-**E. Клиент не считает экономику** (`HUD.md` §8). `source` из `{server, client_clock, client_format}`. Экономические `kind` — только `server`. Держит `L158`.
+**E. Клиент не считает экономику.** `source` из `{server, client_clock, client_format}`. Экономические `kind` — только `server`. Держит `L158`.
 
 Кириллица интерфейса живёт только в `content/strings/ru.json`. В `screens.json` кириллица допустима лишь в `why`. Держит `L146`.
 
@@ -24,9 +24,9 @@
 
 ## 2. Инвентаризация
 
-Шестнадцать экранов `kind=screen` и одиннадцать панелей `kind=panel` — GENERATED «T9: инвентаризация экранов». Эталон BRIEF — `content/fixtures/brief_t9_screens.json` (тринадцать пунктов). Эталон HUD — `content/fixtures/hud_screens.json`. Сверка — `L144`.
+Пятнадцать экранов `kind=screen` и одиннадцать панелей `kind=panel` — GENERATED «T9: инвентаризация экранов». Эталон BRIEF — `content/fixtures/brief_t9_screens.json` (тринадцать пунктов). Эталон HUD — `content/fixtures/hud_screens.json`. Сверка — `L144`.
 
-Почему шестнадцать против тринадцати пунктов BRIEF: `exchange` выделен из пункта «DISTRICTS и Exchange», чтобы витрина показывала итог в Capital, а не маршрут; `district_card` добавлен как носитель дерева узлов тира и клейма фрагментов; `companion` выделен из настроек, чтобы тумблер автопилота и журнал жили на одном экране. Это расширение инвентаря, не расхождение с каноном механик.
+Почему пятнадцать против тринадцати пунктов BRIEF: `exchange` выделен из пункта «DISTRICTS и Exchange», чтобы витрина показывала итог в Capital, а не маршрут; `district_card` добавлен как носитель дерева узлов тира и клейма фрагментов. Это расширение инвентаря, не расхождение с каноном механик.
 
 У каждого экрана есть `loading_kind` и пустота (`empty_kind` или `empty_code`). Молчаливого нуля нет. `L145`.
 
@@ -66,9 +66,7 @@
 
 **`settings`.** §8.
 
-**`companion`.** Витрина автопилота. Тумблер `companion_toggle` пишет `COMPANION_OFF` при выключении и `COMPANION_ACTED` при включении. Демо — `DEMO_NO_COMPANION` раньше любого другого кода. Журнал — тот же фильтр `filter:COMPANION_`, что в `log_panel`. Советник — `external:advisor`, при отказе провайдера `COMPANION_LLM_TEMPLATE`. Доля не обещается.
-
-Панели HUD (`topbar`, `overview`, `active_events`, `districts_panel`, `city_card`, `agents_panel`, `log_panel`, `district_overview`, `scene`, `stock_bar`, `bottom_menu`) всегда на сцене. `log_panel` показывает бейдж аттестации с сервера: Verified только при корне и CID, иначе logged или degraded. Нет WebGL — поверхность `scene` показывает `RENDER_NO_GPU` и статичный кадр. Семь пунктов нижнего меню — GENERATED.
+Панели HUD (`topbar`, `overview`, `active_events`, `districts_panel`, `city_card`, `agents_panel`, `log_panel`, `district_overview`, `scene`, `stock_bar`, `bottom_menu`) всегда на сцене. Живые карточки HUD — сетки header / hero / facts / body / block, не абзац на заливке панели. `log_panel` показывает бейдж аттестации с сервера: Verified только при корне и CID, иначе logged или degraded. Нет WebGL — поверхность `scene` показывает `RENDER_NO_GPU` и статичный кадр. Живой HUD открывает шесть пунктов (Overview, Agents, Exchange, Bank, Industries, Journal) с зданий, не нижней полосой; pack `bottom_menu` по-прежнему перечисляет экраны, включая заглушку missions, которая не входит в primary nav. Companion вырезан из пака: нет экрана, нет кодов, нет фильтра журнала и нет входа из настроек.
 
 ---
 
@@ -111,19 +109,17 @@
 
 ## 8. Настройки
 
-Строки `settings_rows`: язык, звук, точные числа вместо SI, анимация тика — `v1=live`, `client_only`. Тумблер автопилота живой: строка настроек открывает экран компаньона (`HUD.md` §9, `L163`). Отключить кошелёк — `wallet`. Сбросить демо — без траты.
+Строки `settings_rows`: язык, звук, точные числа вместо SI, анимация тика — `v1=live`, `client_only`. Отключить кошелёк — `wallet`. Сбросить демо — без траты.
 
 ---
 
-## 9. Прогрессия, фрагменты, призы, компаньон
+## 9. Прогрессия, фрагменты и призы
 
 Закрытие четырёх pending `owner=T9`.
 
 - **Прогрессия.** Дерево узлов тира — `district_card`, коды `TIER_NOT_UNLOCKED`, `STAKE_MULT_SHORT`, `NODE_SIDE_LOCKED`, `MERGE_MATCHING_BLOCKED`. Не `RESEARCH`.
 - **Фрагменты.** Клейм живой на `district_card` (`fragment_claim_live`). Коды `FRAGMENT_*` на этой карточке.
 - **Призы.** Клейм `live` (`leaderboard_claim_live`). Коды `PRIZE_*` на `leaderboard` всё равно показаны. Состав корзины и срок периода — из пака. Пустой пул и непокрытый клейм — следствия, не вывод владельца. Плашка протокола на карточке города отдельно от Treasury.
-- **Компаньон.** Журнал — фильтр `filter:COMPANION_` в `log_panel` плюс экран компаньона. Тумблер автопилота живой. Выплаты за долю нет.
-
 Новый pending закрыт: `BUILD_TILE_ILLEGAL` остаётся в реестре отказов; посадка снята.
 
 ---
@@ -132,12 +128,12 @@
 
 | ID | Суть | Рекомендация |
 |---|---|---|
-| `R-T9-1` | `HUD.md` §9 называл `RESEARCH` заглушкой; скоуп `DESIGN.md` §11 включает три узла Grid / Tools / Handbook | Канон скоупа — §11. `HUD.md` §9 правится пословно: `RESEARCH` живой на трёх узлах, заглушка — `MISSIONS` |
+| `R-T9-1` | Legacy visual wording once called `RESEARCH` a stub; скоуп `DESIGN.md` §11 включает три узла Grid / Tools / Handbook | Канон скоупа — §11. Visual wording — `docs/reports/HUD_DESIGN_SYSTEM.md`: `RESEARCH` живой на трёх узлах, заглушка — `MISSIONS` |
 | `R-T9-2` | Приёмка: `wallet` был снят с `bank_withdraw` (и с открытия района / клеймов), потому что вся identity сидела в одном тире, а `L150` запрещает два blocking в минимуме. Реальный игрок без кошелька видел сиюминутный код вместо `WALLET_NOT_CONNECTED` — дыра реестра, не канон | Подтиры identity: демо, кошелёк, чужая сеть. Гейт `wallet` возвращён на движение ценности. `L165`/`L166` держат это |
 | `R-T9-3` | Правка `DESIGN.md` не обязательна для механик; экраны — слой HUD | Одна фраза-ссылка в §7.2 и §11, разделы не переписываются |
 | `R-T9-4` | `L147` в первой редакции проверяло резолв, а не смысл; поля ссылались на посторонние ключи | Закрыто: `value_kind` плюс семейства единиц плюс `L167`/`L168`. Фикция как `derived_from` запрещена |
 
-Шестнадцать экранов против тринадцати пунктов BRIEF — расширение §2, не `R-T9-*`. Экран компаньона добавляется тем же расширением из настроек.
+Пятнадцать экранов против тринадцати пунктов BRIEF — расширение §2, не `R-T9-*`.
 
 ---
 

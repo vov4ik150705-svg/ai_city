@@ -50,6 +50,11 @@ export function bankPlaqueCode(args: {
   return "UI_BANK"
 }
 
+/** Market schedule in the pack is the bank window (08–20, Sunday closed). */
+export function marketWindowOpen(plaqueKey: string): boolean {
+  return plaqueKey !== "BANK_CLOSED" && plaqueKey !== "BANK_SUNDAY"
+}
+
 export function bankOpensIn(args: {
   readonly hour: bigint
   readonly openHour: bigint

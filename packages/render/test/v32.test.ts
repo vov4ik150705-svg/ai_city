@@ -61,7 +61,7 @@ describe.sequential("V3-2 construction", () => {
     expect(pack.sections?.render?.params?.hero_texture_px?.v).toBe(2048)
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
     expect(threeSrc.includes("GLTFLoader")).toBe(true)
-    expect(threeSrc.includes("plantHeroes")).toBe(true)
+    expect(threeSrc.includes("plantHeroes")).toBe(false)
   })
 
   it("visual3_lod_lighter_than_high", () => {
@@ -95,7 +95,9 @@ describe.sequential("V3-2 construction", () => {
     expect(pack.sections?.screens?.actions?.build_place?.effect).toBe("commit:build")
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
     expect(threeSrc.includes("commit:build")).toBe(false)
-    expect(threeSrc.includes("spanX")).toBe(true)
-    expect(threeSrc.includes("spanZ")).toBe(true)
+    expect(threeSrc.includes("plantHeroes")).toBe(false)
+    const heroSrc = readFileSync(join(repo, "packages/render/src/heroes.ts"), "utf8")
+    expect(heroSrc.includes("spanX")).toBe(true)
+    expect(heroSrc.includes("spanZ")).toBe(true)
   })
 })

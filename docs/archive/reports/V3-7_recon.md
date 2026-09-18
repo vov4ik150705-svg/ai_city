@@ -2,7 +2,6 @@
 
 `launch.deployed` все пять полей пусты (команда, не память). Ставка не снята. P7 не начат.
 
-Прочитано: `PLAN_VISUAL_V3.md` §4 V3-7 / D-V3-1 / D-V3-16, `V3-6_final.md`, `GATE_VISUAL.md` (редакция V12), `visual3_close.gate_cmd` = `--jobs 8` + `sim.py`, CT пуст, `tests` L370/L13/L14. Свободный id **L384**. `pack_version` 127, hash `9bb7952b…`, `layout_hash` `7c090c51a1ea…`. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `visual3_frame_live=1`.
 
 ## Находки
 

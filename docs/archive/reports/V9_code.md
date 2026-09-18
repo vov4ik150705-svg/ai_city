@@ -1,6 +1,5 @@
 # V9 — код
 
-`hud_screens`: 15 экранов пака (`kind=screen`) с Empty/Loading/Refusal, overlay-навигация, снятие `build_place`/`commit:build`. Компаньон — V10. `launch.deployed` пуст. Пак 78 → **79**.
 
 ## Написано
 
@@ -16,5 +15,3 @@
 - L273 теперь ловит возврат посадки, а не отсутствие `build_tile` на живом `build_place` (**R-V-34**).
 
 ## Не делалось
-
-Экран компаньона, тумблер автопилота, NFT, `missions_live`, `--jobs 8`, `sim.py`, `launchToken`.

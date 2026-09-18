@@ -11,9 +11,14 @@ export const rpcMethod = {
   issueVoucher: "vault_issueVoucher",
   presentVoucher: "vault_presentVoucher",
   stake: "stake_registry_stake",
+  unstake: "stake_registry_unstake",
   snapshot: "stake_registry_snapshot",
   putRoot: "merkle_roots_putRoot",
   getRoot: "merkle_roots_getRoot",
+  prizeDeposit: "prize_treasury_deposit",
+  prizeSlice: "prize_treasury_slice",
+  prizeReturnUnsettled: "prize_treasury_returnUnsettled",
+  prizeClaimPrize: "prize_treasury_claimPrize",
   chainId: "eth_chainId",
 } as const
 
@@ -203,4 +208,38 @@ export function encodeResult(result: PortResult): string {
 export function encodeAmountResult(result: PortAmount): string {
   if (result.ok) return encodeAmount(result.amount)
   return encodeErr(result.code)
+}
+
+export function encodeStringList(items: readonly string[]): string {
+  return JSON.stringify(items)
+}
+
+export function encodeDecList(items: readonly bigint[]): string {
+  const out: string[] = []
+  for (const n of items) out.push(dec(n))
+  return JSON.stringify(out)
+}
+
+export function parseStringList(raw: string): readonly string[] | undefined {
+  const parsed = parseBody(raw)
+  if (!Array.isArray(parsed)) return undefined
+  const out: string[] = []
+  for (const item of parsed) {
+    if (typeof item !== "string") return undefined
+    out.push(item)
+  }
+  return out
+}
+
+export function parseDecList(raw: string): readonly bigint[] | undefined {
+  const parsed = parseBody(raw)
+  if (!Array.isArray(parsed)) return undefined
+  const out: bigint[] = []
+  for (const item of parsed) {
+    if (typeof item !== "string") return undefined
+    const n = parseDec(item)
+    if (n === undefined) return undefined
+    out.push(n)
+  }
+  return out
 }

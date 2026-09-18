@@ -73,9 +73,7 @@ function applyClaimPrize(ctx: PackCtx, state: Dict, city: Dict, cityId: string):
     assets,
     owed,
     poolIn,
-    paused: false,
     demo: false,
-    honorPause: true,
   })
   const listed: Json[] = []
   for (const row of rows) {
@@ -90,115 +88,6 @@ function applyClaimPrize(ctx: PackCtx, state: Dict, city: Dict, cityId: string):
   return okResult(ctx, state, { effect: "claim_prize", assets: listed })
 }
 
-function sceneMap(ctx: PackCtx): string[] {
-  const scene = asObj(walk(ctx.pack, ["generated", "placement", "scene"]))
-  const raw = scene["map"]
-  const out: string[] = []
-  if (!Array.isArray(raw)) return out
-  for (const line of raw) {
-    if (typeof line === "string") out.push(line)
-  }
-  return out
-}
-
-function cellAt(map: readonly string[], x: bigint, y: bigint): string {
-  if (y < 0n || x < 0n) return ""
-  const row = map[Number(y)]
-  if (row === undefined) return ""
-  const xi = Number(x)
-  if (xi >= row.length) return ""
-  return row[xi] ?? ""
-}
-
-function tileIsShore(map: readonly string[], tx: bigint, ty: bigint): boolean {
-  const ch = cellAt(map, tx, ty)
-  if (ch === "" || ch === "~") return false
-  const n = cellAt(map, tx, ty - 1n)
-  const s = cellAt(map, tx, ty + 1n)
-  const e = cellAt(map, tx + 1n, ty)
-  const w = cellAt(map, tx - 1n, ty)
-  return n === "~" || s === "~" || e === "~" || w === "~" || n === "" || s === "" || e === "" || w === ""
-}
-
-function tileLegal(map: readonly string[], tx: bigint, ty: bigint): boolean {
-  const ch = cellAt(map, tx, ty)
-  if (ch !== "." && ch !== "p") return false
-  if (tileIsShore(map, tx, ty)) return false
-  return true
-}
-
-function footprintOf(ctx: PackCtx, sid: string): { readonly cols: bigint; readonly rows: bigint } {
-  const fps = asObj(walk(ctx.pack, ["generated", "render", "building_footprints"]))
-  const row = fps[sid]
-  if (!Array.isArray(row) || row.length < 1 + 1) return { cols: 1n, rows: 1n }
-  try {
-    return { cols: asBigint(row[0], 1n), rows: asBigint(row[1], 1n) }
-  } catch {
-    return { cols: 1n, rows: 1n }
-  }
-}
-
-function occupyKey(x: bigint, y: bigint): string {
-  return x.toString() + ":" + y.toString()
-}
-
-function occupiedCells(ctx: PackCtx, city: Dict): Set<string> {
-  const used = new Set<string>()
-  const scene = asObj(walk(ctx.pack, ["generated", "placement", "scene"]))
-  const objects = asList(scene["objects"])
-  for (const item of objects) {
-    if (item === null || typeof item !== "object" || Array.isArray(item)) continue
-    const obj = asObj(item as { readonly [key: string]: Json })
-    const tile = obj["tile"]
-    if (!Array.isArray(tile) || tile.length < 1 + 1) continue
-    let tx: bigint
-    let ty: bigint
-    try {
-      tx = asBigint(tile[0])
-      ty = asBigint(tile[1])
-    } catch {
-      continue
-    }
-    const sid = asText(obj["id"])
-    const fp = footprintOf(ctx, sid)
-    let dy = 0n
-    while (dy < fp.rows) {
-      let dx = 0n
-      while (dx < fp.cols) {
-        used.add(occupyKey(tx + dx, ty + dy))
-        dx += 1n
-      }
-      dy += 1n
-    }
-  }
-  for (const item of asList(city["buildings"])) {
-    if (item === null || typeof item !== "object" || Array.isArray(item)) continue
-    const obj = asEngineDict(item)
-    const tile = obj["tile"]
-    if (!Array.isArray(tile) || tile.length < 1 + 1) continue
-    let tx: bigint
-    let ty: bigint
-    try {
-      tx = asBigint(tile[0])
-      ty = asBigint(tile[1])
-    } catch {
-      continue
-    }
-    const sid = asText(obj["id"])
-    const fp = footprintOf(ctx, sid)
-    let dy = 0n
-    while (dy < fp.rows) {
-      let dx = 0n
-      while (dx < fp.cols) {
-        used.add(occupyKey(tx + dx, ty + dy))
-        dx += 1n
-      }
-      dy += 1n
-    }
-  }
-  return used
-}
-
 function buildCost(ctx: PackCtx, bid: string): bigint {
   const costs = asObj(walk(ctx.pack, ["generated", "balance", "level_cost"]))
   const rows = costs[bid]
@@ -206,63 +95,89 @@ function buildCost(ctx: PackCtx, bid: string): bigint {
   return asBigint(rows[0])
 }
 
-function buildSlots(ctx: PackCtx, level: bigint): bigint {
-  const row = asObj(walk(ctx.pack, ["generated", "balance", "build_slots"]))
-  return asBigint(row[level.toString()])
+function ordinaryActiveCount(city: Dict, defs: { readonly [key: string]: Json }): bigint {
+  let n = 0n
+  for (const item of asList(city["functions"])) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) continue
+    const row = asEngineDict(item)
+    if (asBigint(row["deactivated"], 0n) > 0n || asBigint(row["frozen"], 0n) > 0n) continue
+    if (row["deactivated"] === true || row["frozen"] === true) continue
+    const aid = asText(row["id"])
+    const spec = defs[aid]
+    if (spec !== undefined && spec !== null && typeof spec === "object" && !Array.isArray(spec)) {
+      const def = asObj(spec as { readonly [key: string]: Json })
+      if (def["autonomous"] === true || def["prebuilt"] === true) continue
+    }
+    n += 1n
+  }
+  return n
 }
 
 function applyBuild(ctx: PackCtx, state: Dict, city: Dict, body: { readonly [key: string]: Json }): HttpResult {
   const bid = asText(body["building_id"])
   if (bid.length === 0) return errResult(ctx, state, codes.API_MALFORMED)
-  const rawX = body["tile_x"]
-  const rawY = body["tile_y"]
-  if (typeof rawX !== "bigint" || typeof rawY !== "bigint") {
-    return errResult(ctx, state, codes.API_MALFORMED)
-  }
-  const tx = rawX
-  const ty = rawY
+  const deactivate = body["deactivate"] === true || body["active"] === false
   const defs = asObj(walk(ctx.pack, ["sections", "buildings", "buildings"]))
   const spec = defs[bid]
   if (spec === undefined || spec === null || typeof spec !== "object") {
     return errResult(ctx, state, codes.CITY_LEVEL_TOO_LOW)
   }
   const def = asObj(spec as { readonly [key: string]: Json })
-  if (def["prebuilt"] === true) {
+  if (def["prebuilt"] === true || def["autonomous"] === true) {
     return errResult(ctx, state, codes.CITY_LEVEL_TOO_LOW)
   }
   const playable = asList(walk(ctx.pack, ["generated", "buildings", "buildings_playable_v1"]))
   if (!playable.includes(bid)) return errResult(ctx, state, codes.CITY_LEVEL_TOO_LOW)
-  const sprite = asText(def["sprite"])
-  const sid = sprite.length > 0 ? sprite : bid
-  const fp = footprintOf(ctx, sid)
-  const map = sceneMap(ctx)
-  const used = occupiedCells(ctx, city)
-  let dy = 0n
-  while (dy < fp.rows) {
-    let dx = 0n
-    while (dx < fp.cols) {
-      const x = tx + dx
-      const y = ty + dy
-      if (!tileLegal(map, x, y) || used.has(occupyKey(x, y))) {
-        return errResult(ctx, state, codes.BUILD_TILE_ILLEGAL)
-      }
-      dx += 1n
+  const needLevel = asBigint(def["city_level_req"], 1n)
+  const cityLevel = asBigint(city["city_level"], 1n)
+  if (cityLevel < needLevel) return errResult(ctx, state, codes.CITY_LEVEL_TOO_LOW)
+  const functions = asList(city["functions"])
+  if (deactivate) {
+    for (const item of functions) {
+      if (item === null || typeof item !== "object" || Array.isArray(item)) continue
+      const row = asEngineDict(item)
+      if (asText(row["id"]) !== bid) continue
+      row["deactivated"] = 1n
     }
-    dy += 1n
+    city["functions"] = functions
+    return okResult(ctx, state, { effect: "build", active: 0n, capital: asBigint(city["capital"]) })
   }
-  const level = asBigint(city["city_level"], 1n)
-  const cap = buildSlots(ctx, level)
-  const placed = asList(city["buildings"])
-  if (BigInt(placed.length) >= cap) return errResult(ctx, state, codes.NO_FREE_BUILD_SLOT)
-  const cost = buildCost(ctx, bid)
+  let existing: Dict | undefined
+  for (const item of functions) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) continue
+    const row = asEngineDict(item)
+    if (asText(row["id"]) === bid) {
+      existing = row
+      break
+    }
+  }
+  if (existing !== undefined && asBigint(existing["deactivated"], 0n) === 0n && existing["deactivated"] !== true) {
+    return okResult(ctx, state, { effect: "build", active: 1n, capital: asBigint(city["capital"]) })
+  }
+  const cap = agentSlots(ctx, cityLevel) + 3n
+  const used = ordinaryActiveCount(city, defs)
+  if (existing === undefined && used >= cap) return errResult(ctx, state, codes.NO_FREE_BUILD_SLOT)
+  const cost = existing === undefined ? buildCost(ctx, bid) : 0n
   if (asBigint(city["capital"]) < cost) return errResult(ctx, state, codes.NOT_ENOUGH_CAPITAL)
-  applySpend(ctx.cfg, state, city, cost, 0n)
-  placed.push({ id: sid, tile: [tx, ty] })
-  city["buildings"] = placed
-  return okResult(ctx, state, { effect: "build", capital: asBigint(city["capital"]) })
+  if (cost > 0n) applySpend(ctx.cfg, state, city, cost, 0n)
+  if (existing !== undefined) {
+    existing["deactivated"] = 0n
+  } else {
+    functions.push({ id: bid, level: 1n })
+  }
+  city["functions"] = functions
+  return okResult(ctx, state, { effect: "build", active: 1n, capital: asBigint(city["capital"]) })
 }
 
-/** Live hire, claim, and lot-tile place (R-V-55). */
+function applySetObjective(ctx: PackCtx, state: Dict, city: Dict, body: { readonly [key: string]: Json }): HttpResult {
+  const objective = asText(body["objective"])
+  city["objective"] = objective
+  const target = asText(body["train_target"])
+  if (target.length > 0) city["train_target"] = target
+  return okResult(ctx, state, { effect: "set_objective", objective })
+}
+
+/** Live hire, claim, and activate/deactivate of authored functions. Map is never mutated. */
 export function applyLive(
   ctx: PackCtx,
   state: Dict,
@@ -276,6 +191,7 @@ export function applyLive(
     if (effect === "hire") return applyHire(ctx, state, city)
     if (effect === "claim_prize") return applyClaimPrize(ctx, state, city, cityId)
     if (effect === "build") return applyBuild(ctx, state, city, body)
+    if (effect === "set_objective") return applySetObjective(ctx, state, city, body)
   } catch (e) {
     if (e instanceof LoadError) return errResult(ctx, state, codes.API_MALFORMED)
     throw e

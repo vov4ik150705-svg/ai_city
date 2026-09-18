@@ -44,6 +44,5 @@
 
 ## Незакрытое
 
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner, к P3/P7). Адресат уведомлений ночного трека — P6. Forge/docker на машине инженера — среда, не пак.
 
 Next Step: **P3** — `contract_audit` (пять контрактов, `L320`/`L321`; параллельно с ожиданием внешнего аудита можно вести P4).

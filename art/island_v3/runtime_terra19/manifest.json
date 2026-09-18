@@ -1,0 +1,378 @@
+{
+  "map": "maps/terra-19.json",
+  "mass": {
+    "bytes": 1708532,
+    "tris": 71026,
+    "prims": 7,
+    "file": "runtime_terra19/island_mass.glb",
+    "over_budget": true
+  },
+  "buildingBudget": 358400,
+  "massBudget": 1572864,
+  "overBuildingBudget": [
+    "ai_research_center 370748"
+  ],
+  "buildings": [
+    {
+      "slug": "city_hall",
+      "src": "City Hall.glb",
+      "lod0": "runtime_terra19/buildings/city_hall.glb",
+      "lod1": "runtime_terra19/lod/city_hall_lod1.glb",
+      "lod2": "runtime_terra19/lod/city_hall_lod2.glb",
+      "bytes0": 121872,
+      "bytes1": 118420,
+      "bytes2": 117584,
+      "tris0": 11424,
+      "tris1": 10734,
+      "tris2": 10734,
+      "prims0": 6,
+      "native": {
+        "x": 41552.0,
+        "y": 65534.0,
+        "z": 32960.0
+      }
+    },
+    {
+      "slug": "ai_research_center",
+      "src": "AI Research Center.glb",
+      "lod0": "runtime_terra19/buildings/ai_research_center.glb",
+      "lod1": "runtime_terra19/lod/ai_research_center_lod1.glb",
+      "lod2": "runtime_terra19/lod/ai_research_center_lod2.glb",
+      "bytes0": 370748,
+      "bytes1": 369864,
+      "bytes2": 369856,
+      "tris0": 34596,
+      "tris1": 34436,
+      "tris2": 34436,
+      "prims0": 4,
+      "native": {
+        "x": 36038.0,
+        "y": 65534.0,
+        "z": 35652.0
+      }
+    },
+    {
+      "slug": "cloud_campus",
+      "src": "Cloud Campus.glb",
+      "lod0": "runtime_terra19/buildings/cloud_campus.glb",
+      "lod1": "runtime_terra19/lod/cloud_campus_lod1.glb",
+      "lod2": "runtime_terra19/lod/cloud_campus_lod2.glb",
+      "bytes0": 245868,
+      "bytes1": 237064,
+      "bytes2": 237040,
+      "tris0": 24920,
+      "tris1": 23004,
+      "tris2": 23004,
+      "prims0": 6,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 43988.0
+      }
+    },
+    {
+      "slug": "finance_tower",
+      "src": "Finance Tower.glb",
+      "lod0": "runtime_terra19/buildings/finance_tower.glb",
+      "lod1": "runtime_terra19/lod/finance_tower_lod1.glb",
+      "lod2": "runtime_terra19/lod/finance_tower_lod2.glb",
+      "bytes0": 131944,
+      "bytes1": 128556,
+      "bytes2": 128532,
+      "tris0": 10208,
+      "tris1": 9560,
+      "tris2": 9560,
+      "prims0": 4,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 14106.0
+      }
+    },
+    {
+      "slug": "bank",
+      "src": "Bank.glb",
+      "lod0": "runtime_terra19/buildings/bank.glb",
+      "lod1": "runtime_terra19/lod/bank_lod1.glb",
+      "lod2": "runtime_terra19/lod/bank_lod2.glb",
+      "bytes0": 345752,
+      "bytes1": 316944,
+      "bytes2": 315112,
+      "tris0": 28140,
+      "tris1": 22975,
+      "tris2": 22975,
+      "prims0": 11,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "exchange",
+      "src": "Exchange.glb",
+      "lod0": "runtime_terra19/buildings/exchange.glb",
+      "lod1": "runtime_terra19/lod/exchange_lod1.glb",
+      "lod2": "runtime_terra19/lod/exchange_lod2.glb",
+      "bytes0": 245800,
+      "bytes1": 219652,
+      "bytes2": 212728,
+      "tris0": 19164,
+      "tris1": 17082,
+      "tris2": 17082,
+      "prims0": 6,
+      "native": {
+        "x": 65534.0,
+        "y": 56044.0,
+        "z": 53864.0
+      }
+    },
+    {
+      "slug": "power_node",
+      "src": "Power Node.glb",
+      "lod0": "runtime_terra19/buildings/power_node.glb",
+      "lod1": "runtime_terra19/lod/power_node_lod1.glb",
+      "lod2": "runtime_terra19/lod/power_node_lod2.glb",
+      "bytes0": 154840,
+      "bytes1": 94112,
+      "bytes2": 90848,
+      "tris0": 18774,
+      "tris1": 7584,
+      "tris2": 7346,
+      "prims0": 3,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 38090.0
+      }
+    },
+    {
+      "slug": "agent_hub",
+      "src": "Agent Hub.glb",
+      "lod0": "runtime_terra19/buildings/agent_hub.glb",
+      "lod1": "runtime_terra19/lod/agent_hub_lod1.glb",
+      "lod2": "runtime_terra19/lod/agent_hub_lod2.glb",
+      "bytes0": 142720,
+      "bytes1": 46148,
+      "bytes2": 41628,
+      "tris0": 26504,
+      "tris1": 3998,
+      "tris2": 3254,
+      "prims0": 4,
+      "native": {
+        "x": 65534.0,
+        "y": 45014.0,
+        "z": 49118.0
+      }
+    },
+    {
+      "slug": "workshop",
+      "src": "Workshop.glb",
+      "lod0": "runtime_terra19/buildings/workshop.glb",
+      "lod1": "runtime_terra19/lod/workshop_lod1.glb",
+      "lod2": "runtime_terra19/lod/workshop_lod2.glb",
+      "bytes0": 201508,
+      "bytes1": 79936,
+      "bytes2": 79928,
+      "tris0": 34388,
+      "tris1": 6906,
+      "tris2": 6906,
+      "prims0": 3,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 59764.0
+      }
+    },
+    {
+      "slug": "energy_plant",
+      "src": "Energy Plant.glb",
+      "lod0": "runtime_terra19/buildings/energy_plant.glb",
+      "lod1": "runtime_terra19/lod/energy_plant_lod1.glb",
+      "lod2": "runtime_terra19/lod/energy_plant_lod2.glb",
+      "bytes0": 80016,
+      "bytes1": 78740,
+      "bytes2": 76440,
+      "tris0": 4782,
+      "tris1": 4726,
+      "tris2": 4502,
+      "prims0": 8,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 58738.0
+      }
+    },
+    {
+      "slug": "logistics_hub",
+      "src": "Logistics Hub.glb",
+      "lod0": "runtime_terra19/buildings/logistics_hub.glb",
+      "lod1": "runtime_terra19/lod/logistics_hub_lod1.glb",
+      "lod2": "runtime_terra19/lod/logistics_hub_lod2.glb",
+      "bytes0": 253160,
+      "bytes1": 240496,
+      "bytes2": 232636,
+      "tris0": 21686,
+      "tris1": 20242,
+      "tris2": 20242,
+      "prims0": 9,
+      "native": {
+        "x": 65534.0,
+        "y": 42834.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "flagship_store",
+      "src": "Flagship Store.glb",
+      "lod0": "runtime_terra19/buildings/flagship_store.glb",
+      "lod1": "runtime_terra19/lod/flagship_store_lod1.glb",
+      "lod2": "runtime_terra19/lod/flagship_store_lod2.glb",
+      "bytes0": 76272,
+      "bytes1": 70976,
+      "bytes2": 69192,
+      "tris0": 8992,
+      "tris1": 6564,
+      "tris2": 5997,
+      "prims0": 5,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "fleet_yard",
+      "src": "Fleet Yard.glb",
+      "lod0": "runtime_terra19/buildings/fleet_yard.glb",
+      "lod1": "runtime_terra19/lod/fleet_yard_lod1.glb",
+      "lod2": "runtime_terra19/lod/fleet_yard_lod2.glb",
+      "bytes0": 155768,
+      "bytes1": 113716,
+      "bytes2": 101356,
+      "tris0": 15006,
+      "tris1": 4466,
+      "tris2": 2698,
+      "prims0": 14,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "drone_depot",
+      "src": "Drone Depot.glb",
+      "lod0": "runtime_terra19/buildings/drone_depot.glb",
+      "lod1": "runtime_terra19/lod/drone_depot_lod1.glb",
+      "lod2": "runtime_terra19/lod/drone_depot_lod2.glb",
+      "bytes0": 142112,
+      "bytes1": 120256,
+      "bytes2": 115992,
+      "tris0": 14466,
+      "tris1": 11220,
+      "tris2": 11212,
+      "prims0": 6,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "data_center",
+      "src": "Data Center.glb",
+      "lod0": "runtime_terra19/buildings/data_center.glb",
+      "lod1": "runtime_terra19/lod/data_center_lod1.glb",
+      "lod2": "runtime_terra19/lod/data_center_lod2.glb",
+      "bytes0": 196804,
+      "bytes1": 161764,
+      "bytes2": 161600,
+      "tris0": 18638,
+      "tris1": 13842,
+      "tris2": 13830,
+      "prims0": 6,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "retail_complex",
+      "src": "Retail_complex.glb",
+      "lod0": "runtime_terra19/buildings/retail_complex.glb",
+      "lod1": "runtime_terra19/lod/retail_complex_lod1.glb",
+      "lod2": "runtime_terra19/lod/retail_complex_lod2.glb",
+      "bytes0": 225264,
+      "bytes1": 225232,
+      "bytes2": 224004,
+      "tris0": 18004,
+      "tris1": 18004,
+      "tris2": 18004,
+      "prims0": 7,
+      "native": {
+        "x": 65534.0,
+        "y": 42066.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "robotics_lab",
+      "src": "Robotics Lab.glb",
+      "lod0": "runtime_terra19/buildings/robotics_lab.glb",
+      "lod1": "runtime_terra19/lod/robotics_lab_lod1.glb",
+      "lod2": "runtime_terra19/lod/robotics_lab_lod2.glb",
+      "bytes0": 79560,
+      "bytes1": 63856,
+      "bytes2": 54708,
+      "tris0": 7442,
+      "tris1": 4602,
+      "tris2": 4600,
+      "prims0": 7,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "clearing_house",
+      "src": "Clearing House.glb",
+      "lod0": "runtime_terra19/buildings/clearing_house.glb",
+      "lod1": "runtime_terra19/lod/clearing_house_lod1.glb",
+      "lod2": "runtime_terra19/lod/clearing_house_lod2.glb",
+      "bytes0": 85788,
+      "bytes1": 66452,
+      "bytes2": 65996,
+      "tris0": 10904,
+      "tris1": 6566,
+      "tris2": 6469,
+      "prims0": 5,
+      "native": {
+        "x": 65534.0,
+        "y": 65534.0,
+        "z": 65534.0
+      }
+    },
+    {
+      "slug": "neon_residence",
+      "src": "neon-residence.glb",
+      "lod0": "runtime_terra19/buildings/neon_residence.glb",
+      "lod1": "",
+      "lod2": "",
+      "bytes0": 108884,
+      "bytes1": 0,
+      "bytes2": 0,
+      "tris0": 9348,
+      "tris1": 9348,
+      "tris2": 9348,
+      "prims0": 4,
+      "native": {
+        "x": 55916.0,
+        "y": 65534.0,
+        "z": 51042.0
+      }
+    }
+  ]
+}

@@ -44,6 +44,8 @@ function spawnIntoState(ctx: PackCtx, state: Dict, cityId: string, kind: string)
   city["city_level"] = 1n
   city["agents"] = []
   city["buildings"] = []
+  city["functions"] = []
+  city["created_day"] = asBigint(state["day"], 1n)
   const cities = asEngineDict(state["cities"])
   cities[cityId] = city
   state["cities"] = cities
@@ -185,10 +187,7 @@ async function issueWalletSession(
   if (cityId.length === 0) {
     cityId = opaqueId()
     spawnIntoState(ctx, state, cityId, "wallet")
-    const seed = opaqueId()
-    await putJson(store, "city_owners", address, { city_id: cityId, island_seed: seed }, "wallet")
-    const city = asEngineDict(asEngineDict(state["cities"])[cityId])
-    city["island_seed"] = seed
+    await putJson(store, "city_owners", address, { city_id: cityId }, "wallet")
   }
   const sessionId = opaqueId()
   await putJson(

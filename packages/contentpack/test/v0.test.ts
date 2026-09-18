@@ -311,12 +311,47 @@ describe.sequential("V0 construction", () => {
           "bank_plaque_always_present",
           "payroll_row_appears_when_trimmed",
           "stock_bar_shows_two_numbers",
+          "building_select_opens_popover_not_route",
+          "keeps FunctionStrip as keyboard non-3D access at narrow widths",
+          "keeps compact chrome copy unclipped without hiding primary state",
+          "announces loading and error distinctly from empty/unavailable/stale",
+          "uses shared 120-180ms motion token and reduced-motion without perpetual HUD animation",
+          "localizes clock updates without remounting the Three scene",
+          "centralizes presentation thresholds without contradicting pack geometry",
+          "returns focus after workspace close without focusing a detached trigger",
+          "treats only ready FieldView as an exact numeric value",
+          "value renderers do not use exact zero for non-ready fields",
+          "keeps StatusChip loading/stale/error distinct from unavailable",
+          "does not treat a missing payroll request as PAYROLL_TRIMMED",
+          "keeps EventsView rows on the snapshot log shape",
+          "keeps live adapter intent contracts without new routes",
+          "function strip does not substitute zero for unavailable functions",
+          "recent activity default presents at most three event rows",
+          "expands BANK_CLOSED journal copy instead of leaving {opens_in}",
+          "keeps Desktop v1.1 bright-blue tokens in palette and CSS",
+          "resolves local building thumbs and excludes the decorative 19th plus sheets",
+          "resolves role portraits and keeps sheets/brand as non-agent fallbacks",
+          "documents Lucide registry names and accessible labels without a Settings destination",
+          "loads verified local IBM Plex Sans and JetBrains Mono without a CDN",
+          "refuses decorative and unknown IDs as a functional BuildingCard thumbnail",
+          "keeps ResearchCard artwork explicit unavailable without invented assets",
         ])
       } else if (id === "hud_screens") {
         expect(stage.construction_tests ?? []).toEqual([
           "every_screen_has_empty_and_loading",
           "refusal_shows_one_blocking_code",
           "no_cyrillic_in_components",
+          "keeps unsupported action unavailable without posting",
+          "does not treat claim_prize as confirmed custody",
+          "does not present a stale or missing quote as executable live quote",
+          "disables bank withdraw when live daily limit is unavailable or zero",
+          "labels bank and exchange amounts with Capital, $CORP, and selected Stock Token",
+          "blocks duplicate money submit and does not confirm without applied live result",
+          "maps only existing routes and tabs without new destination IDs",
+          "opens existing overlays for manage and keeps decorative buildings out of the functional catalog",
+          "shows unavailable live industry fields and keeps progression/merge off the overview cards",
+          "renders five research items with pack cost/duration and unavailable artwork/start/detail",
+          "keeps journal timestamp/entity/unread unavailable and seasons/farm/claims on existing overlays",
         ])
       } else if (id === "companion_screen") {
         expect(stage.construction_tests ?? []).toEqual([
@@ -496,8 +531,7 @@ describe.sequential("V0 construction", () => {
   })
 
   it("visual_flag_inventory_holds", () => {
-    const companion = loadJson<ParamFile>("content/params/companion.json")
-    expect(companion.params?.["companion_revenue_live"]?.v).toBe(0)
+    expect(existsSync(join(repo, "content/params/companion.json"))).toBe(false)
     const screens = loadJson<ParamFile>("content/params/screens.json")
     expect(screens.params?.["missions_live"]?.v).toBe(0)
     const meta = loadJson<ParamFile>("content/params/meta.json")

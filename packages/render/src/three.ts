@@ -1,54 +1,130 @@
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
-  BoxGeometry,
+  Box3,
   DirectionalLight,
   Group,
   HemisphereLight,
-  InstancedMesh,
-  Matrix4,
   Mesh,
-  MeshLambertMaterial,
   MeshStandardMaterial,
   PerspectiveCamera,
-  PlaneGeometry,
   Raycaster,
+  SRGBColorSpace,
   Scene,
   Vector2,
   WebGLRenderer,
 } from "three"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
-import { loadScene } from "./ground.js"
-import { emptyHandle, type IslandHandle } from "./frame.js"
-import { gpuCode, type GpuProbe } from "./gpu.js"
-import { loadHeroCatalog, pickHeroLod, plantHeroes, type HeroLot } from "./heroes.js"
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js"
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js"
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js"
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js"
+import { emptyHandle, emptyHit, type IslandHandle } from "./frame.js"
 import {
-  islandBoxes,
-  islandCells,
-  islandCenter,
-  landCells,
-  plantWater,
-  shoreFoam,
-  type IslandCell,
-} from "./island.js"
+  applyBuildingSelection,
+  clearBuildingSelection,
+  emptyBuildingSelection,
+  findBuildingRoot,
+  projectBuilding,
+} from "./islandSelect.js"
+import { gpuCode, type GpuProbe } from "./gpu.js"
+import {
+  applyAnchorPose,
+  collectAnchors,
+  pickObjectId,
+  tagBuilding,
+  type OccupiedPlant,
+} from "./islandPlant.js"
+import { applyIslandMaterials, cityMassBoxFilter } from "./islandMaterials.js"
+import {
+  aabbSize,
+  azimuthBpsToDeg,
+  azimuthToBps,
+  elevationToTiltBps,
+  fitHeroCamera,
+  projectedWidthFill,
+  tiltBpsToElevationDeg,
+  type Aabb,
+} from "./islandCamera.js"
+import {
+  ANTIALIAS,
+  DPR_CAP,
+  HERO_AZIMUTH_DEG,
+  HERO_ELEVATION_DEG,
+  HERO_FOV_DEG,
+  RENDERER_REVISION,
+  SHARED_ISLAND_RUNTIME,
+  WORLD_CLEAR,
+  WORLD_EXPOSURE,
+  WORLD_HEMI_GROUND,
+  WORLD_HEMI_SKY,
+} from "./islandConfig.js"
+import type { IslandCaptureMeta } from "./islandCapture.js"
+import { occupiedForMode, type OccupancyMode } from "./islandOccupancy.js"
+import { meshoptDecoderReady } from "./islandZoom.js"
 import { currentPhase, hourOfDay } from "./light.js"
 import { clampOrbit, orbitEye } from "./orbit.js"
-import { pickFromRay } from "./pick.js"
 import { signGainBps, sunDir, sunPose, windowGainBps, type SunPhase } from "./sun.js"
-import { isPackedWalker, plantUnits, unitWorldPos } from "./units.js"
-import {
-  decorOfKind,
-  isPackedDecor,
-  isPackedDrone,
-  isPackedVehicle,
-  plantDecor,
-  poseDrone,
-  poseVehicle,
-  type DecorKind,
-} from "./world.js"
 import type { TileHit } from "./camera.js"
-import type { BlockRect, DroneStart, VehicleStart } from "./motion.js"
+import {
+  tickEnvironment,
+  disposeEnvironment,
+} from "./islandEnv/index.js"
+import { tickWaterFlow } from "./islandEnv/waterFlow.js"
+import type { IslandLook } from "./islandLook.js"
+import { hideWfAttachmentVisuals } from "./islandLookPlant.js"
+import { mountAcceptedLook } from "./islandLookMount.js"
 
-export type { IslandHandle } from "./frame.js"
+export type { IslandHandle, IslandObjectProjection } from "./frame.js"
+export type { OccupiedPlant } from "./islandPlant.js"
+export type { OccupancyMode } from "./islandOccupancy.js"
+export type { IslandCaptureMeta } from "./islandCapture.js"
+export { azimuthToBps, elevationToTiltBps } from "./islandCamera.js"
+export { WORLD_HEMI_SKY, WORLD_HEMI_GROUND } from "./islandConfig.js"
+export { STUDIO_PLANTS } from "./islandOccupancy.js"
+export type { IslandLook, IslandLookObject } from "./islandLook.js"
+export { parseIslandLook, lookBuildingCount, lookOrbitLimits } from "./islandLook.js"
+
+const GLB_MAGIC = "glTF"
+
+export function isGlbMagic(buf: ArrayBuffer): boolean {
+  const two = 1 + 1
+  const four = two + two
+  if (buf.byteLength < four) return false
+  const bytes = new Uint8Array(buf, 0, four)
+  return (
+    bytes[0] === GLB_MAGIC.charCodeAt(0) &&
+    bytes[1] === GLB_MAGIC.charCodeAt(1) &&
+    bytes[two] === GLB_MAGIC.charCodeAt(two) &&
+    bytes[two + 1] === GLB_MAGIC.charCodeAt(two + 1)
+  )
+}
+
+export function joinLoadError(prev: string, next: string): string {
+  if (next.length === 0) return prev
+  if (prev.length === 0) return next
+  return prev + "; " + next
+}
+
+export function resizeKeepsOrbitDistance(orbitMoved: boolean): boolean {
+  return orbitMoved
+}
+
+export function orbitPoseChanged(
+  curAzimuthBps: bigint,
+  curTiltBps: bigint,
+  curDistance: bigint,
+  nextAzimuthBps: bigint,
+  nextTiltBps: bigint,
+  nextDistance: bigint,
+): boolean {
+  return (
+    curAzimuthBps !== nextAzimuthBps ||
+    curTiltBps !== nextTiltBps ||
+    curDistance !== nextDistance
+  )
+}
 
 export type IslandSunOpts = {
   readonly phases: readonly SunPhase[]
@@ -63,11 +139,7 @@ export type IslandSunOpts = {
 
 export type Island3Opts = {
   readonly host: HTMLElement
-  readonly scene: unknown
   readonly probe: GpuProbe
-  readonly gridSize: bigint
-  readonly landY: bigint
-  readonly waterY: bigint
   readonly azimuthBps: bigint
   readonly tiltBps: bigint
   readonly distance: bigint
@@ -77,43 +149,24 @@ export type Island3Opts = {
   readonly distanceMax: bigint
   readonly fovDeg: bigint
   readonly spanBps: bigint
-  readonly kindColor: { readonly [ch: string]: number }
-  readonly objectColor: number
-  readonly lots: unknown
-  readonly catalog: unknown
-  readonly lodNear: bigint
-  readonly heroBytes: (file: string) => Promise<ArrayBuffer>
+  readonly targetY: bigint
+  readonly massBytes: ArrayBuffer
+  readonly buildingBytes: (slug: string, packId: string) => Promise<ArrayBuffer>
+  readonly occupied: readonly OccupiedPlant[]
+  readonly occupancyMode?: OccupancyMode
+  readonly playerPackIds?: readonly string[]
+  readonly look?: IslandLook
+  readonly propBytes?: (kind: "building" | "decor", ref: string) => Promise<ArrayBuffer>
+  readonly cloudBytes?: (file: string) => Promise<ArrayBuffer>
   readonly sun: IslandSunOpts
-  readonly walkerColor: number
-  readonly robotColor: number
-  readonly unitHeightBps: bigint
-  readonly unitShiftPeriod: bigint
-  readonly unitShiftSpanBps: bigint
   readonly fillSky: number
   readonly fillGround: number
-  readonly lanternColor: number
-  readonly furnitureColor: number
-  readonly plantColor: number
-  readonly hullColor: number
-  readonly vehicleColor: number
-  readonly droneColor: number
-  readonly foamColor: number
-  readonly decorHeightBps: bigint
-  readonly lanternHeightBps: bigint
-  readonly canopyHeightBps: bigint
-  readonly vehicleHeightBps: bigint
-  readonly droneHoverHeightBps: bigint
-  readonly layoutSeed: string
-  readonly vehicleSpeed: bigint
-  readonly vehicleStride: bigint
-  readonly prngBytes: bigint
-  readonly droneSpeed: bigint
-  readonly droneAlt: bigint
-  readonly droneBob: bigint
-  readonly droneBobPeriod: bigint
-  readonly vehicles: readonly VehicleStart[]
-  readonly drones: readonly DroneStart[]
-  readonly blocks: readonly BlockRect[]
+  readonly bloomStrengthBps: bigint
+  readonly bloomRadiusBps: bigint
+  readonly bloomThresholdBps: bigint
+  readonly exposure?: number
+  /** Capture may set this explicitly. Game MSAA follows ANTIALIAS. */
+  readonly canvasAntialias?: boolean
 }
 
 function applyEye(
@@ -137,299 +190,295 @@ function applyEye(
   camera.lookAt(targetX, targetY, targetZ)
 }
 
-function parseHero(loader: GLTFLoader, buf: ArrayBuffer): Promise<Group> {
+function parseGlb(loader: GLTFLoader, buf: ArrayBuffer): Promise<Group> {
   return new Promise((resolve, reject) => {
     loader.parse(buf, "", (gltf) => resolve(gltf.scene), reject)
   })
 }
 
-function collectEmissive(root: Group, kind: string, into: MeshStandardMaterial[]): void {
-  root.traverse((obj) => {
+function showHostError(host: HTMLElement, message: string): void {
+  const el = document.createElement("p")
+  el.dataset.lookError = message
+  el.textContent = message
+  host.appendChild(el)
+}
+
+function boxToAabb(box: Box3): Aabb {
+  return {
+    min: { x: box.min.x, y: box.min.y, z: box.min.z },
+    max: { x: box.max.x, y: box.max.y, z: box.max.z },
+  }
+}
+
+function cityAabb(scene: Scene): Aabb | undefined {
+  const box = new Box3()
+  box.makeEmpty()
+  scene.traverse((obj) => {
     if (!(obj instanceof Mesh)) return
-    if (obj.name !== kind) return
-    const raw = obj.material
-    const list = Array.isArray(raw) ? raw : [raw]
-    for (const mat of list) {
-      if (mat instanceof MeshStandardMaterial) into.push(mat)
-    }
+    if (!cityMassBoxFilter(obj)) return
+    box.expandByObject(obj)
   })
-}
-
-function stampAt(
-  mesh: InstancedMesh,
-  index: number,
-  x: number,
-  y: number,
-  z: number,
-  sx: number,
-  sy: number,
-  sz: number,
-): void {
-  const m = new Matrix4()
-  m.makeScale(sx, sy, sz)
-  m.setPosition(x, y, z)
-  mesh.setMatrixAt(index, m)
-}
-
-function heightOf(bps: bigint, gradeBps: bigint): number {
-  const grade = gradeBps <= 0n ? 1n : gradeBps
-  return Number(bps) / Number(grade)
+  if (box.isEmpty()) return undefined
+  return boxToAabb(box)
 }
 
 export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
   const refused = gpuCode(opts.probe)
-  if (refused.length > 0) return emptyHandle(refused)
+  if (refused.length > 0) {
+    showHostError(opts.host, refused)
+    return emptyHandle(refused)
+  }
 
   const canvas = document.createElement("canvas")
+  canvas.style.display = "block"
+  canvas.style.width = "100%"
+  canvas.style.height = "100%"
   opts.host.appendChild(canvas)
+  const exposure = opts.exposure ?? WORLD_EXPOSURE
+  const fillSky = SHARED_ISLAND_RUNTIME ? WORLD_HEMI_SKY : opts.fillSky
+  const fillGround = SHARED_ISLAND_RUNTIME ? WORLD_HEMI_GROUND : opts.fillGround
+  const canvasAntialias = opts.canvasAntialias === true
+  const useMsaa = canvasAntialias || ANTIALIAS
   let renderer: WebGLRenderer
   try {
-    renderer = new WebGLRenderer({ canvas, antialias: false })
+    renderer = new WebGLRenderer({
+      canvas,
+      antialias: useMsaa,
+      preserveDrawingBuffer: true,
+    })
   } catch {
     canvas.remove()
-    return emptyHandle(gpuCode({ webgl2: false, webgl: false }))
+    const code = gpuCode({ webgl2: false, webgl: false })
+    showHostError(opts.host, code)
+    return emptyHandle(code)
   }
+  renderer.outputColorSpace = SRGBColorSpace
+  renderer.toneMapping = ACESFilmicToneMapping
+  renderer.toneMappingExposure = exposure
+  const dprCap = DPR_CAP
+  const rawDpr = globalThis.devicePixelRatio
+  const dpr = rawDpr > dprCap ? dprCap : rawDpr > 0 ? rawDpr : 1
+  renderer.setPixelRatio(dpr)
+  renderer.setClearColor(WORLD_CLEAR, 1)
 
   const scene = new Scene()
+  scene.background = null
   const two = 1 + 1
-  const cam = new PerspectiveCamera(Number(opts.fovDeg), 1, 1, Number(opts.distanceMax) * two)
-  const center = islandCenter(opts.gridSize)
-  let tx = Number(center.x)
-  let tz = Number(center.z)
-  const ty = Number(opts.landY)
-  applyEye(
-    cam,
-    opts.azimuthBps,
-    opts.tiltBps,
-    opts.distance,
-    tx,
-    ty,
-    tz,
-    opts.spanBps,
-    opts.tiltMinBps,
-    opts.tiltMaxBps,
-    opts.distanceMin,
-    opts.distanceMax,
-  )
+  const occupancyMode: OccupancyMode = opts.occupancyMode ?? "production"
+  const occupied = occupiedForMode(occupancyMode, opts.occupied, opts.playerPackIds)
+  const span = opts.sun.gradeBps <= 0n ? 1n : opts.sun.gradeBps
+  let az = SHARED_ISLAND_RUNTIME ? azimuthToBps(HERO_AZIMUTH_DEG, opts.spanBps) : opts.azimuthBps
+  let tilt = SHARED_ISLAND_RUNTIME
+    ? elevationToTiltBps(HERO_ELEVATION_DEG, opts.spanBps)
+    : opts.tiltBps
+  let dist = opts.distance
+  let tx = 0
+  let ty = SHARED_ISLAND_RUNTIME ? 0 : Number(opts.targetY)
+  let tz = 0
+  let widthFill = 0
+  let loadError = ""
+  let meshopt = false
+  let cityPhase = ""
+  let lastTime = 0n
+  let orbitMoved = false
+  let alive = true
+  let paintFrame: number | undefined
+  const fovDeg = SHARED_ISLAND_RUNTIME ? HERO_FOV_DEG : Number(opts.fovDeg)
+  const cam = new PerspectiveCamera(fovDeg, 1, 1, Number(opts.distanceMax) * two)
 
+  const look = opts.look
   const ambient = new AmbientLight()
-  const fill = new HemisphereLight(opts.fillSky, opts.fillGround)
+  const hemi = new HemisphereLight(fillSky, fillGround)
+  const fillDir = new DirectionalLight()
   const sun = new DirectionalLight()
   scene.add(ambient)
-  scene.add(fill)
+  scene.add(hemi)
+  scene.add(fillDir)
+  scene.add(fillDir.target)
   scene.add(sun)
   scene.add(sun.target)
+  fillDir.castShadow = false
+  let skyRoot: Group | null = null
+  let lookDistMin = opts.distanceMin
+  let lookDistMax = opts.distanceMax
+  const glowBase: number[] = []
+  const t0 = globalThis.performance.now()
 
-  const plane = new PlaneGeometry(1, 1)
-  const box = new BoxGeometry(1, 1, 1)
-  const mats: { [ch: string]: MeshLambertMaterial } = {}
-  const colorOf = (ch: string): MeshLambertMaterial => {
-    const hit = mats[ch]
-    if (hit !== undefined) return hit
-    const made = new MeshLambertMaterial({ color: opts.kindColor[ch] ?? 0 })
-    mats[ch] = made
-    return made
-  }
-  const cells = landCells(islandCells(opts.scene, opts.landY, opts.waterY))
-  const landGroups: { [ch: string]: IslandCell[] } = {}
-  for (const cell of cells) {
-    const cur = landGroups[cell.kind]
-    if (cur === undefined) landGroups[cell.kind] = [cell]
-    else cur.push(cell)
-  }
-  for (const ch of Object.keys(landGroups)) {
-    const rows = landGroups[ch]
-    if (rows === undefined || rows.length === 0) continue
-    const inst = new InstancedMesh(box, colorOf(ch), rows.length)
-    let i = 0
-    for (const row of rows) {
-      stampAt(inst, i, Number(row.tileX), Number(row.y), Number(row.tileY), 1, 1, 1)
-      i += 1
-    }
-    inst.instanceMatrix.needsUpdate = true
-    scene.add(inst)
-  }
-  const sea = plantWater(opts.gridSize, opts.waterY)
-  const waterMesh = new Mesh(plane, colorOf("~"))
-  waterMesh.rotation.x = -Math.PI / two
-  waterMesh.position.set(sea.x, sea.y, sea.z)
-  waterMesh.scale.set(sea.span, 1, sea.span)
-  scene.add(waterMesh)
-  const foamMat = new MeshLambertMaterial({ color: opts.foamColor })
-  const foamRows = shoreFoam(opts.scene, opts.waterY)
-  for (const row of foamRows) {
-    const mesh = new Mesh(plane, foamMat)
-    mesh.rotation.x = -Math.PI / two
-    mesh.position.set(Number(row.tileX), Number(row.y), Number(row.tileY))
-    scene.add(mesh)
-  }
-  const objMat = new MeshLambertMaterial({ color: opts.objectColor })
-  const catalog = loadHeroCatalog(opts.catalog)
-  const lots = plantHeroes(opts.lots, catalog)
-  const heroIds: { [id: string]: true } = {}
-  for (const lot of lots) heroIds[lot.id] = true
-  for (const row of islandBoxes(opts.scene)) {
-    if (heroIds[row.id] === true) continue
-    if (isPackedWalker(row.id)) continue
-    if (isPackedDecor(row.id)) continue
-    if (isPackedVehicle(row.id) || isPackedDrone(row.id)) continue
-    const mesh = new Mesh(box, objMat)
-    const top = Number(opts.landY) + 1
-    mesh.position.set(Number(row.tileX), top, Number(row.tileY))
-    scene.add(mesh)
-  }
-  const unitGeo = new PlaneGeometry(1, 1)
-  const walkerMat = new MeshLambertMaterial({ color: opts.walkerColor })
-  const robotMat = new MeshLambertMaterial({ color: opts.robotColor })
-  const packed = loadScene(opts.scene)
-  const unitRows = plantUnits(opts.scene)
-  const unitMeshes: Mesh[] = []
-  const unitH = Number(opts.unitHeightBps) / Number(opts.sun.gradeBps <= 0n ? 1n : opts.sun.gradeBps)
-  const unitW = unitH / two
-  for (const unit of unitRows) {
-    const robot = unit.id.startsWith("robot_")
-    const mesh = new Mesh(unitGeo, robot ? robotMat : walkerMat)
-    mesh.scale.set(unitW, unitH, 1)
-    scene.add(mesh)
-    unitMeshes.push(mesh)
-  }
-  const decorRows = plantDecor(opts.scene)
-  const lanternMat = new MeshStandardMaterial({ color: opts.lanternColor, emissive: opts.lanternColor })
-  const furnitureMat = new MeshLambertMaterial({ color: opts.furnitureColor })
-  const plantMat = new MeshLambertMaterial({ color: opts.plantColor })
-  const hullMat = new MeshLambertMaterial({ color: opts.hullColor })
-  const lanternH = heightOf(opts.lanternHeightBps, opts.sun.gradeBps)
-  const furnH = heightOf(opts.decorHeightBps, opts.sun.gradeBps)
-  const canopyH = heightOf(opts.canopyHeightBps, opts.sun.gradeBps)
-  const landTop = Number(opts.landY)
-  const plantFamily = (
-    kind: DecorKind,
-    mat: MeshLambertMaterial | MeshStandardMaterial,
-    sx: number,
-    sy: number,
-    sz: number,
-  ): InstancedMesh | undefined => {
-    const rows = decorOfKind(decorRows, kind)
-    if (rows.length === 0) return undefined
-    const inst = new InstancedMesh(box, mat, rows.length)
-    let i = 0
-    for (const row of rows) {
-      stampAt(
-        inst,
-        i,
-        Number(row.tileX),
-        landTop + sy / two,
-        Number(row.tileY),
-        sx,
-        sy,
-        sz,
-      )
-      i += 1
-    }
-    inst.instanceMatrix.needsUpdate = true
-    scene.add(inst)
-    return inst
-  }
-  const lanternInst = plantFamily("lantern", lanternMat, 1 / two, lanternH, 1 / two)
-  const furnitureInst = plantFamily("furniture", furnitureMat, 1, furnH, 1)
-  const plantInst = plantFamily("plant", plantMat, 1 / two, canopyH, 1 / two)
-  const hullInst = plantFamily("hull", hullMat, 1, furnH, 1)
-  const decorInst = [lanternInst, furnitureInst, plantInst, hullInst]
-  const vehicleMat = new MeshLambertMaterial({ color: opts.vehicleColor })
-  const droneMat = new MeshLambertMaterial({ color: opts.droneColor })
-  const vehH = heightOf(opts.vehicleHeightBps, opts.sun.gradeBps)
-  const vehicleMeshes: Mesh[] = []
-  for (const _start of opts.vehicles) {
-    void _start
-    const mesh = new Mesh(box, vehicleMat)
-    mesh.scale.set(1, vehH, 1 / two)
-    scene.add(mesh)
-    vehicleMeshes.push(mesh)
-  }
-  const droneMeshes: Mesh[] = []
-  for (const _start of opts.drones) {
-    void _start
-    const mesh = new Mesh(box, droneMat)
-    mesh.scale.set(1 / two, 1 / two, 1 / two)
-    scene.add(mesh)
-    droneMeshes.push(mesh)
+  try {
+    await meshoptDecoderReady(MeshoptDecoder)
+    meshopt = true
+  } catch (err) {
+    canvas.remove()
+    const message = err instanceof Error ? err.message : "MESHOPT_DECODER_MISSING"
+    showHostError(opts.host, message)
+    return emptyHandle(message)
   }
   const loader = new GLTFLoader()
-  const templates: { [file: string]: Group } = {}
-  const lodPairs: { high: Group; low: Group }[] = []
-  const windowMats: MeshStandardMaterial[] = []
-  const signMats: MeshStandardMaterial[] = []
-  for (const lot of lots) {
-    const row = catalog[lot.id]
-    if (row === undefined) continue
-    let highTpl = templates[row.lodHigh]
-    if (highTpl === undefined) {
-      try {
-        highTpl = await parseHero(loader, await opts.heroBytes(row.lodHigh))
-      } catch {
-        continue
+  loader.setMeshoptDecoder(MeshoptDecoder)
+
+  const glowMats: MeshStandardMaterial[] = []
+  const pickMeshes: object[] = []
+  if (opts.massBytes.byteLength > 0) {
+    try {
+      const mass = await parseGlb(loader, opts.massBytes)
+      hideWfAttachmentVisuals(mass)
+      applyIslandMaterials(mass, glowMats)
+      scene.add(mass)
+      if (look !== undefined && opts.propBytes !== undefined && opts.cloudBytes !== undefined) {
+        const planted = await mountAcceptedLook({
+          look,
+          mass,
+          scene,
+          renderer,
+          sun,
+          hemi,
+          fillDir,
+          ambient,
+          parseGlb: (buf) => parseGlb(loader, buf),
+          propBytes: opts.propBytes,
+          cloudBytes: opts.cloudBytes,
+          glowMats,
+          pickMeshes,
+          joinLoadError,
+          spanBps: opts.spanBps,
+        })
+        skyRoot = planted.skyRoot
+        loadError = planted.loadError
+        lookDistMin = planted.lookDistMin
+        lookDistMax = planted.lookDistMax
+        cam.near = Math.max(0.5, Number(lookDistMin) * 0.02)
+        cam.far = Number(lookDistMax) * two
+        if (planted.freezeOrbit) {
+          az = planted.azimuthBps
+          tilt = planted.tiltBps
+          dist = planted.distance
+          tx = planted.tx
+          ty = planted.ty
+          tz = planted.tz
+          orbitMoved = true
+        }
+        if (loadError.length > 0) showHostError(opts.host, loadError)
+      } else {
+        const anchors = collectAnchors(mass)
+        let i = 0
+        while (i < occupied.length) {
+          const plant = occupied[i]
+          i += 1
+          if (plant === undefined) continue
+          const pose = anchors[plant.anchor]
+          if (pose === undefined) continue
+          let buf: ArrayBuffer
+          try {
+            buf = await opts.buildingBytes(plant.slug, plant.packId)
+          } catch (err) {
+            loadError = joinLoadError(loadError, plant.slug + ": " + String(err))
+            continue
+          }
+          if (buf.byteLength === 0) {
+            loadError = joinLoadError(loadError, plant.slug + ": empty glb")
+            continue
+          }
+          if (!isGlbMagic(buf)) {
+            loadError = joinLoadError(loadError, plant.slug + ": not a GLB (missing glTF magic)")
+            continue
+          }
+          let root: Group
+          try {
+            root = await parseGlb(loader, buf)
+          } catch (err) {
+            loadError = joinLoadError(loadError, plant.slug + ": " + String(err))
+            continue
+          }
+          applyAnchorPose(root, pose)
+          tagBuilding(root, plant)
+          applyIslandMaterials(root, glowMats)
+          pickMeshes.push(root)
+          scene.add(root)
+        }
+        if (loadError.length > 0) {
+          showHostError(opts.host, loadError)
+        }
       }
-      templates[row.lodHigh] = highTpl
+    } catch (err) {
+      loadError = joinLoadError(loadError, err instanceof Error ? err.message : String(err))
+      showHostError(opts.host, loadError)
     }
-    let lowTpl = templates[row.lodLow]
-    if (lowTpl === undefined) {
-      try {
-        lowTpl = await parseHero(loader, await opts.heroBytes(row.lodLow))
-      } catch {
-        continue
-      }
-      templates[row.lodLow] = lowTpl
+  }
+  let gi0 = 0
+  while (gi0 < glowMats.length) {
+    const mat = glowMats[gi0]
+    gi0 += 1
+    if (mat === undefined) {
+      glowBase.push(0)
+      continue
     }
-    const high = highTpl.clone()
-    const low = lowTpl.clone()
-    const y = Number(opts.landY)
-    high.position.set(Number(lot.tileX), y, Number(lot.tileY))
-    low.position.set(Number(lot.tileX), y, Number(lot.tileY))
-    high.scale.set(Number(lot.spanX), 1, Number(lot.spanZ))
-    low.scale.set(Number(lot.spanX), 1, Number(lot.spanZ))
-    scene.add(high)
-    scene.add(low)
-    lodPairs.push({ high, low })
-    collectEmissive(high, "window", windowMats)
-    collectEmissive(low, "window", windowMats)
-    collectEmissive(high, "sign", signMats)
-    collectEmissive(low, "sign", signMats)
+    glowBase.push(mat.emissiveIntensity)
   }
-  const startLod = pickHeroLod(opts.distance, opts.lodNear)
-  for (const pair of lodPairs) {
-    pair.high.visible = startLod === "high"
-    pair.low.visible = startLod === "low"
-  }
+
+  const bloomStrength = look !== undefined ? 0 : Number(opts.bloomStrengthBps) / Number(span)
+  const bloom = new UnrealBloomPass(
+    new Vector2(1, 1),
+    bloomStrength,
+    Number(opts.bloomRadiusBps) / Number(span),
+    Number(opts.bloomThresholdBps) / Number(span),
+  )
+  const composer = new EffectComposer(renderer)
+  composer.addPass(new RenderPass(scene, cam))
+  composer.addPass(bloom)
+  composer.addPass(new OutputPass())
 
   const ray = new Raycaster()
   const ndc = new Vector2()
-  const landY = opts.landY
-  const waterY = opts.waterY
-  let lastTime = 0n
+  const selection = emptyBuildingSelection()
 
-  const resize = (): void => {
-    const w = opts.host.clientWidth
-    const h = opts.host.clientHeight
-    const width = w > 0 ? w : 1
-    const height = h > 0 ? h : 1
-    renderer.setSize(width, height, false)
+  const refit = (width: number, height: number): void => {
     cam.aspect = width / height
+    if (SHARED_ISLAND_RUNTIME) {
+      const box = cityAabb(scene)
+      if (box !== undefined) {
+        const fit = fitHeroCamera(box, cam.aspect)
+        if (!resizeKeepsOrbitDistance(orbitMoved)) {
+          tx = fit.target.x
+          ty = fit.target.y
+          tz = fit.target.z
+          dist = clampOrbit(BigInt(Math.round(fit.distance)), lookDistMin, lookDistMax)
+          cam.fov = fit.fovDeg
+          cam.near = fit.near
+          cam.far = fit.far
+        }
+        const size = aabbSize(box)
+        const spanXz = size.x > size.z ? size.x : size.z
+        widthFill = projectedWidthFill(spanXz, Number(dist), fit.hfovRad)
+      }
+    }
     cam.updateProjectionMatrix()
-    renderer.render(scene, cam)
   }
-  resize()
-  const ro = new ResizeObserver(() => {
-    resize()
-  })
-  ro.observe(opts.host)
 
-  let az = opts.azimuthBps
-  let tilt = opts.tiltBps
-  let dist = opts.distance
+  const applyCamera = (): void => {
+    applyEye(
+      cam,
+      az,
+      tilt,
+      dist,
+      tx,
+      ty,
+      tz,
+      opts.spanBps,
+      opts.tiltMinBps,
+      opts.tiltMaxBps,
+      lookDistMin,
+      lookDistMax,
+    )
+  }
 
   const applySun = (cityTime: bigint): void => {
     lastTime = cityTime
-    const span = opts.sun.gradeBps <= 0n ? 1n : opts.sun.gradeBps
+    const hour = hourOfDay(cityTime, opts.sun.ticksDay)
+    const cur = currentPhase(hour, opts.sun.phases, opts.sun.ticksDay)
+    const lights = cur === undefined ? 0n : cur.lights
+    const name = cur === undefined ? "" : cur.name
+    cityPhase = name
+    if (look !== undefined) return
     const pose = sunPose(
       cityTime,
       opts.sun.phases,
@@ -444,178 +493,186 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
     sun.target.position.set(tx, ty, tz)
     sun.intensity = Number(pose.intensityBps) / Number(span)
     ambient.intensity = Number(pose.ambientBps) / Number(span)
-    fill.intensity = Number(pose.ambientBps) / Number(span)
-    const hour = hourOfDay(cityTime, opts.sun.ticksDay)
-    const cur = currentPhase(hour, opts.sun.phases, opts.sun.ticksDay)
-    const lights = cur === undefined ? 0n : cur.lights
-    const name = cur === undefined ? "" : cur.name
+    hemi.intensity = Number(pose.ambientBps) / Number(span)
     const win = windowGainBps(lights, opts.sun.emissiveBps)
     const sign = signGainBps(name, opts.sun.lanternsOn, lights, opts.sun.emissiveBps)
     const gainW = Number(win) / Number(span)
     const gainS = Number(sign) / Number(span)
-    for (const mat of windowMats) mat.emissiveIntensity = gainW
-    for (const mat of signMats) mat.emissiveIntensity = gainS
-    lanternMat.emissiveIntensity = gainS
+    let gi = 0
+    while (gi < glowMats.length) {
+      const mat = glowMats[gi]
+      gi += 1
+      if (mat === undefined) continue
+      mat.emissiveIntensity = gainW > gainS ? gainW : gainS
+    }
   }
 
-  const paint = (): void => {
-    applyEye(
-      cam,
-      az,
-      tilt,
-      dist,
-      tx,
-      ty,
-      tz,
-      opts.spanBps,
-      opts.tiltMinBps,
-      opts.tiltMaxBps,
-      opts.distanceMin,
-      opts.distanceMax,
-    )
-    const lod = pickHeroLod(dist, opts.lodNear)
-    for (const pair of lodPairs) {
-      pair.high.visible = lod === "high"
-      pair.low.visible = lod === "low"
-    }
+  const flushPaint = (): void => {
+    paintFrame = undefined
+    if (!alive) return
+    applyCamera()
     applySun(lastTime)
-    const grade = opts.sun.gradeBps
-    let i = 0
-    while (i < unitMeshes.length) {
-      const unit = unitRows[i]
-      const mesh = unitMeshes[i]
-      if (unit !== undefined && mesh !== undefined) {
-        const pos = unitWorldPos(
-          unit,
-          packed.map,
-          lastTime,
-          landY,
-          opts.sun.minutesPerHour,
-          opts.unitShiftPeriod,
-          opts.unitShiftSpanBps,
-          grade,
-          opts.unitHeightBps,
-        )
-        mesh.position.set(pos.x, pos.y, pos.z)
-        mesh.lookAt(cam.position.x, pos.y, cam.position.z)
-      }
-      i += 1
+    if (look !== undefined) {
+      tickWaterFlow((globalThis.performance.now() - t0) / 1000)
+      tickEnvironment(skyRoot, cam)
     }
-    let vi = 0n
-    while (vi < BigInt(vehicleMeshes.length)) {
-      const start = opts.vehicles[Number(vi)]
-      const mesh = vehicleMeshes[Number(vi)]
-      if (start !== undefined && mesh !== undefined) {
-        const pos = poseVehicle(
-          packed.map,
-          start,
-          vi,
-          lastTime,
-          opts.sun.minutesPerHour,
-          opts.vehicleSpeed,
-          opts.vehicleStride,
-          opts.prngBytes,
-          opts.layoutSeed,
-          landY,
-          opts.vehicleHeightBps,
-          grade,
-        )
-        mesh.position.set(pos.x, pos.y, pos.z)
-        mesh.rotation.y = pos.yaw
-      }
-      vi += 1n
+    if (useMsaa) {
+      renderer.render(scene, cam)
+    } else {
+      composer.render()
     }
-    let di = 0
-    while (di < droneMeshes.length) {
-      const start = opts.drones[di]
-      const mesh = droneMeshes[di]
-      if (start !== undefined && mesh !== undefined) {
-        const blk = opts.blocks[Number(start.blockId)]
-        const pos = poseDrone(
-          start,
-          blk,
-          lastTime,
-          opts.sun.minutesPerHour,
-          opts.droneSpeed,
-          opts.droneAlt,
-          opts.droneBob,
-          opts.droneBobPeriod,
-          landY,
-          opts.droneHoverHeightBps,
-          grade,
-        )
-        mesh.position.set(pos.x, pos.y, pos.z)
-      }
-      di += 1
+    if (look !== undefined && alive && typeof globalThis.requestAnimationFrame === "function") {
+      schedulePaint()
     }
-    renderer.render(scene, cam)
   }
+
+  const schedulePaint = (): void => {
+    if (!alive) return
+    const raf = globalThis.requestAnimationFrame
+    if (typeof raf !== "function") {
+      flushPaint()
+      return
+    }
+    if (paintFrame !== undefined) return
+    paintFrame = raf(() => {
+      flushPaint()
+    })
+  }
+
+  const cancelPaint = (): void => {
+    if (paintFrame === undefined) return
+    const caf = globalThis.cancelAnimationFrame
+    if (typeof caf === "function") caf(paintFrame)
+    paintFrame = undefined
+  }
+
+  const resize = (): void => {
+    if (!alive) return
+    const w = opts.host.clientWidth
+    const h = opts.host.clientHeight
+    const width = w > 0 ? w : 1
+    const height = h > 0 ? h : 1
+    renderer.setSize(width, height, true)
+    composer.setSize(width, height)
+    bloom.resolution.set(width, height)
+    refit(width, height)
+    applyCamera()
+    schedulePaint()
+  }
+
+  const metaOf = (): IslandCaptureMeta => {
+    return {
+      rendererRevision: RENDERER_REVISION,
+      occupancyMode,
+      cityPhase,
+      cityTime: Number(lastTime),
+      exposure,
+      toneMapping: "ACESFilmic",
+      colorSpace: "srgb",
+      dpr: renderer.getPixelRatio(),
+      antialias: useMsaa,
+      fillSky,
+      fillGround,
+      meshopt,
+      loadError,
+      camera: {
+        fovDeg: cam.fov,
+        azimuthDeg: azimuthBpsToDeg(az, opts.spanBps),
+        elevationDeg: tiltBpsToElevationDeg(tilt, opts.spanBps),
+        distance: Number(dist),
+        target: { x: tx, y: ty, z: tz },
+        near: cam.near,
+        far: cam.far,
+        aspect: cam.aspect,
+        widthFill,
+      },
+    }
+  }
+
+  resize()
+  const ro = new ResizeObserver(() => {
+    resize()
+  })
+  ro.observe(opts.host)
 
   applySun(0n)
-  paint()
+  schedulePaint()
 
   return {
     code: "",
     setCityTime(cityTime: bigint): void {
       applySun(cityTime)
-      paint()
+      schedulePaint()
     },
     setCamera(tileX: bigint, tileY: bigint, zoomNum: bigint, zoomDen: bigint): void {
+      void tileX
+      void tileY
       void zoomNum
       void zoomDen
-      tx = Number(tileX)
-      tz = Number(tileY)
-      paint()
     },
     setOrbit(azimuthBps: bigint, tiltBps: bigint, distance: bigint): void {
+      if (orbitPoseChanged(az, tilt, dist, azimuthBps, tiltBps, distance)) {
+        orbitMoved = true
+      }
       az = azimuthBps
       tilt = tiltBps
       dist = distance
-      paint()
+      applyCamera()
+      schedulePaint()
     },
     hitAt(sx: bigint, sy: bigint): TileHit {
       const w = canvas.clientWidth
       const h = canvas.clientHeight
-      if (w <= 0 || h <= 0) return { tileX: 0n, tileY: 0n, objectId: "", kind: "", cell: "" }
+      if (w <= 0 || h <= 0) return emptyHit()
       ndc.x = (Number(sx) / w) * two - 1
       ndc.y = -((Number(sy) / h) * two - 1)
       ray.setFromCamera(ndc, cam)
-      const origin = ray.ray.origin
-      const dir = ray.ray.direction
-      return pickFromRay(
-        origin.x,
-        origin.y,
-        origin.z,
-        dir.x,
-        dir.y,
-        dir.z,
-        landY,
-        waterY,
-        packed.map,
-        lots,
-      )
+      const hits = ray.intersectObjects(pickMeshes, true)
+      const picked = pickObjectId(hits)
+      if (picked.objectId.length === 0) return emptyHit()
+      return {
+        tileX: 0n,
+        tileY: 0n,
+        objectId: picked.objectId,
+        kind: picked.kind,
+        cell: "",
+      }
+    },
+    selectObject(objectId: string): void {
+      if (objectId.length === 0) {
+        clearBuildingSelection(selection)
+        schedulePaint()
+        return
+      }
+      const root = findBuildingRoot(pickMeshes, objectId)
+      if (root === undefined) {
+        clearBuildingSelection(selection)
+        schedulePaint()
+        return
+      }
+      applyBuildingSelection(selection, root, objectId)
+      schedulePaint()
+    },
+    projectObject(objectId: string) {
+      const root = findBuildingRoot(pickMeshes, objectId)
+      if (root === undefined) return undefined
+      const w = canvas.clientWidth
+      const h = canvas.clientHeight
+      return projectBuilding(root, cam, w, h)
+    },
+    captureMeta(): IslandCaptureMeta {
+      return metaOf()
     },
     destroy(): void {
+      alive = false
+      clearBuildingSelection(selection)
+      cancelPaint()
       ro.disconnect()
+      if (skyRoot !== null) disposeEnvironment(skyRoot)
+      const env = scene.environment
+      if (env !== null) env.dispose()
       renderer.dispose()
       canvas.remove()
-      plane.dispose()
-      box.dispose()
-      unitGeo.dispose()
-      objMat.dispose()
-      walkerMat.dispose()
-      robotMat.dispose()
-      foamMat.dispose()
-      lanternMat.dispose()
-      furnitureMat.dispose()
-      plantMat.dispose()
-      hullMat.dispose()
-      vehicleMat.dispose()
-      droneMat.dispose()
-      for (const mat of Object.values(mats)) {
-        mat.dispose()
-      }
-      void decorInst
     },
   }
 }

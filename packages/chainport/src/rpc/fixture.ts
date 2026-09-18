@@ -9,6 +9,8 @@ import {
   encodeRoot,
   encodeSnapshot,
   parseDec,
+  parseDecList,
+  parseStringList,
   rpcMethod,
 } from "./codec.js"
 
@@ -97,6 +99,11 @@ async function dispatch(
       if (amount === undefined) return encodeErr(codes.API_MALFORMED)
       return encodeResult(await inner.stakeRegistry.stake(arg(args, 0), arg(args, 1), amount))
     }
+    case rpcMethod.unstake: {
+      const amount = asBig(arg(args, 2))
+      if (amount === undefined) return encodeErr(codes.API_MALFORMED)
+      return encodeResult(await inner.stakeRegistry.unstake(arg(args, 0), arg(args, 1), amount))
+    }
     case rpcMethod.snapshot: {
       const snap = await inner.stakeRegistry.snapshot(arg(args, 0))
       if (!snap.ok) return encodeErr(snap.code)
@@ -113,6 +120,29 @@ async function dispatch(
       const got = await inner.merkleRoots.getRoot(arg(args, 0), day)
       if (!got.ok) return encodeErr(got.code)
       return encodeRoot(got.root)
+    }
+    case rpcMethod.prizeDeposit: {
+      const kettle = asBig(arg(args, 2))
+      const amount = asBig(arg(args, 3))
+      if (kettle === undefined || amount === undefined) return encodeErr(codes.API_MALFORMED)
+      return encodeResult(await inner.prizeTreasury.deposit(arg(args, 0), arg(args, 1), kettle, amount))
+    }
+    case rpcMethod.prizeSlice: {
+      const kettle = asBig(arg(args, 2))
+      const players = parseStringList(arg(args, 3))
+      const amounts = parseDecList(arg(args, 4))
+      if (kettle === undefined || players === undefined || amounts === undefined) return encodeErr(codes.API_MALFORMED)
+      return encodeResult(await inner.prizeTreasury.slice(arg(args, 0), arg(args, 1), kettle, players, amounts))
+    }
+    case rpcMethod.prizeReturnUnsettled: {
+      const kettle = asBig(arg(args, 2))
+      if (kettle === undefined) return encodeErr(codes.API_MALFORMED)
+      return encodeResult(await inner.prizeTreasury.returnUnsettled(arg(args, 0), arg(args, 1), kettle))
+    }
+    case rpcMethod.prizeClaimPrize: {
+      const kettle = asBig(arg(args, 2))
+      if (kettle === undefined) return encodeErr(codes.API_MALFORMED)
+      return encodeResult(await inner.prizeTreasury.claimPrize(arg(args, 0), arg(args, 1), kettle))
     }
     case rpcMethod.chainId:
       return encodeChain(chain)

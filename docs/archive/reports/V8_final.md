@@ -1,6 +1,5 @@
 # V8 final
 
-`hud_shell`: каркас HUD плотности мокапа, вендоренные OFL-шрифты, L341–L344. `launch.deployed` пуст. Водяной знак 19. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **78**, хеш **`e9558ac9dbf5f20ed73b7e184e5a80687ecde16351abc7d6266022ea9bb0d51f`**, 622349 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 179 кадров, magenta 0, sha `acd419041ca4`. `layout_hash` `63aa7ce8cc09…` (геометрия не сдвинулась). Шрифты: pixel `af0af491df93` Press Start 2P, log `ba711a3085ff` IBM Plex Sans.
 

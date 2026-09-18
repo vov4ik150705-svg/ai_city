@@ -80,11 +80,6 @@ type AgentsFile = {
   readonly objectives: Readonly<Record<string, { readonly v1?: boolean } | undefined>>
 }
 
-type CompanionFile = {
-  readonly params: Readonly<Record<string, { readonly v?: number } | undefined>>
-  readonly nft_proceeds_sink?: { readonly v?: string }
-}
-
 type SeasonsFile = {
   readonly params: Readonly<Record<string, { readonly v?: number } | undefined>>
 }
@@ -220,10 +215,6 @@ function liveFlagGaps(): readonly string[] {
   for (const oid of ["train", "research", "focus"] as const) {
     if (agents.objectives[oid]?.v1 !== true) gaps.push(`${oid}.v1`)
   }
-  const companion = loadJson<CompanionFile>("content/params/companion.json")
-  if (companion.params["companion_rows_live"]?.v !== 1) gaps.push("companion_rows_live")
-  if (companion.params["companion_revenue_live"]?.v !== 0) gaps.push("companion_revenue_live")
-  if (companion.nft_proceeds_sink?.v !== "inference_bill") gaps.push("nft_proceeds_sink")
   const seasons = loadJson<SeasonsFile>("content/params/seasons.json")
   if (seasons.params["season_prizes_live"]?.v !== 1) gaps.push("season_prizes_live")
   if (seasons.params["prize_nft_share_bps"]?.v !== 0) gaps.push("prize_nft_share_bps")

@@ -107,6 +107,11 @@ function projectState(
     sections["wallet.protocol_studio_eth"] = asBigint(city["protocol_studio_eth"])
     const basket: { [ticker: string]: Json } = {
       notice: asText(city["prize_notice"]),
+      eth_pots: {
+        leaderboard: asBigint(state["treasury_leaderboard_eth"]),
+        farm: asBigint(state["treasury_farm_eth"]),
+        studio: asBigint(state["treasury_studio_eth"]),
+      },
     }
     try {
       const raw = walk(ctx.pack, ["generated", "seasons", "prize_assets"])

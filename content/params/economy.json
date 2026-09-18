@@ -86,16 +86,16 @@
       "why": "Доля траты Capital, уходящая в сжигание. Обеспечивающий её $CORP остаётся в vault и становится стабилизационным резервом"
     },
     "spend_fund_bps": {
-      "v": 5000,
+      "v": 6000,
       "u": "bps",
       "src": "DESIGN.md §2.3",
-      "why": "Доля траты, возвращающаяся в фонд зарплат: траты игроков — второй источник фонда после торгового сбора"
+      "why": "Доля траты, возвращающаяся в фонд зарплат: Capital spending is 40% burn, 60% payroll, 0% protocol"
     },
     "spend_protocol_bps": {
-      "v": 1000,
+      "v": 0,
       "u": "bps",
       "src": "DESIGN.md §2.3, §2.4",
-      "why": "Доля дома. Единственная часть траты, которую можно забирать из системы"
+      "why": "Closed: no Capital spending is routed to a protocol stock pool; spending is 40% burn and 60% payroll"
     },
     "payroll_daily_divisor": {
       "v": 14,
@@ -219,10 +219,10 @@
     "round_trip_cost_bps": "10000 − (10000 − creator_tax_bps) × (10000 − vault_fee_bps) × capital_anchor × (10000 − creator_tax_bps) / (10000³ × bank_withdraw_rate / 10000)",
     "trader_round_trip_cost_bps": "то же с bank_withdraw_rate_best вместо bank_withdraw_rate",
     "dex_visible_fee_bps": "creator_tax_bps + curve_fee_bps",
-    "creator_tax_fund_bps": "creator_tax_bps × (10000 − prize_creator_tax_share_bps − fragment_creator_tax_share_bps) / 10000",
+    "creator_tax_fund_bps": "creator_tax_bps × (10000 − prize_creator_tax_share_bps) / 10000",
     "creator_tax_prize_bps": "creator_tax_bps − creator_tax_fund_bps",
     "tax_split_total_bps": "creator_tax_fund_bps + creator_tax_prize_bps",
-    "fee_split": "fund / stocks / studio bps of DEX turnover: fund leg, then prize leg after floor studio take",
+    "fee_split": "fund / leaderboard stocks / active-work stocks / studio bps of DEX turnover: fund leg, then raw prize leg after floor studio take",
     "spend_split_total_bps": "spend_burn_bps + spend_fund_bps + spend_protocol_bps",
     "anchor_rate_raw": "P_corp_usd_8dec / capital_unit_usd на сиде; P_corp_usd = (T / tokens) × ETH/USD",
     "anchor_mint_rate": "min(ratchet(clamp(rate_raw, rate_ref × (1±band))), capital_anchor); вниз сразу, вверх не быстрее шага за сутки города; на сиде rate_ref = rate_raw",

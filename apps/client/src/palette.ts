@@ -38,24 +38,41 @@ export function rampHex(pal: Palette, ramp: string, index: bigint): string {
   return last ?? "000000"
 }
 
-/** HUD.md §7 tokens from the same ramps as sprites. Indices are ramp positions, not pack rates. */
+/** Desktop HUD v1.1 chrome. District accents stay corporator.hex ramps. */
+export const HUD_CHROME = {
+  blue: "#245A9A",
+  blueDark: "#1D4B86",
+  blueLight: "#2E68AA",
+  gradientTop: "#2C67AA",
+  gradientBottom: "#1E4F8C",
+  textPrimary: "#F4F7FA",
+  textSecondary: "#C7D5E3",
+  textMuted: "#8FA8C0",
+  interaction: "#45C7F4",
+  selected: "#FFB64A",
+  success: "#63D68A",
+  warning: "#F0B85B",
+  error: "#E97878",
+} as const
+
+/** HUD chrome from Desktop HUD v1.1; district accents from the same ramps as sprites. */
 export function hudCssVars(pal: Palette): { readonly [name: string]: string } {
   const hex = (ramp: string, index: bigint): string => `#${rampHex(pal, ramp, index)}`
   return {
-    "--bg-panel": hex("navy", 0n),
-    "--bg-panel-hi": hex("navy", 1n),
-    "--stroke": hex("navy", 3n),
-    "--text": hex("concrete", 6n),
-    "--text-dim": hex("concrete", 3n),
+    "--bg-panel": HUD_CHROME.blue,
+    "--bg-panel-hi": HUD_CHROME.blueLight,
+    "--stroke": HUD_CHROME.blueDark,
+    "--text": HUD_CHROME.textPrimary,
+    "--text-dim": HUD_CHROME.textMuted,
     "--accent-ai": hex("green", 2n),
     "--accent-energy": hex("crimson", 3n),
     "--accent-logi": hex("amber", 3n),
     "--accent-cons": hex("highlight", 0n),
     "--accent-auto": hex("navy", 4n),
     "--accent-fin": hex("blue", 3n),
-    "--good": hex("green", 3n),
-    "--bad": hex("crimson", 4n),
-    "--warn": hex("amber", 4n),
+    "--good": HUD_CHROME.success,
+    "--bad": HUD_CHROME.error,
+    "--warn": HUD_CHROME.warning,
   }
 }
 

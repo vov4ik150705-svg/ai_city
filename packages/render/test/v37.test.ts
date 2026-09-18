@@ -6,22 +6,11 @@ import { describe, expect, it } from "vitest"
 import { codes } from "@corporator/protocol"
 import {
   copiedFromCaps,
-  observeVisual3Budgets,
+  observeIslandBudgets,
   underVisualCaps,
   type VisualCaps,
 } from "../src/budget.ts"
 import { gpuCode } from "../src/gpu.ts"
-import { loadHeroCatalog, plantHeroes } from "../src/heroes.ts"
-import { islandBoxes, islandCells, landCells, plantWater, shoreFoam } from "../src/island.ts"
-import { isPackedWalker, plantUnits } from "../src/units.ts"
-import {
-  decorOfKind,
-  isPackedDecor,
-  isPackedDrone,
-  isPackedVehicle,
-  plantDecor,
-  type DecorKind,
-} from "../src/world.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const python = process.env["PYTHON"] ?? "python"
@@ -32,6 +21,8 @@ type PackFile = {
       readonly atlas_bytes?: number
       readonly atlas_page_count?: number
       readonly hero_catalog?: unknown
+      readonly island_mass_primitives?: number
+      readonly island_building_primitives?: number
     }
     readonly placement?: {
       readonly scene?: unknown
@@ -108,48 +99,14 @@ function capsOf(pack: PackFile): VisualCaps {
 describe.sequential("V3-7 construction", () => {
   it("visual3_budgets_measured", () => {
     const pack = loadPack()
-    const scene = pack.generated?.placement?.scene
-    const grid = asBig(pack.generated?.placement?.grid_size)
-    const cells = landCells(islandCells(scene, 1n, 0n))
-    const foam = shoreFoam(scene, 0n)
-    const sea = plantWater(grid, 0n)
-    expect(sea.span).toBe(Number(grid))
-    const catalog = loadHeroCatalog(pack.generated?.render?.hero_catalog)
-    const lots = plantHeroes(pack.generated?.placement?.reference_layout, catalog)
-    const heroIds: { [id: string]: true } = {}
-    for (const lot of lots) heroIds[lot.id] = true
-    let leftover = 0n
-    for (const row of islandBoxes(scene)) {
-      if (heroIds[row.id] === true) continue
-      if (isPackedWalker(row.id)) continue
-      if (isPackedDecor(row.id)) continue
-      if (isPackedVehicle(row.id) || isPackedDrone(row.id)) continue
-      leftover += 1n
-    }
-    const planted = plantDecor(scene)
-    const kinds: readonly DecorKind[] = ["lantern", "furniture", "plant", "hull"]
-    let families = 0n
-    for (const kind of kinds) {
-      if (decorOfKind(planted, kind).length > 0) families += 1n
-    }
-    const units = plantUnits(scene)
-    const vehicles = asBig(pack.generated?.placement?.vehicles?.length)
-    const drones = asBig(pack.generated?.placement?.drones?.length)
     const pages = asBig(pack.generated?.render?.atlas_page_count)
     const glowPages = pages > 0n ? 1n : 0n
     const bundle = bundleBytes()
     expect(bundle > 0n).toBe(true)
-    const obs = observeVisual3Budgets({
-      landTiles: BigInt(cells.length),
-      waterPlanes: 1n,
-      foamTiles: BigInt(foam.length),
-      leftoverBoxes: leftover,
-      walkers: BigInt(units.length),
-      decorFamilies: families,
-      vehicles,
-      drones,
-      heroesVisible: BigInt(lots.length),
-      sprites: asBig(islandBoxes(scene).length),
+    const obs = observeIslandBudgets({
+      massPrimitives: asBig(pack.generated?.render?.island_mass_primitives),
+      buildingPrimitives: asBig(pack.generated?.render?.island_building_primitives),
+      sprites: 0n,
       atlasBytes: asBig(pack.generated?.render?.atlas_bytes),
       pagePx: asBig(pack.sections?.render?.params?.atlas_page_px?.v),
       colorPages: pages,
@@ -160,6 +117,7 @@ describe.sequential("V3-7 construction", () => {
     expect(underVisualCaps(obs, caps)).toBe(true)
     expect(copiedFromCaps(obs, caps)).toBe(false)
     const md = readFileSync(join(repo, "docs/reports/GATE_VISUAL.md"), "utf8")
+    expect(/^# GATE_VISUAL —[^\n]*island/i.test(md)).toBe(true)
     expect(md.includes("observe.software")).toBe(true)
     expect(md.includes("observe.desktop")).toBe(true)
     expect(md.includes(`draw_calls=${obs.drawCalls.toString()}`)).toBe(true)
@@ -170,7 +128,7 @@ describe.sequential("V3-7 construction", () => {
     expect(md.includes("observedFromThresholds")).toBe(false)
     expect(pack.sections?.render?.params?.visual3_frame_live?.v).toBe(1)
     expect(pack.sections?.screens?.params?.missions_live?.v).toBe(0)
-    expect(pack.sections?.companion?.params?.companion_revenue_live?.v).toBe(0)
+    expect(pack.sections?.companion).toBeUndefined()
     expect(pack.sections?.seasons?.params?.prize_nft_share_bps?.v).toBe(0)
     expect(pack.sections?.fragments?.params?.fragment_nft_share_bps?.v).toBe(0)
   })
@@ -187,7 +145,7 @@ describe.sequential("V3-7 construction", () => {
     expect(out[1]).toBe("0")
     expect(gpuCode({ webgl2: false, webgl: false })).toBe(codes.RENDER_NO_GPU)
     const md = readFileSync(join(repo, "docs/reports/GATE_VISUAL.md"), "utf8")
-    expect(/^# GATE_VISUAL — v3 /m.test(md)).toBe(true)
+    expect(/^# GATE_VISUAL —[^\n]*island/im.test(md)).toBe(true)
     expect(md.includes("archive.v12.software")).toBe(true)
     expect(existsSync(join(repo, "art/preview/scene.png"))).toBe(true)
   })

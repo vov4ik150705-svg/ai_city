@@ -47,7 +47,7 @@
 
 ### Долги pending
 
-Сняты: `fragment_tick_wiring`, `season_tick_wiring`, `companion_tick_wiring`.
+Сняты: `fragment_tick_wiring`, `season_tick_wiring`.
 
 `sampler_corp_eth_endogenous` переформулирован, owner **T12**: харнесс (сценарий рядом с замороженным рядом) закрыт здесь; сервис сэмплера остаётся T12. Калибровка **не** пересчитывалась.
 
@@ -93,7 +93,7 @@
 
 1. **`lint.py` L01** — в цикл фикстур добавлены пары `brief_t11_tick` / `fixture_t11_tick_file` и `tick_aggregates` / `fixture_tick_aggregates_file`. Без этого L01 не видел новые файлы (или падал на неизвестных). Нового номера правила нет.
 
-2. **`attack.py` `construction_t8_pending_kept`** — ТЗ закрыло `companion_tick_wiring`, `season_tick_wiring`, `fragment_tick_wiring`. Конструкция требовала их на месте → CONSTRUCTION FAILED. Теперь требует оставшиеся T8/T12/T2/T10 долги и падает, если закрытые wiring снова открыты.
+2. **`attack.py` `construction_t8_pending_kept`** — ТЗ закрыло `season_tick_wiring`, `fragment_tick_wiring`. Конструкция требовала их на месте → CONSTRUCTION FAILED. Теперь требует оставшиеся T8/T12/T2/T10 долги и падает, если закрытые wiring снова открыты.
 
 3. **`attack.py` `construction_t8_exceptions_zero`** — D10 завела именованное исключение `tick_jitter_bps` / `remainder_mod_span`. Конструкция требовала пустой `exceptions`. Теперь разрешён только этот ключ с полем `remainder_mod_span`; любой другой extra — отказ.
 

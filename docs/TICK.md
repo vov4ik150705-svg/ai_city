@@ -1,6 +1,6 @@
 # Тик и аттестация
 
-Канон движка Corporator. Механика экономики — `DESIGN.md`. Интерфейс — `HUD.md`. Порядок шагов T3 — `docs/SIMULATION.md` §1. Стадии модификаторов — `docs/PROGRESSION.md` `T5.2`. Фрагменты и сезоны — `docs/PRIZES.md`. Компаньон — `docs/COMPANION.md`. Догон на экране — `docs/SCREENS.md` §5. Парки как счётчик — `docs/WORLD.md` `R-T10-1`. Числа баланса — `docs/BALANCE.md` и `content/out/GENERATED.md`, не копия.
+Канон движка Corporator. Механика экономики — `DESIGN.md`. Интерфейс — `HUD.md`. Порядок шагов T3 — `docs/SIMULATION.md` §1. Стадии модификаторов — `docs/PROGRESSION.md` `T5.2`. Фрагменты и сезоны — `docs/PRIZES.md`.  Догон на экране — `docs/SCREENS.md` §5. Парки как счётчик — `docs/WORLD.md` `R-T10-1`. Числа баланса — `docs/BALANCE.md` и `content/out/GENERATED.md`, не копия.
 
 Широкие таблицы — маркеры `<!-- GEN:... -->`, секции пака «T11: …», команда `python content/build.py`. Ни одного голого двухзначного литерала вне бэктиков, GEN и ссылок.
 
@@ -18,8 +18,7 @@
 
 | что | почему снаружи |
 |---|---|
-| LLM (сводка, советник, личность найма) | `DESIGN.md` §5.4: отказ → шаблон, экономика не замечает |
-| `companion.plan` | граница **до** тика; выход — записанный вход (`docs/COMPANION.md` §4) |
+| LLM (сводка, личность найма) | `DESIGN.md` §5.4: отказ → шаблон, экономика не замечает |
 | сэмплер TWAP `$CORP` и ETH/USD | T12, `docs/ARCHITECTURE.md` §7; тик читает поля входа, не сеть (`DESIGN.md` §2.3, BRIEF T11) |
 | конвейер выкупа как сервис | T12, `docs/ARCHITECTURE.md` §7; тик уже кладёт попавший ETH в `_buyback` |
 | REST/WS, деплой | T12, `docs/API.md`, `docs/ARCHITECTURE.md` §9 |
@@ -39,7 +38,7 @@ BRIEF: `tick(state, inputs) -> (state, records)`.
 
 `state` — экономика одного прогона (фонд, vault, города, `cfg`). Состав ключей T3-харнесса — `docs/archive/reports/T11_recon.md` §1.2; боевой город добавляет склады Energy/Compute, здания, агентов, леджер фрагментов, `nodes`, `park_slots`, кошелёк как **записанный** снимок, не RPC. Выводимое (`tick_index`, агрегаты) в params не кладётся.
 
-`inputs` — записанные входы этого тика. Обязательные в боевом пути: `pack_hash`, `city_time` (или `tick_index` для харнесса, см. §6), TWAP-поля, `feed_live`, оборот DEX, `price_sample_city_time`, команды компаньона (список; в дерево идёт только `companion_commands_hash`), `stake_snapshot` (`wallet.stake_tokens`: стейк гейтит районы, без него реплей `DESIGN.md` §6.3 не сходится; `R-T11-12`). Харнесс T3 сегодня без `city_time` — тик выводит часы из `tick_index` (D5). Пустой `pack_hash` пропускает сверку только если ключа нет; ключ есть и не совпал → `PACK_HASH` (D9). `wallet.corp_balance` и `wallet.chain` во вход тика не входят (T12).
+`inputs` — записанные входы этого тика. Обязательные в боевом пути: `pack_hash`, `city_time` (или `tick_index` для харнесса, см. §6), TWAP-поля, `feed_live`, оборот DEX, `price_sample_city_time`, `stake_snapshot` (`wallet.stake_tokens`: стейк гейтит районы, без него реплей `DESIGN.md` §6.3 не сходится; `R-T11-12`). Харнесс T3 сегодня без `city_time` — тик выводит часы из `tick_index` (D5). Пустой `pack_hash` пропускает сверку только если ключа нет; ключ есть и не совпал → `PACK_HASH` (D9). `wallet.corp_balance` и `wallet.chain` во вход тика не входят (T12).
 
 Возврат: новый `state` и список `DecisionRecord` layout v1. Заголовок тика (`TickInputHeader`) хост кладёт в дерево как лист `0`; чистая функция его считает, но не обязана класть в тот же список, что записи агентов — иначе верификатор путает типы листьев. Контракт: хост получает header из той же канонизации, что лист `0`.
 
@@ -60,7 +59,6 @@ BRIEF: `tick(state, inputs) -> (state, records)`.
 | 0 | I2 ставки входа дешевле выхода | `cfg` | — | L14; не живой курс |
 | 1 | записанные входы, сверка пака | `inputs` | `tick_index` (вывод), коды | D9 `PACK_HASH` |
 | 1б | часы | `city_time` / индекс, `cfg` якоря | `day`, `hour`, `weekday` | tick `0` = полдень дня `1` |
-| 1в | команды компаньона как вход | `inputs.commands` | слот/задача агента | не `plan()`; D8 |
 | 2 | курс минта | TWAP-вход, EMA, храповик | `mint_rate`, `STALE_PRICE` | §7; целые сутки на `hour==0` |
 | 2б | оборот DEX | `dex_turnover_usd_8dec` | ETH казны | в SIMULATION §1 не назван; не выкидывать |
 | 2в | ветка `06:00` | `efficiency_recalc_hour` | E районов, settle фрагментов; settle призов на границе периода | D4; не храповик |
@@ -222,7 +220,7 @@ T11 **устанавливает** layout, не меняет его (D2). Миг
 | `stage_bps` | object | base and post; empty stack is BPS |
 <!-- /GEN -->
 
-`derived.record_fields` — таблица выше. Заголовок `TickInputHeader` — лист `0` тика. Поля пака: `layout_version`, `city_id`, `tick_index`, `city_time`, `pack_hash`, `corp_eth_wei_per_whole`, `eth_usd_8dec`, `feed_live`, `dex_turnover_usd_8dec`, `price_sample_city_time`, `companion_commands_hash`, `prev_state_hash`, `stake_snapshot`. Записи — листья `1`…n по `agent_id` UTF-8. Без заголовка реплей `DESIGN.md` §6.3 не из чего считать.
+`derived.record_fields` — таблица выше. Заголовок `TickInputHeader` — лист `0` тика. Поля пака: `layout_version`, `city_id`, `tick_index`, `city_time`, `pack_hash`, `corp_eth_wei_per_whole`, `eth_usd_8dec`, `feed_live`, `dex_turnover_usd_8dec`, `price_sample_city_time`, `prev_state_hash`, `stake_snapshot`. Записи — листья `1`…n по `agent_id` UTF-8. Без заголовка реплей `DESIGN.md` §6.3 не из чего считать.
 
 Имена: канон `output`, единица в `payroll_ratio_bps` / `district_efficiency_bps` (`R-T11-2`).
 
@@ -295,23 +293,26 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 
 ---
 
-## §12. Проводка T5, фрагментов, сезонов, компаньона
+## §12. Проводка T5, фрагментов и сезонов
 
 **T5.** `apply_stack` на `city["nodes"]`. Пустой стек — тождество `BPS`, полосы T2 не двигаются (D6, `R-T11-6` / `R-T5-12` наполовину). Стадии в порядке T5.2: `base` до проверки входов, `post` после выхода до payroll. Слот `productivity` в сплаве — тождество; измерение — §11.
 
 **Фрагменты.** Начисление только если `fragments.tick_accrues` (валидный оплаченный маяк). База — gross до `payroll_ratio` (`DESIGN.md` §2.9, `docs/PRIZES.md`). Дельта в записи. Settlement в час `efficiency_recalc_hour`. Неоплаченный тик — дельта `0` (`L219`).
 
-**Сезоны.** `I_day` на закрытии суток. `season_prizes_live = 0` — ранг есть, минт `$CORP` нет; после пересчёта пака флаг 1 платит Zipf с пола, без второй формулы (`L220`, `docs/PRIZES.md`).
+**Сезоны.** `I_day` на закрытии суток. Текущий pack имеет
+`season_prizes_live = 1`: ранг и sizing призов включены, а фактическая
+передача Stock Tokens всё равно требует внешнего custody/claim-провода
+(`L220`, `docs/PRIZES.md`).
 
-**Компаньон.** `plan()` до тика. Команды во входах. Догон без пересчёта (`companion_replan_on_login = 0`). В записи новых полей нет (`L221`). Нулевые величины v1 — `docs/COMPANION.md`.
 
-Нулевые входы на когорте T3: фрагменты/команды/узлы не двигают кассу.
 
 ---
 
 ## §13. Версионирование
 
-`pack_version` растёт при любой публикации (`21` → `22` на этом шаге). `rules_version` `0.15.0` — **major**: выход записанных смен и порядок стадий (`docs/CONTENT.md` §5).
+`pack_version` растёт при любой публикации. Текущий reference pack —
+`138`, `rules_version` — `0.24.0`, `layout_version` — `1`. Исторические
+значения конкретного шага не являются текущим pack.
 
 Совместимое (minor): новая сущность, которой не было; текст без смены слотов; ключ, который никто не читает; обоснование.
 
@@ -425,7 +426,11 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 
 ### `R-T11-13` — эндогенный ряд `corp_eth` (риск, не правка баланса)
 
-Сценарий `endogenous_corp_eth` заведён рядом с замороженным рядом. Прогон дал `A_t2 = 32473` при окне калибровки `[12278, 15787]`, `in_window = 0`. Базовая калибровка не пересчитывалась, ставки не трогали.
+Сценарий `endogenous_corp_eth` заведён рядом с замороженным рядом.
+Исторический прогон дал `A_t2 = 32473` вне старого окна
+`[12278, 15787]`; это не текущая pack-калибровка. Текущий static envelope
+L42 — `[10230, 13154]`, а динамическая проверка нового target остаётся
+отдельным вопросом. Базовые ставки не подгонялись под этот сценарий.
 
 Это **не** доказанное свойство экономики: параллельно проверяется, не артефакт ли пробы (моделируется ли давление продаж игроков наравне с выкупом). Решение — T2/T3 до запуска, при любом исходе проверки: либо ряд/окно, либо проба. T11 окно и ставки не двигает.
 
@@ -517,7 +522,6 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 | `L218` | Stability has one definition in seasons |
 | `L219` | fragments accrue only on a paid beacon tick |
 | `L220` | live=0 mints no CORP; live=1 needs recount |
-| `L221` | companion commands are an input, not a record field |
 | `L222` | every T11 state_source has a producer |
 | `L223` | jitter % span is the named exception |
 | `L224` | `brief_t11_tick` items appear in TICK.md |

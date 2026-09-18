@@ -78,8 +78,7 @@ contract P3AuditTest {
             guardian,
             safetySigner,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S,
-            1
+            PackConstants.VOUCHER_TTL_S
         );
         address[] memory stocks = new address[](6);
         stocks[0] = address(nvda);
@@ -88,7 +87,7 @@ contract P3AuditTest {
         stocks[3] = address(uint160(0x103));
         stocks[4] = address(uint160(0x104));
         stocks[5] = address(uint160(0x105));
-        prizes = new PrizeTreasury(bot, guardian, safetySigner, 1, stocks);
+        prizes = new PrizeTreasury(bot, guardian, safetySigner, stocks);
         stakes = new StakeRegistry(address(this));
         stakes.setToken("NVDA", address(nvda));
         stakes.setToken("TSLA", address(fee));
@@ -111,8 +110,6 @@ contract P3AuditTest {
         vm.stopPrank();
         vault.mintCapital(player, 100);
         require(vault.totalBacking() <= corp.balanceOf(address(vault)), "backing");
-        vm.prank(guardian);
-        vault.pause();
         vm.prank(safetySigner);
         vault.refundPlayer(player, 40);
         require(vault.totalBacking() <= corp.balanceOf(address(vault)), "after");
@@ -136,8 +133,6 @@ contract P3AuditTest {
         vault.deposit(player, 50);
         vm.stopPrank();
         vault.mintCapital(player, 50);
-        vm.prank(guardian);
-        vault.pause();
         vm.prank(guardian);
         vm.expectRevert();
         vault.refundPlayer(player, 1);
@@ -206,36 +201,93 @@ contract P3AuditTest {
         amounts[0] = 40;
         vm.prank(safetySigner);
         prizes.slice(address(nvda), 0, players, amounts);
-        vm.prank(guardian);
-        prizes.pause();
         vm.prank(bot);
         prizes.returnUnsettled(address(nvda), 0);
         assertEq(prizes.owed(0, address(nvda), player), 40);
-        vm.prank(player);
-        vm.expectRevert();
-        prizes.claimPrize(address(nvda), 0);
-        vm.warp(block.timestamp + 1);
-        vm.prank(guardian);
-        prizes.unpause();
         vm.prank(player);
         prizes.claimPrize(address(nvda), 0);
         assertEq(nvda.balanceOf(player), 540);
     }
 
-    function test_pause_blocks_claim_and_deposit() public {
-        vm.startPrank(bot);
-        nvda.approve(address(prizes), 10);
-        prizes.deposit(address(nvda), 0, 10);
+    function test_voucher_reserves_and_blocks_refund() public {
+        vm.startPrank(player);
+        corp.approve(address(vault), 100);
+        vault.deposit(player, 100);
         vm.stopPrank();
-        vm.prank(guardian);
-        prizes.pause();
-        vm.startPrank(bot);
+        vault.mintCapital(player, 100);
+        uint256 issuedAt = block.timestamp;
+        vault.issueVoucher("r1", player, 60, issuedAt);
+        assertEq(vault.reservedOf(player), 60);
+        assertEq(vault.availableOf(player), 40);
+        vm.prank(safetySigner);
         vm.expectRevert();
-        prizes.deposit(address(nvda), 0, 1);
+        vault.refundPlayer(player, 41);
+        vm.prank(safetySigner);
+        vault.refundPlayer(player, 40);
+        assertEq(vault.availableOf(player), 0);
+        vault.presentVoucher("r1", player, 60, issuedAt);
+        assertEq(vault.reservedOf(player), 0);
+        assertEq(vault.backingOf(player), 0);
+        assertEq(corp.balanceOf(player), 100);
+    }
+
+    function test_expired_voucher_releases_reservation() public {
+        vm.startPrank(player);
+        corp.approve(address(vault), 50);
+        vault.deposit(player, 50);
         vm.stopPrank();
+        vault.mintCapital(player, 50);
+        uint256 issuedAt = block.timestamp;
+        vault.issueVoucher("exp", player, 50, issuedAt);
+        vm.warp(issuedAt + PackConstants.VOUCHER_TTL_S + 1);
+        vm.expectRevert();
+        vault.presentVoucher("exp", player, 50, issuedAt);
+        vault.releaseExpiredVoucher("exp");
+        assertEq(vault.reservedOf(player), 0);
+        assertEq(vault.availableOf(player), 50);
+        vm.expectRevert();
+        vault.releaseExpiredVoucher("exp");
+        vm.prank(safetySigner);
+        vault.refundPlayer(player, 50);
+        assertEq(vault.backingOf(player), 0);
+        assertEq(corp.balanceOf(player), 100);
+    }
+
+    function test_claim_refund_merkle_without_pause() public {
+        vm.startPrank(player);
+        corp.approve(address(vault), 80);
+        vault.deposit(player, 80);
+        vm.stopPrank();
+        vault.mintCapital(player, 80);
+        bytes32 leaf = keccak256(abi.encodePacked(player, uint256(30)));
+        vm.prank(guardian);
+        vault.setRefundRoot(leaf);
+        bytes32[] memory proof;
+        vm.prank(player);
+        vault.claimRefund(30, proof);
+        assertEq(vault.backingOf(player), 50);
+        assertEq(corp.balanceOf(player), 50);
         vm.prank(player);
         vm.expectRevert();
-        prizes.claimPrize(address(nvda), 0);
+        vault.claimRefund(30, proof);
+    }
+
+    function test_holder_unstake() public {
+        vm.startPrank(player);
+        nvda.approve(address(stakes), 200);
+        stakes.stake(player, "NVDA", 200);
+        vm.stopPrank();
+        assertEq(nvda.balanceOf(player), 300);
+        vm.prank(player);
+        stakes.unstake("NVDA", 80);
+        assertEq(stakes.amountOf(player, keccak256(bytes("NVDA"))), 120);
+        assertEq(nvda.balanceOf(player), 380);
+        vm.prank(guardian);
+        vm.expectRevert();
+        stakes.unstake("NVDA", 1);
+        vm.prank(player);
+        vm.expectRevert();
+        stakes.unstake("NVDA", 121);
     }
 
     function testFuzz_depositGot(uint96 amount) public {

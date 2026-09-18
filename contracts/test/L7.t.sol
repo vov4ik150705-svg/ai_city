@@ -45,8 +45,7 @@ contract L7Test {
             guardian,
             safetySigner,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S,
-            1
+            PackConstants.VOUCHER_TTL_S
         );
         address[] memory stocks = new address[](6);
         uint256 i;
@@ -54,7 +53,7 @@ contract L7Test {
             stocks[i] = address(uint160(0x100 + i));
             i += 1;
         }
-        prizes = new PrizeTreasury(address(this), guardian, safetySigner, 1, stocks);
+        prizes = new PrizeTreasury(address(this), guardian, safetySigner, stocks);
         stakes = new StakeRegistry(address(this));
         roots = new MerkleRoots(address(this));
         corp.transfer(playerA, OVER_253);

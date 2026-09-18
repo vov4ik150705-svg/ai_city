@@ -154,5 +154,3 @@ Construction T7 (все held): Zipf floor; N=1; N=0; opt>lazy; coverage 0 opened
 ---
 
 ## 8. Следующий шаг
-
-**T8** — компаньон NFT как кран (`prize_nft_share_bps` / `fragment_nft_share_bps` остаются 0, пока нет companion params). T9 — экраны клейма и `LEADERBOARD`. T11 — проводка I_day и settle в тик.

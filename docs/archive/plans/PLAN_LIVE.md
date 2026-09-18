@@ -25,6 +25,7 @@
 
 Кодовая фаза **не проектировала заново T0–T12**. Живая фаза **не проектирует заново C0–C11**. Она поднимает процессы, провод, арт и чейн поверх уже зелёного гейта.
 
+**Рекомендация порядка:** L0 форма → L1 клейм (пакет, не процесс) → L2 процессы → L3 клиент на сервере → L4 Postgres/compose → L5a земля и вода, L5b спрайты — оба параллельны L2–L4, но L5a строго раньше L5b → L6 owner, когда фид ответит → L7 контракты → L8 живой RPC → L9 запуск на pons. Районы AMZN/MSFT/COIN, Scientist, Manager — **не эта фаза** (`DESIGN.md` §11).
 ---
 
 ## §2. Принцип фазы
@@ -40,7 +41,6 @@
 | Art | 19 спрайтов, отказ тайла | ничем; параллелен Runtime |
 | Chain | Solidity четырёх групп, живой `eth_*`, pons | Surface на mock достаточен, чтобы не отлаживать контракт и HUD сразу |
 
-**Рекомендация порядка:** L0 форма → L1 клейм (пакет, не процесс) → L2 процессы → L3 клиент на сервере → L4 Postgres/compose → L5a земля и вода, L5b спрайты — оба параллельны L2–L4, но L5a строго раньше L5b → L6 owner, когда фид ответит → L7 контракты → L8 живой RPC → L9 запуск на pons. Районы AMZN/MSFT/COIN, Scientist, Manager, ненулевой компаньон — **не эта фаза** (`DESIGN.md` §11).
 
 ---
 
@@ -71,8 +71,8 @@
 Как проверяется: eslint на `Date.now` в `apps/client/src` с allowlist `clock.ts`; тест `client_boot_requires_city_time`.
 
 ### `D-L-5`. Клейм приза живой, миссии нет
+Решение: `leaderboard_claim_live=1`, действие `v1=live`, `requires` без `v1_feature`. `missions_live` остаётся 0 / stub (`DESIGN.md` §11, HUD §9).
 
-Решение: `leaderboard_claim_live=1`, действие `v1=live`, `requires` без `v1_feature`. `missions_live` и `autopilot` остаются 0 / stub (`DESIGN.md` §11, HUD §9).
 Причина: C11 включил выплату в движке, экран лжёт (`R-L-2`). Миссии в §11 нет.
 Как проверяется: `stub_endpoint_no_spend` больше не включает `leaderboard_claim`; отказ демо — `DEMO_NO_PRIZE`, не `FEATURE_NOT_IN_V1`.
 
@@ -239,10 +239,10 @@
 - **цель.** Записать шесть `S_min` и точку цены LLM, когда есть датированный снимок. Без снимка этап не стартует.
 - **строка ROADMAP.** `owner_freeze`.
 - **входы.** `docs/CONTENT.md` §1.4, `DESIGN.md` §4.5 / §12, `pending.json`, Chainlink `latestRoundData`, счёт провайдера LLM.
-- **выходы.** Шесть записей `districts.stake.s_min.<TICKER>` с единицей токена — **не** `usd` и не `usd_8dec`, иначе `L39` падает первым же полем; `districts.stake.snapshot` из `null` в объект с обязательным `at` (дата) и хотя бы одним из `src` / `rpc` — форма именно такая, поля `snapshot_at` в паке нет (`R-L-12`); `district_stake_reference` как derived; закрытие `district_stake_usd_assumption`; `companion_llm_price_snapshot`; дата снимка в `why`; пак bump.
+- **выходы.** Шесть записей `districts.stake.s_min.<TICKER>` с единицей токена — **не** `usd` и не `usd_8dec`, иначе `L39` падает первым же полем; `districts.stake.snapshot` из `null` в объект с обязательным `at` (дата) и хотя бы одним из `src` / `rpc` — форма именно такая, поля `snapshot_at` в паке нет (`R-L-12`); `district_stake_reference` как derived; закрытие `district_stake_usd_assumption`; дата снимка в `why`; пак bump.
+- **критерий готовности.** PENDING без `district_stake_*`; порог в токене, не в долларе. Три красных прогона показаны руками: `s_min` с `u: "usd"`; `s_min` при `snapshot: null`; `snapshot` без `at`. Каждый даёт `L39`.
 - **команда гейта.** `python content/lint.py && python content/attack.py --only L39`.
 - **инвариантные тесты.** `L39`, `L41` (не ломается Handbook); новый `smin_frozen_in_tokens`.
-- **критерий готовности.** PENDING без `district_stake_*` и без `companion_llm_price_snapshot`; порог в токене, не в долларе. Три красных прогона показаны руками: `s_min` с `u: "usd"`; `s_min` при `snapshot: null`; `snapshot` без `at`. Каждый даёт `L39`.
 - **объём.** S кода, блокер — внешний фид.
 - **зависит от.** L0. Не зависит от L7: порог — параметр, стейк уже порт.
 - **риски этапа.** `RK-L-9`.
@@ -346,7 +346,8 @@
 
 **`R-L-7`.** `R-C-22` (watermark `prize_live_min_rules_minor` в том же паке) жив. Статус: не чинить отдельным этапом, пока L не добавляет второй watermark; если понадобится — правило «floor не в том же объекте, что флаг».
 
-**`R-L-8`.** Автопилот и миссии stub. Статус: **принято**, канон §11. Не закрывать в L1.
+**`R-L-8`.** Миссии остаются stub. Статус: **принято**, канон §11. Не закрывать в L1.
+
 
 **`R-L-9`.** `bank_withdraw_rate_ceiling_only` и `exit_uncovered_at_band_floor` остаются owner/T3. Статус: не L-фаза; не выдумывать.
 
@@ -358,7 +359,6 @@
 **`R-L-12`.** Первая редакция называла снимок фида полем `snapshot_at`.
 Было: `snapshot_at` в выходах L6. Стало: `L39` читает `districts.stake.snapshot` как объект с `at` и `src`/`rpc`. Статус: **закрыто в L6**.
 
-**`R-L-19`.** Критерий L6 требовал снять `companion_llm_price_snapshot` из pending. Счёта провайдера нет; точку не выдумывать (`D-L-10`). Статус: принято; pending остаётся; `L141` держит.
 
 **`R-L-21`.** viem не встал (TLS registry). Статус: принято в L8; ABI локальный.
 
@@ -385,8 +385,8 @@
 ---
 
 ## §8. Что не входит в живую фазу
+- Играбельные AMZN, MSFT, COIN; Scientist; Manager; research шире трёх узлов; NFT-кран — `DESIGN.md` §11, отдельная контент-фаза после L3.
 
-- Играбельные AMZN, MSFT, COIN; Scientist; Manager; research шире трёх узлов; ненулевые величины компаньона; NFT-кран — `DESIGN.md` §11, отдельная контент-фаза после L3.
 - Локализация кроме `ru.json`.
 - Перенос `content/sim.py` в TS (`R-C-7`).
 - Второй пул `$CORP`, игровой NVDA, минт Capital без депозита.
@@ -426,7 +426,6 @@ python content/attack.py --jobs 8   # перед публикацией пака
 | `district_stake_usd_assumption` | T3 | **закрыто L6** |
 | `bank_withdraw_rate_ceiling_only` | T3 | не L; `R-T3-1` |
 | `exit_uncovered_at_band_floor` | owner | не L |
-| `companion_llm_price_snapshot` | owner | **R-L-19**: L6 без счёта провайдера; точку не выдумывать |
 | `build_tile_refusal` | T10 | **закрыто L5b** |
 | 19 sprite todo | T10 | **закрыто L5b** |
 

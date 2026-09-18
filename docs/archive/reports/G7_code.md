@@ -21,5 +21,3 @@
 ## Документы
 
 `docs/BALANCE.md` §6: флаг, конверт не подогнан. `docs/PROGRESSION.md` §7: семья C(6,3) + `cube_slice`. `docs/CONTENT.md` L313, 313 правил, пак 62 / 562954. `docs/SIMULATION.md` §10: T8 перегоняет sim; G7 ратифицирует флагом.
-
-Круг 1445, вход 200, выход 910, mint 51, окно A `[12275, 15783]`. Калибровка A_t2 14217. `season_prizes_live` 1. `companion_revenue_live` 0. `demo_companion` 0.

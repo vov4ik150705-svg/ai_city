@@ -76,7 +76,7 @@ export type Observe3Args = {
   readonly bundleBytes: bigint
 }
 
-/** Measured v3 graph. Callers pass pack-derived mesh counts; caps stay outside. */
+/** Measured v3 graph. Archive of the cell frame; caps stay outside. */
 export function observeVisual3Budgets(args: Observe3Args): VisualObserved {
   const rgba = 1n + 1n + 1n + 1n
   const pageArea = args.pagePx * args.pagePx
@@ -91,6 +91,30 @@ export function observeVisual3Budgets(args: Observe3Args): VisualObserved {
       args.vehicles +
       args.drones +
       args.heroesVisible,
+    sprites: args.sprites,
+    atlasBytes: args.atlasBytes,
+    textureBytes: pageArea * rgba * args.colorPages + pageArea * args.glowPages,
+    bundleBytes: args.bundleBytes,
+  }
+}
+
+export type ObserveIslandArgs = {
+  readonly massPrimitives: bigint
+  readonly buildingPrimitives: bigint
+  readonly sprites: bigint
+  readonly atlasBytes: bigint
+  readonly pagePx: bigint
+  readonly colorPages: bigint
+  readonly glowPages: bigint
+  readonly bundleBytes: bigint
+}
+
+/** Measured authored-island graph. Callers pass file-derived counts; caps stay outside. */
+export function observeIslandBudgets(args: ObserveIslandArgs): VisualObserved {
+  const rgba = 1n + 1n + 1n + 1n
+  const pageArea = args.pagePx * args.pagePx
+  return {
+    drawCalls: args.massPrimitives + args.buildingPrimitives,
     sprites: args.sprites,
     atlasBytes: args.atlasBytes,
     textureBytes: pageArea * rgba * args.colorPages + pageArea * args.glowPages,

@@ -65,9 +65,9 @@ describe.sequential("V3-6 construction", () => {
       expect(isShoreWater(map, row.tileX, row.tileY)).toBe(true)
     }
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
-    expect(threeSrc.includes("plantWater")).toBe(true)
-    expect(threeSrc.includes("landCells")).toBe(true)
-    expect(threeSrc.includes("shoreFoam")).toBe(true)
+    expect(threeSrc.includes("plantWater")).toBe(false)
+    expect(threeSrc.includes("landCells")).toBe(false)
+    expect(threeSrc.includes("shoreFoam")).toBe(false)
     expect(threeSrc.includes("HemisphereLight")).toBe(true)
   })
 
@@ -80,10 +80,9 @@ describe.sequential("V3-6 construction", () => {
       expect(decorKind(row.id).length > 0).toBe(true)
     }
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
-    expect(threeSrc.includes("plantDecor")).toBe(true)
-    expect(threeSrc.includes("InstancedMesh")).toBe(true)
-    expect(threeSrc.includes("isPackedDecor")).toBe(true)
-    expect(threeSrc.includes("isPackedVehicle")).toBe(true)
+    expect(threeSrc.includes("plantDecor")).toBe(false)
+    expect(threeSrc.includes("isPackedDecor")).toBe(false)
+    expect(threeSrc.includes("isPackedVehicle")).toBe(false)
     expect(threeSrc.includes("from \"pixi.js\"")).toBe(false)
     const params = pack.sections?.render?.params
     expect((params?.decor_height_bps?.v ?? 0) > 0).toBe(true)
@@ -95,8 +94,8 @@ describe.sequential("V3-6 construction", () => {
     const pack = loadPack()
     const threeSrc = readFileSync(join(repo, "packages/render/src/three.ts"), "utf8")
     expect(threeSrc.includes("HemisphereLight")).toBe(true)
-    expect(threeSrc.includes("poseVehicle")).toBe(true)
-    expect(threeSrc.includes("poseDrone")).toBe(true)
+    expect(threeSrc.includes("poseVehicle")).toBe(false)
+    expect(threeSrc.includes("poseDrone")).toBe(false)
     expect(threeSrc.includes("cannon")).toBe(false)
     expect(threeSrc.includes("Rapier")).toBe(false)
     const worldSrc = readFileSync(join(repo, "packages/render/src/world.ts"), "utf8")

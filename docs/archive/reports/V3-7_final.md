@@ -1,6 +1,5 @@
 # V3-7 final — паспорт входа в P7
 
-`visual3_close`: фаза кадра v3 закрыта числами. `launch.deployed` пуст. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19. P7 не начат. Pixi не удалён.
 
 Пак **128**, хеш **`104c68788d738984332b884f9d67d576866b2eb82655d2c7d73bae5815d330cf`**, 655227 байт. `rules_version` 0.22.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783], A_t2 **14217**. `layout_hash` `7c090c51a1ea…`. `visual3_frame_live=1`.
 

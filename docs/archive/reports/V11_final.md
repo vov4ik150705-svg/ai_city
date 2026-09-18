@@ -1,6 +1,5 @@
 # V11 final
 
-`attest_live`: смены уходят fail-open — минутный корень, суточный CID, бейдж Verified только при обоих. `launch.deployed` пуст. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **81**, хеш **`05628a0b839d0e351a8d23666cb84e553ac5ba46277b9995fb2b197ee938f8e8`**, 628281 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 179 кадров, magenta 0. `layout_hash` `63aa7ce8cc09…` (геометрия не от `city_id`).
 

@@ -1,5 +1,18 @@
-import { asBig, asDict, asList, asStr, paramV, pow10 } from "./values.js"
+import { asBig, asDict, asList, asStr, paramV, pow10, TickError } from "./values.js"
 import type { Dict } from "./values.js"
+
+function requiredParamV(section: unknown, name: string): bigint {
+  const sec = asDict(section)
+  const params = asDict(sec["params"])
+  if (!(name in params)) {
+    throw new TickError("INDEX", 0n, name, { i: 0n })
+  }
+  const row = asDict(params[name])
+  if (!("v" in row)) {
+    throw new TickError("INDEX", 0n, name, { i: 0n })
+  }
+  return asBig(row["v"])
+}
 
 function firstOf(list: unknown, fallback: bigint): bigint {
   const xs = asList(list)
@@ -52,11 +65,16 @@ export function loadConfig(pack: Dict): Dict {
   const burn = paramV(econ, "spend_burn_bps")
   const fund = paramV(econ, "spend_fund_bps")
   const proto = paramV(econ, "spend_protocol_bps")
-  const bps = burn + fund + proto
+  const spendBps = burn + fund + proto
+  const four = 1n + 1n + 1n + 1n
+  const shareBps = pow10(four)
+  const frag = asDict(d["fragments"])
   const cfg: Dict = {
     wei,
     ticks_day: ticksDay,
-    bps,
+    bps: spendBps,
+    spend_bps: spendBps,
+    share_bps: shareBps,
     capital_anchor: paramV(econ, "capital_anchor"),
     capital_unit_usd: paramV(econ, "capital_unit_usd"),
     anchor_band_bps: paramV(econ, "anchor_band_bps"),
@@ -68,6 +86,7 @@ export function loadConfig(pack: Dict): Dict {
     bank_markup_floor_bps: paramV(econ, "bank_markup_floor_bps"),
     creator_tax_bps: paramV(econ, "creator_tax_bps"),
     prize_creator_tax_share_bps: paramV(asDict(d["seasons"]), "prize_creator_tax_share_bps"),
+    studio_eth_share_bps: paramV(econ, "studio_eth_share_bps"),
     spend_burn_bps: burn,
     spend_fund_bps: fund,
     spend_protocol_bps: proto,
@@ -124,6 +143,24 @@ export function loadConfig(pack: Dict): Dict {
     workshop_energy: firstOf(levelEnergy["workshop"], 0n),
     power_out: asBig(gb["power_node_output_per_tick"]),
     bank_l1_share_bps: asBig(bank1["share_bps"]),
+    bank_levels: bankLevels,
+    population_thresholds: (() => {
+      const direct = asDict(gb["population_threshold"])
+      if (Object.keys(direct).length > 0) return direct
+      const levels = asDict(gb["city_levels"])
+      const out: Dict = {}
+      for (const k of Object.keys(levels)) {
+        out[k] = asBig(asDict(levels[k])["population_threshold"])
+      }
+      return out
+    })(),
+    xp_to_next: asDict(asDict(gen["agents"])["xp_to_next"]),
+    slots_at_city_level: asDict(asDict(gen["agents"])["slots_at_city_level"]),
+    city_level_max: asBig(asDict(gen["agents"])["city_level_at_slots_cap"], 7n),
+    agent_level_max: paramV(bal, "agent_level_max"),
+    agent_level_gain_bps: paramV(bal, "agent_level_gain_bps"),
+    offline_hard_cap: 18n,
+    unstake_grace_city_hours: paramV(econ, "unstake_grace_city_hours"),
     schedules: asDict(time["schedules"]),
     stale_code: "STALE_PRICE",
     bank_limit_code: "BANK_DAILY_LIMIT_REACHED",
@@ -163,6 +200,7 @@ export function loadConfig(pack: Dict): Dict {
     merkle_leaf_domain_byte: paramV(asDict(d["attest"]), "merkle_leaf_domain_byte"),
     merkle_node_domain_byte: paramV(asDict(d["attest"]), "merkle_node_domain_byte"),
   }
+  cfg["active_work_creator_tax_bps"] = requiredParamV(frag, "active_work_creator_tax_bps")
   cfg["seed_corp_wei"] = poolPriceWeiPerWhole(
     asBig(cfg["pool_eth_seed"]),
     asBig(cfg["pool_corp_seed"]),

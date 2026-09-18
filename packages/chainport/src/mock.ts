@@ -1,6 +1,7 @@
 import { codes } from "@corporator/protocol"
 import type { AssetPort, MerkleRootsPort, RootResult, SnapshotResult, StakeRegistryPort, VaultPort } from "./port.js"
 import type { CorpTokenPort } from "./port.js"
+import { createPrizeTreasuryPort } from "./prize.js"
 import {
   amountOk,
   err,
@@ -22,6 +23,8 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
   const corp = new Map<string, bigint>()
   const capital = new Map<string, bigint>()
   const pending = new Map<string, bigint>()
+  const backing = new Map<string, bigint>()
+  const reserved = new Map<string, bigint>()
   const issued = new Map<string, Voucher>()
   const used = new Set<string>()
   const stakes = new Map<string, Map<string, bigint>>()
@@ -70,6 +73,7 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
       const queued = mapGet(pending, account)
       if (queued <= 0n) return err(codes.API_MALFORMED)
       pending.set(account, 0n)
+      backing.set(account, mapGet(backing, account) + queued)
       capital.set(account, mapGet(capital, account) + capitalAmount)
       return ok()
     },
@@ -78,6 +82,9 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
         return err(codes.API_MALFORMED)
       }
       if (issued.has(voucher.nonce) || used.has(voucher.nonce)) return err(codes.API_INTENT_REPLAY)
+      const avail = mapGet(backing, voucher.account) - mapGet(reserved, voucher.account)
+      if (voucher.corpAmount > avail) return err(codes.NOT_ENOUGH_CORP)
+      reserved.set(voucher.account, mapGet(reserved, voucher.account) + voucher.corpAmount)
       issued.set(voucher.nonce, voucher)
       return ok()
     },
@@ -97,7 +104,11 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
       }
       if (used.has(voucher.nonce)) return err(codes.API_INTENT_REPLAY)
       if (vaultHeld < voucher.corpAmount) return err(codes.NOT_ENOUGH_CORP)
+      const hold = mapGet(reserved, voucher.account)
+      if (hold < voucher.corpAmount) return err(codes.NOT_ENOUGH_CORP)
       used.add(voucher.nonce)
+      reserved.set(voucher.account, hold - voucher.corpAmount)
+      backing.set(voucher.account, mapGet(backing, voucher.account) - voucher.corpAmount)
       vaultHeld -= voucher.corpAmount
       corp.set(voucher.account, mapGet(corp, voucher.account) + voucher.corpAmount)
       return ok()
@@ -113,6 +124,15 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
         stakes.set(account, inner)
       }
       inner.set(ticker, mapGet(inner, ticker) + amount)
+      return ok()
+    },
+    async unstake(account: string, ticker: string, amount: bigint): Promise<PortResult> {
+      if (account.length === 0 || ticker.length === 0 || amount <= 0n) return err(codes.API_MALFORMED)
+      const inner = stakes.get(account)
+      if (inner === undefined) return err(codes.API_MALFORMED)
+      const have = mapGet(inner, ticker)
+      if (have < amount) return err(codes.API_MALFORMED)
+      inner.set(ticker, have - amount)
       return ok()
     },
     async snapshot(account: string): Promise<SnapshotResult> {
@@ -141,6 +161,16 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
     },
   }
 
+  const prizeDepositor = seed?.prizeDepositor ?? cfg.buybackExecutorService
+  const prizeSigner = seed?.prizeSigner ?? cfg.voucherSignerService
+  const prizeStocks = seed?.prizeStocks ?? []
+  const prizeBalances = seed?.prizeBalances
+  const prizeTreasury = createPrizeTreasuryPort(
+    prizeBalances === undefined
+      ? { depositor: prizeDepositor, signer: prizeSigner, stocks: prizeStocks }
+      : { depositor: prizeDepositor, signer: prizeSigner, stocks: prizeStocks, balances: prizeBalances },
+  )
+
   return {
     kind: "mock",
     voucherSignerService: cfg.voucherSignerService,
@@ -149,5 +179,6 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
     vault,
     stakeRegistry,
     merkleRoots,
+    prizeTreasury,
   }
 }

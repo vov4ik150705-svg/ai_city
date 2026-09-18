@@ -10,7 +10,6 @@ import {PackConstants} from "../test/PackConstants.sol";
 /// Four groups after launchToken. Token from env. No buy. DESIGN.md §10, D-P-14.
 interface Vm {
     function envAddress(string calldata k) external view returns (address);
-    function envUint(string calldata k) external view returns (uint256);
     function startBroadcast() external;
     function stopBroadcast() external;
 }
@@ -26,10 +25,9 @@ contract PlayerReady {
         address voucher = vm.envAddress("CORPORATOR_VOUCHER_SIGNER");
         address guardian = vm.envAddress("CORPORATOR_GUARDIAN");
         address signer = vm.envAddress("CORPORATOR_SIGNER");
-        uint256 delay = vm.envUint("CORPORATOR_UNPAUSE_DELAY");
         address stakeOwner = vm.envAddress("CORPORATOR_STAKE_OWNER");
         address attestor = vm.envAddress("CORPORATOR_ATTESTOR");
-        address depositor = vm.envAddress("CORPORATOR_PRIZE_DEPOSITOR");
+        address depositor = vm.envAddress("CORPORATOR_BUYBACK_EXECUTOR");
         address[] memory stocks = new address[](6);
         stocks[0] = vm.envAddress("CORPORATOR_STOCK_NVDA");
         stocks[1] = vm.envAddress("CORPORATOR_STOCK_TSLA");
@@ -39,7 +37,6 @@ contract PlayerReady {
         stocks[5] = vm.envAddress("CORPORATOR_STOCK_COIN");
         require(PackConstants.LAUNCH_BUY_SHARE_BPS == 0, "buy");
         require(guardian != signer, "roles");
-        require(delay > 0, "delay");
         vm.startBroadcast();
         Vault vault = new Vault(
             corp,
@@ -48,12 +45,11 @@ contract PlayerReady {
             guardian,
             signer,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S,
-            delay
+            PackConstants.VOUCHER_TTL_S
         );
         StakeRegistry stake = new StakeRegistry(stakeOwner);
         MerkleRoots roots = new MerkleRoots(attestor);
-        PrizeTreasury prizes = new PrizeTreasury(depositor, guardian, signer, delay, stocks);
+        PrizeTreasury prizes = new PrizeTreasury(depositor, guardian, signer, stocks);
         vm.stopBroadcast();
         emit Deployed(address(vault), address(stake), address(roots), address(prizes));
     }

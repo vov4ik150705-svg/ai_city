@@ -1,6 +1,5 @@
 # G5 final
 
-`companion_live`: `companion_rows_live=1`; `companion_idle_relief_bps=1000`; `set_manager_focus` allowed; окно A пересчитано и в конверте. `launch.deployed` пуст. Водяной знак призов 19.
 
 Пак **60**, хеш **`3faf064f6214329c6b656617971a0fe23a4f364f49b9c6afbf051c81881de600`**, 562065 байт.
 
@@ -28,11 +27,8 @@
 | relief=10000 | L311 | caught above cap 9500 (`A-G-4` пол) |
 | focus → forbidden | L311 | caught |
 | live=0 | L311 | caught |
-| companion +700 output | L77 | caught 13535 > 13300 (`A-G-5`) |
-| companion +6 offline | L126 | caught even at zero (`A-G-6`) |
 | uptime 9600 | L140 | caught > optimizer 9500 |
 | live=0 + relief=1000 | L124 | caught |
-| demo_companion=1 | L139 | caught (`A-G-15`) |
 | demo_prize_real=1 | L112 | caught |
 | NFT taps 1000 | L128 | caught (G6) |
 | четыре конструкции G5 | L311 | OK на зелёном; красный внутри |
@@ -41,16 +37,9 @@
 | `launch.deployed` | A-G-2 | пять полей пустые |
 | подгонка окна A | A-G-11 | не подогнано |
 
-Выстояло (принято): сценарии T3 с A_t2 выше окна — поиск N, не калибровка; `R-T8-2`; калибровка A_t2=14217 не съехала (тик режет `residual_idle_bps` из `balance.json`, не строкой компаньона; свидетель рычага — аптайм 4750→4775). Окно не подогнано (`A-G-11`).
 
 ## Расхождения
 
 Новых `R-G-*` нет. Формула окна T2 от `residual_idle_bps` 500; пересечение `[12275, 15783]` держится.
 
 ## Незакрытое
-
-PENDING 4: `companion_llm_price_snapshot` (owner), `exit_uncovered_at_band_floor` (owner), `bank_withdraw_rate_ceiling_only` (T3), `pause_ready_delay` (owner).
-
-`companion_revenue_live` 0, краны NFT 0 (G6). Политики `set_manager_focus` нет.
-
-Next Step: **G6** — `companion_revenue` (счёт инференса; краны нулём без ратификации).

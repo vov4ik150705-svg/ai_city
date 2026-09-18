@@ -26,7 +26,6 @@
 
 `content/attack.py` — шесть атак L308; пять конструкций; `_live_flags_errors` требует архетипы true; `expected_ct` включает `archetypes_live`; конструкции сбрасывают `_lint_t5` после deepcopy.
 
-`DESIGN.md` §5.7/§5.9/§5.11 и §11: пять ролей во «входит»; Scientist/Manager убраны из «режем»; числа 1000/4500. `docs/PROGRESSION.md` T5.1; R-T5-5 закрыт. `docs/CONTENT.md` L308, 308 правил, пак 57 / 559806. `docs/COMPANION.md` — роль Manager жива, `set_manager_focus` запрещён до G5. `docs/BALANCE.md` — G2 не сдвинул пересечение окна A (`R-T5-12`).
 
 Кодоген 19 артефактов под хеш `56f98bfa…cee564`. Векторы 21 файл, sha256 `0827368be93592b02c2c30432daa2a3da3f112cf75c3432da7bd7bf5edb3f649`.
 
@@ -34,7 +33,6 @@
 
 - Величины = скелет Overclock, не новые литералы (`R-T5-5`).
 - Hire pool стартовый 50/25/25: пять ролей live ≠ пять весов найма (§5.12).
-- Focus без строк (`L85`). `set_manager_focus` компаньона — G5.
 - Окно A не подогнано: калибровка 14217 ∈ [12275, 15783] (`A-G-11`, `R-T5-12`).
 - Compute не слит с energy (`A-G-8`). Потолок семьи держит L70/L308 (`A-G-9`).
 - Авторский `magnitude_from` читается правилом: deepcopy с `_lint_t5` не прячет `v1_1_zero`.
@@ -42,5 +40,3 @@
 Экономических литералов нет. `prize_live_min_rules_minor` не поднят. Форма денег Rev-A не тронута. `creator_tax_bps` 200.
 
 ## 4. Инертность
-
-Круг 1445, вход 200, выход 910, mint 51, окно A `[12275, 15783]`. T2 return 3991 / 7983. `season_prizes_live` 1. `companion_rows_live` 0. Research nodes 3. `demo_companion` 0.

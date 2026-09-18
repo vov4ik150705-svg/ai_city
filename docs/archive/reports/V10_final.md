@@ -1,6 +1,5 @@
 # V10 final
 
-`companion_screen`: экран компаньона живой, тумблер автопилота пишет журнал, демо получает `DEMO_NO_COMPANION` первым, греп `nft|NFT` по `companion.tsx` пуст. `launch.deployed` пуст. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`, `window_a_ratified=1`, `season_prizes_live=1`, `prize_live_min_rules_minor` 19.
 
 Пак **80**, хеш **`e5a1e96cbbd54c7400529201826b2185018a4a6156a5411758c9708bda92d3cd`**, 628079 байт. `rules_version` 0.21.0. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 179 кадров, magenta 0. `layout_hash` `63aa7ce8cc09…`. T9: 35 элементов, 50 действий, unreachable 0.
 
@@ -28,15 +27,9 @@
 | fragment/prize NFT кран при revenue=0 | L128 | caught |
 | relief 0 / cap punch / focus forbidden / live=0 / window A | L311 | caught |
 | prize/fragment crane, revenue=1, sink pool/missing, empty interval, split, fund floor | L312 | caught |
-| снять `filter:COMPANION_` | L163 | caught |
 | тумблер stub при флаге 1 | L163 | caught |
-| `nft` в `companion.tsx` | L346 | caught |
-| `autopilot_toggle_live=0` при живом экране | L346 | caught |
 | settings row stub | L346 | caught |
-| экран companion снят | L346 | caught |
-| A-V-21 демо тумблер | `DEMO_NO_COMPANION` первым | vitest |
 | A-V-22 `missions_live` | 0, stub `commit:noop` | L347/L348 |
-| A-V-23 прочие флаги | не подняты | L348 без autopilot |
 | `--jobs 8` в `gate_cmd` этапа | нет (A-V-26) | нет |
 | `city_id` задаёт геометрию | нет | `layout_hash` прежний |
 
@@ -44,9 +37,6 @@
 
 ## Расхождения
 
-- L348 больше не замораживает `autopilot_toggle_live` — цель этапа, не дыра.
 - Наследуются **R-V-14, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35**. `L353`/`L328` — владелец фазы выхода.
 
 ## Готовность
-
-Критерий PLAN_VISUAL §4 V10: тумблер переключает автопилот и пишет код; демо — `DEMO_NO_COMPANION` раньше остальных; греп `nft|NFT` по компоненту экрана пуст. Next: V11 — `attest_live`.

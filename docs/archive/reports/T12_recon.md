@@ -31,12 +31,10 @@
 | `price_staleness_max_city_hours` | `economy.params` | `6` |
 | `buyback_*` | `launch.json` | cadence `1`, tranche `33` bps, min_batch, slippage `3` |
 | `slots_cap` | `agents.params` | `20` (в ТЗ `agents_hard_cap`) |
-| `companion_advisor_queue_depth` | `companion.params` | `1` |
 | `attest_root_period_s` | `attest.params` | `60` |
 | `topbar_height_px`, `column_width_px` | `hud_layout.json` | `56`, `260` |
 | risk4 глубины | `launch.json` | три wei для пробы транша |
-
-Вывод T12: `sampler_period_s = tick_length_real_seconds // 75`, `samples_per_twap_window = 24 × 1 × 75`, `command_rate_limit = 2 × slots_cap`, `voucher_ttl_s = tick_length_real_seconds`, `state_snapshot_every_ticks = ticks_per_city_day`, `companion_queue_capacity = 1 × llm_worker_concurrency`, `sampler_age_alert = staleness // 2`.
+Вывод T12: `sampler_period_s = tick_length_real_seconds // 75`, `samples_per_twap_window = 24 × 1 × 75`, `command_rate_limit = 2 × slots_cap`, `voucher_ttl_s = tick_length_real_seconds`, `state_snapshot_every_ticks = ticks_per_city_day`, `sampler_age_alert = staleness // 2`.
 
 ## 3. Экраны: `commit:*` и источники
 
@@ -69,7 +67,7 @@
 
 Категории кодов: только `idle` / `refusal` / `state`. `transport` нет (`R-T12-5`).
 
-Pending `owner=T12`: `companion_llm_price_snapshot`, `companion_queue_capacity`, `hud_stock_strip_height_px`, `hud_bottom_menu_height_px`, `sampler_corp_eth_endogenous`. D16: три закрыть, очередь закрыть выводом, снимок цены → `owner`.
+Pending `owner=T12`: `hud_stock_strip_height_px`, `hud_bottom_menu_height_px`, `sampler_corp_eth_endogenous`. D16: три оставшиеся строки закрыть.
 
 `layout_version = 1`. Minor: `0.15.0 → 0.16.0`, `pack_version 23 → 24`.
 

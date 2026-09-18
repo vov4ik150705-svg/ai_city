@@ -11,7 +11,6 @@
 - Десять `arch.metrics`: `exportLive` требует observed на каждый id; литерал `2000n` в `metrics.ts` роняет L259.
 - `readiness` красный при чужом `pack_hash` и при сдвиге `migration_version`. Dockerfile: `ARG`/`ENV PACK_HASH`.
 - Runtime-стадия без python и без `content/` (`D-C-1`). `arch.image.runtime_python=0`, `copy_content=0`.
-- Отказ LLM → `COMPANION_LLM_TEMPLATE`, байты `tick`/`tickHeader` те же. Очередь `companion_queue_capacity`. `blocks_tick=0`.
 - CI-таблица из пака, шаги независимы. Полный `attack.py --jobs 8` не в гейте коммита (`R-C-4`). У каждого шага `red_input`.
 - L268: четыре новых имени. C3-имена не дублированы. **R-C-21.**
 
@@ -64,7 +63,6 @@
 | `attack.py --jobs` в cmd | construction | отказ | R-C-4 |
 | Date / engine в llm src | eslint | banned | край |
 
-Выжившее: цена LLM не заведена (`companion_llm_price_snapshot` owner). Живой RPC — C10. Спрайты — T10.
 
 ## 6. Незакрытое
 

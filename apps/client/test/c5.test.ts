@@ -38,9 +38,10 @@ function run(
   file: string,
   args: string[],
   cwd: string,
+  env: NodeJS.ProcessEnv = process.env,
 ): { status: number; stdout: string; stderr: string } {
   try {
-    const stdout = execFileSync(file, args, { cwd, encoding: "utf8", env: process.env, maxBuffer: 32 * 1024 * 1024 })
+    const stdout = execFileSync(file, args, { cwd, encoding: "utf8", env, maxBuffer: 32 * 1024 * 1024 })
     return { status: 0, stdout, stderr: "" }
   } catch (err) {
     const e = err as { status?: number; stdout?: string; stderr?: string }
@@ -219,7 +220,10 @@ describe("C5 construction", () => {
       expect(banned.test(readFileSync(path, "utf8"))).toBe(false)
     }
     const viteJs = bin("vite/bin/vite.js")
-    const built = run(process.execPath, [viteJs, "build"], client)
+    const built = run(process.execPath, [viteJs, "build"], client, {
+      ...process.env,
+      NODE_ENV: "production",
+    })
     expect(built.status).toBe(0)
     const dist = join(client, "dist-web")
     const blobs: string[] = []

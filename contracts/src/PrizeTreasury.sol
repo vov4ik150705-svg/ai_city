@@ -18,9 +18,6 @@ contract PrizeTreasury {
     address public immutable guardian;
     address public signer;
     address public pendingSigner;
-    uint256 public immutable unpauseDelay;
-    bool public paused;
-    uint256 public pauseReadyAt;
     uint256 public immutable stockCount;
 
     mapping(address => bool) public isPrizeStock;
@@ -31,17 +28,14 @@ contract PrizeTreasury {
         address depositor_,
         address guardian_,
         address signer_,
-        uint256 unpauseDelay_,
         address[] memory stocks_
     ) {
         require(depositor_ != address(0) && guardian_ != address(0) && signer_ != address(0), "roles");
         require(guardian_ != signer_, "roles");
-        require(unpauseDelay_ > 0, "delay");
         require(stocks_.length == 6, "stocks");
         depositor = depositor_;
         guardian = guardian_;
         signer = signer_;
-        unpauseDelay = unpauseDelay_;
         uint256 i;
         while (i < stocks_.length) {
             address t = stocks_[i];
@@ -53,7 +47,6 @@ contract PrizeTreasury {
     }
 
     function deposit(address token, uint8 kettle, uint256 amount) external {
-        require(!paused, "paused");
         require(msg.sender == depositor, "bot");
         require(_kettleOk(kettle) && isPrizeStock[token] && amount > 0, "dep");
         IERC20Prize t = IERC20Prize(token);
@@ -86,7 +79,6 @@ contract PrizeTreasury {
     }
 
     function returnUnsettled(address token, uint8 kettle) external {
-        require(paused, "paused");
         require(msg.sender == depositor, "bot");
         require(_kettleOk(kettle) && isPrizeStock[token], "ret");
         uint256 bag = unsliced[kettle][token];
@@ -96,26 +88,11 @@ contract PrizeTreasury {
     }
 
     function claimPrize(address token, uint8 kettle) external {
-        require(!paused, "paused");
         require(_kettleOk(kettle) && isPrizeStock[token], "claim");
         uint256 amt = owed[kettle][token][msg.sender];
         require(amt > 0, "owed");
         owed[kettle][token][msg.sender] = 0;
         require(IERC20Prize(token).transfer(msg.sender, amt), "push");
-    }
-
-    function pause() external {
-        require(msg.sender == guardian, "guardian");
-        require(!paused, "paused");
-        paused = true;
-        pauseReadyAt = block.timestamp + unpauseDelay;
-    }
-
-    function unpause() external {
-        require(msg.sender == guardian, "guardian");
-        require(paused, "not paused");
-        require(block.timestamp >= pauseReadyAt, "delay");
-        paused = false;
     }
 
     function proposeSigner(address next) external {

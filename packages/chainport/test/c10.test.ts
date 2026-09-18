@@ -20,6 +20,7 @@ import {
   type SnapshotResult,
   type Voucher,
 } from "../src/index.ts"
+import { assertPrizeTreasuryRpcParity, assertPrizeTreasurySilence } from "./prize_treasury.cases.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const over253 = 2n ** 53n + 1n
@@ -131,6 +132,7 @@ describe.sequential("C10 construction", () => {
     expectEq(await mock.vault.presentVoucher(voucher, 0n), await rpc.vault.presentVoucher(voucher, 0n))
     expectEq(await mock.vault.presentVoucher(voucher, 0n), await rpc.vault.presentVoucher(voucher, 0n))
     expectEq(await mock.stakeRegistry.stake(account, "NVDA", over253), await rpc.stakeRegistry.stake(account, "NVDA", over253))
+    expectEq(await mock.stakeRegistry.unstake(account, "NVDA", 1n), await rpc.stakeRegistry.unstake(account, "NVDA", 1n))
     expectEq(await mock.stakeRegistry.snapshot(account), await rpc.stakeRegistry.snapshot(account))
     const prefixes = leafPrefixes(loadConfig(packDict(loaded.pack)))
     const leafP = prefixes[0]
@@ -151,6 +153,7 @@ describe.sequential("C10 construction", () => {
     expect(channelMap["wallet.chain"]).toBe("price")
     expect(channelMap["wallet.corp_balance"]).toBe("price")
     expect(channelMap["wallet.stake_tokens"]).toBe("tick")
+    await assertPrizeTreasuryRpcParity(cfg)
   })
 
   it("rpc_silence_is_open", async () => {
@@ -203,6 +206,7 @@ describe.sequential("C10 construction", () => {
     const last = await readWalletPrice(silent, "a", undefined, { chain: "1", corp: 7n })
     expect(last.chain).toBe("1")
     expect(last.corp).toBe(7n)
+    await assertPrizeTreasurySilence(cfg)
   })
 
   it("stake_snapshot_is_recorded_input", async () => {

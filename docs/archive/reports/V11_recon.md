@@ -1,6 +1,5 @@
 # V11 recon — `attest_live`
 
-`launch.deployed` empty (token/curve/pool/hook/tx). P7 not started. V10 closed: pack 80, hash `e5a1e96cbbd54c7400529201826b2185018a4a6156a5411758c9708bda92d3cd`, lint 354/0, round 1445 / entry 200 / exit 910, `missions_live=0`, NFT cranes 0, `companion_revenue_live=0`.
 
 ## Tree
 

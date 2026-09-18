@@ -18,6 +18,7 @@ import hashlib
 import json
 import os
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -496,17 +497,17 @@ def l17_ramps(data: dict) -> None:
 
 
 def l18_color_tokens(data: dict) -> None:
-    rule("L18", "referenced colour tokens exist in HUD.md")
-    hud = (REPO / "HUD.md").read_text(encoding="utf-8")
-    declared = set(re.findall(r"`(--[a-z-]+)`", hud))
+    rule("L18", "referenced colour tokens exist in the client palette contract")
+    palette = (REPO / "apps" / "client" / "src" / "palette.ts").read_text(encoding="utf-8")
+    declared = set(re.findall(r'"(--[a-z-]+)"\s*:', palette))
     used = {d["color_token"] for d in data["districts"]["districts"].values()}
     used |= {r["color_token"] for r in data["resources"]["resources"].values()}
     for token in sorted(used - declared):
-        fail("L18", f"colour token {token} is used in content but not declared in HUD.md 7")
+        fail("L18", f"colour token {token} is used in content but not declared in palette.ts")
     for name, spec in sorted(((data.get("placement") or {}).get("phases") or {}).items()):
         ramp = (spec or {}).get("tint_ramp")
-        if ramp and ramp not in hud:
-            fail("L18", f"world phase {name} ramp {ramp!r} is not named in HUD.md §7")
+        if ramp and ramp not in palette:
+            fail("L18", f"world phase {name} ramp {ramp!r} is not named in palette.ts")
 
 
 # ------------------------------------------------------------- L19 objectives
@@ -2781,7 +2782,7 @@ ISLAND_STEP_STAGE_IDS = (
     "island_client",
 )
 ISLAND_FORM_CONSTRUCTION = ("island_stage_keys_exist",)
-ISLAND_RULES_MINOR = 23
+ISLAND_RULES_MINOR = 24
 VISUAL3_ENGINE_CONSTRUCTION = (
     "visual3_island_from_legend",
     "visual3_orbit_from_pack",
@@ -2825,7 +2826,6 @@ VISUAL3_STEP_STAGE_IDS = (
     "visual3_world",
 )
 VISUAL_FROZEN_FLAGS = (
-    ("companion", "companion_revenue_live", 0),
     ("screens", "missions_live", 0),
     ("meta", "window_a_ratified", 1),
     ("seasons", "season_prizes_live", 1),
@@ -3012,7 +3012,6 @@ def l121_integral_not_snapshot(data: dict) -> None:
 def l122_allowed_non_spending(data: dict) -> None:
     rule("L122", "allowed companion commands are non-spending; allowed ∩ forbidden = ∅")
     if "companion" not in data:
-        fail("L122", "companion section missing")
         return
     allowed = set(companion.allowed_command_ids(data))
     forbidden = set(companion.forbidden_command_ids(data))
@@ -3028,7 +3027,6 @@ def l122_allowed_non_spending(data: dict) -> None:
 def l123_player_commands_classified(data: dict) -> None:
     rule("L123", "every player command is allowed or forbidden")
     if "companion" not in data:
-        fail("L123", "companion section missing")
         return
     classified = set(companion.allowed_command_ids(data)) | set(companion.forbidden_command_ids(data))
     missing = [cid for cid in companion.PLAYER_COMMAND_IDS if cid not in classified]
@@ -3054,7 +3052,6 @@ def l124_companion_rows_zero(data: dict) -> None:
 def l125_companion_keys_allowed(data: dict) -> None:
     rule("L125", "companion rows only on keys.allowed; forbidden covers the other twelve")
     if "companion" not in data:
-        fail("L125", "companion section missing")
         return
     keys = data.get("modifier_keys", {}).get("keys") or {}
     spec = (data.get("companion") or {}).get("keys") or {}
@@ -3110,8 +3107,6 @@ def l127_no_fourteenth_key(data: dict) -> None:
 
 def l128_nft_taps_zero(data: dict) -> None:
     rule("L128", "NFT taps stay 0 while companion_revenue_live = 0; protocol split 10000")
-    if "companion" not in data:
-        return
     live = companion.cp(data, "companion_revenue_live")
     frag = data["fragments"]["params"]["fragment_nft_share_bps"]["v"]
     prize = data["seasons"]["params"]["prize_nft_share_bps"]["v"]
@@ -3126,7 +3121,6 @@ def l128_nft_taps_zero(data: dict) -> None:
 def l129_advisor_calls_derived(data: dict) -> None:
     rule("L129", "advisor_calls_per_city_day is derived from schedule bounds, not stored")
     if "companion" not in data:
-        fail("L129", "companion section missing")
         return
     params = (data.get("companion") or {}).get("params") or {}
     if "advisor_calls_per_city_day" in params:
@@ -3165,7 +3159,6 @@ def l130_cooldown_derived(data: dict) -> None:
 def l131_one_command_per_agent_tick(data: dict) -> None:
     rule("L131", "companion_commands_per_agent_per_tick = 1")
     if "companion" not in data:
-        fail("L131", "companion section missing")
         return
     v = companion.cp(data, "companion_commands_per_agent_per_tick")
     if v != 1:
@@ -3175,7 +3168,6 @@ def l131_one_command_per_agent_tick(data: dict) -> None:
 def l132_policy_deterministic(data: dict) -> None:
     rule("L132", "policy_kind is deterministic; no LLM in policy; no float")
     if "companion" not in data:
-        fail("L132", "companion section missing")
         return
     kind = ((data.get("companion") or {}).get("policy_kind") or {}).get("v")
     if kind != companion.POLICY_DETERMINISTIC:
@@ -3230,6 +3222,8 @@ def l135_no_replan_on_login(data: dict) -> None:
 
 def l136_window_closed_code(data: dict) -> None:
     rule("L136", "COMPANION_WINDOW_CLOSED exists, has text, and the window edge writes it")
+    if "companion" not in data:
+        return
     codes = (data.get("codes") or {}).get("codes") or {}
     if companion.CODE_WINDOW_CLOSED not in codes:
         fail("L136", "COMPANION_WINDOW_CLOSED missing: silent stop at the window edge")
@@ -3303,7 +3297,6 @@ def l138_hold_stale_off(data: dict) -> None:
 def l139_demo_no_companion(data: dict) -> None:
     rule("L139", "demo_companion is 0 and DEMO_NO_COMPANION exists")
     if "companion" not in data:
-        fail("L139", "companion section missing")
         return
     v = companion.cp(data, "demo_companion")
     if v != 0:
@@ -3319,7 +3312,6 @@ def l139_demo_no_companion(data: dict) -> None:
 def l140_uptime_witness(data: dict) -> None:
     rule("L140", "companion uptime ≤ optimizer; at zero magnitude equals minimalist")
     if "companion" not in data:
-        fail("L140", "companion section missing")
         return
     w = companion.uptime_witness(data)
     if w["companion"] > w["optimizer"]:
@@ -3396,7 +3388,6 @@ def _return_bands_in_envelope(data: dict) -> str | None:
 def l143_companion_rows_live_zero(data: dict) -> None:
     rule("L143", "companion_rows_live=1 only with a window-A recount")
     if "companion" not in data:
-        fail("L143", "companion section missing")
         return
     live = companion.cp(data, "companion_rows_live")
     if live not in (0, 1):
@@ -4217,33 +4208,22 @@ def l162_claim_flags(data: dict) -> None:
 
 
 def l163_companion_journal_and_autopilot(data: dict) -> None:
-    rule("L163", "LOG has filter:COMPANION_; autopilot toggle matches autopilot_toggle_live both ways")
+    rule("L163", "Companion is cut: no COMPANION_ journal filter and no autopilot toggle")
     sec = data.get("screens")
     if not sec:
         return
-    found = False
     for aid, row in (sec.get("actions") or {}).items():
-        if row.get("screen") == "log_panel" and str(row.get("effect") or "").startswith("filter:COMPANION_"):
-            found = True
-    if not found:
-        fail("L163", "log_panel has no filter:COMPANION_ covering COMPANION_* codes")
-    auto_live = int(((sec.get("params") or {}).get("autopilot_toggle_live") or {}).get("v") or 0)
-    auto = (sec.get("settings_rows") or {}).get("autopilot") or {}
-    req = list(auto.get("requires") or [])
-    if auto_live == 0:
-        if auto.get("v1") != "stub":
-            fail("L163", f"autopilot toggle v1={auto.get('v1')} while autopilot_toggle_live=0")
-    else:
-        if auto.get("v1") != "live":
-            fail("L163", f"autopilot toggle v1={auto.get('v1')} while autopilot_toggle_live=1")
-        if "v1_feature" in req:
-            fail("L163", "autopilot toggle still requires v1_feature while the flag is live")
+        effect = str(row.get("effect") or "")
+        if "COMPANION_" in effect or str(row.get("screen") or "") == "companion":
+            fail("L163", f"action {aid} keeps a Companion filter or screen")
+    if (sec.get("params") or {}).get("autopilot_toggle_live"):
+        fail("L163", "autopilot_toggle_live is still authored")
+    if (sec.get("settings_rows") or {}).get("autopilot"):
+        fail("L163", "settings_rows.autopilot is still authored")
     codes = (data.get("codes") or {}).get("codes") or {}
-    surfaces = sec.get("state_surfaces") or {}
     for cid in codes:
-        if str(cid).startswith("COMPANION_") and "log_panel" not in (surfaces.get(cid) or []):
-            if (codes[cid] or {}).get("category") == "state":
-                fail("L163", f"{cid} is not on log_panel")
+        if str(cid).startswith("COMPANION_") or cid == "DEMO_NO_COMPANION":
+            fail("L163", f"{cid} is still a live code")
 
 
 def l164_screens_md_no_literals(data: dict) -> None:
@@ -6421,14 +6401,14 @@ def l236_sources_partition(data: dict) -> None:
 
 
 def l237_channel_classes(data: dict) -> None:
-    rule("L237", "channels equal HUD.md §8; no clock channel; economic sources are server")
+    rule("L237", "channels match the screen/API contract; no clock channel; economic sources are server")
     rules = (data.get("arch") or {}).get("channel_rules") or {}
     got = set(rules)
     want = set(arch.HUD_CHANNELS)
     if got != want:
-        fail("L237", f"channel classes {sorted(got)} != HUD.md §8 {sorted(want)}")
+        fail("L237", f"channel classes {sorted(got)} != the screen/API contract {sorted(want)}")
     if "clock" in rules or arch.CLOCK_CHANNEL in rules:
-        fail("L237", "clock channel exists; HUD.md §8 clocks are local")
+        fail("L237", "clock channel exists; clocks are local")
     fields = ((data.get("screens") or {}).get("fields") or {})
     for fid, spec in fields.items():
         kind = spec.get("kind")
@@ -8018,7 +7998,7 @@ def l289_uncovered_claim_reported(data: dict) -> None:
             fail("L289", "PRIZE_CLAIM_UNCOVERED missing from codes")
         if treasury.CODE_UNCOVERED not in texts:
             fail("L289", "PRIZE_CLAIM_UNCOVERED has no Russian text")
-        uncovered = treasury.claim_prize(owed=50, pool_in=0, paused=False, demo=False)
+        uncovered = treasury.claim_prize(owed=50, pool_in=0, demo=False)
         if int(uncovered.get("paid") or 0) != 0:
             fail("L289", "uncovered claim paid from air")
         if uncovered.get("code") != treasury.CODE_UNCOVERED:
@@ -8266,38 +8246,42 @@ def l297_five_groups_no_stock_refund(data: dict) -> None:
 
 
 def l298_return_skips_settled(data: dict) -> None:
-    rule("L298", "returnUnsettled skips settled rows; claimPrize is silent while paused")
+    rule("L298", "returnUnsettled skips settled rows; claimPrize is not pause-gated")
     try:
         wit = treasury.safety_witness(data)
         if not wit.get("return_skips_settled"):
             fail("L298", "returnUnsettled ate settled owed rows")
-        if not wit.get("paused_claim_silent"):
-            fail("L298", "claimPrize paid while paused")
         files = {n: b for n, b in _sol_src_files(data)}
         treas = files.get("PrizeTreasury.sol") or ""
         ret = _sol_fn(treas, "returnUnsettled")
         if ret and "owed[" in ret:
             fail("L298", "returnUnsettled writes owed")
         claim = _sol_fn(treas, "claimPrize")
-        if claim and "require(!paused" not in claim.replace(" ", ""):
-            fail("L298", "claimPrize has no pause guard")
+        if claim and treasury.pause_controls_present(claim):
+            fail("L298", "claimPrize is pause-gated")
     except Exception as exc:
         fail("L298", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
 
 def l299_refund_capped_by_backing(data: dict) -> None:
-    rule("L299", "refundPlayer amount is <= backingOf; Capital is clipped to remaining backing")
+    rule("L299", "refundPlayer amount is <= availableOf; reserved coverage cannot be refunded; Capital is clipped")
     try:
         wit = treasury.safety_witness(data)
         if not wit.get("over_backing_rejected"):
             fail("L299", "refund above backingOf was accepted")
         if not wit.get("player_refund_ok"):
             fail("L299", "refund at backingOf was rejected")
+        if not wit.get("reserved_coverage_rejected"):
+            fail("L299", "refund consumed reserved voucher coverage")
+        if not wit.get("available_refund_ok"):
+            fail("L299", "refund within availableOf was rejected")
         files = {n: b for n, b in _sol_src_files(data)}
         vault = files.get("Vault.sol") or ""
         refund = _sol_fn(vault, "_refund")
-        if "amount <= backing" not in refund:
-            fail("L299", "refundPlayer has no backing cap")
+        inlined = "amount <= availableOf(player)" in refund
+        via_avail = "availableOf(player)" in refund and "amount <= avail" in refund
+        if not inlined and not via_avail:
+            fail("L299", "refundPlayer has no availableOf cap")
         if "capitalOf[player]" not in refund:
             fail("L299", "refundPlayer does not burn Capital")
     except Exception as exc:
@@ -8305,25 +8289,32 @@ def l299_refund_capped_by_backing(data: dict) -> None:
 
 
 def l300_guardian_not_signer(data: dict) -> None:
-    rule("L300", "guardian != signer; rotation is two-step; unpause waits pauseReadyAt")
+    rule("L300", "guardian != signer; rotation is two-step; pause/unpause are absent")
     try:
         wit = treasury.safety_witness(data)
         if wit.get("has_setSigner"):
             fail("L300", "setSigner lets one key rotate itself")
         if not wit.get("has_proposeSigner"):
-            fail("L300", "proposeSigner/acceptSigner missing")
-        if not wit.get("has_pauseReadyAt"):
-            fail("L300", "pauseReadyAt missing")
+            fail("L300", "proposeSigner missing")
+        if not wit.get("has_acceptSigner"):
+            fail("L300", "acceptSigner missing")
+        if not wit.get("no_pause_controls"):
+            fail("L300", "pause/unpause/pauseReadyAt/unpauseDelay present")
+        if wit.get("pause_ready_pending"):
+            fail("L300", "pause_ready_delay is still pending: pause was removed, seconds are not an owner input")
         files = {n: b for n, b in _sol_src_files(data)}
         vault = files.get("Vault.sol") or ""
         treas = files.get("PrizeTreasury.sol") or ""
         if "guardian_ != signer_" not in vault or "guardian_ != signer_" not in treas:
             fail("L300", "constructor allows guardian == signer")
-        if "unpauseDelay_ > 0" not in vault or "unpauseDelay_ > 0" not in treas:
-            fail("L300", "unpauseDelay can be zero")
-        unpause = _sol_fn(vault, "unpause")
-        if "pauseReadyAt" not in unpause:
-            fail("L300", "unpause ignores pauseReadyAt")
+        propose_v = _sol_fn(vault, "proposeSigner")
+        propose_t = _sol_fn(treas, "proposeSigner")
+        if "next != guardian" not in propose_v or "next != guardian" not in propose_t:
+            fail("L300", "proposeSigner can name the guardian as signer")
+        accept_v = _sol_fn(vault, "acceptSigner")
+        accept_t = _sol_fn(treas, "acceptSigner")
+        if "pendingSigner" not in accept_v or "pendingSigner" not in accept_t:
+            fail("L300", "acceptSigner is not the pending-signer step")
         keys = ((data.get("arch") or {}).get("keys") or {})
         for name in ("guardian", "signer", "pending_signer"):
             if name not in keys:
@@ -8431,7 +8422,7 @@ def l302_hud_no_drain_pause(data: dict) -> None:
 
 
 def l303_bot_refund_not_whole_vault(data: dict) -> None:
-    rule("L303", "refundPlayer(bot) cannot empty corpInVault or player backing")
+    rule("L303", "refundPlayer(bot) cannot empty corpInVault; cap is player availableOf, not vault balance")
     try:
         wit = treasury.safety_witness(data)
         if not wit.get("bot_whole_rejected"):
@@ -8441,8 +8432,10 @@ def l303_bot_refund_not_whole_vault(data: dict) -> None:
         files = {n: b for n, b in _sol_src_files(data)}
         vault = files.get("Vault.sol") or ""
         refund = _sol_fn(vault, "_refund")
+        if "availableOf(player)" not in refund and "availableOf(" not in refund:
+            fail("L303", "refund cap is not player availableOf; bot could take the vault")
         if "backingOf[player]" not in refund:
-            fail("L303", "refund cap is not backingOf; bot could take the vault")
+            fail("L303", "refund does not reduce player backingOf")
         if "balanceOf(address(this))" in refund:
             fail("L303", "refund cap is vault balance")
     except Exception as exc:
@@ -8450,27 +8443,44 @@ def l303_bot_refund_not_whole_vault(data: dict) -> None:
 
 
 def l304_spend_tenth_is_farm(data: dict) -> None:
-    rule("L304", "protocol_fragments_bps=10000, protocol_prizes_bps=0; tenth is farm not T7 CORP")
-    if "fragments" not in data:
-        fail("L304", "fragments section missing")
+    rule("L304", "creator tax is 100/30/50/20 and Capital spend is 40/60/0")
+    if "fragments" not in data or "economy" not in data or "seasons" not in data:
+        fail("L304", "economy, seasons, or fragments section missing")
         return
-    frag = data["fragments"]["params"]["protocol_fragments_bps"]["v"]
-    prize = data["fragments"]["params"]["protocol_prizes_bps"]["v"]
-    if frag + prize != BPS:
-        fail("L304", f"protocol split {frag}+{prize} != {BPS}")
-    if frag != BPS or prize != 0:
-        fail("L304", f"split {frag}+{prize}: tenth must be farm 10000/0, not T7 $CORP")
-    tax = data["fragments"]["params"]["fragment_creator_tax_share_bps"]["v"]
-    cork = data["fragments"]["params"]["fragment_cork_share_bps"]["v"]
-    if tax != 0 or cork != 0:
-        fail("L304", f"tenth leaked to vault/fund taps: tax {tax} cork {cork}")
+    econ = data["economy"]["params"]
+    seasons_params = data["seasons"]["params"]
+    fragments_params = data["fragments"]["params"]
+    expected_spend = {
+        "spend_burn_bps": 4000,
+        "spend_fund_bps": 6000,
+        "spend_protocol_bps": 0,
+    }
+    for name, want in expected_spend.items():
+        got = int((econ.get(name) or {}).get("v") or 0)
+        if got != want:
+            fail("L304", f"{name} {got} != {want}")
+    prize_share = int((seasons_params.get("prize_creator_tax_share_bps") or {}).get("v") or 0)
+    active_work = int((fragments_params.get("active_work_creator_tax_bps") or {}).get("v") or 0)
+    studio = int((econ.get("studio_eth_share_bps") or {}).get("v") or 0)
+    if prize_share != 5000 or active_work != 50 or studio != 2000:
+        fail("L304", f"tax params prize/active/studio = {prize_share}/{active_work}/{studio}, expected 5000/50/2000")
+    derived = build.build_economy(data)["fee_split"]
+    expected_fee = {"fund_bps": 100, "leaderboard_bps": 30, "farm_bps": 50, "studio_bps": 20}
+    for name, want in expected_fee.items():
+        got = int(derived.get(name) or 0)
+        if got != want:
+            fail("L304", f"fee_split.{name} {got} != {want}")
     kettles = seasons.prize_kettles(data)
     farm = kettles.get(seasons.KETTLE_FARM) or {}
     month = kettles.get(seasons.KETTLE_MONTH) or {}
     if int(farm.get("split_bps") or 0) != BPS:
         fail("L304", f"farm kettle split {farm.get('split_bps')} != 10000")
-    if int(month.get("split_bps") or 0) != 0:
-        fail("L304", f"month kettle still takes spend_protocol: {month.get('split_bps')}")
+    if int(month.get("split_bps") or 0) != BPS:
+        fail("L304", f"month kettle split {month.get('split_bps')} != 10000")
+    if farm.get("source") != "dex_active_work_leg":
+        fail("L304", f"farm source {farm.get('source')} != dex_active_work_leg")
+    if month.get("source") != "dex_leaderboard_leg":
+        fail("L304", f"month source {month.get('source')} != dex_leaderboard_leg")
 
 
 BURN_RESERVE_FNS = (
@@ -8845,45 +8855,20 @@ def l310_synergy_buildings(data: dict) -> None:
 def l311_companion_live(data: dict) -> None:
     rule(
         "L311",
-        "companion_rows_live=1 with non-zero idle relief under cap; residual floor held; "
-        "set_manager_focus allowed; window A in envelope",
+        "Companion is cut: no live section, no idle relief row; window A stays in the T2 envelope",
     )
     try:
-        if "companion" not in data:
-            fail("L311", "companion section missing")
+        if "companion" in data:
+            fail("L311", "companion section is live: Companion is cut")
             return
-        live = companion.cp(data, "companion_rows_live")
-        if live != 1:
-            fail("L311", f"companion_rows_live={live} != 1: flag lifted only with a recount")
-        relief = companion.cp(data, "companion_idle_relief_bps")
-        if relief <= 0:
-            fail("L311", f"companion_idle_relief_bps {relief} is zero: companion row is decorative")
         t5 = _t5(data)
-        cap = int((t5.get("modifier_caps") or {}).get("idle_reduction_bps", {}).get("cap_max") or 0)
-        if relief > cap:
-            fail("L311", f"companion_idle_relief_bps {relief} > idle_reduction cap {cap}")
-        reduced = companion.residual_after_relief(data)
-        if reduced <= 0:
-            fail(
-                "L311",
-                f"companion relief {relief} cuts residual_idle to {reduced}: floor punched",
-            )
-        allowed = set(companion.allowed_command_ids(data))
-        forbidden = set(companion.forbidden_command_ids(data))
-        if "set_manager_focus" not in allowed:
-            fail("L311", "set_manager_focus is not in the allowed dictionary")
-        if "set_manager_focus" in forbidden:
-            fail("L311", "set_manager_focus is still in the forbidden dictionary")
-        overlap = allowed & forbidden
-        if overlap:
-            fail("L311", f"allowed ∩ forbidden = {sorted(overlap)}")
-        if "offline_cap_hours" in ((data.get("companion") or {}).get("params") or {}):
-            fail("L311", "companion.params stores offline_cap_hours: MSFT owns the window")
+        rows = t5.get("modifier_rows") or {}
+        for rid, row in rows.items():
+            if row.get("source_kind") == "companion":
+                fail("L311", f"modifier row {rid} still has source_kind companion")
         drifted = _return_bands_in_envelope(data)
         if drifted:
-            fail("L311", f"window A after companion: {drifted}")
-        if companion.cp(data, "demo_companion") != 0:
-            fail("L311", "demo_companion != 0: demo isolation broken")
+            fail("L311", f"window A after Companion cut: {drifted}")
     except Exception as exc:
         fail("L311", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
@@ -8891,25 +8876,11 @@ def l311_companion_live(data: dict) -> None:
 def l312_companion_revenue(data: dict) -> None:
     rule(
         "L312",
-        "NFT cranes stay 0 without ratification; proceeds sink is inference_bill; "
-        "companion_revenue_live stays 0; inference interval live; fund floor and protocol split held",
+        "Companion is cut: no revenue flag or inference account; NFT cranes stay 0; fund floor held",
     )
     try:
-        if "companion" not in data:
-            fail("L312", "companion section missing")
-            return
-        live = companion.cp(data, "companion_revenue_live")
-        if live != 0:
-            fail(
-                "L312",
-                f"companion_revenue_live={live} != 0: lifting the flag silences L128 on a pool tap",
-            )
-        sink = companion.nft_proceeds_sink(data)
-        if sink != companion.SINK_INFERENCE_BILL:
-            fail(
-                "L312",
-                f"nft_proceeds_sink {sink!r} != inference_bill: proceeds would hit a pool",
-            )
+        if "companion" in data:
+            fail("L312", "companion section is live: Companion is cut")
         frag = int(
             ((((data.get("fragments") or {}).get("params") or {}).get("fragment_nft_share_bps") or {}).get("v") or 0)
         )
@@ -8921,25 +8892,11 @@ def l312_companion_revenue(data: dict) -> None:
                 "L312",
                 f"NFT crane fragment {frag} prize {prize} without owner ratification",
             )
-        proto_frag = int(
-            ((((data.get("fragments") or {}).get("params") or {}).get("protocol_fragments_bps") or {}).get("v") or 0)
+        spend_protocol = int(
+            ((((data.get("economy") or {}).get("params") or {}).get("spend_protocol_bps") or {}).get("v") or 0)
         )
-        proto_prize = int(
-            ((((data.get("fragments") or {}).get("params") or {}).get("protocol_prizes_bps") or {}).get("v") or 0)
-        )
-        if proto_frag != BPS or proto_prize != 0:
-            fail(
-                "L312",
-                f"protocol split {proto_frag}/{proto_prize} moved: L304 farm path is not a yield tap",
-            )
-        llm = (data.get("companion") or {}).get("llm") or {}
-        lo = int((llm.get("cost_usd_per_call_lo_8dec") or {}).get("v") or 0)
-        hi = int((llm.get("cost_usd_per_call_hi_8dec") or {}).get("v") or 0)
-        if lo <= 0 or hi <= lo:
-            fail("L312", f"inference account interval [{lo}, {hi}) is empty")
-        calls = companion.advisor_calls_per_city_day(data)
-        if calls <= 0:
-            fail("L312", f"inference account has {calls} advisor calls per city day")
+        if spend_protocol != 0:
+            fail("L312", f"spend_protocol_bps {spend_protocol} != 0: Capital spending must not fund prizes")
         floor_row = ((data.get("meta") or {}).get("params") or {}).get("fund_effective_tax_floor_bps") or {}
         if "v" not in floor_row:
             fail("L312", "fund_effective_tax_floor_bps missing")
@@ -8955,8 +8912,6 @@ def l312_companion_revenue(data: dict) -> None:
                 "L312",
                 f"effective fund tax {fund_bps} bps < floor {floor}: prize share cut the wage fund",
             )
-        if companion.cp(data, "demo_companion") != 0:
-            fail("L312", "demo_companion != 0: demo isolation broken")
     except Exception as exc:
         fail("L312", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
@@ -9006,10 +8961,8 @@ def l313_rebalance_close(data: dict) -> None:
         base = data["time"]["params"]["offline_cap_city_hours_base"]["v"]
         if base + auto != 18:
             fail("L313", f"offline lever {base}+{auto} != 18")
-        if companion.cp(data, "companion_rows_live") != 1:
-            fail("L313", "companion_rows_live != 1: idle lever missing")
-        if companion.cp(data, "companion_idle_relief_bps") <= 0:
-            fail("L313", "companion_idle_relief_bps is zero: levers not settled together")
+        if "companion" in data:
+            fail("L313", "companion section is live: Companion is cut")
         roles = (data.get("agents") or {}).get("roles") or {}
         objectives = (data.get("agents") or {}).get("objectives") or {}
         if not (roles.get("scientist") or {}).get("v1"):
@@ -9030,8 +8983,6 @@ def l313_rebalance_close(data: dict) -> None:
             fail("L313", f"mandatory {mandatory}")
         if int(summary.get("uncovered") or 0):
             fail("L313", f"uncovered {summary.get('uncovered')}")
-        if companion.cp(data, "demo_companion") != 0:
-            fail("L313", "demo_companion != 0")
         prizes_live = int(
             ((((data.get("seasons") or {}).get("params") or {}).get("season_prizes_live") or {}).get("v") or 0)
         )
@@ -10050,6 +10001,38 @@ def _render_src_files(data: dict) -> list[tuple[str, str]]:
     return out
 
 
+def _src_named(files: list[tuple[str, str]], suffix: str) -> str:
+    return "\n".join(body for rel, body in files if rel.replace("\\", "/").endswith(suffix))
+
+
+def _glb_json_chunk(path: Path) -> dict:
+    blob = path.read_bytes()
+    if blob[:4] != b"glTF" or len(blob) < 20:
+        return {}
+    json_len, json_type = struct.unpack_from("<I4s", blob, 12)
+    if json_type != b"JSON":
+        return {}
+    doc = json.loads(blob[20 : 20 + json_len].rstrip(b"\x00 "))
+    return doc if isinstance(doc, dict) else {}
+
+
+def _island_anchor_names(data: dict) -> list[str]:
+    overlay = data.get("_island_anchor_names")
+    if isinstance(overlay, list):
+        return [str(x) for x in overlay]
+    mass = REPO / "art" / "island_v3" / "runtime" / "island_mass.glb"
+    if not mass.is_file():
+        return []
+    names: list[str] = []
+    for node in _glb_json_chunk(mass).get("nodes") or []:
+        if not isinstance(node, dict):
+            continue
+        name = str(node.get("name") or "")
+        if name.startswith("anchor_"):
+            names.append(name)
+    return names
+
+
 def _strip_ts_for_literals(text: str) -> str:
     text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
     text = re.sub(r"//[^\n]*", " ", text)
@@ -10067,7 +10050,7 @@ _RENDER_CLOCK_RE = re.compile(r"Date\.now|performance\.now|Math\.random|deltaTim
 
 
 def l333_chunk_period(data: dict) -> None:
-    rule("L333", "ground chunk side equals road_period_tiles; static draw calls stay under cap")
+    rule("L333", "ground chunk side equals road_period_tiles; island draw_calls_max is not the cell-graph cap")
     try:
         period = _param_flag(data, "placement", "road_period_tiles")
         if period is None or period <= 0:
@@ -10082,13 +10065,6 @@ def l333_chunk_period(data: dict) -> None:
                 "L333",
                 f"ground_chunk_tiles={chunk} != road_period_tiles={period}: seam would miss the road axis",
             )
-            return
-        grid = int((_t10_gen(data).get("grid_size") or 0))
-        cap = _param_flag(data, "render", "draw_calls_max") or 0
-        n = (grid + chunk - 1) // chunk if chunk else 0
-        calls = n * n + 3
-        if cap and calls > cap:
-            fail("L333", f"static draw calls {calls} exceed draw_calls_max {cap}")
     except Exception as exc:
         fail("L333", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
@@ -10353,6 +10329,25 @@ def _hud_css_text(data: dict) -> str:
     return ""
 
 
+def _claimed_hud_fonts(data: dict) -> dict:
+    """Packed HUD fonts: attack overlay, else generated.render from content/out/pack.json."""
+    overlay = data.get("_lint_render")
+    if isinstance(overlay, dict):
+        return overlay
+    packed = data.get("_packed_hud_fonts")
+    if isinstance(packed, dict):
+        return packed
+    path = REPO / "content" / "out" / "pack.json"
+    if not path.is_file():
+        return {}
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    render = (doc.get("generated") or {}).get("render")
+    return render if isinstance(render, dict) else {}
+
+
 def l341_hud_geometry_from_fixture(data: dict) -> None:
     rule("L341", "HUD geometry comes from hud_layout.json; no px literal in CSS outside the token block")
     try:
@@ -10365,7 +10360,7 @@ def l341_hud_geometry_from_fixture(data: dict) -> None:
         ):
             got = int(hud.get(key) or 0)
             if got != want:
-                fail("L341", f"hud_layout.{key}={got}: fixture must match HUD.md §2")
+                fail("L341", f"hud_layout.{key}={got}: fixture must match the current legacy shell contract")
         css = _hud_css_text(data)
         if not css:
             fail("L341", "apps/client/src/hud/hud.css is missing")
@@ -10434,9 +10429,11 @@ def l344_font_vendored(data: dict) -> None:
         if "woff2" not in blob:
             fail("L344", "client does not load a vendored woff2")
             return
-        fonts = data.get("_lint_render")
-        if not isinstance(fonts, dict):
-            fonts = build.hud_font_derived(data)
+        live = build.hud_font_derived(data)
+        fonts = _claimed_hud_fonts(data)
+        if not fonts:
+            fail("L344", "generated pack does not record HUD fonts")
+            return
         for role in ("pixel", "log"):
             digest = str(fonts.get(f"hud_font_{role}_sha256") or "")
             name = str(fonts.get(f"hud_font_{role}_file") or "")
@@ -10462,6 +10459,18 @@ def l344_font_vendored(data: dict) -> None:
             if got != digest:
                 fail("L344", f"art/fonts/{name} sha256 {got[:12]} != pack {digest[:12]}")
                 return
+            live_digest = str(live.get(f"hud_font_{role}_sha256") or "")
+            live_name = str(live.get(f"hud_font_{role}_file") or "")
+            live_family = str(live.get(f"hud_font_{role}_family") or "")
+            if name != live_name or family != live_family or digest != live_digest:
+                fail(
+                    "L344",
+                    f"pack hud_font_{role} {family}/{name} != manifest {live_family}/{live_name}",
+                )
+                return
+            if live_name and live_name not in blob:
+                fail("L344", f"client does not load art/fonts/{live_name}")
+                return
             lic_overlay = data.get("_hud_font_license")
             if lic_overlay is False:
                 fail("L344", f"license missing next to art/fonts/{name}")
@@ -10472,6 +10481,10 @@ def l344_font_vendored(data: dict) -> None:
                 if not licenses:
                     fail("L344", "art/fonts has no OFL/LICENSE text next to the woff2")
                     return
+        pixel_file = str(live.get("hud_font_pixel_file") or "")
+        if pixel_file != "source_serif_4.woff2" and "source_serif_4.woff2" in blob:
+            fail("L344", "client still loads source_serif_4.woff2: pixel role follows art/fonts/manifest.json")
+            return
     except Exception as exc:
         fail("L344", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
@@ -10536,6 +10549,14 @@ def l351_visual_budgets_measured(data: dict) -> None:
                 return
         if not found_fn:
             fail("L351", "observeVisualBudgets is missing from packages/render/src")
+            return
+        found_island = False
+        for _rel, text in _render_src_files(data):
+            if "export function observeIslandBudgets" in text:
+                found_island = True
+                break
+        if not found_island:
+            fail("L351", "observeIslandBudgets is missing from packages/render/src")
             return
         for rel, text in _client_src_files(data):
             if OBS_IMPORT_RE.search(text):
@@ -10618,37 +10639,24 @@ def l352_no_gpu_code(data: dict) -> None:
 
 
 def l346_companion_screen_live(data: dict) -> None:
-    rule("L346", "companion screen is live without a pool share; autopilot toggle matches the live flag")
+    rule("L346", "Companion is cut: no screen, no companion.tsx, no autopilot toggle")
     try:
         screens_sec = data.get("screens") or {}
-        row = (screens_sec.get("screens") or {}).get("companion") or {}
-        if not isinstance(row, dict) or row.get("kind") != "screen":
-            fail("L346", "companion kind=screen is missing")
-            return
-        if row.get("v1") != "live":
-            fail("L346", f"companion.v1={row.get('v1')!r} != live")
-        live = _param_flag(data, "screens", "autopilot_toggle_live")
-        if live != 1:
-            fail("L346", f"autopilot_toggle_live={live} != 1 while the companion screen is live")
-        auto = (screens_sec.get("settings_rows") or {}).get("autopilot") or {}
-        if auto.get("v1") != "live":
-            fail("L346", f"settings_rows.autopilot v1={auto.get('v1')!r} != live")
-        if "v1_feature" in list(auto.get("requires") or []):
-            fail("L346", "settings_rows.autopilot still requires v1_feature")
+        row = (screens_sec.get("screens") or {}).get("companion")
+        if isinstance(row, dict) and row.get("kind") == "screen":
+            fail("L346", "companion kind=screen is still in the pack")
+        if (screens_sec.get("params") or {}).get("autopilot_toggle_live"):
+            fail("L346", "autopilot_toggle_live is still authored")
+        if (screens_sec.get("settings_rows") or {}).get("autopilot"):
+            fail("L346", "settings_rows.autopilot is still authored")
         files = _hud_screen_files(data)
-        if "companion.tsx" not in files:
-            fail("L346", "companion screen has no component companion.tsx")
-        blob = files.get("companion.tsx") or ""
-        if re.search(r"nft", blob, re.I):
-            fail("L346", "companion screen component mentions a share token")
-        revenue = _param_flag(data, "companion", "companion_revenue_live")
-        if revenue != 0:
-            fail("L346", f"companion_revenue_live={revenue} != 0: share would be promised")
-        frag = _param_flag(data, "fragments", "fragment_nft_share_bps")
-        prize = _param_flag(data, "seasons", "prize_nft_share_bps")
-        cork = _param_flag(data, "seasons", "prize_cork_share_bps")
-        if frag != 0 or prize != 0 or cork != 0:
-            fail("L346", f"NFT crane fragment {frag} prize {prize} cork {cork} is not zero")
+        if "companion.tsx" in files:
+            fail("L346", "companion.tsx is still a HUD screen component")
+        for aid, spec in (screens_sec.get("actions") or {}).items():
+            if str(spec.get("screen") or "") == "companion" or "companion" in str(aid):
+                fail("L346", f"action {aid} still belongs to Companion")
+        if "companion" in data:
+            fail("L346", "companion section is live: Companion is cut")
     except Exception as exc:
         fail("L346", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
@@ -10981,6 +10989,13 @@ def l359_sprite_fits_footprint_width(data: dict) -> None:
             for row in (assets.get("assets") or [])
             if isinstance(row, dict)
         }
+        disk_frames: dict = {}
+        if isinstance(data.get("_atlas_manifest"), dict):
+            disk_path = REPO / "content" / "out" / "atlas" / "city.json"
+            if disk_path.is_file():
+                blob = json.loads(disk_path.read_text(encoding="utf-8"))
+                if isinstance(blob, dict) and isinstance(blob.get("frames"), dict):
+                    disk_frames = blob["frames"]
         for sid, fr in frames.items():
             if not isinstance(fr, dict):
                 continue
@@ -11003,6 +11018,17 @@ def l359_sprite_fits_footprint_width(data: dict) -> None:
                 continue
             path = REPO / str(src.get("file") or "")
             if not path.is_file():
+                orig = disk_frames.get(sid)
+                if isinstance(orig, dict):
+                    want_w = int(orig.get("w") or 0)
+                    want_h = int(orig.get("h") or 0)
+                    if got_w != want_w or got_h != want_h:
+                        fail(
+                            "L359",
+                            f"{sid} packed {got_w}x{got_h} stretched from packed atlas; "
+                            f"want {want_w}x{want_h}",
+                        )
+                        return
                 continue
             packed = dict(src)
             packed["id"] = sid
@@ -11140,6 +11166,9 @@ def l362_water_plane(data: dict) -> None:
         hit = _WATER_PLACE_CUBE_RE.search(blob)
         if hit and "isShoreWater" not in hit.group(0):
             fail("L362", "placeCube(waterLayer) runs on every ~ without isShoreWater")
+        three = _src_named(files, "three.ts")
+        if "placeWaterPlane" in three:
+            fail("L362", "three.ts calls placeWaterPlane: the live island has no sea")
     except Exception as ecc:
         fail("L362", f"rule crashed on input: {type(ecc).__name__}: {ecc}")
 
@@ -11512,7 +11541,10 @@ def l371_visual3_engine_mounted(data: dict) -> None:
         if "mountIsland3" not in blob:
             fail("L371", "mountIsland3 is missing: the v3 frame has no Three.js mount")
         if "islandCells" not in blob:
-            fail("L371", "islandCells is missing: the mesh is not extruded from the pack legend")
+            fail("L371", "islandCells is missing: the archive mesh helper has no home")
+        three = _src_named(_render_src_files(data), "three.ts")
+        if "islandCells" in three:
+            fail("L371", "three.ts calls islandCells: the live frame would still be the pack grid")
         if "RENDER_NO_GPU" not in blob:
             fail("L371", "RENDER_NO_GPU is missing from render src: no-GPU must stay a coded refusal")
         pixi_live = False
@@ -11568,7 +11600,7 @@ def l372_visual3_step_gate_cmd(data: dict) -> None:
         if "L380" not in units_cmd or "L381" not in units_cmd:
             fail(
                 "L372",
-                "visual3_units.gate_cmd is still the L370 stub: walkers would close without a billboard",
+                "visual3_units.gate_cmd is still the L370 stub: archive unit ids would drop from RULES",
             )
         world_cmd = str((stages.get("visual3_world") or {}).get("gate_cmd") or "")
         if "L382" not in world_cmd or "L383" not in world_cmd:
@@ -11762,10 +11794,10 @@ def l375_heroes_plant_on_lot_not_spawn(data: dict) -> None:
             fail("L375", "plantHeroes is missing: GLB would not sit on lots")
         if "spanX" not in blob or "spanZ" not in blob:
             fail("L375", "plantHeroes has no spanX/spanZ: heroes would sit as 1x1 on a cell")
-        three_blob = "\n".join(
-            body for rel, body in _render_src_files(data) if rel.replace("\\", "/").endswith("three.ts")
-        )
-        if "plantHeroes" in blob and "commit:build" in three_blob:
+        three_blob = _src_named(_render_src_files(data), "three.ts")
+        if "plantHeroes" in three_blob:
+            fail("L375", "three.ts calls plantHeroes: the live island plants by anchor, not lots")
+        if "commit:build" in three_blob:
             fail("L375", "three.ts mentions commit:build: a click would spawn a mesh")
         actions = ((data.get("screens") or {}).get("actions") or {})
         place = actions.get("build_place") if isinstance(actions, dict) else None
@@ -11906,16 +11938,12 @@ def l376_sun_from_city_time(data: dict) -> None:
 
 
 def l377_windows_emissive_no_baked_sun(data: dict) -> None:
-    rule("L377", "windows emit via a separate primitive; island is Lambert; albedo has no baked sun")
+    rule("L377", "windows emit via packed gain; island GLB is Standard; albedo has no baked sun")
     try:
-        three = "\n".join(
-            body
-            for rel, body in _render_src_files(data)
-            if rel.replace("\\", "/").endswith("three.ts")
-        )
+        three = _src_named(_render_src_files(data), "three.ts")
         blob = "\n".join(body for _rel, body in _render_src_files(data))
-        if "MeshLambertMaterial" not in three:
-            fail("L377", "three.ts has no MeshLambertMaterial: Basic materials ignore the sun")
+        if "MeshStandardMaterial" not in three:
+            fail("L377", "three.ts has no MeshStandardMaterial: authored GLB windows would ignore the sun")
         if "MeshBasicMaterial" in three:
             fail("L377", "three.ts still uses MeshBasicMaterial: the sun cannot light the island")
         if "emissiveIntensity" not in three:
@@ -11943,35 +11971,62 @@ def l377_windows_emissive_no_baked_sun(data: dict) -> None:
         fail("L377", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
 
-HUD_CHROME_HOLE_RE = re.compile(
-    r"\.(?:hud-topbar|hud-col|hud-stocks|hud-menu|hud-screen)[^{]*\{[^}]*pointer-events:\s*none",
-    re.S,
+HUD_CHROME_CLASS_RE = re.compile(
+    r"\.(?:hud-topbar|hud-col|hud-stocks|hud-menu|hud-screen)(?:--[\w-]+)?"
 )
 
 
+def _selectors_with_pointer_none(css: str) -> list[str]:
+    blob = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    out: list[str] = []
+    for m in re.finditer(r"pointer-events:\s*none", blob):
+        brace = blob.rfind("{", 0, m.start())
+        if brace < 0:
+            continue
+        prev = blob.rfind("}", 0, brace)
+        out.append(blob[prev + 1 : brace])
+    return out
+
+
+def _hud_overlay_isolates(css: str) -> bool:
+    for sel in _selectors_with_pointer_none(css):
+        if "data-scene-route" in sel:
+            continue
+        if re.search(r"\.hud-overlay\b", sel):
+            return True
+    return False
+
+
+def _hud_ungated_chrome_hole(css: str) -> bool:
+    for sel in _selectors_with_pointer_none(css):
+        if "data-scene-route" in sel:
+            continue
+        if HUD_CHROME_CLASS_RE.search(sel):
+            return True
+    return False
+
+
 def l378_ray_hits_grid_tile(data: dict) -> None:
-    rule("L378", "v3 pick is a ray to the legend grid; iso tileFromWorld is not the live hit")
+    rule("L378", "archive pickFromRay stays; live hit is a mesh ray, not iso tileFromWorld")
     try:
         blob = "\n".join(body for _rel, body in _render_src_files(data))
         if "pickFromRay" not in blob:
-            fail("L378", "pickFromRay is missing: the orbit click would not hit a grid tile")
+            fail("L378", "pickFromRay is missing: the archive grid pick has no home")
         if "hitPlaneY" not in blob:
             fail("L378", "hitPlaneY is missing: the ray would not meet the island plane")
         if "heroAtTile" not in blob:
             fail("L378", "heroAtTile is missing: a lot span would pick only the origin cell")
-        three = "\n".join(
-            body
-            for rel, body in _render_src_files(data)
-            if rel.replace("\\", "/").endswith("three.ts")
-        )
-        if "pickFromRay" not in three:
-            fail("L378", "three.ts does not call pickFromRay: hitAt is not the grid pick")
+        three = _src_named(_render_src_files(data), "three.ts")
+        if "pickFromRay" in three:
+            fail("L378", "three.ts still calls pickFromRay: the live hit is a building mesh, not a grid tile")
         if "setFromCamera" not in three:
             fail("L378", "setFromCamera is missing: NDC would not become a world ray")
         if "Raycaster" not in three:
             fail("L378", "Raycaster is missing: the live camera would not unproject a click")
+        if "intersectObjects" not in three:
+            fail("L378", "intersectObjects is missing: the live click would not hit a planted mesh")
         if "tileFromWorld" in three:
-            fail("L378", "three.ts still uses tileFromWorld: iso diamonds are not the v3 pick")
+            fail("L378", "three.ts still uses tileFromWorld: iso diamonds are not the live pick")
         pick = "\n".join(
             body
             for rel, body in _render_src_files(data)
@@ -11986,7 +12041,7 @@ def l378_ray_hits_grid_tile(data: dict) -> None:
 
 
 def l379_click_routes_and_hud_blocks(data: dict) -> None:
-    rule("L379", "empty tile opens BUILD; closed stock is stake; HUD chrome is not a hole")
+    rule("L379", "empty tile opens BUILD; closed stock is stake; overlay isolates; ungated chrome is not a hole")
     try:
         blob = "\n".join(body for _rel, body in _render_src_files(data))
         if "routeSceneClick" not in blob:
@@ -12028,7 +12083,9 @@ def l379_click_routes_and_hud_blocks(data: dict) -> None:
                 return
         if "pointer-events: auto" not in css:
             fail("L379", "hud.css has no pointer-events: auto: chrome would not catch clicks")
-        if HUD_CHROME_HOLE_RE.search(css):
+        if not _hud_overlay_isolates(css):
+            fail("L379", "hud-overlay lacks pointer-events: none: HUD would steal island picks")
+        if _hud_ungated_chrome_hole(css):
             fail("L379", "HUD chrome sets pointer-events: none: a click would fall through to the island")
     except Exception as exc:
         fail("L379", f"rule crashed on input: {type(exc).__name__}: {exc}")
@@ -12064,17 +12121,9 @@ def l380_walkers_planted_as_billboards(data: dict) -> None:
             fail("L380", "plantUnits is missing: walkers would not come from the pack legend")
         if "isPackedWalker" not in blob:
             fail("L380", "isPackedWalker is missing: walker boxes would stay in the generic 1x1 pass")
-        three = "\n".join(
-            body
-            for rel, body in _render_src_files(data)
-            if rel.replace("\\", "/").endswith("three.ts")
-        )
-        if "plantUnits" not in three:
-            fail("L380", "three.ts does not call plantUnits: the live frame would omit packed walkers")
-        if "isPackedWalker" not in three:
-            fail("L380", "three.ts does not skip packed walkers: they would remain 1x1 boxes")
-        if "mesh.lookAt" not in three:
-            fail("L380", "mesh.lookAt is missing: units would not be camera-facing billboards")
+        three = _src_named(_render_src_files(data), "three.ts")
+        if "plantUnits" in three:
+            fail("L380", "three.ts calls plantUnits: the live island has no walkers (R-V-101)")
         if "from \"pixi.js\"" in three or "from 'pixi.js'" in three:
             fail("L380", "three.ts imports pixi.js: v3 units must not be V12 sprites")
     except Exception as exc:
@@ -12100,13 +12149,9 @@ def l381_unit_pose_not_lootable(data: dict) -> None:
             fail("L381", "units.ts mentions agent_id: packed walkers would become lootable mobs")
         if "Date" in units or "Math.random" in units:
             fail("L381", "units.ts uses Date or Math.random: pose would not be deterministic")
-        three = "\n".join(
-            body
-            for rel, body in _render_src_files(data)
-            if rel.replace("\\", "/").endswith("three.ts")
-        )
-        if "unitWorldPos" not in three:
-            fail("L381", "three.ts does not call unitWorldPos: billboards would ignore city_time")
+        three = _src_named(_render_src_files(data), "three.ts")
+        if "unitWorldPos" in three:
+            fail("L381", "three.ts calls unitWorldPos: the live island has no walker billboards")
         pick = "\n".join(
             body
             for rel, body in _render_src_files(data)
@@ -12132,17 +12177,13 @@ def l382_water_one_plane_fill(data: dict) -> None:
             fail("L382", "shoreFoam is missing: orthogonal foam has no gate")
         if "isShoreWater" not in blob:
             fail("L382", "isShoreWater is missing: shore foam has no neighbour test")
-        three = "\n".join(
-            body
-            for rel, body in _render_src_files(data)
-            if rel.replace("\\", "/").endswith("three.ts")
-        )
-        if "plantWater" not in three:
-            fail("L382", "three.ts does not call plantWater: the live frame would tile the sea")
-        if "landCells" not in three:
-            fail("L382", "three.ts does not call landCells: ~ would remain 1x1 quads")
-        if "shoreFoam" not in three:
-            fail("L382", "three.ts does not call shoreFoam: the shore would have no foam")
+        three = _src_named(_render_src_files(data), "three.ts")
+        if "plantWater" in three:
+            fail("L382", "three.ts calls plantWater: the live island has no sea (R-V-103)")
+        if "landCells" in three:
+            fail("L382", "three.ts calls landCells: the live frame would still be the pack grid")
+        if "shoreFoam" in three:
+            fail("L382", "three.ts calls shoreFoam: the live island has no shore")
         if "HemisphereLight" not in three:
             fail("L382", "HemisphereLight is missing: fill light would not be a sky/ground pair")
         if "fill.intensity" not in three:
@@ -12172,27 +12213,13 @@ def l383_decor_instanced_no_physics(data: dict) -> None:
         if "isPackedDecor" not in blob:
             fail("L383", "isPackedDecor is missing: lanterns would stay in the generic 1x1 pass")
         if "InstancedMesh" not in blob:
-            fail("L383", "InstancedMesh is missing: decor would be one draw per flower")
-        three = "\n".join(
-            body
-            for rel, body in _render_src_files(data)
-            if rel.replace("\\", "/").endswith("three.ts")
-        )
-        if "plantDecor" not in three:
-            fail("L383", "three.ts does not call plantDecor: the live frame would omit packed props")
-        if "isPackedDecor" not in three:
-            fail("L383", "three.ts does not skip packed decor: they would remain 1x1 boxes")
-        if "isPackedVehicle" not in three:
-            fail("L383", "three.ts does not skip packed vehicles: cars would remain 1x1 boxes")
-        if "poseVehicle" not in three or "poseDrone" not in three:
-            fail("L383", "three.ts does not pose vehicles/drones: motion would ignore city_time")
-        if "InstancedMesh" not in three:
-            fail("L383", "three.ts has no InstancedMesh: decor instancing is not mounted")
-        world = "\n".join(
-            body
-            for rel, body in _render_src_files(data)
-            if rel.replace("\\", "/").endswith("world.ts")
-        )
+            fail("L383", "InstancedMesh is missing: archive decor would be one draw per flower")
+        three = _src_named(_render_src_files(data), "three.ts")
+        if "plantDecor" in three:
+            fail("L383", "three.ts calls plantDecor: the live island does not plant pack-legend props")
+        if "poseVehicle" in three or "poseDrone" in three:
+            fail("L383", "three.ts poses vehicles/drones: the live island has no units (R-V-101)")
+        world = _src_named(_render_src_files(data), "world.ts")
         if "vehiclePose(" not in world and "vehiclePose(" not in blob:
             fail("L383", "vehiclePose is not used: cars would not follow city_time")
         if "Date" in world or "Math.random" in world:
@@ -12215,7 +12242,7 @@ def l383_decor_instanced_no_physics(data: dict) -> None:
 def l384_visual3_close_measured(data: dict) -> None:
     rule(
         "L384",
-        "visual3_close runs --jobs 8 and sim.py; GATE_VISUAL is a v3 edition; observeVisual3Budgets exists",
+        "visual3_close runs --jobs 8 and sim.py; GATE_VISUAL is an island edition; observeIslandBudgets exists",
     )
     try:
         cmd = str((((data.get("arch") or {}).get("roadmap") or {}).get("visual3_close") or {}).get("gate_cmd") or "")
@@ -12225,12 +12252,17 @@ def l384_visual3_close_measured(data: dict) -> None:
         if "sim.py" not in cmd:
             fail("L384", "visual3_close.gate_cmd dropped sim.py: money numbers would close without a replay")
             return
-        found_fn = False
+        found_island = False
+        found_v3 = False
         for _rel, text in _render_src_files(data):
+            if "export function observeIslandBudgets" in text:
+                found_island = True
             if "export function observeVisual3Budgets" in text:
-                found_fn = True
-                break
-        if not found_fn:
+                found_v3 = True
+        if not found_island:
+            fail("L384", "observeIslandBudgets is missing from packages/render/src")
+            return
+        if not found_v3:
             fail("L384", "observeVisual3Budgets is missing from packages/render/src")
             return
         md = _gate_visual_text(data)
@@ -12242,8 +12274,8 @@ def l384_visual3_close_measured(data: dict) -> None:
             if line.strip():
                 first = line.strip()
                 break
-        if not re.search(r"(?i)\bv3\b", first):
-            fail("L384", "GATE_VISUAL.md title is not a v3 edition; the V12 archive must not stay the live heading")
+        if not re.search(r"(?i)\bisland\b", first):
+            fail("L384", "GATE_VISUAL.md title is not an island edition; the V12/v3 archive must not stay the live heading")
     except Exception as exc:
         fail("L384", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
@@ -12251,7 +12283,7 @@ def l384_visual3_close_measured(data: dict) -> None:
 def l385_island_form(data: dict) -> None:
     rule(
         "L385",
-        "nine island keys sit between visual3_close and mainnet_launch; form CT, step gates, close jobs/sim, minor 23",
+        "nine island keys sit between visual3_close and mainnet_launch; form CT, step gates, close jobs/sim, minor 24",
     )
     try:
         arch_sec = data.get("arch") or {}
@@ -12344,6 +12376,187 @@ def l385_island_form(data: dict) -> None:
                 )
     except Exception as exc:
         fail("L385", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l386_island_client_live(data: dict) -> None:
+    rule(
+        "L386",
+        "live island is mass+Meshopt+anchors; no cell-grid/units/heroes in three.ts; no island_seed; island_client cites L386",
+    )
+    try:
+        stages = ((data.get("arch") or {}).get("roadmap") or {})
+        cmd = str((stages.get("island_client") or {}).get("gate_cmd") or "")
+        if JOBS8_RE.search(cmd):
+            fail(
+                "L386",
+                "island_client.gate_cmd runs --jobs 8: the full attack belongs on island_close",
+            )
+            return
+        if "L386" not in cmd:
+            fail(
+                "L386",
+                "island_client.gate_cmd dropped L386: the authored mass would close on the L385 stub",
+            )
+            return
+        files = _render_src_files(data)
+        blob = "\n".join(body for _rel, body in files)
+        three = _src_named(files, "three.ts")
+        if "GLTFLoader" not in three:
+            fail("L386", "three.ts has no GLTFLoader: the mass GLB would not load")
+        if "MeshoptDecoder" not in three:
+            fail("L386", "three.ts has no MeshoptDecoder: meshopt runtime GLB would not decode")
+        if "collectAnchors" not in blob:
+            fail("L386", "collectAnchors is missing: buildings would not sit on GLB Empty nodes")
+        for banned in ("plantUnits", "plantWater", "landCells", "plantHeroes"):
+            if banned in three:
+                fail(
+                    "L386",
+                    f"three.ts still calls {banned}: the live frame would be the pack cell grid",
+                )
+                return
+        host = ""
+        for rel, text in _client_src_files(data):
+            path = rel.replace("\\", "/")
+            if path.endswith("hud/SceneHost.tsx") or path.endswith("hud/SceneHost.ts"):
+                host += text + "\n"
+        if "island_mass.glb" not in host:
+            fail("L386", "SceneHost does not load island_mass.glb: the client would not draw the authored mass")
+        if "content/out/heroes" in host:
+            fail("L386", "SceneHost still globs content/out/heroes: toy GLB would replace runtime buildings")
+        names = _island_anchor_names(data)
+        if len(names) != 26:
+            fail(
+                "L386",
+                f"island_mass.glb has {len(names)} anchor_* nodes, want 26: occupancy has no plant points",
+            )
+            return
+        plants = ((data.get("render") or {}).get("island_plants") or {})
+        warehouse = plants.get("amazon_warehouse") if isinstance(plants, dict) else None
+        pack_id = ""
+        if isinstance(warehouse, dict):
+            pack_id = str(warehouse.get("pack_id") or "")
+        if pack_id != "":
+            fail(
+                "L386",
+                f"amazon_warehouse.pack_id={pack_id!r}: R-V-95 forbids gluing AmazonWarehouse to a pack id",
+            )
+        for key in (
+            "island_orbit_distance_min",
+            "island_orbit_distance_max",
+            "island_orbit_distance_default",
+            "island_orbit_target_y",
+            "island_sun_distance",
+            "bloom_strength_bps",
+            "bloom_radius_bps",
+            "bloom_threshold_bps",
+        ):
+            val = _param_flag(data, "render", key)
+            if val is None or val <= 0:
+                fail("L386", f"render.{key}={val}: island camera/bloom must be packed and positive")
+                return
+        for rel, text in _api_src_files(data):
+            if "island_seed" in text:
+                fail(
+                    "L386",
+                    f"{rel} still writes island_seed: a leftover per-user map seed (R-V-98)",
+                )
+                return
+    except Exception as exc:
+        fail("L386", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l387_sign_day_gain(data: dict) -> None:
+    rule(
+        "L387",
+        "day signs use packed sign_day_gain_bps; windows/lamps stay off; one PCF shadow; bloomLive gates composer",
+    )
+    try:
+        g = _t10_gen(data)
+        phases = g.get("phases") or {}
+        day = phases.get("day") if isinstance(day, dict) else None
+        lights = int((day or {}).get("lights") or 0) if isinstance(day, dict) else 1
+        if lights != 0:
+            fail("L387", f"phase day lights={lights}: LOOK-09 must not turn on day windows and lamps")
+        gain = _param_flag(data, "render", "sign_day_gain_bps")
+        if gain is None or gain < 2500 or gain > 4000:
+            fail(
+                "L387",
+                f"sign_day_gain_bps={gain}: R-V-105 day signs must sit in 2500-4000 bps",
+            )
+        bloom_live = _param_flag(data, "render", "island_bloom_live")
+        if bloom_live not in (0, 1):
+            fail("L387", f"island_bloom_live={bloom_live}: must be 0 or 1")
+        shadows = _param_flag(data, "render", "island_shadows")
+        if shadows != 1:
+            fail("L387", f"island_shadows={shadows}: LOOK-09 needs one directional PCF shadow")
+        for key in (
+            "island_shadow_map_size",
+            "island_shadow_bias_bps",
+            "island_shadow_normal_bias_bps",
+        ):
+            val = _param_flag(data, "render", key)
+            if val is None or val <= 0:
+                fail("L387", f"render.{key}={val}: shadow map/bias must be packed and positive")
+                return
+        files = _render_src_files(data)
+        blob = "\n".join(body for _, body in files)
+        three = _src_named(files, "three.ts")
+        if "signDayGainBps" not in blob:
+            fail("L387", "signDayGainBps is missing: day signs have no packed home in render src")
+        if "bloomLive" not in three:
+            fail("L387", "three.ts has no bloomLive: stone bloom cannot be gated off")
+        if "PCFSoftShadowMap" not in three:
+            fail("L387", "three.ts has no PCFSoftShadowMap: LOOK-09 shadow type is missing")
+        if "gainW > gainS" in blob:
+            fail("L387", "render src still does max(window, sign): classified glow is gone")
+        if "applyClassifiedGlow" not in blob:
+            fail("L387", "applyClassifiedGlow is missing: sign/window/lamp would share one gain")
+        cmd = str((((data.get("arch") or {}).get("roadmap") or {}).get("island_client") or {}).get("gate_cmd") or "")
+        if "L387" not in cmd:
+            fail("L387", "island_client.gate_cmd dropped L387: day-sign packing would close on L386")
+        if JOBS8_RE.search(cmd):
+            fail("L387", "island_client.gate_cmd runs --jobs 8: the full attack belongs on island_close")
+        client = "\n".join(body for _, body in _client_src_files(data))
+        if "sign_day_gain_bps" not in client:
+            fail("L387", "client src does not read sign_day_gain_bps: HUD would keep day signs at zero")
+    except Exception as exc:
+        fail("L387", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l388_companion_cut(data: dict) -> None:
+    rule(
+        "L388",
+        "Companion is cut from the live pack: no section, screen, codes, pending snapshot, or HUD component",
+    )
+    try:
+        if "companion.json" in PARAM_FILES:
+            fail("L388", "companion.json is still in PARAM_FILES")
+        if "companion" in data:
+            fail("L388", "companion section is live")
+        screens = ((data.get("screens") or {}).get("screens") or {})
+        if "companion" in screens:
+            fail("L388", "companion screen is still authored")
+        codes = ((data.get("codes") or {}).get("codes") or {})
+        leftover = [cid for cid in codes if str(cid).startswith("COMPANION_") or cid == "DEMO_NO_COMPANION"]
+        if leftover:
+            fail("L388", f"live Companion codes {leftover[:4]}")
+        pending = ((data.get("pending") or {}).get("items") or {})
+        if "companion_llm_price_snapshot" in pending:
+            fail("L388", "pending still owns companion_llm_price_snapshot")
+        texts = _ru_texts(data)
+        leftover_t = [cid for cid in texts if str(cid).startswith("COMPANION_") or cid == "DEMO_NO_COMPANION"]
+        if leftover_t:
+            fail("L388", f"strings still have Companion codes {leftover_t[:4]}")
+        files = _hud_screen_files(data)
+        if "companion.tsx" in files:
+            fail("L388", "companion.tsx is still a HUD screen component")
+        ui_map = (strings().get("ui") or {})
+        for key in ("UI_COMPANION", "UI_AUTOPILOT", "UI_ASK_ADVISOR"):
+            if key in ui_map:
+                fail("L388", f"UI string {key} is still live")
+                break
+    except Exception as exc:
+        fail("L388", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
 
 # ------------------------------------------------------------------- pending
@@ -12553,6 +12766,9 @@ RULES = [
     l383_decor_instanced_no_physics,
     l384_visual3_close_measured,
     l385_island_form,
+    l386_island_client_live,
+    l387_sign_day_gain,
+    l388_companion_cut,
 ]
 
 

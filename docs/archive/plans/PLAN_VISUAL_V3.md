@@ -20,7 +20,6 @@ python -c "import json;d=json.load(open('content/params/launch.json',encoding='u
 Живой кадр между этим архивом и `P7` — `PLAN_ISLAND.md`, не повтор этапов ниже.
 
 Не двигаются: Rev-A, круг / вход / выход из пака, `layout_version` 1, `tick_inputs` пуст,
-общий остров (`R-V-15`), HUD HTML/CSS, компаньон без доли, `missions_live=0`, краны NFT 0.
 
 ---
 

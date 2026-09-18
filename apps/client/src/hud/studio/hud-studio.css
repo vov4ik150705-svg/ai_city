@@ -1,0 +1,1276 @@
+/* Economy look workbench. Mockup 1024×575 → 184×194 at 19,62. Desktop 1920×1080 → 345×364 at 36,116. */
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+.hud-studio.hud-root {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a8fd6 0%, #8ecff6 72%, #4aa8e4 100%);
+  color: var(--hud-tone-primary-text);
+  font-family: var(--hud-font-ui);
+}
+
+.hud-economy {
+  --eco-x: 19px;
+  --eco-y: 62px;
+  --eco-w: 345px;
+  --eco-h: 365px;
+  --eco-pad-x: 20px;
+  --eco-header-h: 44px;
+  --eco-header-y: 10px;
+  --eco-title: 14px;
+  --eco-k: 12px;
+  --eco-hero: 36px;
+  --eco-row: 13px;
+  --eco-hint: 12px;
+  --eco-plus: 40px;
+  --eco-icon: 20px;
+  --eco-meter: 8px;
+  --eco-gap-k: 8px;
+  --eco-gap-sub: 10px;
+  --eco-gap-h: 10px;
+  --eco-cap-b: 18px;
+  --eco-pay-row: 24px;
+  --eco-meter-m: 10px;
+  --eco-hint-m: 8px;
+  --eco-pay-b: 16px;
+  --eco-res-h: 30px;
+  --eco-res-gap: 10px;
+  box-sizing: border-box;
+  position: absolute;
+  left: var(--eco-x);
+  top: var(--eco-y);
+  width: var(--eco-w);
+  height: var(--eco-h);
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--eco-pad-x);
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    var(--eco-panel-gradient-top, rgba(44, 103, 170, 0.86)) 0%,
+    var(--eco-panel-gradient-bottom, rgba(30, 79, 140, 0.86)) 100%
+  );
+  border: 1px solid var(--eco-panel-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--eco-panel-radius, 16px);
+  box-shadow: var(--eco-panel-shadow, 0 10px 24px rgba(0, 0, 0, 0.16));
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  color: #f4f7fa;
+}
+
+.hud-economy .hud-ico {
+  width: var(--eco-icon);
+  height: var(--eco-icon);
+  overflow: visible;
+  color: inherit;
+}
+
+@media (min-width: 1920px) {
+  .hud-economy {
+    --eco-x: 36px;
+    --eco-y: 116px;
+    --eco-w: 345px;
+    --eco-h: 364px;
+    --eco-pad-x: 24px;
+    --eco-header-h: 42px;
+    --eco-header-y: 10px;
+    --eco-k: 12px;
+    --eco-hero: 36px;
+    --eco-row: 13px;
+    --eco-hint: 12px;
+    --eco-plus: 40px;
+    --eco-icon: 20px;
+    --eco-gap-k: 4px;
+    --eco-gap-sub: 6px;
+    --eco-gap-h: 8px;
+    --eco-cap-b: 12px;
+    --eco-pay-row: 24px;
+    --eco-meter-m: 8px;
+    --eco-hint-m: 7px;
+    --eco-pay-b: 12px;
+    --eco-res-h: 30px;
+    --eco-res-gap: 4px;
+  }
+}
+
+@media (min-width: 2048px) {
+  .hud-economy {
+    --eco-x: 38px;
+    --eco-y: 115px;
+    --eco-w: 368px;
+    --eco-h: 360px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .hud-economy {
+    --eco-h: 365px;
+    --eco-pad-x: 20px;
+    --eco-header-h: 44px;
+    --eco-header-y: 10px;
+    --eco-gap-h: 10px;
+    --eco-gap-k: 8px;
+    --eco-gap-sub: 10px;
+    --eco-cap-b: 18px;
+    --eco-pay-row: 24px;
+    --eco-meter-m: 10px;
+    --eco-hint-m: 8px;
+    --eco-pay-b: 16px;
+    --eco-res-h: 30px;
+    --eco-res-gap: 10px;
+    --eco-icon: 20px;
+  }
+
+  .hud-economy__res {
+    padding-top: 16px;
+  }
+
+  .hud-economy__res-row .hud-ico {
+    width: 24px;
+    height: 24px;
+  }
+
+  .hud-economy__h {
+    margin-bottom: 18px;
+  }
+
+  .hud-economy__payroll {
+    padding-top: 16px;
+  }
+}
+
+.hud-economy__res {
+  padding-top: 16px;
+}
+
+.hud-economy__res-row .hud-ico {
+  width: 24px;
+  height: 24px;
+}
+
+.hud-economy__h {
+  margin-bottom: 18px;
+}
+
+.hud-economy__payroll {
+  padding-top: 16px;
+}
+
+.hud-economy {
+  width: var(--eco-panel-width);
+  height: var(--eco-panel-height);
+  padding: var(--eco-panel-padding);
+}
+
+.hud-economy__h {
+  height: var(--eco-header-height);
+  margin-bottom: var(--eco-header-bottom);
+}
+
+.hud-economy__capital {
+  margin: 0;
+}
+
+.hud-economy__capital-top {
+  grid-template-columns: var(--eco-capital-icon) minmax(0, 1fr);
+  gap: var(--eco-capital-gap);
+}
+
+.hud-economy__capital-copy {
+  gap: var(--eco-capital-label-value);
+}
+
+.hud-economy__paid {
+  margin-top: var(--eco-capital-value-supporting);
+}
+
+.hud-economy__capital + .hud-economy__rule {
+  margin-top: var(--eco-capital-divider-top);
+}
+
+.hud-economy__rule + .hud-economy__payroll {
+  padding-top: var(--eco-divider-next);
+}
+
+.hud-economy__payroll {
+  flex: 0 0 auto;
+  padding-bottom: 0;
+}
+
+.hud-economy__payroll .hud-economy__row {
+  height: var(--eco-payroll-height);
+  min-height: var(--eco-payroll-height);
+}
+
+.hud-economy__payroll .hud-economy__meter {
+  margin-top: var(--eco-payroll-progress-top);
+}
+
+.hud-economy__payroll .hud-economy__hint {
+  margin-top: var(--eco-payroll-coverage-top);
+}
+
+.hud-economy__payroll + .hud-economy__rule {
+  margin-top: var(--eco-payroll-divider-top);
+}
+
+.hud-economy__rule + .hud-economy__res {
+  padding-top: var(--eco-divider-next);
+}
+
+.hud-economy__res {
+  gap: var(--eco-resource-gap);
+  padding-bottom: 0;
+}
+
+.hud-economy__res-row {
+  display: grid;
+  grid-template-columns: var(--eco-resource-icon) minmax(0, 1fr) auto;
+  column-gap: var(--eco-resource-icon-gap);
+  height: var(--eco-resource-height);
+  min-height: var(--eco-resource-height);
+  align-items: center;
+}
+
+.hud-economy__res-row .hud-economy__row-l {
+  display: contents;
+}
+
+.hud-economy__res-row .hud-economy__row-l .hud-ico {
+  grid-column: 1;
+  width: var(--eco-resource-icon);
+  height: var(--eco-resource-icon);
+}
+
+.hud-economy__res-row .hud-economy__row-l > span:last-child {
+  grid-column: 2;
+}
+
+.hud-economy__res-row .hud-economy__qty {
+  grid-column: 3;
+}
+
+/* ECONOMY_TUNING_BEGIN: edit only this block to tune the panel. */
+.hud-economy {
+  --eco-panel-width: 240px;
+  --eco-panel-height: 266px;
+  --eco-panel-scale: 0.86;
+  --eco-panel-radius: 16px;
+  --eco-panel-border: rgba(255, 255, 255, 0.1);
+  --eco-panel-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  --eco-panel-gradient-top: rgba(44, 103, 170, 0.86);
+  --eco-panel-gradient-bottom: rgba(30, 79, 140, 0.86);
+  --eco-panel-padding-x: 12px;
+  --eco-panel-padding-top: 3px;
+  --eco-panel-padding-bottom: 18px;
+  --eco-header-height: 38px;
+  --eco-header-gap: 8px;
+  --eco-header-bottom: 8px;
+  --eco-capital-icon: 36px;
+  --eco-capital-gap: 12px;
+  --eco-capital-label-value: 4px;
+  --eco-capital-value-supporting: 6px;
+  --eco-capital-divider-top: 8px;
+  --eco-divider-next: 6px;
+  --eco-payroll-height: 20px;
+  --eco-payroll-progress-top: 6px;
+  --eco-payroll-coverage-top: 6px;
+  --eco-payroll-divider-top: 8px;
+  --eco-resource-icon: 22px;
+  --eco-resource-icon-gap: 8px;
+  --eco-resource-height: 24px;
+  --eco-resource-gap: 6px;
+  --eco-k: 12px;
+  --eco-hero: 32px;
+  --eco-row: 12px;
+  --eco-hint: 11px;
+  --eco-icon: 20px;
+}
+/* ECONOMY_TUNING_END */
+
+.hud-economy__h {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--eco-header-gap);
+  height: var(--eco-header-height);
+  padding: var(--eco-header-y) 0;
+  box-sizing: border-box;
+}
+
+.hud-economy__h-ico,
+.hud-economy__go {
+  display: grid;
+  place-items: center;
+  width: var(--eco-icon);
+  height: var(--eco-icon);
+  color: #f4f7fa;
+}
+
+.hud-economy__title {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-title);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #f4f7fa;
+}
+
+.hud-economy__go {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: #f4f7fa;
+  cursor: pointer;
+}
+
+.hud-economy__go:focus-visible {
+  outline: 2px solid #45c7f4;
+  outline-offset: 2px;
+}
+
+.hud-economy__capital {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  margin: 0 0 var(--eco-cap-b);
+}
+
+.hud-economy__capital-top {
+  display: grid;
+  grid-template-columns: var(--eco-capital-icon) minmax(0, 1fr);
+  gap: var(--eco-capital-gap);
+  align-items: center;
+}
+
+.hud-economy__plus {
+  display: grid;
+  place-items: center;
+  width: var(--eco-capital-icon);
+  height: var(--eco-capital-icon);
+  border-radius: 50%;
+  background: #ffb64a;
+  color: #fff;
+}
+
+.hud-economy__capital-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--eco-capital-label-value);
+}
+
+.hud-economy__k {
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-k);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #f4f7fa;
+}
+
+.hud-economy__hero {
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hero);
+  font-weight: 600;
+  line-height: 1;
+  color: #f4f7fa;
+}
+
+.hud-economy__paid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: var(--eco-gap-sub) 0 0;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  line-height: 1;
+}
+
+.hud-economy__dot,
+.hud-economy__slash {
+  font-weight: 400;
+  color: #c7d5e3;
+}
+
+.hud-economy__paid-amt {
+  font-weight: 500;
+  color: #63d68a;
+}
+
+.hud-economy__paid-lbl {
+  font-weight: 400;
+  color: #c7d5e3;
+}
+
+.hud-economy__rule {
+  flex: 0 0 auto;
+  height: 1px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hud-economy__payroll,
+.hud-economy__res-row {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.hud-economy__payroll {
+  padding: 0 0 var(--eco-pay-b);
+}
+
+.hud-economy__payroll:focus-visible,
+.hud-economy__res-row:focus-visible {
+  outline: 2px solid #45c7f4;
+  outline-offset: 2px;
+}
+
+.hud-economy__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--eco-gap-h);
+  min-height: var(--eco-pay-row);
+}
+
+.hud-economy__row-l {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--eco-gap-h);
+  min-width: 0;
+  color: #c7d5e3;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hud-economy__row-v {
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: 600;
+  color: #f4f7fa;
+}
+
+.hud-economy__meter {
+  margin-top: var(--eco-meter-m);
+}
+
+.hud-economy__meter .hud-meter {
+  width: 100%;
+  gap: 0;
+}
+
+.hud-economy__meter .hud-meter__label {
+  display: none;
+}
+
+.hud-economy__meter .hud-meter__track {
+  height: var(--eco-meter);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hud-economy__meter .hud-meter__fill {
+  display: block;
+  height: 100%;
+  background: #45c7f4;
+}
+
+.hud-economy__hint {
+  display: block;
+  margin-top: var(--eco-hint-m);
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hint);
+  font-weight: 400;
+  color: #c7d5e3;
+}
+
+.hud-economy__res {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--eco-res-gap);
+  padding: 4px 0 0;
+}
+
+.hud-economy__res-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--eco-gap-h);
+  min-height: var(--eco-res-h);
+}
+
+.hud-economy__qty {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: #f4f7fa;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Final tunable geometry bindings. Keep layout changes in ECONOMY_TUNING_BEGIN. */
+.hud-economy {
+  width: var(--eco-panel-width);
+  height: var(--eco-panel-height);
+  padding: var(--eco-panel-padding-top) var(--eco-panel-padding-x) var(--eco-panel-padding-bottom);
+  transform: scale(var(--eco-panel-scale));
+  transform-origin: top left;
+}
+
+.hud-economy__h {
+  height: var(--eco-header-height);
+  margin-bottom: var(--eco-header-bottom);
+  gap: var(--eco-header-gap);
+}
+
+.hud-economy__capital {
+  margin: 0;
+}
+
+.hud-economy__capital-top {
+  grid-template-columns: var(--eco-capital-icon) minmax(0, 1fr);
+  gap: var(--eco-capital-gap);
+}
+
+.hud-economy__plus {
+  width: var(--eco-capital-icon);
+  height: var(--eco-capital-icon);
+}
+
+.hud-economy__capital-copy {
+  gap: var(--eco-capital-label-value);
+}
+
+.hud-economy__paid {
+  margin-top: var(--eco-capital-value-supporting);
+}
+
+.hud-economy__capital + .hud-economy__rule {
+  margin-top: var(--eco-capital-divider-top);
+}
+
+.hud-economy__rule + .hud-economy__payroll {
+  flex: 0 0 auto;
+  padding-top: var(--eco-divider-next);
+  padding-bottom: 0;
+}
+
+.hud-economy__payroll .hud-economy__row {
+  height: var(--eco-payroll-height);
+  min-height: var(--eco-payroll-height);
+}
+
+.hud-economy__payroll .hud-economy__meter {
+  margin-top: var(--eco-payroll-progress-top);
+}
+
+.hud-economy__payroll .hud-economy__hint {
+  margin-top: var(--eco-payroll-coverage-top);
+}
+
+.hud-economy__payroll + .hud-economy__rule {
+  margin-top: var(--eco-payroll-divider-top);
+}
+
+.hud-economy__rule + .hud-economy__res {
+  gap: var(--eco-resource-gap);
+  padding-top: var(--eco-divider-next);
+  padding-bottom: 0;
+}
+
+.hud-economy__res-row {
+  display: grid;
+  grid-template-columns: var(--eco-resource-icon) minmax(0, 1fr) auto;
+  column-gap: var(--eco-resource-icon-gap);
+  height: var(--eco-resource-height);
+  min-height: var(--eco-resource-height);
+  align-items: center;
+}
+
+.hud-economy__res-row .hud-economy__row-l {
+  display: contents;
+}
+
+.hud-economy__res-row .hud-economy__row-l .hud-ico {
+  grid-column: 1;
+  width: var(--eco-resource-icon);
+  height: var(--eco-resource-icon);
+}
+
+.hud-economy__res-row .hud-economy__row-l > span:last-child {
+  grid-column: 2;
+}
+
+.hud-economy__res-row .hud-economy__qty {
+  grid-column: 3;
+}
+
+.hud-economy--city {
+  left: auto;
+  right: var(--eco-x);
+  transform-origin: top right;
+}
+
+.hud-economy--city .hud-economy__h {
+  margin-bottom: 4px;
+}
+
+.hud-economy--city .hud-economy__res {
+  flex: 1 1 auto;
+  justify-content: space-evenly;
+  gap: 8px;
+  padding-top: 0;
+}
+
+.hud-economy--city .hud-economy__res-row .hud-economy__row-l {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+}
+
+.hud-economy--city .hud-economy__pop-track {
+  display: grid;
+  grid-template-columns: var(--eco-resource-icon) minmax(0, 1fr) auto;
+  column-gap: var(--eco-resource-icon-gap);
+  align-items: center;
+  margin-top: 4px;
+}
+
+.hud-economy--city .hud-economy__pop-track .hud-economy__meter {
+  grid-column: 2;
+  margin-top: 0;
+}
+
+.hud-economy--city .hud-economy__pop-next {
+  grid-column: 3;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hint);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: capitalize;
+  color: #8fa8c0;
+  white-space: nowrap;
+}
+
+.hud-economy--city .hud-economy__city-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  color: #c7d5e3;
+}
+
+.hud-economy--city .hud-economy__city-go .hud-ico {
+  width: 14px;
+  height: 14px;
+}
+
+.hud-economy--city,
+.hud-recent-activity,
+.hud-active-functions {
+  font-family: var(--hud-font-ui);
+  color: #f4f7fa;
+}
+
+.hud-economy--city .hud-economy__row-l,
+.hud-recent-activity__time,
+.hud-active-functions__name {
+  color: #c7d5e3;
+}
+
+.hud-economy--city .hud-economy__row-v,
+.hud-active-functions__name {
+  font-weight: 500;
+}
+
+.hud-recent-activity__view,
+.hud-recent-activity__text,
+.hud-active-functions__view {
+  color: #8fa8c0;
+}
+
+/* Final mockup placement overrides. */
+.hud-status-bar {
+  left: auto !important;
+  right: auto !important;
+  left: calc(50% + 145px) !important;
+  top: 18px !important;
+  transform: scale(var(--eco-panel-scale)) !important;
+  transform-origin: top left !important;
+}
+
+.hud-active-functions {
+  left: 36px !important;
+  top: auto !important;
+  bottom: 42px !important;
+  transform: scale(var(--eco-panel-scale)) !important;
+  transform-origin: bottom left !important;
+}
+
+.hud-recent-activity {
+  left: auto !important;
+  right: 36px !important;
+  top: auto !important;
+  bottom: 42px !important;
+  transform: scale(var(--eco-panel-scale)) !important;
+  transform-origin: bottom right !important;
+}
+
+.hud-building-detail {
+  left: 50%;
+  top: 140px;
+  width: 280px;
+  height: 168px;
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 182, 74, 0.85);
+  transform: translateX(-50%) scale(var(--eco-panel-scale));
+  transform-origin: top center;
+}
+
+.hud-building-detail__art {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(19, 66, 123, 0.28);
+}
+
+.hud-building-detail__thumb {
+  width: 96px;
+  height: 112px;
+}
+
+.hud-building-detail__thumb .hud-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-building-detail__body {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 2px;
+}
+
+.hud-building-detail__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hud-building-detail__title,
+.hud-building-detail__level {
+  padding-left: 0;
+  color: #f4f7fa;
+  font-family: var(--hud-font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.hud-building-detail__level {
+  padding-left: 0;
+  white-space: nowrap;
+}
+
+.hud-building-detail__status,
+.hud-building-detail__fact {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 18px;
+  padding-left: 24px;
+  color: #c7d5e3;
+  font-family: var(--hud-font-ui);
+  font-size: 12px;
+}
+
+.hud-building-detail__status {
+  color: #63d68a;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.hud-building-detail__dot {
+  position: absolute;
+  left: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #63d68a;
+}
+
+.hud-building-detail__fact .hud-ico {
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  color: #c7d5e3;
+}
+
+.hud-building-detail__fact--accent {
+  color: #ffcf4a;
+}
+
+.hud-building-detail__manage {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  margin-top: auto;
+  border: 0;
+  border-radius: 7px;
+  background: #45c7f4;
+  color: #f4f7fa;
+  font: 600 12px var(--hud-font-ui);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.hud-building-detail__manage .hud-ico {
+  position: absolute;
+  right: 16px;
+}
+
+/* Final mockup placement overrides. */
+.hud-status-bar {
+  left: auto;
+  right: 36px;
+  top: 18px;
+}
+
+.hud-active-functions {
+  left: 36px;
+  top: auto;
+  bottom: 42px;
+  transform: scale(var(--eco-panel-scale));
+  transform-origin: bottom left;
+}
+
+.hud-recent-activity {
+  left: auto;
+  right: 36px;
+  top: auto;
+  bottom: 42px;
+  transform: scale(var(--eco-panel-scale));
+  transform-origin: bottom right;
+}
+
+.hud-day-time {
+  left: 50%;
+  top: 18px;
+  width: 280px;
+  height: 44px;
+  padding: 6px 12px;
+  transform: translateX(-50%) scale(var(--eco-panel-scale));
+  transform-origin: top center;
+}
+
+.hud-day-time .hud-clock {
+  height: auto;
+  column-gap: 8px;
+  row-gap: 4px;
+}
+
+.hud-day-time .hud-clock__day-sun {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  color: #ffcf4a;
+  vertical-align: -2px;
+}
+
+.hud-day-time .hud-clock__day,
+.hud-day-time .hud-clock__v {
+  font-family: var(--hud-font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: #f4f7fa;
+}
+
+.hud-day-time .hud-clock__bound {
+  font-family: var(--hud-font-ui);
+  font-size: 9px;
+  color: #c7d5e3;
+}
+
+.hud-day-time .hud-cycle {
+  height: 8px;
+  background: #1d4b86;
+}
+
+.hud-day-time .hud-cycle__on {
+  background: #45c7f4;
+}
+
+.hud-day-time .hud-clock__sun-ico {
+  width: 18px;
+  height: 18px;
+}
+
+.hud-status-bar {
+  left: 50%;
+  top: 520px;
+  width: max-content;
+  height: 44px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 12px;
+  transform: translateX(-50%) scale(var(--eco-panel-scale));
+  transform-origin: top center;
+  color: #c7d5e3;
+}
+
+.hud-status-bar__bank,
+.hud-status-bar__season {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  font-family: var(--hud-font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.hud-status-bar__bank {
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(29, 75, 134, 0.62);
+  color: #63d68a;
+  font-weight: 600;
+}
+
+.hud-status-bar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #63d68a;
+}
+
+.hud-status-bar__season {
+  flex: 0 0 auto;
+  overflow: hidden;
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  text-overflow: ellipsis;
+  color: #f4f7fa;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hud-status-bar__notification {
+  position: relative;
+  display: inline-flex;
+  color: #f4f7fa;
+  padding-left: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hud-status-bar__badge {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  min-width: 12px;
+  height: 12px;
+  padding: 0 2px;
+  border-radius: 999px;
+  background: #e97878;
+  color: #fff;
+  font-family: var(--hud-font-ui);
+  font-size: 8px;
+  line-height: 12px;
+  text-align: center;
+}
+
+.hud-status-bar > .hud-ico {
+  flex: 0 0 auto;
+  color: #f4f7fa;
+}
+
+/* Studio composition follows the accepted island HUD mockup. */
+.hud-status-bar {
+  left: auto;
+  right: 36px;
+  top: 18px;
+  transform-origin: top right;
+}
+
+.hud-active-functions {
+  left: 36px;
+  top: auto;
+  bottom: 42px;
+  transform: scale(var(--eco-panel-scale));
+  transform-origin: bottom left;
+}
+
+.hud-recent-activity {
+  left: auto;
+  right: 36px;
+  top: auto;
+  bottom: 42px;
+  transform: scale(var(--eco-panel-scale));
+  transform-origin: bottom right;
+}
+
+.hud-recent-activity {
+  left: 50%;
+  top: 62px;
+  width: 330px;
+  height: 158px;
+  padding: 3px 20px 12px;
+  transform: translateX(-50%) scale(var(--eco-panel-scale));
+  transform-origin: top center;
+}
+
+.hud-recent-activity .hud-economy__h {
+  margin-bottom: 4px;
+}
+
+.hud-recent-activity__view {
+  margin-left: auto;
+  color: #8fa8c0;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hint);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.hud-recent-activity__list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.hud-recent-activity__row {
+  display: grid;
+  grid-template-columns: 42px 32px 8px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  height: 31px;
+  min-height: 31px;
+  padding: 2px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hud-recent-activity__time {
+  color: #c7d5e3;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-row);
+}
+
+.hud-recent-activity__building {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 32px;
+  color: #c7d5e3;
+}
+
+.hud-recent-activity__thumb {
+  width: 28px;
+  height: 32px;
+}
+
+.hud-recent-activity__thumb .hud-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-recent-activity__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #63d68a;
+}
+
+.hud-recent-activity__dot--muted {
+  background: #8fa8c0;
+}
+
+.hud-recent-activity__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.hud-recent-activity__name {
+  min-width: 0;
+  color: #c7d5e3;
+  font-family: var(--hud-font-ui);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+  white-space: normal;
+}
+
+.hud-recent-activity__text {
+  min-width: 0;
+  color: #8fa8c0;
+  font-family: var(--hud-font-ui);
+  font-size: 7px;
+  line-height: 1;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.hud-active-functions {
+  left: 50%;
+  top: 302px;
+  width: 350px;
+  height: 150px;
+  padding: 3px 12px 10px;
+  transform: translateX(-50%) scale(var(--eco-panel-scale));
+  transform-origin: top center;
+}
+
+.hud-active-functions .hud-economy__h {
+  margin-bottom: 4px;
+}
+
+.hud-active-functions__view {
+  margin-left: auto;
+  color: #8fa8c0;
+  font-family: var(--hud-font-ui);
+  font-size: var(--eco-hint);
+  white-space: nowrap;
+}
+
+.hud-active-functions__list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  height: 108px;
+}
+
+.hud-active-functions__card {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 24px;
+  min-width: 0;
+  padding: 6px 5px 2px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  background: rgba(19, 66, 123, 0.28);
+  color: #c7d5e3;
+}
+
+.hud-active-functions__card--selected {
+  border-color: #45c7f4;
+  box-shadow: 0 0 0 1px rgba(69, 199, 244, 0.55);
+}
+
+.hud-active-functions__art {
+  display: grid;
+  place-items: center;
+}
+
+.hud-active-functions__thumb {
+  width: 48px;
+  height: 58px;
+}
+
+.hud-active-functions__thumb .hud-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud-active-functions__status {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #63d68a;
+}
+
+.hud-active-functions__label {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 4px;
+}
+
+.hud-active-functions__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #f4f7fa;
+  font-family: var(--hud-font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: normal;
+}
+
+/* Shared Economy typography: keep all studio cards on one text palette. */
+.hud-active-functions__name {
+  color: #c7d5e3;
+}
+
+.hud-recent-activity__time {
+  color: #c7d5e3;
+}
+
+.hud-recent-activity__view,
+.hud-recent-activity__text,
+.hud-active-functions__view {
+  color: #8fa8c0;
+}

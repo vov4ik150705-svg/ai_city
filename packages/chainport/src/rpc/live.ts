@@ -7,9 +7,14 @@ import {
   dataIssueVoucher,
   dataMintCapital,
   dataPresentVoucher,
+  dataPrizeClaim,
+  dataPrizeDeposit,
+  dataPrizeReturnUnsettled,
+  dataPrizeSlice,
   dataPutRoot,
   dataSnapshot,
   dataStake,
+  dataUnstake,
   dataTransfer,
   dataVaultCorp,
   decodeBytes32,
@@ -17,7 +22,17 @@ import {
   decodeUint,
   isAddr,
 } from "./abi.js"
-import { encodeAmount, encodeChain, encodeOk, encodeRoot, encodeSnapshot, parseDec, rpcMethod } from "./codec.js"
+import {
+  encodeAmount,
+  encodeChain,
+  encodeOk,
+  encodeRoot,
+  encodeSnapshot,
+  parseDec,
+  parseDecList,
+  parseStringList,
+  rpcMethod,
+} from "./codec.js"
 import { fetchPoster, postEth, type JsonRpcPost } from "./jsonrpc.js"
 
 export type LiveContracts = {
@@ -25,6 +40,7 @@ export type LiveContracts = {
   readonly vault: string
   readonly stakeRegistry: string
   readonly merkleRoots: string
+  readonly prizeTreasury?: string
 }
 
 export type LiveRpcConfig = {
@@ -32,6 +48,12 @@ export type LiveRpcConfig = {
   readonly chainId: bigint
   readonly timeoutMs: bigint
   readonly contracts: LiveContracts
+  readonly callers?: {
+    readonly depositorService: string
+    readonly depositorAddress: string
+    readonly signerService: string
+    readonly signerAddress: string
+  }
 }
 
 function arg(args: readonly string[], i: number): string {
@@ -69,16 +91,27 @@ async function sendTx(
   return { status: "ok", body: encodeOk() }
 }
 
+function callerAddress(
+  raw: string,
+  service: string,
+  address: string,
+): string {
+  return raw === service ? address : raw
+}
+
 export function createLiveTransport(cfg: LiveRpcConfig, post?: JsonRpcPost): RpcTransport {
   const send = post === undefined ? fetchPoster(cfg.url, cfg.timeoutMs) : post
   const corp = isAddr(cfg.contracts.corpToken) ? cfg.contracts.corpToken : ""
   const vault = isAddr(cfg.contracts.vault) ? cfg.contracts.vault : ""
   const stake = isAddr(cfg.contracts.stakeRegistry) ? cfg.contracts.stakeRegistry : ""
   const roots = isAddr(cfg.contracts.merkleRoots) ? cfg.contracts.merkleRoots : ""
+  const prizesRaw = cfg.contracts.prizeTreasury
+  const prizes = prizesRaw !== undefined && isAddr(prizesRaw) ? prizesRaw : ""
+  const callers = cfg.callers
   return {
     async call(method: string, args: readonly string[]): Promise<RpcOutcome> {
       try {
-        return await dispatch(send, cfg.chainId, corp, vault, stake, roots, method, args)
+        return await dispatch(send, cfg.chainId, corp, vault, stake, roots, prizes, callers, method, args)
       } catch {
         return { status: "silence" }
       }
@@ -93,6 +126,8 @@ async function dispatch(
   vault: string,
   stake: string,
   roots: string,
+  prizes: string,
+  callers: LiveRpcConfig["callers"],
   method: string,
   args: readonly string[],
 ): Promise<RpcOutcome> {
@@ -155,6 +190,13 @@ async function dispatch(
       if (amount === undefined) return { status: "silence" }
       return sendTx(post, { to: stake, data: dataStake(arg(args, 0), arg(args, 1), amount) })
     }
+    case rpcMethod.unstake: {
+      if (stake.length === 0) return { status: "silence" }
+      const from = arg(args, 0)
+      const amount = parseDec(arg(args, 2))
+      if (!isAddr(from) || amount === undefined) return { status: "silence" }
+      return sendTx(post, { from, to: stake, data: dataUnstake(arg(args, 1), amount) })
+    }
     case rpcMethod.snapshot: {
       if (stake.length === 0) return { status: "silence" }
       const data = dataSnapshot(arg(args, 0))
@@ -184,6 +226,49 @@ async function dispatch(
       const got = decodeBytes32(raw.body)
       if (got === undefined) return { status: "silence" }
       return { status: "ok", body: encodeRoot(got) }
+    }
+    case rpcMethod.prizeDeposit: {
+      if (prizes.length === 0) return { status: "silence" }
+      const rawFrom = arg(args, 0)
+      const from =
+        callers === undefined
+          ? rawFrom
+          : callerAddress(rawFrom, callers.depositorService, callers.depositorAddress)
+      const kettle = parseDec(arg(args, 2))
+      const amount = parseDec(arg(args, 3))
+      if (!isAddr(from) || kettle === undefined || amount === undefined) return { status: "silence" }
+      return sendTx(post, { from, to: prizes, data: dataPrizeDeposit(arg(args, 1), kettle, amount) })
+    }
+    case rpcMethod.prizeSlice: {
+      if (prizes.length === 0) return { status: "silence" }
+      const rawFrom = arg(args, 0)
+      const from =
+        callers === undefined ? rawFrom : callerAddress(rawFrom, callers.signerService, callers.signerAddress)
+      const kettle = parseDec(arg(args, 2))
+      const players = parseStringList(arg(args, 3))
+      const amounts = parseDecList(arg(args, 4))
+      if (!isAddr(from) || kettle === undefined || players === undefined || amounts === undefined) {
+        return { status: "silence" }
+      }
+      return sendTx(post, { from, to: prizes, data: dataPrizeSlice(arg(args, 1), kettle, players, amounts) })
+    }
+    case rpcMethod.prizeReturnUnsettled: {
+      if (prizes.length === 0) return { status: "silence" }
+      const rawFrom = arg(args, 0)
+      const from =
+        callers === undefined
+          ? rawFrom
+          : callerAddress(rawFrom, callers.depositorService, callers.depositorAddress)
+      const kettle = parseDec(arg(args, 2))
+      if (!isAddr(from) || kettle === undefined) return { status: "silence" }
+      return sendTx(post, { from, to: prizes, data: dataPrizeReturnUnsettled(arg(args, 1), kettle) })
+    }
+    case rpcMethod.prizeClaimPrize: {
+      if (prizes.length === 0) return { status: "silence" }
+      const from = arg(args, 0)
+      const kettle = parseDec(arg(args, 2))
+      if (!isAddr(from) || kettle === undefined) return { status: "silence" }
+      return sendTx(post, { from, to: prizes, data: dataPrizeClaim(arg(args, 1), kettle) })
     }
     default:
       return { status: "silence" }

@@ -20,7 +20,6 @@ T11 по `docs/BRIEF.md` §6 (строки 357–365): спека `packages/engi
 - `DecisionRecord` layout v1 и `TickInputHeader` как лист 0;
 - keccak256 без зависимостей, merkle с доменными префиксами, батчер минуты, IPFS-агрегат суток города;
 - два контура границы суток (полночь и `06:00`);
-- догон оффлайна ≡ реплей; команды компаньона как записанный вход;
 - проводка стадий T5 (`apply_stack`), фрагментов, сезонов, агрегатов Happiness / Productivity / Stability / GDP / Population;
 - контракт входа сэмплера (TWAP во входе, тик наружу не ходит);
 - эндогенный сценарий `corp_eth` рядом с замороженным рядом (не пересчёт калибровки);
@@ -31,7 +30,6 @@ T11 по `docs/BRIEF.md` §6 (строки 357–365): спека `packages/engi
 - сервис сэмплера (снятие TWAP, расписание, деплой);
 - конвейер выкупа `ETH → $CORP → vault → фонд` как отдельный сервис (тик уже делает `_buyback` на уже попавшем в казну ETH; сервис — как деньги туда доезжают);
 - REST / WebSocket, коды ошибок API, монорепо `packages/*`, деплой, наблюдаемость;
-- снимок цены LLM и ёмкость очереди советника (`pending.companion_llm_price_snapshot`, `companion_queue_capacity`).
 
 `packages/engine` не создавать. Живой код движка — `content/tick.py` плюс новые чистые модули. Будущий пакет копирует порядок из `docs/TICK.md`.
 
@@ -91,10 +89,9 @@ T11 по `docs/BRIEF.md` §6 (строки 357–365): спека `packages/engi
 - `pack_hash` в записи **нет**: он живёт в заголовке тика. Иначе одно число в каждой записи — дефект «два места». Это расходится с `docs/CONTENT.md` §5 строка про «идентификатор внутри DecisionRecord» и с докстрингом `pack.pack_hash` 86–88 — **R-T11-3**, канон пака правится пословно, запись не несёт хеш.
 
 **D2.1. Заголовок тика — тоже лист.** `DESIGN.md` §6.3 требует прогнать тик из записанных входов. Входы обязаны быть аттестованы. На каждый `(city_id, tick_index)` в дерево идёт `TickInputHeader`:
+`{layout_version, city_id, tick_index, city_time, pack_hash, corp_eth_wei_per_whole, eth_usd_8dec, feed_live, dex_turnover_usd_8dec, price_sample_city_time, prev_state_hash}`
 
-`{layout_version, city_id, tick_index, city_time, pack_hash, corp_eth_wei_per_whole, eth_usd_8dec, feed_live, dex_turnover_usd_8dec, price_sample_city_time, companion_commands_hash, prev_state_hash}`
-
-Заголовок — лист номер `0` для своего тика; записи — листья `1…n`, порядок по `agent_id` в байтовом сравнении UTF-8. `companion_commands_hash` = sha256(`pack.canonical(commands)`); пустой список команд — хеш канонических `[]`. `prev_state_hash` = sha256(`pack.canonical({header, records})`) предыдущего тика этого города; у первого тика города (`tick_index` выведенный ноль отчёта) — пустая строка `""`, не `null` и не 32 нуля как отдельное число.
+Заголовок — лист номер `0` для своего тика; записи — листья `1…n`, порядок по `agent_id` в байтовом сравнении UTF-8. `prev_state_hash` = sha256(`pack.canonical({header, records})`) предыдущего тика этого города; у первого тика города (`tick_index` выведенный ноль отчёта) — пустая строка `""`, не `null` и не 32 нуля как отдельное число.
 
 Удаление листа-заголовка делает реплей §6.3 невозможным: это конструкционная проба.
 
@@ -225,7 +222,6 @@ happiness_bps = Σ(w_k * term_k) // 10000
 
 Инвариант, который надо **доказать пробой**, не словами: **догон ≡ реплей.** N тиков, посчитанных догоном за один заход, дают побайтово те же записи, что N тиков по одному онлайн. Одна функция, одни входы. Обёртка `catch_up` в `tick.py` только циклит `tick()` и пишет gap-запись; самой экономики в обёртке нет.
 
-Команды компаньона при догоне применяются **как записаны**: `companion_replan_on_login = 0` (уже в `companion.json` 29–33, держит L135). Иначе скрытое удлинение окна MSFT и реплей §6.3 не сойдётся. `plan()` живёт **до** тика, снаружи; тик читает записанный список команд и не вызывает `plan()`.
 
 Модель оффлайна в харнессе T3 — квадратная волна `tick_index % login_period` (`_in_offline_window`, `tick.py` 431–443) — **остаётся как есть.** Замена на `last_login` сдвинет измеренный аптайм минималиста (`login_period=24`, cap=`12`) и полосы возврата.
 
@@ -271,13 +267,14 @@ else:
 
 Пустой стрим — единственный, который обязателен в таблице пака для дрожи. Другие стримы не заводить, пока им нет вызова в T11 (мир T10 живёт в `world_prng`, не здесь). Список допустимых стримов — таблица в `tick.json` (или `attest.json`), не строковые литералы по коду. `seeded_prng` принимает `stream=""`.
 
+Pending-строку переформулировать: owner сдвигается на T12 для **сервиса** сэмплера; T11 закрывает харнесс-сценарий. Why новой формулировки обязан сослаться на R-T3-20 и на то, что калибровка заморожена. Два долга проводки (`fragment_tick_wiring`, `season_tick_wiring`) удаляются из `pending.items` только после того, как соответствующие вызовы стоят в `tick.py` и правила L219–L221 зелёные.
+
 ## D12. Сэмплер и `sampler_corp_eth_endogenous`
 
 Сэмплер живёт снаружи тика (T12), но T11 задаёт **контракт входа**: TWAP снимается по фиксированным шагам `city_time`, кладётся во вход тика вместе с `price_sample_city_time`; тик наружу не ходит никогда (`open` / `socket` / HTTP в AST тика запрещены). Устаревание минта — только деградация вниз плюс `STALE_PRICE` (`economy.price_staleness_max_city_hours = 6`, `price_stale_decay_bps_per_city_day = 500`). Ноль в ответе → минт 0 (`rate_raw_from_samples`, `tick.py` 181–189). Спот пула `CORP/ETH` в путь минта запрещён (уже L156 на экранах; в тике путь — только поля входа).
 
 Долг `sampler_corp_eth_endogenous` (R-T3-20, `pending.json` 26) закрывается **не** правкой базовых сценариев, а повышением уже существующей пробы живого резерва (`sim.price_inputs` флаг `force_live_pool_twap`, строки 227–231) в полноценный **сценарий рядом с замороженным рядом**. Имя сценария — стабильный id в `sim.json` `kinds`/`scenarios`, не литерал в `sim.py`. Базовая калибровка (`A_t2 = 14011` и остальное из §7 ниже) остаётся замороженной и не пересчитывается. Если эндогенный сценарий выведет `A_t2` за окно `[12278, 15787]` (`generated.balance.amplification_window_*`) — это находка в отчёт `docs/reports/` или в SIM.md, не повод подкрутить экономику.
 
-Pending-строку переформулировать: owner сдвигается на T12 для **сервиса** сэмплера; T11 закрывает харнесс-сценарий. Why новой формулировки обязан сослаться на R-T3-20 и на то, что калибровка заморожена. Три долга проводки (`fragment_tick_wiring`, `season_tick_wiring`, `companion_tick_wiring`) удаляются из `pending.items` только после того, как соответствующие вызовы стоят в `tick.py` и правила L219–L221 зелёные.
 
 =====================================================================
 3. ФАЙЛЫ: СОЗДАТЬ / ИЗМЕНИТЬ
@@ -309,7 +306,7 @@ Pending-строку переформулировать: owner сдвигает�
 | `requirements.txt` | изменить | находка recon | сейчас `pillow` и `numpy`; `jsonschema` импортируется в `lint.py` и `attack.py`, в файле нет. Добавить пакет. **Версию не выдумывать:** `python -m pip show jsonschema` на машине гейта, пин как у соседей `==`. Если show пуст — поставить и запинить установленную. |
 | `DESIGN.md` / `HUD.md` | не трогать | R-T11-* | только тексты «было/стало» в `docs/TICK.md` §14 |
 
-`load_config` (`tick.py` 48–160): добавить в `cfg` всё, что тик начнёт читать: `efficiency_recalc_hour`, флаги `happiness_penalty_live` / `season_prizes_live` / `companion_replan_on_login`, `layout_version`, доменные байты **не** нужны внутри тика (аттестация снаружи). Не класть derived (`tick_index`, `offline_cap_ticks`, `attest_roots_per_day`, `tick_length_real_seconds` как источник правды — последнее уже лежит в cfg и тиком не читается, так и оставить).
+`load_config` (`tick.py` 48–160): добавить в `cfg` всё, что тик начнёт читать: `efficiency_recalc_hour`, флаги `happiness_penalty_live` / `season_prizes_live`, `layout_version`, доменные байты **не** нужны внутри тика (аттестация снаружи). Не класть derived (`tick_index`, `offline_cap_ticks`, `attest_roots_per_day`, `tick_length_real_seconds` как источник правды — последнее уже лежит в cfg и тиком не читается, так и оставить).
 
 =====================================================================
 4. ПОЛНЫЙ СПИСОК ПАРАМЕТРОВ
@@ -337,7 +334,7 @@ Pending-строку переформулировать: owner сдвигает�
 
 «Назначить» = исполнитель ставит целое с `why`; архитектура не задала `v`. Равные `2500` не канон, пока не назначены. Линтер ловит сумму весов ≠ `10000` и отсутствие ключа.
 
-Уже существуют, не дублировать: `companion_replan_on_login = 0`, `season_prizes_live = 0`, `efficiency_recalc_hour = 6`, `anchor_hour = 12`, `offline_cap_city_hours_base = 12`, `tick_length_city_hours = 1`, `city_day_real_hours = 25`, `efficiency_k_bps = 25000`, `efficiency_clamp_bps = 1500`, `jitter_width_bps = 500`, `population_per_job = 50`, `payroll_daily_divisor = 14`, `BPS = 10000`.
+Уже существуют, не дублировать: `season_prizes_live = 0`, `efficiency_recalc_hour = 6`, `anchor_hour = 12`, `offline_cap_city_hours_base = 12`, `tick_length_city_hours = 1`, `city_day_real_hours = 25`, `efficiency_k_bps = 25000`, `efficiency_clamp_bps = 1500`, `jitter_width_bps = 500`, `population_per_job = 50`, `payroll_daily_divisor = 14`, `BPS = 10000`.
 
 Таблица стримов PRNG — не param `v`, а объект секции (как `time.schedules`): ключ стрима, `why`. Обязателен ключ `""` / id `jitter_legacy` с пустой строкой значения формата — что пустой стрим опускает суффикс (D11).
 
@@ -398,7 +395,6 @@ L01: добавить пары фикстур в цикл 95–107.
 | L218 | Stability имеет единственное определение `seasons.stability_bps`; тик не дублирует формулу | вторая формула в `aggregates` с другим знаменателем |
 | L219 | фрагменты только на валидном оплаченном тике (`tick_accrues`) | начисление при `idle=True` или не-маяке |
 | L220 | `season_prizes_live = 0` не минтит `$CORP` при ненулевом ранге | live=0 и payout>0 |
-| L221 | команды компаньона — вход (`companion_commands_hash` в заголовке), не поле записи | ключ `commands` в DecisionRecord |
 | L222 | ни один `state_sources` с `owner=T11` не остался без производителя (поле `producer` + функция существует) | убрать `producer` у `aggregate.happiness` |
 | L223 | граница смещения `% span` для дрожи: исключение есть; `2**64 % span` посчитан; новый sample-код не использует `% n` кроме этой строки | удалить исключение; `% span` в новом месте |
 | L224 | каждый item `brief_t11_tick` имеет `tick_section` и `rule_or_derived` в тексте `docs/TICK.md` (аналог L194) | выкинуть раздел §9 |
@@ -482,7 +478,6 @@ BRIEF §8: ни одного числа без `src`/`why`; тик без LLM и
 3. `record.py` + фикстура layout. Атака перестановки ключей.
 4. `aggregates.py` + фикстура. Веса после назначения. L215.
 5. `build_tick` / `build_attest` / `report_t11` / derived / GENERATED. Подставить таблицы в `docs/TICK.md` на место GEN (не трогать прозу).
-6. Проводка `tick.py`: `city_time`, записи v1, заголовок рядом (хост), ветка 06:00, `apply_stack` на пустом стеке, fragments/seasons/companion входы, catch_up. **Не** менять `_in_offline_window`. **Не** грузить паковые rows T5 в спавн T3.
 7. Сценарий эндогенного TWAP из `force_live_pool_twap`. Калибровку не трогать.
 8. L196+ и атаки + CONSTRUCTION.
 9. `python content/sim.py` — сверка таблицы §7. Движение числа — стоп, откатить проводку, не экономику.

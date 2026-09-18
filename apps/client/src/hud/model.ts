@@ -7,58 +7,30 @@ import type { StringTable } from "../strings.js"
 import { bankOpensIn, bankPlaqueCode, cityClockParts, cityTimeFromWall } from "../clock.js"
 import { formatSi } from "./parts/si.js"
 import { attestLabelKey } from "./attest.js"
+import {
+  clockBoundText,
+  clockDayLabel,
+  clockFaceText,
+  formatShare,
+  type EventRowView,
+  type OverviewTabId,
+} from "./fields.js"
+import type { ClientSnapshot } from "./snapshot.js"
+import { buildShell, clockHourText, type HudShellView } from "./shellModel.js"
+import type { SceneProjection } from "./sceneProjection.js"
 
-export type ClientSnapshot = {
-  readonly cityTime: bigint
-  readonly accountKind: string
-  readonly capital: bigint
-  readonly corp: bigint
-  readonly energy: bigint
-  readonly compute: bigint
-  readonly population: bigint
-  readonly payrollRatioBps: bigint
-  readonly gdp: bigint
-  readonly happiness: bigint
-  readonly stability: bigint
-  readonly stocks: readonly {
-    readonly ticker: string
-    readonly price: string
-    readonly dayPct: string
-    readonly effect: string
-  }[]
-  readonly agents: readonly { readonly id: string; readonly idleKey: string }[]
-  readonly log: readonly {
-    readonly id: string
-    readonly key: string
-    readonly badge: string
-    readonly root: string
-    readonly cid: string
-  }[]
-  readonly prizeNoticeKey: string
-  readonly protocolEthInFlight: bigint
-  readonly protocolVaultCorp: bigint
-  readonly protocolStudioEth: bigint
-  readonly prizeBasket: readonly {
-    readonly ticker: string
-    readonly farm: bigint
-    readonly month: bigint
-  }[]
-}
+export type { ClientSnapshot, HudServerState } from "./snapshot.js"
+export { emptySnapshot } from "./snapshot.js"
+export type { HudShellView } from "./shellModel.js"
 
+/** Typed presentation view model. Built from ClientSnapshot + pack + strings. */
 export type HudView = {
   readonly cityTime: bigint
-  readonly energy: bigint
-  readonly compute: bigint
-  readonly corp: bigint
+  readonly energy: bigint | undefined
+  readonly compute: bigint | undefined
+  readonly corp: bigint | undefined
   readonly noGpu: { readonly key: string; readonly text: string }
   readonly usedKeys: readonly string[]
-  readonly topbar: readonly {
-    readonly id: string
-    readonly key: string
-    readonly value: string
-    readonly exact: string
-    readonly caption: string
-  }[]
   readonly plaque: { readonly key: string; readonly text: string }
   readonly payroll: { readonly key: string; readonly text: string } | undefined
   readonly overview: readonly {
@@ -90,16 +62,9 @@ export type HudView = {
     readonly effect: string
     readonly tone: "ok" | "bad" | "warn"
   }[]
+  readonly agentsKind: "unavailable" | "empty" | "ready"
   readonly agents: readonly { readonly id: string; readonly idleKey: string; readonly idleText: string }[]
-  readonly log: readonly {
-    readonly id: string
-    readonly key: string
-    readonly text: string
-    readonly badgeKey: string
-    readonly badgeText: string
-    readonly root: string
-    readonly cid: string
-  }[]
+  readonly log: readonly EventRowView[]
   readonly districts: readonly {
     readonly id: string
     readonly ticker: string
@@ -108,8 +73,20 @@ export type HudView = {
     readonly tone: "ok" | "bad" | "warn"
   }[]
   readonly hireText: string
-  readonly treasury: { readonly key: string; readonly value: string; readonly exact: string; readonly caption: string }
-  readonly protocol: readonly { readonly id: string; readonly key: string; readonly value: string; readonly caption: string }[]
+  readonly treasury: {
+    readonly key: string
+    readonly value: string
+    readonly exact: string
+    readonly caption: string
+    readonly kind: "ready" | "unavailable"
+  }
+  readonly protocol: readonly {
+    readonly id: string
+    readonly key: string
+    readonly value: string
+    readonly caption: string
+    readonly kind: "ready" | "unavailable"
+  }[]
   readonly prizeNotice: { readonly key: string; readonly text: string } | undefined
   readonly basket: readonly { readonly ticker: string; readonly farm: string; readonly month: string }[]
   readonly periodHours: string
@@ -131,30 +108,29 @@ export type HudView = {
   readonly bankLimit: string
   readonly quoteLo: string
   readonly quoteHi: string
+  readonly quoteLive: boolean | undefined
+  readonly quoteAgeMs: bigint | undefined
+  readonly bankLimitLive: bigint | undefined
+  readonly logLoading: boolean | undefined
+  readonly logError: boolean | undefined
+  readonly shell: HudShellView
 }
 
-export function emptySnapshot(): ClientSnapshot {
-  return {
-    cityTime: 0n,
-    accountKind: "demo",
-    capital: 0n,
-    corp: 0n,
-    energy: 0n,
-    compute: 0n,
-    population: 0n,
-    payrollRatioBps: 0n,
-    gdp: 0n,
-    happiness: 0n,
-    stability: 0n,
-    stocks: [],
-    agents: [],
-    log: [],
-    prizeNoticeKey: "",
-    protocolEthInFlight: 0n,
-    protocolVaultCorp: 0n,
-    protocolStudioEth: 0n,
-    prizeBasket: [],
-  }
+export type HudPresentationView = HudView
+
+/** Local App chrome. App.tsx owns React state; this is not a store. */
+export type HudLocalUiState = {
+  readonly route: string
+  readonly lookId: string
+  readonly lookRev: bigint
+  readonly proofId: string
+  readonly pendingCell: string
+  readonly pendingTileX: bigint
+  readonly pendingTileY: bigint
+  readonly overviewTab: OverviewTabId
+  readonly selectedId: string
+  readonly projection: SceneProjection | undefined
+  readonly txnHold: boolean
 }
 
 export function buildHud(args: {
@@ -188,45 +164,42 @@ export function buildHud(args: {
     openHour: args.pack.bankOpenHour,
     closeHour: args.pack.bankCloseHour,
   })
+  const opensIn = bankOpensIn({
+    hour: clock.hour,
+    openHour: args.pack.bankOpenHour,
+    closeHour: args.pack.bankCloseHour,
+    ticksDay: args.pack.ticksDay,
+  }).toString()
   let plaqueText = t(plaqueKey)
   if (plaqueKey === "BANK_CLOSED") {
-    plaqueText = format(plaqueText, {
-      opens_in: bankOpensIn({
-        hour: clock.hour,
-        openHour: args.pack.bankOpenHour,
-        closeHour: args.pack.bankCloseHour,
-        ticksDay: args.pack.ticksDay,
-      }).toString(),
-    })
+    plaqueText = format(plaqueText, { opens_in: opensIn })
   }
   if (plaqueKey === "UI_BANK") {
     plaqueText = format(t("UI_BANK_OPEN"), { hour: args.pack.bankCloseHour.toString() })
   }
   const weekdayKey = `UI_WD_${clock.weekday.toString()}`
+  const weekdayText = t(weekdayKey)
+  const clockDay = clock.day.toString()
+  const clockHour = clockHourText(clock.hour)
+  const clockHourFace = clockFaceText(clock.hour)
+  const clockDayLine = clockDayLabel(
+    format(t("UI_CLOCK"), {
+      day: clockDay,
+      weekday: "",
+      hour: "",
+    }),
+  )
   const snap = args.snapshot
   const si = (n: bigint): string => formatSi(n, args.pack.siMin, args.pack.siBase)
-  const topbar = [
-    { id: "capital", key: "UI_CAPITAL", value: si(snap.capital), exact: snap.capital.toString(), caption: t("UI_CAPITAL") },
-    { id: "corp", key: "UI_CORP", value: si(snap.corp), exact: snap.corp.toString(), caption: t("UI_CORP") },
-    { id: "energy", key: "UI_ENERGY", value: snap.energy.toString(), exact: snap.energy.toString(), caption: t("UI_ENERGY") },
-    { id: "compute", key: "UI_COMPUTE", value: snap.compute.toString(), exact: snap.compute.toString(), caption: t("UI_COMPUTE") },
-    { id: "pop", key: "UI_POPULATION", value: snap.population.toString(), exact: snap.population.toString(), caption: t("UI_POPULATION") },
-    {
-      id: "clock",
-      key: "UI_CLOCK",
-      value: format(t("UI_CLOCK"), {
-        day: clock.day.toString(),
-        weekday: t(weekdayKey),
-        hour: clock.hour.toString(),
-      }),
-      exact: "",
-      caption: "",
-    },
-    { id: "settings", key: "UI_SETTINGS", value: "", exact: "", caption: t("UI_SETTINGS") },
-  ]
+  const unavailable = t("UI_UNAVAILABLE")
   t("UI_TOPBAR")
   let payroll: HudView["payroll"]
-  if (snap.payrollRatioBps < args.pack.bps) {
+  if (
+    snap.payrollRequested !== undefined &&
+    snap.payrollRequested !== 0n &&
+    snap.payrollRatioBps !== undefined &&
+    snap.payrollRatioBps < args.pack.bps
+  ) {
     payroll = {
       key: "PAYROLL_TRIMMED",
       text: format(t("PAYROLL_TRIMMED"), { ratio: snap.payrollRatioBps.toString() }),
@@ -284,38 +257,49 @@ export function buildHud(args: {
   t("UI_STUDIO_ETH")
   t("UI_PRIZE_BASKET")
   t("UI_PRIZE_PERIOD")
-  const treasury = { key: "UI_TREASURY", value: si(snap.capital), exact: snap.capital.toString(), caption: t("UI_TREASURY") }
+  const treasury = {
+    key: "UI_TREASURY",
+    value: snap.capital === undefined ? unavailable : si(snap.capital),
+    exact: snap.capital === undefined ? "" : snap.capital.toString(),
+    caption: t("UI_TREASURY"),
+    kind: snap.capital === undefined ? ("unavailable" as const) : ("ready" as const),
+  }
   const hapTone: "ok" | "bad" | "warn" =
-    snap.happiness < args.pack.happinessPenaltyThresholdBps ? "bad" : "ok"
+    snap.happiness === undefined || snap.happiness < args.pack.happinessPenaltyThresholdBps ? "bad" : "ok"
   const stabTone: "ok" | "bad" | "warn" =
-    snap.stability < args.pack.stabilityHintThresholdBps ? "warn" : "ok"
-  const overview = [
-    { id: "gdp", key: "UI_GDP", caption: t("UI_GDP"), value: si(snap.gdp), exact: snap.gdp.toString(), tone: "ok" as const },
-    {
+    snap.stability === undefined || snap.stability < args.pack.stabilityHintThresholdBps ? "warn" : "ok"
+  const overview: HudView["overview"][number][] = []
+  if (snap.gdp !== undefined) {
+    overview.push({ id: "gdp", key: "UI_GDP", caption: t("UI_GDP_PROTOCOL"), value: si(snap.gdp), exact: snap.gdp.toString(), tone: "ok" })
+  }
+  if (snap.happiness !== undefined) {
+    overview.push({
       id: "happiness",
       key: "UI_HAPPINESS",
       caption: t("UI_HAPPINESS"),
       value: formatShare(snap.happiness, args.pack.bps),
       exact: snap.happiness.toString(),
       tone: hapTone,
-    },
-    {
+    })
+  }
+  if (snap.stability !== undefined) {
+    overview.push({
       id: "stability",
       key: "UI_STABILITY",
       caption: t("UI_STABILITY"),
       value: formatShare(snap.stability, args.pack.bps),
       exact: snap.stability.toString(),
       tone: stabTone,
-    },
-    {
-      id: "treasury",
-      key: treasury.key,
-      caption: treasury.caption,
-      value: treasury.value,
-      exact: treasury.exact,
-      tone: "ok" as const,
-    },
-  ]
+    })
+  }
+  overview.push({
+    id: "treasury",
+    key: treasury.kind === "unavailable" ? "UI_UNAVAILABLE" : treasury.key,
+    caption: treasury.caption,
+    value: treasury.value,
+    exact: treasury.exact,
+    tone: "ok",
+  })
   const eventsEmpty = t("UI_EMPTY_NO_EVENTS")
   const agentsEmpty = t("UI_EMPTY_NO_ENTITIES")
   const logEmpty = t("UI_EMPTY_NO_ENTITIES")
@@ -344,10 +328,16 @@ export function buildHud(args: {
       tone: hit === undefined ? ("ok" as const) : hit.tone,
     }
   })
+  function protocolField(id: string, key: string, val: bigint | undefined): HudView["protocol"][number] {
+    if (val === undefined) {
+      return { id, key, value: unavailable, caption: t(key), kind: "unavailable" }
+    }
+    return { id, key, value: val.toString(), caption: t(key), kind: "ready" }
+  }
   const protocol = [
-    { id: "eth_in_flight", key: "UI_ETH_IN_FLIGHT", value: snap.protocolEthInFlight.toString(), caption: t("UI_ETH_IN_FLIGHT") },
-    { id: "vault_corp", key: "UI_VAULT_CORP", value: snap.protocolVaultCorp.toString(), caption: t("UI_VAULT_CORP") },
-    { id: "studio_eth", key: "UI_STUDIO_ETH", value: snap.protocolStudioEth.toString(), caption: t("UI_STUDIO_ETH") },
+    protocolField("eth_in_flight", "UI_ETH_IN_FLIGHT", snap.protocolEthInFlight),
+    protocolField("vault_corp", "UI_VAULT_CORP", snap.protocolVaultCorp),
+    protocolField("studio_eth", "UI_STUDIO_ETH", snap.protocolStudioEth),
   ]
   let prizeNotice: HudView["prizeNotice"] = undefined
   if (snap.prizeNoticeKey.length > 0) {
@@ -359,17 +349,24 @@ export function buildHud(args: {
     month: row.month.toString(),
   }))
   const periodHours = args.pack.prizePeriodRealHours.toString()
-  const agents = args.snapshot.agents.map((row) => ({
-    id: row.id,
-    idleKey: row.idleKey,
-    idleText: t(row.idleKey),
-  }))
-  const log = args.snapshot.log.map((row) => {
+  const agentRows = args.snapshot.agents
+  const agentsKind: HudView["agentsKind"] =
+    agentRows === undefined ? "unavailable" : agentRows.length === 0 ? "empty" : "ready"
+  const agents =
+    agentRows === undefined
+      ? []
+      : agentRows.map((row) => ({
+          id: row.id,
+          idleKey: row.idleKey,
+          idleText: t(row.idleKey),
+        }))
+  const log = (args.snapshot.log ?? []).map((row) => {
     const badgeKey = attestLabelKey(row.badge, row.root, row.cid)
+    const raw = t(row.key)
     return {
       id: row.id,
       key: row.key,
-      text: t(row.key),
+      text: row.key === "BANK_CLOSED" ? format(raw, { opens_in: opensIn }) : raw,
       badgeKey,
       badgeText: t(badgeKey),
       root: row.root,
@@ -392,6 +389,26 @@ export function buildHud(args: {
       mount: meta.mount,
     }
   }
+  const plaque = { key: plaqueKey, text: plaqueText }
+  const shell = buildShell({
+    t,
+    pack: args.pack,
+    snap,
+    demo: args.demo,
+    si,
+    payroll,
+    log,
+    hapTone: snap.happiness === undefined ? "ok" : hapTone,
+    stabTone: snap.stability === undefined ? "ok" : stabTone,
+    clockDay,
+    clockDayLine,
+    clockWeekday: weekdayText,
+    clockHour,
+    clockHourFace,
+    clockHourValue: clock.hour,
+    clockProgressStart: clockBoundText(args.pack.bankOpenHour),
+    clockProgressEnd: clockBoundText(args.pack.bankCloseHour),
+  })
   return {
     cityTime,
     energy: snap.energy,
@@ -399,8 +416,7 @@ export function buildHud(args: {
     corp: snap.corp,
     noGpu: { key: codes.RENDER_NO_GPU, text: t(codes.RENDER_NO_GPU) },
     usedKeys: [...used],
-    topbar,
-    plaque: { key: plaqueKey, text: plaqueText },
+    plaque,
     payroll,
     overview,
     eventsEmpty,
@@ -410,6 +426,7 @@ export function buildHud(args: {
     right,
     menu,
     stocks,
+    agentsKind,
     agents,
     log,
     districts,
@@ -427,6 +444,12 @@ export function buildHud(args: {
     bankLimit: args.pack.bankLimit.toString(),
     quoteLo: args.pack.quoteLo.toString(),
     quoteHi: args.pack.quoteHi.toString(),
+    quoteLive: snap.quoteLive,
+    quoteAgeMs: snap.quoteAgeMs,
+    bankLimitLive: snap.bankLimitLive,
+    logLoading: snap.logLoading,
+    logError: snap.logError,
+    shell,
   }
 }
 
@@ -457,10 +480,3 @@ export function demoBlockedCodes(pack: ClientPack): readonly string[] {
   }
   return out
 }
-
-function formatShare(value: bigint, bps: bigint): string {
-  if (bps <= 0n) return value.toString()
-  const hundred = 10n * 10n
-  return `${((value * hundred) / bps).toString()}%`
-}
-

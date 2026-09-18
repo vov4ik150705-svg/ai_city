@@ -1,7 +1,9 @@
 """Diet runtime GLBs with the pinned gltf-transform CLI.
 
 Does not touch island.blend or models/*.glb. Strip extra PBR maps, then
-dedup / prune / weld / resize 1024 / webp / meshopt. Does not simplify.
+dedup / prune / weld / simplify 8k (buildings, I0 owner level) / Pillow
+WebP 1024 / meshopt. gltf-transform resize/webp is skipped: libvips on
+Windows rejects Blender PNG after ancillary-chunk sanitize.
 """
 
 from __future__ import annotations
@@ -13,7 +15,10 @@ import struct
 import subprocess
 import sys
 import tempfile
+from io import BytesIO
 from pathlib import Path
+
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent.parent
@@ -23,6 +28,7 @@ MASS = RUNTIME / "island_mass.glb"
 BUILDING_BUDGET = 350 * 1024
 MASS_BUDGET = int(1.5 * 1024 * 1024)
 VIEWER_BUDGET = 12 * 1024 * 1024
+BUILDING_TRIS = 8000
 PNG_KEEP = {b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND"}
 
 
@@ -90,6 +96,122 @@ def read_glb_json(path: Path) -> dict:
     return doc
 
 
+def triangle_count(path: Path) -> int:
+    doc = read_glb_json(path)
+    accessors = list(doc.get("accessors") or [])
+    total = 0
+    for mesh in doc.get("meshes") or []:
+        if not isinstance(mesh, dict):
+            continue
+        for prim in mesh.get("primitives") or []:
+            if not isinstance(prim, dict):
+                continue
+            mode = int(prim.get("mode", 4))
+            indices = prim.get("indices")
+            attrs = prim.get("attributes")
+            count = 0
+            if isinstance(indices, int) and 0 <= indices < len(accessors):
+                acc = accessors[indices]
+                if isinstance(acc, dict):
+                    count = int(acc.get("count") or 0)
+            elif isinstance(attrs, dict):
+                pos = attrs.get("POSITION")
+                if isinstance(pos, int) and 0 <= pos < len(accessors):
+                    acc = accessors[pos]
+                    if isinstance(acc, dict):
+                        count = int(acc.get("count") or 0)
+            if mode == 4:
+                total += count // 3
+            elif mode in (5, 6):
+                total += max(count - 2, 0)
+            else:
+                raise RuntimeError(f"{path.name}: unsupported primitive mode {mode}")
+    return total
+
+
+def view_pieces(doc: dict, bin_data: bytes) -> tuple[list[object], list[bytes]]:
+    views = list(doc.get("bufferViews") or [])
+    pieces: list[bytes] = []
+    for view in views:
+        if not isinstance(view, dict):
+            pieces.append(b"")
+            continue
+        off = int(view.get("byteOffset") or 0)
+        ln = int(view.get("byteLength") or 0)
+        pieces.append(bin_data[off : off + ln])
+    return views, pieces
+
+
+def write_repacked(path: Path, doc: dict, views: list[object], pieces: list[bytes]) -> None:
+    packed = bytearray()
+    for i, piece in enumerate(pieces):
+        while len(packed) % 4:
+            packed.append(0)
+        view = views[i]
+        if isinstance(view, dict):
+            view["byteOffset"] = len(packed)
+            view["byteLength"] = len(piece)
+        packed.extend(piece)
+    buffers = doc.get("buffers")
+    if isinstance(buffers, list) and buffers and isinstance(buffers[0], dict):
+        buffers[0]["byteLength"] = len(packed)
+    write_glb(path, doc, bytes(packed))
+
+
+def encode_webp(raw: bytes, max_px: int, quality: int) -> bytes:
+    img = Image.open(BytesIO(raw))
+    img.load()
+    if img.mode == "P":
+        img = img.convert("RGBA" if "transparency" in img.info else "RGB")
+    elif img.mode in {"LA", "PA"}:
+        img = img.convert("RGBA")
+    elif img.mode == "L":
+        img = img.convert("RGB")
+    elif img.mode not in {"RGB", "RGBA"}:
+        img = img.convert("RGBA" if "A" in img.mode else "RGB")
+    if img.mode == "RGBA":
+        mn, mx = img.getchannel("A").getextrema()
+        if mn == 255 and mx == 255:
+            img = img.convert("RGB")
+    width, height = img.size
+    if max(width, height) > max_px:
+        scale = max_px / max(width, height)
+        img = img.resize(
+            (max(1, int(width * scale)), max(1, int(height * scale))),
+            Image.Resampling.LANCZOS,
+        )
+    out = BytesIO()
+    img.save(out, format="WEBP", quality=quality, method=6)
+    return out.getvalue()
+
+
+def compact_images(path: Path, max_px: int, quality: int) -> None:
+    """Resize and WebP-encode images with Pillow so libvips is not required."""
+    doc, bin_data = read_glb(path)
+    views, pieces = view_pieces(doc, bin_data)
+    if not views or not pieces:
+        return
+    changed = False
+    for image in doc.get("images") or []:
+        if not isinstance(image, dict):
+            continue
+        mime = str(image.get("mimeType") or "")
+        if mime not in {"image/png", "image/jpeg", "image/webp"}:
+            continue
+        idx = image.get("bufferView")
+        if not isinstance(idx, int) or idx < 0 or idx >= len(pieces):
+            continue
+        encoded = encode_webp(pieces[idx], max_px, quality)
+        if encoded != pieces[idx] or mime != "image/webp":
+            pieces[idx] = encoded
+            image["mimeType"] = "image/webp"
+            changed = True
+    if not changed:
+        return
+    write_repacked(path, doc, views, pieces)
+    log(f"pillow webp {path.name}")
+
+
 def strip_png_ancillary(png: bytes) -> bytes:
     if png[:8] != b"\x89PNG\r\n\x1a\n":
         return png
@@ -111,17 +233,9 @@ def strip_png_ancillary(png: bytes) -> bytes:
 
 def sanitize_png_images(path: Path) -> None:
     doc, bin_data = read_glb(path)
-    views = list(doc.get("bufferViews") or [])
-    if not views or not bin_data:
+    views, pieces = view_pieces(doc, bin_data)
+    if not views or not pieces:
         return
-    pieces: list[bytes] = []
-    for view in views:
-        if not isinstance(view, dict):
-            pieces.append(b"")
-            continue
-        off = int(view.get("byteOffset") or 0)
-        ln = int(view.get("byteLength") or 0)
-        pieces.append(bin_data[off : off + ln])
     changed = False
     for image in doc.get("images") or []:
         if not isinstance(image, dict) or image.get("mimeType") != "image/png":
@@ -135,19 +249,7 @@ def sanitize_png_images(path: Path) -> None:
             changed = True
     if not changed:
         return
-    packed = bytearray()
-    for i, piece in enumerate(pieces):
-        while len(packed) % 4:
-            packed.append(0)
-        view = views[i]
-        if isinstance(view, dict):
-            view["byteOffset"] = len(packed)
-            view["byteLength"] = len(piece)
-        packed.extend(piece)
-    buffers = doc.get("buffers")
-    if isinstance(buffers, list) and buffers and isinstance(buffers[0], dict):
-        buffers[0]["byteLength"] = len(packed)
-    write_glb(path, doc, bytes(packed))
+    write_repacked(path, doc, views, pieces)
     log(f"sanitized PNG chunks: {path.name}")
 
 
@@ -162,9 +264,22 @@ def strip_extra_pbr(path: Path) -> None:
                 mat.pop(key)
                 changed = True
         pbr = mat.get("pbrMetallicRoughness")
+        stripped_mr = False
         if isinstance(pbr, dict) and "metallicRoughnessTexture" in pbr:
             pbr.pop("metallicRoughnessTexture")
+            stripped_mr = True
             changed = True
+        if not isinstance(pbr, dict):
+            pbr = {}
+            mat["pbrMetallicRoughness"] = pbr
+        missing_metal = "metallicFactor" not in pbr
+        if stripped_mr or missing_metal:
+            if pbr.get("metallicFactor") != 0:
+                pbr["metallicFactor"] = 0
+                changed = True
+            if "roughnessFactor" not in pbr:
+                pbr["roughnessFactor"] = 0.85
+                changed = True
     if changed:
         write_glb(path, doc, bin_data)
         log(f"stripped extra PBR maps: {path.name}")
@@ -172,6 +287,43 @@ def strip_extra_pbr(path: Path) -> None:
 
 def has_images(path: Path) -> bool:
     return bool(read_glb_json(path).get("images"))
+
+
+def strip_normals(path: Path) -> int:
+    """Drop NORMAL attrs so prune can drop their accessors. Mass is vertex-color; Three recomputes."""
+    doc, bin_data = read_glb(path)
+    removed = 0
+    for mesh in doc.get("meshes") or []:
+        if not isinstance(mesh, dict):
+            continue
+        for prim in mesh.get("primitives") or []:
+            if not isinstance(prim, dict):
+                continue
+            attrs = prim.get("attributes")
+            if isinstance(attrs, dict) and "NORMAL" in attrs:
+                attrs.pop("NORMAL")
+                removed += 1
+            if isinstance(attrs, dict) and "TANGENT" in attrs:
+                attrs.pop("TANGENT")
+                removed += 1
+    if removed:
+        write_glb(path, doc, bin_data)
+        log(f"stripped NORMAL/TANGENT from {removed} primitives: {path.name}")
+    return removed
+
+
+def has_vertex_color(path: Path) -> bool:
+    doc = read_glb_json(path)
+    for mesh in doc.get("meshes") or []:
+        if not isinstance(mesh, dict):
+            continue
+        for prim in mesh.get("primitives") or []:
+            if not isinstance(prim, dict):
+                continue
+            attrs = prim.get("attributes")
+            if isinstance(attrs, dict) and "COLOR_0" in attrs:
+                return True
+    return False
 
 
 def run_chain(src: Path, dest: Path, *, keep_leaves: bool, texture_px: int, webp_quality: int) -> None:
@@ -201,68 +353,75 @@ def run_chain(src: Path, dest: Path, *, keep_leaves: bool, texture_px: int, webp
         gltf_transform(*prune_args)
         current = nxt
 
-        nxt = bump()
-        gltf_transform("weld", str(current), str(nxt))
-        current = nxt
+        if keep_leaves:
+            log(f"normals kept for lighting: {src.name}")
+
+        if has_vertex_color(current):
+            log(f"weld skipped (COLOR_0): {src.name}")
+        else:
+            nxt = bump()
+            gltf_transform("weld", str(current), str(nxt))
+            current = nxt
+
+        if not keep_leaves:
+            tris = triangle_count(current)
+            if tris > BUILDING_TRIS:
+                nxt = bump()
+                ratio = min(1.0, BUILDING_TRIS / max(tris, 1))
+                gltf_transform(
+                    "simplify",
+                    str(current),
+                    str(nxt),
+                    "--ratio",
+                    f"{ratio:.6f}",
+                    "--error",
+                    "1",
+                    "--lock-border",
+                    "false",
+                )
+                got = triangle_count(nxt)
+                log(f"simplify {src.name} {tris} -> {got} target {BUILDING_TRIS}")
+                current = nxt
+            else:
+                log(f"simplify skipped {src.name} ({tris} <= {BUILDING_TRIS})")
 
         if has_images(current):
-            mimes = {
-                str(im.get("mimeType") or "")
-                for im in (read_glb_json(current).get("images") or [])
-                if isinstance(im, dict)
-            }
-            if "image/png" in mimes or "image/jpeg" in mimes:
-                nxt = bump()
-                resized = gltf_transform(
-                    "resize",
-                    str(current),
-                    str(nxt),
-                    "--width",
-                    str(texture_px),
-                    "--height",
-                    str(texture_px),
-                    check=False,
-                )
-                if resized.returncode != 0:
-                    raise RuntimeError(f"resize failed for {src.name}")
-                current = nxt
-                nxt = bump()
-                webp = gltf_transform(
-                    "webp",
-                    str(current),
-                    str(nxt),
-                    "--quality",
-                    str(webp_quality),
-                    check=False,
-                )
-                if webp.returncode == 0:
-                    current = nxt
-                else:
-                    log(f"webp skipped for {src.name}")
+            nxt = bump()
+            shutil.copy2(current, nxt)
+            compact_images(nxt, texture_px, webp_quality)
+            current = nxt
 
         nxt = bump()
-        mesh_args = ["meshopt", str(current), str(nxt)]
+        mesh_args = [
+            "meshopt",
+            str(current),
+            str(nxt),
+            "--quantize-position",
+            "10",
+            "--quantize-normal",
+            "8",
+        ]
         if not keep_leaves:
             mesh_args.extend(
                 [
-                    "--quantize-position",
-                    "10",
                     "--quantize-texcoord",
-                    "8",
-                    "--quantize-normal",
                     "8",
                 ]
             )
+        else:
+            mesh_args.extend(["--quantize-color", "8"])
         gltf_transform(*mesh_args)
         current = nxt
         dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(current, dest)
+        tmp = dest.with_name(dest.name + ".diettmp")
+        shutil.copy2(current, tmp)
+        os.replace(tmp, dest)
 
 
 def diet_file(path: Path, *, keep_leaves: bool, budget: int, label: str) -> int:
     original = path.with_name(path.name + ".src")
     shutil.copy2(path, original)
-    attempts = ((1024, 80),)
+    attempts = ((1024, 80), (768, 70))
     if keep_leaves or not has_images(original):
         attempts = ((1024, 80),)
     last_size = path.stat().st_size
@@ -292,7 +451,18 @@ def main() -> None:
     if len(buildings) != 18:
         raise RuntimeError(f"expected 18 building glbs, found {len(buildings)}")
 
-    mass_size = diet_file(MASS, keep_leaves=True, budget=MASS_BUDGET, label="mass")
+    if "--buildings-only" in sys.argv:
+        mass_size = MASS.stat().st_size
+        log(f"buildings-only, mass left at {mass_size}")
+    else:
+        mass_size = diet_file(MASS, keep_leaves=True, budget=MASS_BUDGET, label="mass")
+        if "--mass-only" in sys.argv:
+            log(f"mass-only {mass_size} budget {MASS_BUDGET}")
+            if mass_size > MASS_BUDGET:
+                raise SystemExit(f"island_mass.glb {mass_size} exceeds 1.5 MiB")
+            return
+
+    buildings = sorted(BUILDINGS.glob("*.glb"))
     worst_name = ""
     worst_size = 0
     building_sum = 0
@@ -316,12 +486,7 @@ def main() -> None:
         raise SystemExit(f"viewer bytes {viewer_sum} exceed 12 MiB")
     if over:
         detail = ", ".join(f"{n}={s}" for n, s in over)
-        log(
-            "BUILDING_BUDGET_MISS "
-            f"{detail}. Geometry is the remainder after 1024 WebP + meshopt; "
-            "no simplify. Propose raising the per-building cap to 512 KiB "
-            "(worst nvidia_tower is 501432 bytes; 18×512 KiB + mass still < 12 MiB)."
-        )
+        raise SystemExit(f"building budget {detail}")
 
 
 if __name__ == "__main__":

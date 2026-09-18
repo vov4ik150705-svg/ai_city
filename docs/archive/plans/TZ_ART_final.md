@@ -1,6 +1,6 @@
 # TZ_ART final — арт-контент закрыт
 
-Не этап V13 и не P7. `launch.deployed` пуст. `missions_live=0`, краны NFT 0, `companion_revenue_live=0`. `rules_version` 0.21.0. Пак **84**, хеш **`507c09076ba0e353fb1886347cff16a3c4acf6a6013d9ef64201f5a57f4cbf2e`**, 632402 байт. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 218 кадров, 1 страница, 2943684 B (+ `font.png` 3025 B в digest, не в `atlas_bytes`), magenta 0, sha `067b1c84ff41`. `layout_hash` `9ed5d3f99673…` (сдвиг от пешеходов в `scene.objects`, не от экономики). Объекты 504, walkers 38 на `s`, 0 на лотах. Глифы 146. `bird` в реестре.
+Не этап V13 и не P7. `launch.deployed` пуст. `missions_live=0`, краны NFT 0. `rules_version` 0.21.0. Пак **84**, хеш **`507c09076ba0e353fb1886347cff16a3c4acf6a6013d9ef64201f5a57f4cbf2e`**, 632402 байт. Круг 1445, вход 200, выход 910, mint 51, окно A [12275, 15783]. Атлас 218 кадров, 1 страница, 2943684 B (+ `font.png` 3025 B в digest, не в `atlas_bytes`), magenta 0, sha `067b1c84ff41`. `layout_hash` `9ed5d3f99673…` (сдвиг от пешеходов в `scene.objects`, не от экономики). Объекты 504, walkers 38 на `s`, 0 на лотах. Глифы 146. `bird` в реестре.
 
 ## Что закрыто
 
