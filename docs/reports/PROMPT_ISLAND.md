@@ -1,7 +1,8 @@
 # PROMPT_ISLAND — промпт исполнителя visual rescue
 
 Живой системный протокол в репозитории —
-`.cursor/rules/island-look.mdc` (`alwaysApply` до `ACCEPT LOOK-11`; это не
+`.cursor/rules/code-phase.mdc` (файла `island-look.mdc` нет; `ACCEPT LOOK-11`
+уже дан 2026-09-14, поэтому этот paste-блок — история, не задание; это не
 второе фазовое правило, имя `visual-phase.mdc` запрещено). Этот
 файл — paste-блок для нового чата, где правило может не подхватиться
 (отдельное Extra High окно, другой workspace).

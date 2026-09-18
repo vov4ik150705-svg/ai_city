@@ -2,7 +2,8 @@
 
 Главное ТЗ вида Corporator. Держать открытым на каждом LOOK. Как делать
 конкретный шаг — только в `docs/reports/TZ_ISLAND_LOOK_STEPS.md` (раздел
-этого LOOK). Системный протокол агента — `.cursor/rules/island-look.mdc`;
+этого LOOK). Системный протокол агента — `.cursor/rules/code-phase.mdc`
+(файла `island-look.mdc` в репозитории нет);
 paste для нового чата — `docs/reports/PROMPT_ISLAND.md`. Доказательства —
 в `docs/reports/AUDIT_ISLAND_VISUAL.md`.
 

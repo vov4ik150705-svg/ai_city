@@ -32,7 +32,7 @@ Corporator — браузерный 3D-город с орбитальной ка
 | `art/island_v3/reviews/LOOK-00/refs/` | locked owner mockups и антиэталон | любой LOOK: какие картинки эталон |
 | `docs/reports/ASSETS_ISLAND.md` | библиотека декора | закупка и приём GLB |
 | `docs/reports/PROMPT_ISLAND.md` | paste-блок исполнителя LOOK | новый чат Extra High |
-| `.cursor/rules/island-look.mdc` | системный протокол исполнения ТЗ вида | любой чат до `ACCEPT LOOK-11` |
+| `.cursor/rules/code-phase.mdc` | системное правило текущей фазы | любой чат по коду |
 | `docs/reports/TZ_HUD.md` | legacy HUD reference; not visual authority | migration facts only |
 | `docs/reports/GATE_VISUAL.md` | замеры кадра | бюджеты картинки |
 | `docs/reports/GATE_PERF.md` | бюджеты ядра | перф ядра |
@@ -105,10 +105,13 @@ LOOK-04 не являются игровой картой и не исполня
 
 ## Текущая работа
 
-Порядок: вид Terra принят 2026-09-14 (`ACCEPT LOOK-11`) → HUD (отдельный
-`GO` владельца) → отдельное решение о P7. LOOK-10 diet массы Terra —
-отдельный `GO`, не этот шаг. LOOK-01/04/05 на архивном `Island` не
-исполняются. LOOK-проходы не являются новыми ключами пака.
+Вид Terra принят 2026-09-14 (`ACCEPT LOOK-11`) и закрыт. Текущая работа —
+**HUD и публичный сайт**; отдельное решение о P7 не принято. LOOK-проходы
+закрыты, в `docs/archive/`, новыми ключами пака не являются и повторно не
+исполняются. Остров не переделывается без отдельной просьбы владельца.
+
+Живой рендер — Three.js. Pixi, ромбы, изометрия и pixelize — снятый 2D-стек:
+архив в `packages/render/src/pixi.ts`, не задание.
 
 Живой план — `docs/reports/PLAN_ISLAND.md`. Смысл живых документов этот файл не подменяет.
 

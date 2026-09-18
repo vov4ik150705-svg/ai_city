@@ -22,7 +22,8 @@ LOOK-01/04/05 на архивном `Island` не исполняются. HUD н
 этом чате. `launchToken` и мейннет запрещены без отдельного решения
 владельца.
 
-Исполнение: правило `.cursor/rules/island-look.mdc`; paste Extra High —
+Исполнение: правило `.cursor/rules/code-phase.mdc` (файла `island-look.mdc`
+нет); paste Extra High —
 `docs/reports/PROMPT_ISLAND.md`. Один LOOK — один чат; `GO` только от
 владельца. Bloom по камню и небу из текста LOOK-09 не копировать:
 selective bloom — только после явного `GO` на этот рычаг.
