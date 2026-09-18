@@ -24,7 +24,8 @@ Corporator — браузерный 3D-город с орбитальной ка
 | `docs/LAUNCH.md` | запуск | запуск |
 | `docs/OPS.md` | операции | эксплуатация |
 | `docs/PRIZES.md` | призы сезона | призы |
-| `docs/reports/PLAN_ISLAND.md` | живой план: остров → HUD → P7 | текущая работа |
+| `docs/reports/PLAN_LAUNCH.md` | живой план до запуска: дефекты, один остров, механики | текущая работа |
+| `docs/reports/PLAN_ISLAND.md` | план острова, фаза закрыта | история приёмки вида |
 | `docs/reports/ISLAND_STUDIO.md` | паспорт source/runtime острова | посадка острова |
 | `docs/reports/TZ_ISLAND_LOOK.md` | главное ТЗ вида острова | вид острова |
 | `docs/reports/TZ_ISLAND_LOOK_STEPS.md` | подробные задания LOOK-00…LOOK-11 | исполнение одного LOOK |
