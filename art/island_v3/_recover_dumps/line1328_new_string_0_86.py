@@ -1,1 +1,0 @@
-    if len(part) >= 3 and abs(_signed_area(part)) > 1.0 * ISLAND_SCALE * ISLAND_SCALE:

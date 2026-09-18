@@ -1,1 +1,0 @@
-    return (round(p[0] * 40.0 / ISLAND_SCALE), round(p[1] * 40.0 / ISLAND_SCALE))

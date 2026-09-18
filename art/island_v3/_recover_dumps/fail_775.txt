@@ -1,7 +1,0 @@
-LINE 1197
-OLD LEN 96
-NEW LEN 118
-OLD HEAD
-    log(f"plaza tiles {n_tiles} holes {n_holes} faces {sum(1 for f in bm.faces if f.is_valid)}")
----NEW HEAD---
-    log(f"plaza tiles {n_tiles} holes {n_holes} rim_fill {n_rim_fill} faces {sum(1 for f in bm.faces if f.is_valid)}")

@@ -1,1 +1,0 @@
-def bind_stone_materials(ob: bpy.types.Object) -> None:

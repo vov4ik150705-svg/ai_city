@@ -1,1 +1,0 @@
-    z_lo = -248.0 * ISLAND_SCALE

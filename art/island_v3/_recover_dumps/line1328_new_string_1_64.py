@@ -1,1 +1,0 @@
-        z = PLAZA_Z if li == 0 else PLAZA_Z - 2.4 * ISLAND_SCALE

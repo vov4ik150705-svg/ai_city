@@ -1,3 +1,0 @@
-Live island: 7200 x 7200 m plaza, polar grid, no buildings.
-Mesh: island.blend / island.glb
-Builder re-exports this mesh and does not regenerate the hull.

@@ -1,7 +1,0 @@
-LINE 1328
-OLD LEN 17
-NEW LEN 32
-OLD HEAD
-    z_lo = -248.0
----NEW HEAD---
-    z_lo = -248.0 * ISLAND_SCALE

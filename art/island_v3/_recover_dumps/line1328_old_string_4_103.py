@@ -1,1 +1,0 @@
-            rim, cx, cy, first_scale, z1_first, n_loop, 40 + first_salt, first_jut * 0.85, 8.0, corners

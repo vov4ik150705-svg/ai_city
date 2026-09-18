@@ -1,1 +1,0 @@
-        bmesh.ops.remove_doubles(bm, verts=plaza_vs, dist=2.8)

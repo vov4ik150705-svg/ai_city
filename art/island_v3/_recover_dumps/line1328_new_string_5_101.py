@@ -1,1 +1,0 @@
-            rim, cx, cy, scale * 0.97, z1, n_loop, 40 + salt, jut * 0.85, 8.0 * ISLAND_SCALE, corners

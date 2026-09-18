@@ -1,4 +1,0 @@
-Canonical island mass: 2026-09-05
-Snapshot: snapshots/canon_2026-09-05_island/
-Scope: plaza + hull only. Buildings are not canon.
-Do not overwrite the snapshot. Do not change SEED / HALF / MIN_CELL / build_mass without owner.
