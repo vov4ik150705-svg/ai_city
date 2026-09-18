@@ -1,7 +1,10 @@
-/** Local HUD artwork registry. Sources: visual/buildings orig, visual/units. Not GLB. */
+/** Local HUD artwork registry. Sources: visual/buildings orig, visual/units,
+ * assets/website/units. Not GLB. */
 
 export const BUILDING_ART_DIR = "visual/buildings orig"
 export const UNIT_ART_DIR = "visual/units"
+/** Role portraits ship with the website art set, not the unit sheet set. */
+export const ROLE_PORTRAIT_DIR = "assets/website/units"
 
 export const FUNCTIONAL_BUILDING_IDS = [
   "city_hall",

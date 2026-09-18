@@ -21,6 +21,7 @@ import {
   DECORATIVE_BUILDING_ID,
   FUNCTIONAL_BUILDING_IDS,
   UNIT_ART_DIR,
+  ROLE_PORTRAIT_DIR,
   UNIT_SHEET_FILE,
   buildingCardKind,
   resolveBuildingArt,
@@ -131,9 +132,10 @@ describe("HUD visual system", () => {
     expect(resolveRolePortrait("unit_roster_5_originals").kind).toBe("sheet")
     expect(resolveRolePortrait("corporator").kind).toBe("brand")
     const units = join(repo, UNIT_ART_DIR)
+    const portraits = join(repo, ROLE_PORTRAIT_DIR)
     expect(existsSync(join(units, UNIT_SHEET_FILE))).toBe(true)
     for (const role of AGENT_ROLE_IDS) {
-      expect(existsSync(join(units, resolveRolePortrait(role).file))).toBe(true)
+      expect(existsSync(join(portraits, resolveRolePortrait(role).file))).toBe(true)
       expect(existsSync(join(units, resolveRolePortrait(role, "icon").file))).toBe(true)
     }
     for (const file of BRAND_UNIT_FILES) {
