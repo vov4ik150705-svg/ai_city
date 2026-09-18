@@ -19,7 +19,7 @@
 ## §2. Монорепо и слои
 
 `packages/` — engine, protocol, contentpack, chainport, render. `services/` —
-api, sampler, buyback, attestor, llm. `apps/` — client. Пакет render не
+api, sampler, buyback, attestor. `apps/` — client. Пакет render не
 импортирует engine (`L338`, `L339`). Живой кадр — runtime авторского
 3D-острова и локальных `18` building assets; клеточный V3 и Pixi `V12` — архив.
 Технический провод существует, но visual rescue требует единого
@@ -40,7 +40,7 @@ OFL woff2 в `art/fonts/`, без CDN (`L344`, `docs/reports/HUD_DESIGN_SYSTEM.m
 
 ## §3. Сервисы
 
-Один процесс на сервис. `fail_mode = open` у всех, кроме гейта пака. Ни один хост не объявлен блокирующим тик. Единственный закрытый контур — сверка `pack_hash` внутри engine (`docs/TICK.md` §2). Сэмплер, выкуп, REST/WS, аттестатор, LLM живут снаружи тика и не имеют права его блокировать.
+Один процесс на сервис. `fail_mode = open` у всех, кроме гейта пака. Ни один хост не объявлен блокирующим тик. Единственный закрытый контур — сверка `pack_hash` внутри engine (`docs/TICK.md` §2). Сэмплер, выкуп, REST/WS и аттестатор живут снаружи тика и не имеют права его блокировать.
 
 <!-- GEN:arch.services -->
 

@@ -12,6 +12,9 @@
 
 ## 0. Как работать — читать всем и каждый раз
 
+Системное правило исполнения этого ТЗ — `.cursor/rules/plan-launch.mdc`
+(`alwaysApply`). Агент читает **эту секцию задачи**, а не пересказывает план.
+
 ### 0.1 Обстановка
 
 - Оболочка — **PowerShell 5 на Windows**. Оператор `&&` не работает,
@@ -51,9 +54,12 @@ python content/attack.py --only <id правил, затронутых зада�
 
 | показатель | значение |
 |---|---|
-| `pack_version` | **144** |
-| pack hash | `dc58998f9a46f00a8cddcb575abcbde9ed17061717e9f500357bab8dda30efc4` |
+| `pack_version` | **145** (был 144 до закрытия F2) |
+| pack hash | `06b1b6fe0e315ca8f41e5022367068099db1290bb16963de9228ef8618064b49` |
 | `rules_version` | `0.24.0` |
+| каналов состояния заполнено | **9 из 21** |
+| команд исполняет API | **4 из 15** |
+| намерений живых на клиенте | **3 из 19** |
 | `python content/lint.py` | 386 правил, **9 ERRORS**, 1 WARNING (L174), 4 PENDING |
 | `npx vitest run` (корень) | **271 passed / 10 failed / 281** |
 | `eslint .` в живых пакетах | **205 errors** (`render` 158, `engine` 47) |
@@ -73,7 +79,7 @@ python content/attack.py --only <id правил, затронутых зада�
   `python content/codegen.py`. Список таких файлов — 23 штуки, см. F1.
 - **Числа только из пака.** В рантайме нет числовых литералов кроме `0`, `1`
   и индексов. Одно и то же число в двух местах — дефект.
-- **Тик детерминирован.** Внутри экономического тика запрещены LLM,
+- **Тик детерминирован.** Внутри экономического тика запрещены внешний инференс,
   `Math.random`, `Date`, `performance`, системное время, любой внешний I/O.
   Случайность — только `hash(city_id, tick_index, agent_id)`. Время —
   только `city_time`.
@@ -84,6 +90,7 @@ python content/attack.py --only <id правил, затронутых зада�
   конфликт. Не выравнивать без отдельного решения владельца.
 - **Юнитов не добавлять** — ни машин, ни дронов, ни пешеходов, ни мобов,
   даже «фоном» (`R-V-101`).
+- **Внешнего инференса нет** (`R-V-110`). Хост-писателя не возвращать.
 - **Карту не генерировать** ни от `city_id`, ни от `layout_seed`, ни
   процедурно (`R-V-98`).
 - **`missions_live` остаётся `0`.** Миссии не включать.
@@ -137,76 +144,16 @@ python content/attack.py --only <id правил, затронутых зада�
 
 ## F2. Довести вырез Companion до конца
 
-**Приоритет: самый высокий из F.** Одна незавершённая операция даёт
-**3 ошибки типов и 4 падающих теста** — больше, чем любая другая причина.
-
-### Что произошло
-
-Фичу Companion вырезали из пака: файла `content/params/companion.json`
-больше нет, в `packages/protocol/src/codes.ts` ноль кодов `COMPANION_*`,
-правило линтера `L388` закрепляет вырез («Companion is cut from the live
-pack: no section, screen, codes, pending snapshot, or HUD component») и
-проходит. Но код, который на Companion опирался, не убрали.
-
-### Что сломано, точные адреса
-
-Ошибки типов (`npx tsc --noEmit -p services/llm`):
-
-- `services/llm/src/pack.ts:25` — `TS2339`, читает `codes.COMPANION_LLM_TEMPLATE`
-- `services/llm/src/pack.ts:33` — `TS2339`, то же
-- `services/llm/src/step.ts:36` — `TS2339`, читает `codes.COMPANION_QUEUE_FULL`
-
-Падающие тесты:
-
-- `services/api/test/g6.test.ts` — три теста
-  (`nft_crane_zero_by_default`, `revenue_not_in_pool_without_ratification`,
-  `inference_account_present`), все падают с
-  `ENOENT content/params/companion.json`
-- `services/llm/test/c9.test.ts` — `llm_refusal_falls_back_to_template`,
-  падает `API_MALFORMED` в `loadLlmPack`, потому что в паке нет секции
-  `companion`
-
-### Шаги
-
-1. Прочитать `services/llm/src/pack.ts` целиком и понять, зачем там был
-   `COMPANION_LLM_TEMPLATE`. Это код отказа, который сервис отдавал, когда
-   LLM-провайдер не ответил и надо подставить шаблон.
-2. Найти замену в живом паке. Открыть `packages/protocol/src/codes.ts` и
-   найти код, который означает «внешний сервис деградировал». Кандидат —
-   `SERVICE_DEGRADED`, он в списке есть. **Проверить это, а не поверить:**
-   `Select-String -Path packages/protocol/src/codes.ts -Pattern 'SERVICE_DEGRADED'`.
-3. Заменить в `pack.ts` и `step.ts` обращения к `COMPANION_*` на живой код.
-   Если подходящего кода нет — **остановиться и спросить владельца**, какой
-   код отдавать. Не выдумывать новый код: коды живут в паке, не в сервисе.
-4. `services/api/test/g6.test.ts`: три теста грузят удалённый
-   `companion.json`. Прочитать их и понять, что именно они проверяют.
-   `nft_crane_zero_by_default` и `revenue_not_in_pool_without_ratification` —
-   про краны NFT и казну, к Companion отношения не имеют, просто грузили
-   пак через общий хелпер. Переписать загрузку на существующий файл пака.
-   `inference_account_present` — вероятно про Companion по сути; если да,
-   тест удалить вместе с фичей, а не «починить».
-5. `services/llm/test/c9.test.ts` — привести к новому коду отказа.
-
-### Гейт
-
-```
-npx tsc --noEmit -p services/llm
-npx vitest run services/api/test/g6.test.ts services/llm/test/c9.test.ts
-python content/lint.py
-python content/attack.py --only L388
-```
-
-### Готово, когда
-
-- `tsc` по `services/llm` — 0 ошибок;
-- `g6` и `c9` зелёные;
-- `L388` по-прежнему проходит;
-- `python content/attack.py --only L388` ловит свою пробу.
+**Статус:** закрыто 2026-09-18. Companion снят из живого пака (`L388`).
+Хвосты в коде закрыты. Хост-писатель снят отдельно (`R-V-110`): живых
+процессов четыре (api, sampler, buyback, attestor). Каталога писателя
+в `services/` нет.
 
 ### Чего не делать
 
-Не возвращать Companion в пак, чтобы «починить тесты». Фича снята решением,
-`L388` это охраняет.
+Не возвращать Companion в пак. Не возвращать пятый процесс и не обещать
+внешнего писателя сводки. `L388` охраняет вырез Companion. Схема
+`arch.listen.ports` не принимает лишний порт.
 
 ---
 
@@ -607,7 +554,559 @@ npx vite build --config apps/client/vite.config.ts
 
 ---
 
+# ЧАСТЬ H. Довести HUD и API до играбельного состояния
+
+**Это самая большая и самая важная часть плана.** Задачи H1–H9 отменяют и
+заменяют прежние M1, M2, M3 — не делать их отдельно.
+
+## H0. Что именно не работает и почему — читать перед любой задачей H
+
+### Диагноз
+
+HUD не сломан. HUD честно рисует «нет данных», потому что **API отдаёт
+пустоту**, а **клиент сам блокирует половину действий**. Движок при этом
+почти всю игру уже считает. Это задача проводки, а не разработки механик.
+
+Три факта, каждый проверяемый командой:
+
+**Факт 1. API заполняет 9 каналов состояния из 21.**
+`services/api/src/http.ts`, функция `projectState` (строки ≈80–143). На
+строках 93–95 она создаёт **все** источники как пустые объекты `{}`, затем
+заполняет только: `tick.capital`, `tick.energy`, `tick.compute`,
+`aggregate.payroll_ratio`, `wallet.protocol_eth_in_flight`,
+`wallet.protocol_vault_corp`, `wallet.protocol_studio_eth`,
+`seasons.prize_basket`, `log.events`.
+
+Остаются пустыми **двенадцать**: `aggregate.gdp`, `aggregate.happiness`,
+`aggregate.stability`, `fragments.city_ledger`,
+`oracle.district_efficiency`, `oracle.stock_price`,
+`seasons.influence_rank`, `tick.agent_state`, `tick.building_level`,
+`wallet.chain`, `wallet.corp_balance`, `wallet.stake_tokens`.
+
+**Факт 2. API исполняет 4 команды из 15.**
+`packages/protocol/src/routes.ts` объявляет 15 маршрутов. `applyLive` в
+`services/api/src/commit.ts:190–194` обрабатывает четыре: `hire`,
+`claim_prize`, `build`, `set_objective`. Остальные одиннадцать
+(`deposit`, `withdraw`, `buy_stock`, `stake`, `open_district`,
+`unlock_tier`, `pick_node`, `merge`, `upgrade`, `claim_fragment`, `noop`)
+маршрут имеют, обработчика — нет, и возвращают `undefined`.
+
+**Факт 3. Клиент блокирует 16 намерений из 19.**
+`apps/client/src/hud/liveAdapter.ts:8` —
+`LIVE_MUTATION_EFFECTS = ["build", "hire", "set_objective"]`. В таблице
+`BY_INTENT` (строки 107–131) двенадцать намерений помечены
+`refusal-only` и четыре `unsupported`. Любое из них проходит через
+`unavailable()` (строка 355) и отдаёт `FEATURE_NOT_IN_V1`, **не доходя до
+сети**.
+
+### Почему кнопки не оживают сами
+
+У каждого действия в паке есть список предусловий `requires`. Проверить:
+
+```
+python -c "import json;p=json.load(open('content/out/pack.json',encoding='utf-8'));a=p['sections']['screens']['actions'];print(json.dumps(a['bank_withdraw'],ensure_ascii=False,indent=2))"
+```
+
+У `bank_withdraw` это `not_demo_withdraw`, `wallet`, `capital`,
+`bank_open`, `bank_weekday`, `bank_limit`. Гейт `bank_limit` считается от
+`bankLimitLive`, которое API **не присылает**. Значит гейт неразрешим,
+кнопка не может стать активной, и никакая правка вёрстки этого не изменит.
+
+Вот полная цепочка играбельности, и рвётся она в двух местах:
+
+```
+движок считает  →  API проецирует  →  клиент читает  →  гейт requires
+   ГОТОВО           РВЁТСЯ (H1)      ГОТОВО           РВЁТСЯ (H4)
+
+игрок жмёт  →  адаптер постит  →  API исполняет  →  снимок обновился
+  ГОТОВО        РВЁТСЯ (H3)       РВЁТСЯ (H2)        ГОТОВО
+```
+
+### Что движок уже умеет — не писать заново
+
+Проверить: `Get-Content packages/engine/src/index.ts`.
+
+| нужно для | готовая функция в `@corporator/engine` |
+|---|---|
+| `aggregate.gdp` | `gdpDay(payouts)` |
+| `aggregate.happiness` | `happinessOfCity(cfg, state, city)`, `happinessBps(terms, weights, bps)` |
+| `aggregate.stability` | `stabilityBps` (`fragments.ts` и `seasons.ts`) |
+| население, уровень | `population`, `cityLevelFromPopulation`, `stickyCityLevel`, `housingCapacityOf` |
+| слоты функций | `buildSlotsOf`, `ordinaryActiveCount` |
+| производительность | `productivityBps(realized, nominal, bps)` |
+| депозит | `mintFromBacking` |
+| банк, лимиты, ваучер | `authorize`, `present`, `expire`, `remainingGlobal`, `bankShareBps`, `globalCapWei`, `personalCapWei`, `resetDayCounters` |
+| анстейк, возврат | `unstake(city, ticker, amount, cityTime, graceHours, sMin)`, `refundAllowed` |
+| research | `advanceResearch(cfg, state)`, `researchProgressStep` |
+| фрагменты | `settleFromData`, `settleCities`, `windowSettleDue`, `fragmentGrossBase` |
+| сезон, влияние, ранги | `seasonSettle`, `zipfPayout`, `zipfWeights`, `shareFloor`, `iDay`, `intensityBps`, `coverageBps`, `positiveDay`, `accumulateDay` |
+| котировки DEX | `cpmmBuyCorp`, `cpmmSellCorp` |
+| призы | `claimEveryAsset`, `claimPrize`, `refundPlayer`, `returnUnsettled` |
+| оффлайн | `clipOfflineHours(base, added, hardCap)` |
+| XP | `awardPaidTick`, `awardTrain`, `grantWithRemainder` |
+
+**Правило части H: если функция есть в этой таблице — вызывать её, а не
+писать свою.** Своя реализация той же формулы — дефект «одно число в двух
+местах».
+
+### Что объявлено обязательным
+
+Пак объявляет **34** экрана/панели/флоу, из них **33 — `v1: live`** и
+только `missions` — `stub`. Плюс **39 действий** (38 live, `missions_start`
+stub), **45 полей**, **21 источник состояния**. Проверить:
+
+```
+python -c "import json,collections;p=json.load(open('content/out/pack.json',encoding='utf-8'));s=p['sections']['screens'];print(len(s['screens']),len(s['actions']),len(s['fields']),len(s['state_sources']));print(collections.Counter(v['v1'] for v in s['screens'].values()))"
+```
+
+То есть играбельным должно быть почти всё. `missions` — единственное
+законное исключение, `missions_live` остаётся `0`.
+
+### Повторяемый рецепт: как подключить один канал
+
+Этому рецепту следовать буквально, он одинаков для всех задач H1.
+
+1. Взять один `state_source` id из `packages/protocol/src/channels.ts`.
+2. Найти, какое поле `ClientSnapshot` его ждёт:
+   `apps/client/src/hud/snapshot.ts` (тип на строках 11–62).
+3. Найти, как клиент его читает: `apps/client/src/hud/boot.ts`,
+   `snapshotFromEnvelope`.
+4. Найти в `packages/engine/src/index.ts` функцию, которая это считает.
+5. В `projectState` (`http.ts`) присвоить `sections["<id>"] = <значение>`.
+   Форму брать из того, что читает клиент, и **не менять** её.
+6. Прогнать `npx vitest run apps/client services/api`, открыть клиент и
+   убедиться, что панель ожила.
+7. Если значения в движке нет — **оставить канал пустым**. Пустая панель с
+   причиной лучше выдуманного числа. Это закон: HUD показывает причины, а
+   не молчаливые нули.
+
+### Повторяемый рецепт: как подключить одну команду
+
+1. В `services/api/src/commit.ts` написать `applyXxx(ctx, state, city, body)`
+   по образцу `applyHire` (строки 27–40) или `applyBuild` (116–170).
+2. Проверять предусловия **до** мутации и возвращать `errResult(ctx, state,
+   codes.<КОД>)`. Коды брать из `packages/protocol/src/codes.ts`, новых не
+   выдумывать.
+3. Внутри вызывать готовую функцию движка из таблицы выше.
+4. Зарегистрировать строкой `if (effect === "xxx") return applyXxx(...)` в
+   `applyLive` (строки 190–194).
+5. Вернуть `okResult(ctx, state, { effect: "xxx", ... })`.
+6. Только после того, как API отвечает, снять блокировку на клиенте:
+   в `liveAdapter.ts` поменять `support` с `refusal-only` на `"live"` и
+   добавить effect в `LIVE_MUTATION_EFFECTS` (строка 8).
+7. **Порядок обязателен.** Снять блокировку раньше обработчика — значит
+   выпустить кнопку, которая шлёт запрос в пустоту.
+
+### Красные линии части H
+
+- Не выдумывать числа. Всё из пака и движка.
+- Не считать экономику в клиенте. Клиент только показывает.
+- Не менять форму `DecisionRecord`, `layout_version`, `creator_tax_bps`.
+- Не трогать `C-20`, `C-01`, `C-22`.
+- `claim_prize` включать **только** вместе с H2.11 и M6. Тест
+  `hud_truth.test.ts` это охраняет намеренно.
+- Не включать `missions`.
+- Не возвращать `bottom_menu`: дизайн-система запрещает постоянный нижний
+  док, даже если ключ в паке есть. Действия `menu_*` вешать на контекстные
+  входы.
+
+---
+
+## H1. Заполнить двенадцать пустых каналов состояния
+
+Разбито на четыре независимые задачи — их можно делать параллельно разными
+агентами. Каждая правит одну и ту же функцию `projectState`, поэтому
+**согласовать порядок и не править файл одновременно**.
+
+Общий гейт для всех H1.x:
+
+```
+npx tsc --noEmit -p services/api
+npx tsc --noEmit -p apps/client
+npx vitest run services/api apps/client
+python content/lint.py
+```
+
+### H1.1. Агрегаты города: GDP, happiness, stability, productivity
+
+Каналы: `aggregate.gdp`, `aggregate.happiness`, `aggregate.stability`.
+Поля снимка: `gdp`, `happiness`, `stability`, `productivity`.
+
+Шаги:
+
+1. Прочитать `packages/engine/src/aggregates.ts` целиком. Там
+   `gdpDay(payouts)`, `happinessOfCity(cfg, state, city)`,
+   `productivityBps(realized, nominal, bps)`.
+2. Прочитать `packages/engine/src/fragments.ts`, функция
+   `stabilityBps(validTicks, data, ticksDay)`.
+3. Понять, где движок хранит вход: `gdp_day`, `valid_ticks`, счётчики
+   выплат в объекте города. Смотреть `packages/engine/src/tick.ts`, как
+   они пишутся.
+4. В `projectState` присвоить три секции. `bps` брать из пака, а не писать
+   `10000`.
+5. Проверить в HUD: панель `overview` и `city_card` должны показать числа
+   вместо «Unavailable».
+
+Порог интерфейса: happiness ниже 50% — красная строка, stability ниже 70% —
+подсказка про energy. Пороги в паке (`happiness_penalty_threshold_bps`,
+`stability_hint_threshold_bps`), не в коде.
+
+### H1.2. Здания и агенты: то, без чего город выглядит мёртвым
+
+Каналы: `tick.building_level`, `tick.agent_state`.
+Поля снимка: `functions` (массив `{id, nameKey, statusKey}`), `agents`
+(массив `{id, idleKey}`), `population`, `cityLevel`.
+
+Это **самый заметный игроку пробел**: из-за него `FunctionStrip`,
+`agents.tsx` и `building_card.tsx` показывают заглушки.
+
+Шаги:
+
+1. Движок держит функции города в `city["functions"]` (массив строк
+   `{id, level, deactivated, frozen}` — видно в `commit.ts:135–167`) и
+   агентов в `city["agents"]` (`commit.ts:36–38`).
+2. Форма, которую ждёт клиент, — в `snapshot.ts:38–51`. Поля `nameKey`,
+   `statusKey`, `idleKey` — это **ключи строк**, не готовый текст.
+   Локализацию делает клиент.
+3. `statusKey` выводить из состояния функции: активна, деактивирована,
+   заморожена. `idleKey` — это код простоя из `codes.ts` (`IDLE_NO_ENERGY`,
+   `IDLE_NO_COMPUTE`, `IDLE_NO_AGENT`, `IDLE_WRONG_ROLE`). Простой обязан
+   иметь **причину**; молчаливый ноль запрещён.
+4. `population` — `population(occupiedJobs, populationPerJob, housingCapacity)`,
+   ёмкость жилья — `housingCapacityOf(functions, thresholds, housingAdd)`.
+5. `cityLevel` — `cityLevelFromPopulation(pop, thresholds, levelMax)`,
+   затем `stickyCityLevel(current, derived)`. **Уровень не понижается сам**
+   — это смысл `stickyCityLevel`, не обойти.
+
+### H1.3. Кошелёк и рынок
+
+Каналы: `wallet.corp_balance`, `wallet.chain`, `wallet.stake_tokens`,
+`oracle.stock_price`, `oracle.district_efficiency`.
+Поля снимка: `corp`, `stocks` (массив `{ticker, price, dayPct, effect}`),
+`quoteLive`, `quoteAgeMs`.
+
+Шаги:
+
+1. Цены стоков приходят от `services/sampler`. Установить, что там живое, а
+   что мок, и **не притворяться**, что цена живая: `quoteLive` должно быть
+   `false`, когда источник мок или данные устарели.
+2. Эффективность района — «погода отрасли», множитель 85–115%. Она **не**
+   PnL игрока. Не выводить баланс игрока из цены стока — это прямой запрет
+   канона.
+3. `wallet.chain` и `corp_balance` — с цепи через `packages/chainport`.
+   Без настроенных адресов оставить пустым, а не показывать ноль.
+4. `quoteAgeMs` считать от `city_time`, не от `Date.now()`.
+
+### H1.4. Сезоны и фрагменты
+
+Каналы: `seasons.influence_rank`, `fragments.city_ledger`.
+Поля снимка: `seasonLabel`, `periodLabel` (сейчас **всегда** `undefined` —
+см. `boot.ts:127–128`), плюс новое поле под ранги.
+
+Шаги:
+
+1. `packages/engine/src/seasons.ts` уже считает всё: `accumulateDay`,
+   `iDay`, `seasonSettle`, ранги `1..N`, Zipf. Смотреть строки ≈328–494.
+2. Отдать в `seasons.influence_rank`: ранг, влияние, положительные дни,
+   признак квалификации. Форму согласовать с H3 (экран лидерборда).
+3. `fragments.city_ledger` — из `settleFromData` / `settleCities`.
+4. `seasonLabel` и `periodLabel` — ключи строк, не готовый текст.
+5. **Один слот на кошелёк.** Логика уже в движке, не дублировать.
+
+---
+
+## H2. Дописать одиннадцать обработчиков команд в API
+
+Каждый пункт — отдельная задача. Делать по одному, следуя рецепту из H0.
+После каждого — сразу H3 на тот же effect.
+
+**Порядок исполнения именно такой:** от простого к деньгам.
+
+### H2.1. `research_start`
+
+Движок: `advanceResearch(cfg, state)`, `researchProgressStep`.
+В `liveAdapter.ts` это сейчас `unsupported`, хотя маршрута
+`/command/research_start` в `routes.ts` **нет**. Сначала проверить, есть ли
+он в паке (`screens.json` действие research). Если маршрута нет — добавить
+ключ в пак, поднять `pack_version`, прогнать `build.py` и `codegen.py`.
+Экран: `research.tsx` — сейчас каталог живой, коммита нет.
+
+### H2.2. `open_district`
+
+Открытие отрасли по стейку реального Stock Token. Предусловия — порог
+стейка (количественный), уровень города. Коды отказа —
+`STAKE_BELOW_THRESHOLD` и соседние в `codes.ts`.
+Шесть районов фиксированы: NVDA→Compute, TSLA→Energy, AMZN→Logistics,
+AAPL→Consumer, MSFT→Automation, COIN→Finance. Тикеры сменные, роли — нет.
+
+### H2.3. `stake`
+
+Доп. стейк в уже открытый район. Действие `district_stake_more`,
+`requires: ["stake_mult"]`. Порог кратности — из пака.
+
+### H2.4. `unlock_tier`
+
+Тир 1 открывается только стейком и стоит 0 Capital. Тиры 2 и 3 стоят
+Capital по таблице research. Источник — `docs/PROGRESSION.md` и
+`generated.progression.tier_cost`.
+
+### H2.5. `pick_node`
+
+Выбор узла прогрессии. Эксклюзивные узлы **без респека** — выбрал и всё.
+Предупредить игрока до нажатия, а не после.
+
+### H2.6. `merge`
+
+Слияние двух районов. Девять непокрытых пар, `merge_active_cap = 3`.
+**Внимание: `C-20`.** `DESIGN.md` §4.8 говорит «половина тир-1 дивиденда»,
+генератор берёт полный. Брать значение **из пака**
+(`generated.progression.progression_merges`), в код число не писать, текст
+`DESIGN.md` не править.
+
+### H2.7. `upgrade`
+
+Апгрейд уровня здания. Стоимость — `generated.balance.level_cost`, уже
+читается в `buildCost` (`commit.ts:91–96`). Переиспользовать.
+
+### H2.8. `claim_fragment`
+
+Фрагменты: окна 14 дней города, `windowSettleDue`, `settleFromData`.
+Начислять только за работу в маячных зданиях и только оплаченные тики.
+
+### H2.9. `deposit`
+
+**Первая денежная команда. Дальше — осторожно.**
+
+Движок: `mintFromBacking`. Инвариант кассы:
+
+```
+Capital у игроков + Capital в фонде ≤ $CORP в vault × 2000
+```
+
+Любой минт Capital проходит **только** через депозит `$CORP` в vault. Кода,
+который минтит Capital без депозита, быть не должно. Курс минта плавает, но
+не выше 2000; вниз оракул двигает сразу, вверх — не быстрее шага за сутки
+города.
+
+После правки обязательно: `python content/build.py` и сверить числами —
+вход `200` bps, выход `910` bps, круг `1445` bps в полосе `[1400, 1600]`.
+
+### H2.10. `withdraw` через ваучер
+
+Движок: `authorize` → `present` → `expire`, плюс `remainingGlobal`,
+`bankShareBps`, `globalCapWei`, `personalCapWei`, `resetDayCounters`.
+
+Правильная последовательность: `authorize` резервирует покрытие, `present`
+его расходует, `expire` освобождает. Двойного покрытия быть не может.
+
+Банк работает по **личному** времени города: часы 08:00–20:00, воскресенье
+города закрыто, глобальная ёмкость дня, резервирования переживают границу
+суток.
+
+**Известное расхождение `C-22`:** `bankWithdraw` в движке заполняет
+`withdraw_intent` сразу, минуя ваучер. Не «чинить» молча — либо закрыть
+осознанно вместе с этой задачей и записать решение, либо оставить и не
+трогать.
+
+Вход всегда дешевле выхода. Trader не выбивает спред лучше `2130:1` —
+потолок, посадкой агента не обойти.
+
+### H2.11. `buy_stock` и `claim_prize`
+
+`buy_stock`: котировка и покупка идут **вне тика**. Математика кривой —
+`cpmmBuyCorp` / `cpmmSellCorp`. Пока источник котировок мок — держать
+`quoteLive = false` и не давать исполнить сделку.
+
+`claim_prize`: API уже умеет (`applyClaimPrize`, `commit.ts:52–88`).
+Разблокировать на клиенте **только** после M6 (реальная выдача). До этого
+`refusal-only` — это не баг, а честность: `launch.json` `deployed` пуст,
+выдать приз физически нечем.
+
+---
+
+## H3. Снимать блокировки на клиенте — строго по факту готовности API
+
+Для каждого effect, закрытого в H2:
+
+1. В `apps/client/src/hud/liveAdapter.ts` в таблице `BY_INTENT`
+   (строки 107–131) заменить `support: "refusal-only"` на `support: "live"`.
+2. Добавить effect в `LIVE_MUTATION_EFFECTS` (строка 8).
+3. Проверить, что `extraFromIntent` (строки 419–467) кладёт в тело нужные
+   поля. Для `deposit`/`withdraw` это `amount`, для `buy_stock` —
+   `ticker` и `amount`.
+4. Прогнать `npx vitest run apps/client/test/hud_truth.test.ts`.
+
+**Не снимать блокировку пачкой.** Один effect — одна правка — один прогон.
+Иначе нельзя понять, какая кнопка соврала.
+
+`unstake` не включать: команды нет ни в протоколе, ни в API, и по канону
+анстейк холдерский, on-chain. Серверную команду `unstake` не изобретать.
+
+---
+
+## H4. Сделать гейты `requires` работающими
+
+**Это ядро играбельности.** Кнопка должна сама знать, можно ли её нажать, и
+если нельзя — сказать почему.
+
+### Шаги
+
+1. Выгрузить все предусловия:
+   ```
+   python -c "import json,collections;p=json.load(open('content/out/pack.json',encoding='utf-8'));a=p['sections']['screens']['actions'];c=collections.Counter();[c.update(v.get('requires') or []) for v in a.values()];print(c)"
+   ```
+2. Для каждого предиката определить, из какого поля снимка он считается:
+   `wallet`, `corp`, `capital`, `agent_slot`, `build_slot`, `city_level`,
+   `bank_open`, `bank_weekday`, `bank_limit`, `stake_mult`, `hop_priced`,
+   `not_demo_withdraw`, `not_demo_prize` и остальные.
+3. Написать **одну** чистую функцию-оценщик: на входе id действия и снимок,
+   на выходе либо «доступно», либо код отказа первого непройденного
+   предусловия. Порядок проверки брать из пака, чтобы код отказа был
+   предсказуемым.
+4. Подключить её в `ActionButton`, чтобы кнопка была `disabled` с понятной
+   причиной, а не молча падала после нажатия.
+5. `demo_blocked: 1` учитывать отдельно: демо-аккаунт не выводит и не
+   забирает призы. Барьер демо не ослаблять, прогресс демо в кошелёк не
+   переносить.
+6. Если предусловие неразрешимо, потому что данных нет — показывать это как
+   «нет данных», а не как «нельзя».
+
+### Гейт
+
+Тест на каждый предикат: состояние, в котором он **не** проходит, даёт
+ожидаемый код отказа. Предикат без такого теста считается непроверенным.
+
+---
+
+## H5. Приёмка каждого экрана по отдельности
+
+Пройти **все 34** объекта пака. Для каждого заполнить строку и
+приложить скриншот:
+
+| поле | что проверить |
+|---|---|
+| id | из пака |
+| достижим | есть живой вход из интерфейса, не из мёртвого файла |
+| данные | все поля из `fields` приходят с сервера |
+| действия | все `actions` экрана исполняются или честно отказывают с кодом |
+| состояния | loading, empty, error реализованы, не зашиты константой |
+| отказы | коды из пака показываются текстом, а не общим `UI_UNAVAILABLE` |
+| вердикт | играбельно / частично / заглушка |
+
+Известные проблемы, которые надо закрыть в этой задаче:
+
+- `App.tsx:280` — `loading` в живом режиме зашит в `false`. Пока так, ни
+  один экран не может показать загрузку.
+- `leaderboard.tsx:22` — `empty={false}` зашито.
+- `districts` — маршрут ремапится в `industries` (`navigation.ts:43`), и
+  экран недостижим.
+- `research` — как экран ремапится в таб `overview`, обёртка мертва.
+- `build` — `resolveHudRoute` возвращает `undefined` (`navigation.ts:42`).
+  Экран закрыт намеренно: посадка запрещена каноном. Оставить закрытым,
+  но убрать из него `tile_x`/`tile_y` (`build.tsx:48–49`).
+- `settings` — по дизайн-системе удалён, в паке живой. Расхождение
+  зафиксировать, экран не возвращать.
+- `IndustriesWorkspace` — не зарегистрирован как экран и не имеет входа.
+
+**Мёртвый код удалять только после переноса входов:** `Topbar.tsx`,
+`CapitalSlot.tsx`, `CityCard.tsx`, `BuildingDetailLook.tsx`,
+`IndustriesFromDistricts.tsx`, `primitives.ts` и его сироты.
+
+---
+
+## H6. Живые обновления вместо ручного обновления страницы
+
+Сейчас HUD берёт состояние одним `GET /city/{id}/state`. Маршрут
+`WS /city/{city_id}/ws` объявлен, `services/api/src/ws.ts` есть,
+потребителя в `apps/client/src` **нет**.
+
+Шаги:
+
+1. Прочитать `services/api/src/ws.ts` и `packages/protocol/src/channels.ts`:
+   у каналов есть классы частот (`tick`, `aggregate`, `price`, `log`,
+   `efficiency`).
+2. Написать подписчика в клиенте, который обновляет снимок по классу
+   частоты, а не дёргает всё состояние на каждое сообщение.
+3. Часы города **канала не получают** — клиент считает их сам по формуле от
+   серверного `city_time`. Канал для часов не заводить.
+4. Обрыв соединения — видимое состояние, не тишина. Показать, что данные
+   устарели, и через сколько.
+
+---
+
+## H7. Онбординг, оффлайн-возврат и кошелёк
+
+В паке восемь флоу, все `v1: live`: `flow_onboard_wallet`,
+`flow_onboard_seat`, `flow_onboard_clock`, `flow_onboard_idle`,
+`flow_onboard_bank`, `flow_onboard_payout`, `flow_return_continue`,
+`flow_return_summary`.
+
+В клиенте им соответствуют `onboarding_demo.tsx`, `wallet_connect.tsx`,
+`offline_return.tsx` — все заглушки, ни один не запускается автоматически.
+
+Шаги:
+
+1. Онбординг ведёт игрока по шагам из `pack.onboardSteps`, не по
+   захардкоженному списку.
+2. Оффлайн-возврат показывает, что случилось за отсутствие: база 12 часов
+   города, автоматизация +1+2+3, слияние +1, **жёсткий потолок 18**.
+   Превышение срезается и это показывается явно, а не молча.
+3. Реальный вход сейчас в `LoginRoot.tsx:86–101`; экран `wallet_connect`
+   дублирует его и не используется. Оставить один путь.
+4. Демо и кошелёк не пересекаются: прогресс демо не переносится.
+
+---
+
+## H8. Сквозной тест играбельности
+
+Пока его нет, «играбельно» — это мнение. Нужен тест, который проходит
+основной цикл на фикстурах:
+
+```
+вход → депозит $CORP → получен Capital → активирована функция здания →
+нанят агент → назначена задача → прошёл тик города → появился доход →
+виден GDP и happiness → открыт район по стейку → получен фрагмент →
+виден ранг в лидерборде → выведено через банк по ваучеру
+```
+
+Требования к тесту:
+
+- на каждом шаге проверять, что **экран показывает** результат, а не только
+  что API вернул 200;
+- один и тот же `city_time` даёт один и тот же кадр и один и тот же снимок;
+- догон эквивалентен реплею: пропущенные тики, досчитанные разом, дают то
+  же состояние, что посчитанные по одному;
+- ни одного обращения к `Date.now()` на пути расчёта.
+
+Добавить отдельный тест «ни одно живое действие не отдаёт
+`FEATURE_NOT_IN_V1`»: он должен перечислить действия, которые пак объявил
+`v1: live`, и упасть, если клиент их блокирует. Сейчас такой тест упал бы
+на шестнадцати намерениях — это и есть измеримая метрика готовности HUD.
+
+---
+
+## H9. Отчёт о готовности HUD
+
+Свести таблицу и держать её актуальной в этом файле:
+
+| метрика | было 2026-09-18 | цель |
+|---|---|---|
+| каналов состояния заполнено | 9 / 21 | 21 / 21 |
+| команд исполняет API | 4 / 15 | 15 / 15 |
+| намерений живых на клиенте | 3 / 19 | 15 / 19 (без `unstake`, `present_voucher`, `assign`, `research_start` до H2.1) |
+| действий пака работает | 3 / 39 | 38 / 39 (кроме `missions_start`) |
+| экранов играбельно | нужно измерить в H5 | 33 / 34 |
+| полей снимка приходит | ~10 / 30 | 30 / 30 |
+
+Готовность к запуску по HUD = все шесть строк на цели, плюс зелёный H8.
+
+---
+
 # ЧАСТЬ M. Доделать механики до запуска
+
+**M1, M2 и M3 заменены задачами H1–H5.** Не исполнять их отдельно:
+проекция состояния — H1, вход в лидерборд — H5, экран лидерборда — H1.4
+плюс H5. Ниже остаются M4–M8.
 
 Порядок внутри части важен: M1 и M2 разблокируют всё остальное, потому что
 без них HUD не видит данных, а лидерборд нечем наполнить.
@@ -1111,11 +1610,15 @@ F6 `fill.intensity` (маленькая) → F7 решение по 2D-тест�
 I1 перенацелить `view.html` (маленькая) → I2 вынести отклонённый остров
 (средняя) → I3 решение по Blender-исходникам (обсуждение).
 
-**Неделя 2–3 — разблокировать интерфейс:**
-M1 проекция состояния (большая) → M2 вход в лидерборд и клавиши (маленькая).
+**Недели 2–5 — играбельный HUD (часть H, самая объёмная):**
+H1.1–H1.4 каналы состояния (четыре средние задачи, можно параллельно) →
+H2.1–H2.11 обработчики команд (одиннадцать задач, строго по одной, от
+`research_start` к деньгам) → H3 снятие блокировок (по одной за раз) →
+H4 гейты `requires` (средняя, ядро играбельности) → H5 приёмка 34 экранов
+(большая) → H6 WebSocket (средняя) → H7 онбординг и оффлайн (средняя) →
+H8 сквозной тест играбельности (средняя) → H9 отчёт о готовности.
 
-**Неделя 3–4 — лидерборд и аттестация:**
-M3 лидерборд (средняя) → M4 merkle и IPFS (средняя).
+**Неделя 5–6 — аттестация:** M4 merkle и IPFS (средняя).
 
 **Неделя 4+ — деньги и живость:**
 M5 денежный путь (большая, нужно решение) → M6 выдача призов (большая) →
@@ -1126,6 +1629,10 @@ M7 WebSocket, восстановление, догон (большая) → M8 �
 
 ### Что должно быть закрыто до разговора о запуске
 
+- **H9 на цели:** 21/21 каналов состояния, 15/15 команд в API, 38/39
+  действий пака работают, 33/34 экрана играбельны, зелёный H8. Без этого
+  разговора о запуске нет: пак объявляет 33 экрана живыми, и игрок вправе
+  ожидать, что они работают;
 - ноль падающих тестов;
 - ноль ошибок линтера пака;
 - ноль ошибок типов;

@@ -33,7 +33,8 @@ Corporator — браузерный 3D-город с орбитальной ка
 | `art/island_v3/reviews/LOOK-00/refs/` | locked owner mockups и антиэталон | любой LOOK: какие картинки эталон |
 | `docs/reports/ASSETS_ISLAND.md` | библиотека декора | закупка и приём GLB |
 | `docs/reports/PROMPT_ISLAND.md` | paste-блок исполнителя LOOK | новый чат Extra High |
-| `.cursor/rules/code-phase.mdc` | системное правило текущей фазы | любой чат по коду |
+| `.cursor/rules/code-phase.mdc` | законы фазы: канон, гейт, запреты | любой чат по коду |
+| `.cursor/rules/plan-launch.mdc` | как исполнять `PLAN_LAUNCH.md` | любой чат до запуска |
 | `docs/reports/TZ_HUD.md` | legacy HUD reference; not visual authority | migration facts only |
 | `docs/reports/GATE_VISUAL.md` | замеры кадра | бюджеты картинки |
 | `docs/reports/GATE_PERF.md` | бюджеты ядра | перф ядра |
@@ -94,6 +95,8 @@ LOOK-04 не являются игровой картой и не исполня
 `art/island_v3/maps/terra-look.json` (не кнопка Terra-19), свет —
 `ENV_LOOK_REV` 27. LOOK-01/04/05 на массе 2026-09-06 не начинать.
 
+**R-V-110 — Внешнего инференса в продукте нет.** Агенты — policy-движок, черты и сидированная дрожь. Сводка смены — записи тика. Хоста-писателя нет. Не возвращать.
+
 ## Три слоя
 
 | слой | что это | источник | кто читает |
@@ -114,7 +117,7 @@ LOOK-04 не являются игровой картой и не исполня
 Живой рендер — Three.js. Pixi, ромбы, изометрия и pixelize — снятый 2D-стек:
 архив в `packages/render/src/pixi.ts`, не задание.
 
-Живой план — `docs/reports/PLAN_ISLAND.md`. Смысл живых документов этот файл не подменяет.
+Живой план — `docs/reports/PLAN_LAUNCH.md`. Как исполнять — `.cursor/rules/plan-launch.mdc`. Смысл живых документов этот файл не подменяет.
 
 ## Архив
 

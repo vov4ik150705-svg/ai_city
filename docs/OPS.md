@@ -36,10 +36,6 @@
 
 Признак: пин не ответил (`ipfs` flag false). Код `SERVICE_DEGRADED`. Тик не ждёт. Решает ops.
 
-## llm_refuse
-
-Признак: провайдер отказал, подставлен шаблон. Код `SERVICE_DEGRADED`. Экономика не замечает. Решает ops.
-
 ## uncovered_claim
 
 Признак: `pool_in` ниже owed на settled-строке. Код `PRIZE_CLAIM_UNCOVERED`. На лидерборде видно непокрытие, не слив. Решает ops.
