@@ -3,11 +3,12 @@ import { bytesEq, canonical, fromUtf8, parseJson } from "@corporator/contentpack
 import { channelMap, codes, commandRoutes } from "@corporator/protocol"
 import { applyTemplate, commitPathsFromPack } from "../src/pack_ctx.ts"
 import { partitionsSources } from "../src/channels.ts"
+import { channelPatches } from "../src/ws_patch.ts"
 import { readinessRequiresPack } from "../src/readiness.ts"
 import { isPackHashHalt, replayFromSnapshot, replayStored } from "../src/index.ts"
 import { putJson } from "../src/store.ts"
-import { asObj, asText, walk } from "../src/values.ts"
-import { asBigint, bootHost, demoAuth, makeInputs, packBytes } from "./harness.ts"
+import { asObj, asText, asEngineDict, walk } from "../src/values.ts"
+import { asBigint, bootHost, demoAuth, makeInputs, packBytes, seedPlayerCapital } from "./harness.ts"
 
 function expectBytes(got: readonly Uint8Array[], want: readonly Uint8Array[]): void {
   expect(got.length).toBe(want.length)
@@ -102,9 +103,23 @@ describe.sequential("C3 construction", () => {
     expect(bodyCode(first.body)).toBe(codes.FEATURE_NOT_IN_V1)
     const fund = asBigint(host.state["fund"])
     const second = await host.handle("POST", "/command/noop", body, auth.headers)
-    expect(second.status).toBe(host.ctx.httpOk)
-    expect(bodyCode(second.body)).toBe(host.ctx.replayCode)
+    expect(second.status).toBe(first.status)
+    expect(bytesEq(second.body, first.body)).toBe(true)
+    expect(bodyCode(second.body)).toBe(codes.FEATURE_NOT_IN_V1)
     expect(asBigint(host.state["fund"])).toBe(fund)
+    const hireCost = asBigint(asObj(walk(host.ctx.pack, ["generated", "balance", "hire_cost", "1"]))["cost"])
+    seedPlayerCapital(host, auth.cityId, hireCost + hireCost)
+    const city = asEngineDict(asEngineDict(host.state["cities"])[auth.cityId])
+    const hireBody = canonical({ intent_id: "ih1", expected_city_time: t })
+    const [left, right] = await Promise.all([
+      host.handle("POST", "/command/hire", hireBody, auth.headers),
+      host.handle("POST", "/command/hire", hireBody, auth.headers),
+    ])
+    expect(left.status).toBe(host.ctx.httpOk)
+    expect(right.status).toBe(left.status)
+    expect(bytesEq(left.body, right.body)).toBe(true)
+    const agents = city["agents"]
+    expect(Array.isArray(agents) ? agents.length : 0).toBe(1)
   })
 
   it("stale_expected_city_time", async () => {
@@ -186,6 +201,13 @@ describe.sequential("C3 construction", () => {
     expect(host.channels.channelOf("clock")).toBeUndefined()
     expect("clock" in channelMap).toBe(false)
     expect(host.channels.hasChannel("clock")).toBe(false)
+    const patches = channelPatches(host.ctx, host.state, "a", [])
+    for (const row of patches) {
+      expect(row.channel).not.toBe("clock")
+      for (const id of Object.keys(row.sections)) {
+        expect(channelMap[id as keyof typeof channelMap]).toBe(row.channel)
+      }
+    }
   })
 
   it("readiness_requires_pack", async () => {

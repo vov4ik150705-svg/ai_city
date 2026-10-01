@@ -1,0 +1,58 @@
+{
+  "n": 1,
+  "anchor": "island",
+  "dir": "01-island-ready",
+  "title": "One island, many cities",
+  "eyebrow": "01 — THE ISLAND",
+  "intro": "Everyone plays on the same island, and every building is already standing, asleep until you open it. What's different is the city behind it: who you hire, what you open and how well it runs.",
+  "note": "You never place or build anything. The map was drawn once, by hand.",
+  "linkLabel": "More in the handbook → Your City",
+  "ref": "city.md",
+  "alt": "A floating island city with only a few buildings lit, and two pencil outlines of the same island behind it, lit in different places.",
+  "w": 1602,
+  "h": 981,
+  "hash": "75EA9F0200431275E1FF20014226C982BCCEA432C666283CD4917A8A1EB60C36",
+  "geometry": {
+    "left": 190,
+    "top": 0,
+    "width": 1120,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 1: One island, many cities",
+      "artBottom": 751.828125,
+      "noteTop": 756,
+      "handbookAnchor": "#chapter-city"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

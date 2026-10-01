@@ -10,6 +10,7 @@ import {PackConstants} from "../test/PackConstants.sol";
 /// Four groups after launchToken. Token from env. No buy. DESIGN.md §10, D-P-14.
 interface Vm {
     function envAddress(string calldata k) external view returns (address);
+    function envUint(string calldata k) external view returns (uint256);
     function startBroadcast() external;
     function stopBroadcast() external;
 }
@@ -22,6 +23,7 @@ contract PlayerReady {
     function run() external {
         address corp = vm.envAddress("CORPORATOR_CORP_TOKEN");
         address minter = vm.envAddress("CORPORATOR_VAULT_MINTER");
+        address house = vm.envAddress("CORPORATOR_VAULT_HOUSE");
         address voucher = vm.envAddress("CORPORATOR_VOUCHER_SIGNER");
         address guardian = vm.envAddress("CORPORATOR_GUARDIAN");
         address signer = vm.envAddress("CORPORATOR_SIGNER");
@@ -45,9 +47,10 @@ contract PlayerReady {
             guardian,
             signer,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S
+            PackConstants.VOUCHER_TTL_S,
+            house
         );
-        StakeRegistry stake = new StakeRegistry(stakeOwner);
+        StakeRegistry stake = new StakeRegistry(stakeOwner, vm.envUint("CORPORATOR_UNSTAKE_COOLDOWN_S"));
         MerkleRoots roots = new MerkleRoots(attestor);
         PrizeTreasury prizes = new PrizeTreasury(depositor, guardian, signer, stocks);
         vm.stopBroadcast();

@@ -14,7 +14,7 @@
 
 ## Бэкап
 
-Расписание — сутки города, не хранимый cron. Срок хранения берётся из `economy.params.payroll_daily_divisor`. Команда — `deploy/restore.sh`: прогнать дамп в `DATABASE_URL`. Восстановление без реплея не считается: свидетель `restore_replay_matches_origin` требует, чтобы байты реплея из восстановленного `tick_inputs` совпали с оригиналом.
+Расписание — сутки города, не хранимый cron. Срок хранения дампа берётся из `economy.params.payroll_daily_divisor` (горизонт фонда, не окно фарма). Окно фарма — `fragments.params.fragment_window_city_days`. Команда — `deploy/restore.sh`: прогнать дамп в `DATABASE_URL`. Восстановление без реплея не считается: свидетель `restore_replay_matches_origin` требует, чтобы байты реплея из восстановленного `tick_inputs` совпали с оригиналом.
 
 ## Инциденты
 

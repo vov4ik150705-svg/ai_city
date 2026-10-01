@@ -98,12 +98,17 @@ describe.sequential("C7 construction", () => {
 
     const root = loadPack(bytes).pack
     const cfg = cfgFromPack(root)
+    const prevHouse = process.env.CORPORATOR_VAULT_HOUSE
+    process.env.CORPORATOR_VAULT_HOUSE = "fund"
+    try {
     const port = createMockPort(cfg, { corp: { fund: 1n } })
-    const skipped = await port.vault.mintCapital("fund", 1n)
+    const skipped = await port.vault.mintCapital("fund", 1n, 1n)
     expect(skipped.ok).toBe(false)
     if (skipped.ok === false) expect(skipped.code).toBe(codes.API_MALFORMED)
     const earlyMint = await depositThenMint(port, pack, "fund", 1n, 1n, ready, 4n, 3n)
     expect(earlyMint.ok).toBe(false)
+    const other = await depositThenMint(port, pack, "other", 1n, 1n, ready, 3n, 4n)
+    expect(other.ok).toBe(false)
     const okFlow = await depositThenMint(port, pack, "fund", 1n, 1n, ready, 3n, 4n)
     expect(okFlow.ok).toBe(true)
     if (okFlow.ok === false) return
@@ -123,6 +128,10 @@ describe.sequential("C7 construction", () => {
     )
     expect(overAnchor.ok).toBe(false)
     await assertConveyorBotOnlyAndFailures(pack, cfg)
+    } finally {
+      if (prevHouse === undefined) delete process.env.CORPORATOR_VAULT_HOUSE
+      else process.env.CORPORATOR_VAULT_HOUSE = prevHouse
+    }
   })
 
   it("buyback_tranche_at_three_depths", () => {

@@ -1,36 +1,13 @@
 ---
-description: Execute Corporator HUD from docs/reports/HUD_DESIGN_SYSTEM.md with a visual quality gate
+description: Сборка живого HUD идёт по hud-visual.mdc; мокап — вид, не HUD_DESIGN_SYSTEM
 globs: apps/client/src/hud/**/*.{ts,tsx,css}
 alwaysApply: false
 ---
 
 # Corporator HUD — prompt execution
 
-## Authority
+Сборка кадра — `.cursor/rules/hud-visual.mdc`. Эталон — `hud/design-reference/` (`00` + `DESIGN_SCHEME.md`, кадр `01`–`18`).
 
-- Read `docs/reports/HUD_DESIGN_SYSTEM.md` before planning or editing. If it is unavailable, stop and ask for it; do not invent a replacement brief. `hud_prompt.md` is legacy/non-authority.
-- `docs/reports/HUD_DESIGN_SYSTEM.md` is the only visual and interaction-design authority.
-- `docs/SCREENS.md`, `DESIGN.md`, `content/params/`, generated pack data, and actual protocol code define mechanics and state semantics.
-- `docs/reports/TZ_HUD.md` is legacy reference only. `HUD.md` is deleted. Never restore their layout, pixel grid, fixed shell, stock strip, seven-item navigation, or district-grid composition.
+`docs/reports/HUD_DESIGN_SYSTEM.md` — не lock вида (старый navy glass). Из него только errata: нет Settings, нет постоянного нижнего меню, Recent Activity ≤ 3 строк.
 
-## Mandatory visual gate
-
-1. Before code, inspect the existing HUD, renderer boundary, assets, tokens, screen registry, and command paths.
-2. Present a compact design contract, state matrix, desktop/mobile wireframes, and data-gap list.
-3. Wait for the owner's explicit `GO HUD` before implementing the visual pass.
-4. After each visual pass, render and inspect screenshots at desktop and mobile widths. No “looks good” without visual evidence.
-
-## Design quality bar
-
-- Keep Terra as the visual center: HTML/CSS over the existing Three.js canvas; no Pixi map, grid, R3F rewrite, or generic SaaS dashboard.
-- Make deliberate Corporator-specific choices from `docs/reports/HUD_DESIGN_SYSTEM.md`: readable data hierarchy, restrained motion, contextual building selection, and a strong island-first composition.
-- Reject UI slop: no arbitrary gradients, glassmorphism stacks, decorative charts, random badges, emoji icons, fake activity, or panels that obscure the island.
-- Use real state labels and explicit units. Preserve Bank status, Payroll trimming, idle reasons, and Stock Token market-versus-efficiency meaning wherever `docs/reports/HUD_DESIGN_SYSTEM.md` places them.
-- Keep all mechanics, assets, authored placement, and the 18 core GLBs unchanged. No construction, grid placement, roaming units, unsupported roles, or `missions_live` activation.
-
-## Implementation and review
-
-- Reuse the existing React/TypeScript client, Three.js scene host, picking, pointer routing, localization, and pack view models. Do not calculate economy in render code.
-- Use coherent fixture states first; keep live adapters typed and honest. Never fake wallet, chain, payout, quote, or Capital mutations.
-- Use `brainstorming` before implementation, `frontend-design` for the distinctive visual direction, `anti-ui-slop` with one appropriate playbook for polish, `vercel-react-best-practices` for React performance, and `web-design-guidelines` for the final accessibility review. Use Mobbin only for optional production-pattern evidence; it must not override `docs/reports/HUD_DESIGN_SYSTEM.md`.
-- Verify lint/typecheck/tests/build and browser behavior. If pack or content changes, run the narrow content gates and adversarial attacks for the touched rules.
+Механика и отказы — `docs/SCREENS.md`, `DESIGN.md`, пак. Клиент экономику не считает. Не подписывать `launchToken`. Не копировать живой сайт.

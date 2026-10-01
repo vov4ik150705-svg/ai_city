@@ -17,7 +17,7 @@ function freezeDeep(value: unknown): unknown {
   return Object.freeze(out)
 }
 
-/** Readonly projection. Does not run the tick. HUD.md §8; arch.packages.client.preview_only. */
+/** Readonly projection. Does not run the tick. docs/SCREENS.md; arch.packages.client.preview_only. */
 export function preview(state: Dict): Preview {
   return freezeDeep(state) as Preview
 }

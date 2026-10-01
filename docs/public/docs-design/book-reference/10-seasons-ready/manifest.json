@@ -1,0 +1,59 @@
+{
+  "n": 10,
+  "anchor": "seasons",
+  "dir": "10-seasons-ready",
+  "title": "Not the biggest, the best run",
+  "eyebrow": "10 — SEASONS",
+  "intro": "Every day your city scores Influence: how much Payroll it got for every Capital it has spent. The best-run cities, not the biggest, share prizes in stock tokens.",
+  "note": "Prizes are stock tokens bought with the trading toll, not other players' Capital. You claim them yourself.",
+  "linkLabel": "More in the handbook → Seasons and Rewards",
+  "ref": "seasons.md",
+  "alt": "Scales tip toward a small, fully lit piece of island; beside them a ten-step podium with shrinking stacks of tokens.",
+  "w": 1672,
+  "h": 941,
+  "hash": "185518859285FE7C032490BC3A135902D3671D083B3005E637DFA16103B7D92B",
+  "geometry": {
+    "left": 110,
+    "top": 0,
+    "width": 1180,
+    "introTop": 270,
+    "titleHtml": "Not the biggest,<br>the best run"
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 10: Not the biggest, the best run",
+      "artBottom": 730.09375,
+      "noteTop": 756,
+      "handbookAnchor": "#chapter-seasons"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

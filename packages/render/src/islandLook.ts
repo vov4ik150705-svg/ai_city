@@ -116,10 +116,14 @@ export function lookCamOrbit(
   }
 }
 
-export function lookOrbitLimits(distance: bigint): { readonly min: bigint; readonly max: bigint } {
+export function lookOrbitLimits(
+  distance: bigint,
+  maxMul: bigint,
+): { readonly min: bigint; readonly max: bigint } {
   const n = Number(distance)
+  const mul = Number(maxMul)
   const minN = Math.max(1, Math.round(n * 0.25))
-  const maxN = Math.max(minN + 1, Math.round(n * 8))
+  const maxN = Math.max(minN + 1, Math.round(n * mul))
   return { min: BigInt(minN), max: BigInt(maxN) }
 }
 

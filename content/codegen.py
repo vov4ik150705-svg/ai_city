@@ -246,6 +246,7 @@ def emit_listen(pack: dict) -> str:
     bind = listen.get("bind") or ""
     ports = listen.get("ports") or {}
     ready = ((paths.get("ready") or {}).get("template")) or ""
+    rating = ((paths.get("rating") or {}).get("template")) or ""
     ws_path = ((paths.get("ws") or {}).get("template")) or ""
     pack_path = ((paths.get("pack") or {}).get("template")) or ""
     state_path = ((paths.get("state") or {}).get("template")) or ""
@@ -284,6 +285,7 @@ def emit_listen(pack: dict) -> str:
             "  return listenBind;",
             "}",
             f"export const readyTemplate = {json.dumps(ready)};",
+            f"export const ratingTemplate = {json.dumps(rating)};",
             f"export const packTemplate = {json.dumps(pack_path)};",
             f"export const stateTemplate = {json.dumps(state_path)};",
             f"export const commandTemplate = {json.dumps(command_path)};",
@@ -545,6 +547,15 @@ def emit_env_example(pack: dict) -> str:
     lines = [banner(pack["hash"], "hash").rstrip("\n")]
     for name in names:
         lines.append(f"{name}=")
+    env_vars = ((arch_sec.get("env") or {}).get("vars") or {})
+    api_g = (pack.get("generated") or {}).get("api") or {}
+    for env_name in sorted(env_vars):
+        if env_name in names:
+            continue
+        if env_name == "CORPORATOR_UNSTAKE_COOLDOWN_S":
+            lines.append(f"{env_name}={int(api_g.get('unstake_cooldown_s') or 0)}")
+        else:
+            lines.append(f"{env_name}=")
     lines.append("")
     return "\n".join(lines)
 

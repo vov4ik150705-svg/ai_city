@@ -312,6 +312,7 @@ describe.sequential("V0 construction", () => {
           "payroll_row_appears_when_trimmed",
           "stock_bar_shows_two_numbers",
           "building_select_opens_popover_not_route",
+          "preview_popover_facts_come_from_pack_roles",
           "keeps FunctionStrip as keyboard non-3D access at narrow widths",
           "keeps compact chrome copy unclipped without hiding primary state",
           "announces loading and error distinctly from empty/unavailable/stale",

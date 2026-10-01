@@ -51,10 +51,14 @@ export function accrueAmount(
   return (grossOutput * composed) / bps
 }
 
+export function windowDays(data: Dict): bigint {
+  return asBig(asDict(asDict(asDict(data["fragments"])["params"])["fragment_window_city_days"])["v"])
+}
+
 export function windowSettleDue(data: Dict, cityDay: bigint, hour: bigint): boolean {
   const settleHour = asBig(asDict(asDict(asDict(data["time"])["params"])["efficiency_recalc_hour"])["v"])
   if (hour !== settleHour) return false
-  const days = asBig(asDict(asDict(asDict(data["economy"])["params"])["payroll_daily_divisor"])["v"])
+  const days = windowDays(data)
   if (days <= 0n || cityDay <= 1n) return false
   return (cityDay - 1n) % days === 0n
 }

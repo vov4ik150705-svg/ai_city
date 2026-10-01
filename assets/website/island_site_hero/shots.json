@@ -1,0 +1,149 @@
+{
+  "hero": {
+    "az0": 2.376,
+    "el0": 27.846000000000004,
+    "d0": 228
+  },
+  "shots": [
+    {
+      "file": "01_match.png",
+      "why": "site mockup match",
+      "azimuth": 344.4,
+      "elevation": 28.8,
+      "distance": 237
+    },
+    {
+      "file": "02_closer.png",
+      "why": "same face, signs larger",
+      "azimuth": 344.4,
+      "elevation": 28.8,
+      "distance": 210
+    },
+    {
+      "file": "03_tight.png",
+      "why": "signs fill, island whole",
+      "azimuth": 344.4,
+      "elevation": 29.8,
+      "distance": 187
+    },
+    {
+      "file": "04_near.png",
+      "why": "hair closer than match",
+      "azimuth": 344.4,
+      "elevation": 28.8,
+      "distance": 219
+    },
+    {
+      "file": "05_pull.png",
+      "why": "more sky",
+      "azimuth": 344.4,
+      "elevation": 27.8,
+      "distance": 264
+    },
+    {
+      "file": "06_banner.png",
+      "why": "banner air around mass",
+      "azimuth": 344.4,
+      "elevation": 26.8,
+      "distance": 292
+    },
+    {
+      "file": "07_yaw_in.png",
+      "why": "yaw +4",
+      "azimuth": 348.4,
+      "elevation": 28.8,
+      "distance": 237
+    },
+    {
+      "file": "08_yaw_out.png",
+      "why": "yaw -4",
+      "azimuth": 340.4,
+      "elevation": 28.8,
+      "distance": 237
+    },
+    {
+      "file": "09_yaw_in2.png",
+      "why": "yaw +6",
+      "azimuth": 350.4,
+      "elevation": 28.8,
+      "distance": 228
+    },
+    {
+      "file": "10_yaw_out2.png",
+      "why": "yaw -6",
+      "azimuth": 338.4,
+      "elevation": 28.8,
+      "distance": 228
+    },
+    {
+      "file": "11_low.png",
+      "why": "lower, more cliff",
+      "azimuth": 344.4,
+      "elevation": 24.8,
+      "distance": 246
+    },
+    {
+      "file": "12_lower.png",
+      "why": "lower cliff and falls",
+      "azimuth": 344.4,
+      "elevation": 22.8,
+      "distance": 255
+    },
+    {
+      "file": "13_high.png",
+      "why": "slightly higher roofs",
+      "azimuth": 344.4,
+      "elevation": 31.8,
+      "distance": 237
+    },
+    {
+      "file": "14_high2.png",
+      "why": "more roof, signs up",
+      "azimuth": 344.4,
+      "elevation": 33.8,
+      "distance": 251
+    },
+    {
+      "file": "15_close_low.png",
+      "why": "closer + lower",
+      "azimuth": 344.4,
+      "elevation": 25.8,
+      "distance": 205
+    },
+    {
+      "file": "16_close_high.png",
+      "why": "closer + higher",
+      "azimuth": 344.4,
+      "elevation": 30.8,
+      "distance": 201
+    },
+    {
+      "file": "17_yaw_close.png",
+      "why": "yaw in, signs large",
+      "azimuth": 346.4,
+      "elevation": 29.8,
+      "distance": 205
+    },
+    {
+      "file": "18_yaw_close_out.png",
+      "why": "yaw out, signs large",
+      "azimuth": 342.4,
+      "elevation": 29.8,
+      "distance": 205
+    },
+    {
+      "file": "19_banner_low.png",
+      "why": "banner, low mass",
+      "azimuth": 344.4,
+      "elevation": 23.8,
+      "distance": 278
+    },
+    {
+      "file": "20_match_fill.png",
+      "why": "match + hair closer",
+      "azimuth": 345.4,
+      "elevation": 27.8,
+      "distance": 228
+    }
+  ]
+}

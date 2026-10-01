@@ -1,11 +1,10 @@
-/* GENERATED from pack dc58998f9a46f00a8cddcb575abcbde9ed17061717e9f500357bab8dda30efc4; do not edit */
+/* GENERATED from pack 8f0dc753eeee37c59e38184159db4b118eebe107f24af48a996695dafaad01a1; do not edit */
 export const listenBind = "127.0.0.1";
 export const listenContainerBind = "0.0.0.0";
 export const listenPorts = {
   api: 7460n,
   attestor: 7463n,
   buyback: 7462n,
-  llm: 7464n,
   sampler: 7461n,
 } as const;
 export const postgresPort = 5432n;
@@ -19,6 +18,7 @@ export function listenBindOrEnv(raw: string | undefined): string {
   return listenBind;
 }
 export const readyTemplate = "/ready";
+export const ratingTemplate = "/rating";
 export const packTemplate = "/pack/{pack_hash}";
 export const stateTemplate = "/city/{city_id}/state";
 export const commandTemplate = "/command/{effect}";

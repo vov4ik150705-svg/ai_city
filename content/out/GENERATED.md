@@ -1,7 +1,7 @@
 # Сгенерированные таблицы
 
 Артефакт сборки. Источник — `content/params/`, генератор — `content/build.py`,
-версия правил `0.24.0`, пак `144`, хеш `dc58998f9a46f00a…`.
+версия правил `0.24.0`, пак `192`, хеш `8f0dc753eeee37c5…`.
 Руками не править: следующая сборка перезапишет.
 
 ## Соответствие роли и здания
@@ -44,7 +44,7 @@
 | Круг с максимальным Trader | 11.64% | то же с курсом 2130 |
 | Сбор, видимый трейдеру на DEX | 3.00% на сторону | наш сбор + комиссия кривой pons |
 | Эффективная ставка фонда | 100 bps оборота | тело ставки; приращение в корзину |
-| Сплит сбора (фонд / leaderboard / active-work / студия) | 100 / 30 / 50 / 20 bps | D-M-12 |
+| Сплит сбора (фонд / leaderboard / active-work / студия) | 100 / 20 / 60 / 20 bps | D-M-12 |
 | Сумма долей траты | 100% | сжигание + фонд + протокол |
 
 ## Время
@@ -112,7 +112,7 @@
 | Точка перелома на полной ставке | 36125 bps | круг / (2 × creator_tax) |
 | Глубина пула после graduation | 4200000000000000000 wei | сид ≈ T; владелец сид не доливает |
 | Токены в пул | 204081632653061224489795918 | 10/49 supply при Q0/T = 0.4 |
-| Дневной лимит банка (на сиде) | 42000000000000000 wei | 1% живой глубины; абсолют не параметр |
+| Дневной лимит банка (на сиде) | 210000000000000000 wei | 500 bps живой глубины; абсолют не параметр |
 | KOTS первая покупка (формула) | 29110503406203983883234356 | сверка с фикстурой |
 | KOTS чистая продажа кривой | 714285714285714285714285714 | S × T / (Q0 + T) |
 
@@ -161,90 +161,90 @@
 
 | Величина | Значение |
 |---|---:|
-| deposit_capital_gross | 100000000 |
-| deposit_capital_net | 98000000 |
-| starter_city_cost | 49000000 |
+| deposit_capital_gross | 150000000 |
+| deposit_capital_net | 147000000 |
+| starter_city_cost | 73500000 |
 | starter_weight_bps | 21480 |
-| **workshop_cost_l1** | **22811918** |
+| **workshop_cost_l1** | **34217877** |
 | Остаток деления стартового набора | 2 |
 | payback_gross_ticks | 240 |
 | payback_net_ticks | 319 |
 | payback_net_city_days | 13.29 (132916 bps) |
 | tick_length_real_seconds | 3750 |
-| reference_deposit_wei | 39986084842474818 |
+| reference_deposit_wei | 59979127263712228 |
 
 Стартовый набор (пять позиций):
 
 | Позиция | Capital |
 |---|---:|
-| `workshop` | 22811918 |
-| `power_node` | 7527932 |
-| `agent_hub` | 11405959 |
-| `hire_1` | 3421787 |
-| `hire_2` | 3832402 |
+| `workshop` | 34217877 |
+| `power_node` | 11291899 |
+| `agent_hub` | 17108938 |
+| `hire_1` | 5132681 |
+| `hire_2` | 5748603 |
 
 ## T2: кривые уровней (18 архетипов × 3 уровня)
 
 Источники: `workshop_cost_l1`, `cost_weight_bps` / тирный вес, `cost_growth_bps`, `output_growth_bps`, `energy_growth_bps`, `build_time_growth_bps`. Команда: `python content/build.py`.
-City Hall предпостроен: стоимость и время 0, уровень равен уровню города.
+Колонка Compute у `output: compute` — выпуск в склад, не забор. City Hall предпостроен: стоимость и время 0, уровень равен уровню города.
 ROI Lmax/L1 = 5184 bps. inputs выведены, не хранятся.
 
 | Здание | L | Стоимость | Выход/тик | Energy | Compute | Время |
 |---|---:|---:|---:|---:|---:|---:|
-| `agent_hub` | 1 | 11405959 | 0 | 0 | 0 | 1 |
-| `agent_hub` | 2 | 28514897 | 0 | 0 | 0 | 1 |
-| `agent_hub` | 3 | 71287243 | 0 | 0 | 0 | 2 |
-| `ai_research_center` | 1 | 57029795 | 0 | 250 | 0 | 3 |
-| `ai_research_center` | 2 | 142574487 | 0 | 400 | 0 | 4 |
-| `ai_research_center` | 3 | 356436218 | 0 | 640 | 0 | 7 |
-| `bank` | 1 | 34217877 | 0 | 0 | 0 | 2 |
-| `bank` | 2 | 85544692 | 0 | 0 | 0 | 3 |
-| `bank` | 3 | 213861731 | 0 | 0 | 0 | 4 |
+| `agent_hub` | 1 | 17108938 | 0 | 0 | 0 | 1 |
+| `agent_hub` | 2 | 42772346 | 0 | 0 | 0 | 1 |
+| `agent_hub` | 3 | 106930865 | 0 | 0 | 0 | 2 |
+| `ai_research_center` | 1 | 85544692 | 0 | 250 | 250 | 3 |
+| `ai_research_center` | 2 | 213861731 | 0 | 400 | 400 | 4 |
+| `ai_research_center` | 3 | 534654328 | 0 | 640 | 640 | 7 |
+| `bank` | 1 | 51326815 | 0 | 0 | 0 | 2 |
+| `bank` | 2 | 128317038 | 0 | 0 | 0 | 3 |
+| `bank` | 3 | 320792596 | 0 | 0 | 0 | 4 |
 | `city_hall` | 1 | — | — | — | — | — |
 | `city_hall` | 2 | — | — | — | — | — |
 | `city_hall` | 3 | — | — | — | — | — |
-| `clearing_house` | 1 | 91247672 | 0 | 0 | 0 | 4 |
-| `clearing_house` | 2 | 228119180 | 0 | 0 | 0 | 7 |
-| `clearing_house` | 3 | 570297950 | 0 | 0 | 0 | 11 |
-| `cloud_campus` | 1 | 57029795 | 0 | 0 | 0 | 3 |
-| `cloud_campus` | 2 | 142574487 | 0 | 0 | 0 | 4 |
-| `cloud_campus` | 3 | 356436218 | 0 | 0 | 0 | 7 |
-| `data_center` | 1 | 91247672 | 0 | 400 | 0 | 4 |
-| `data_center` | 2 | 228119180 | 0 | 640 | 0 | 7 |
-| `data_center` | 3 | 570297950 | 0 | 1024 | 0 | 11 |
-| `drone_depot` | 1 | 91247672 | 0 | 0 | 0 | 4 |
-| `drone_depot` | 2 | 228119180 | 0 | 0 | 0 | 7 |
-| `drone_depot` | 3 | 570297950 | 0 | 0 | 0 | 11 |
-| `energy_plant` | 1 | 57029795 | 0 | 1818 | 0 | 3 |
-| `energy_plant` | 2 | 142574487 | 0 | 2908 | 0 | 4 |
-| `energy_plant` | 3 | 356436218 | 0 | 4654 | 0 | 7 |
-| `exchange` | 1 | 27374301 | 0 | 0 | 0 | 2 |
-| `exchange` | 2 | 68435754 | 0 | 0 | 0 | 2 |
-| `exchange` | 3 | 171089385 | 0 | 0 | 0 | 4 |
-| `finance_tower` | 1 | 57029795 | 0 | 0 | 0 | 3 |
-| `finance_tower` | 2 | 142574487 | 0 | 0 | 0 | 4 |
-| `finance_tower` | 3 | 356436218 | 0 | 0 | 0 | 7 |
-| `flagship_store` | 1 | 57029795 | 0 | 0 | 0 | 3 |
-| `flagship_store` | 2 | 142574487 | 0 | 0 | 0 | 4 |
-| `flagship_store` | 3 | 356436218 | 0 | 0 | 0 | 7 |
-| `fleet_yard` | 1 | 91247672 | 0 | 0 | 0 | 4 |
-| `fleet_yard` | 2 | 228119180 | 0 | 0 | 0 | 7 |
-| `fleet_yard` | 3 | 570297950 | 0 | 0 | 0 | 11 |
-| `logistics_hub` | 1 | 57029795 | 0 | 0 | 0 | 3 |
-| `logistics_hub` | 2 | 142574487 | 0 | 0 | 0 | 4 |
-| `logistics_hub` | 3 | 356436218 | 0 | 0 | 0 | 7 |
-| `power_node` | 1 | 7527932 | 0 | 120 | 0 | 1 |
-| `power_node` | 2 | 18819832 | 0 | 192 | 0 | 1 |
-| `power_node` | 3 | 47049580 | 0 | 307 | 0 | 1 |
-| `retail_complex` | 1 | 91247672 | 0 | 0 | 0 | 4 |
-| `retail_complex` | 2 | 228119180 | 0 | 0 | 0 | 7 |
-| `retail_complex` | 3 | 570297950 | 0 | 0 | 0 | 11 |
-| `robotics_lab` | 1 | 91247672 | 228119 | 400 | 400 | 4 |
-| `robotics_lab` | 2 | 228119180 | 410614 | 640 | 640 | 7 |
-| `robotics_lab` | 3 | 570297950 | 739105 | 1024 | 1024 | 11 |
-| `workshop` | 1 | 22811918 | 95049 | 100 | 0 | 1 |
-| `workshop` | 2 | 57029795 | 171088 | 160 | 0 | 2 |
-| `workshop` | 3 | 142574487 | 307958 | 256 | 0 | 3 |
+| `clearing_house` | 1 | 136871508 | 0 | 0 | 0 | 4 |
+| `clearing_house` | 2 | 342178770 | 0 | 0 | 0 | 7 |
+| `clearing_house` | 3 | 855446925 | 0 | 0 | 0 | 11 |
+| `cloud_campus` | 1 | 85544692 | 0 | 0 | 0 | 3 |
+| `cloud_campus` | 2 | 213861731 | 0 | 0 | 0 | 4 |
+| `cloud_campus` | 3 | 534654328 | 0 | 0 | 0 | 7 |
+| `data_center` | 1 | 136871508 | 0 | 400 | 400 | 4 |
+| `data_center` | 2 | 342178770 | 0 | 640 | 640 | 7 |
+| `data_center` | 3 | 855446925 | 0 | 1024 | 1024 | 11 |
+| `drone_depot` | 1 | 136871508 | 0 | 0 | 0 | 4 |
+| `drone_depot` | 2 | 342178770 | 0 | 0 | 0 | 7 |
+| `drone_depot` | 3 | 855446925 | 0 | 0 | 0 | 11 |
+| `energy_plant` | 1 | 85544692 | 0 | 1818 | 0 | 3 |
+| `energy_plant` | 2 | 213861731 | 0 | 2908 | 0 | 4 |
+| `energy_plant` | 3 | 534654328 | 0 | 4654 | 0 | 7 |
+| `exchange` | 1 | 41061452 | 0 | 0 | 0 | 2 |
+| `exchange` | 2 | 102653631 | 0 | 0 | 0 | 2 |
+| `exchange` | 3 | 256634077 | 0 | 0 | 0 | 4 |
+| `finance_tower` | 1 | 85544692 | 0 | 0 | 0 | 3 |
+| `finance_tower` | 2 | 213861731 | 0 | 0 | 0 | 4 |
+| `finance_tower` | 3 | 534654328 | 0 | 0 | 0 | 7 |
+| `flagship_store` | 1 | 85544692 | 0 | 0 | 0 | 3 |
+| `flagship_store` | 2 | 213861731 | 0 | 0 | 0 | 4 |
+| `flagship_store` | 3 | 534654328 | 0 | 0 | 0 | 7 |
+| `fleet_yard` | 1 | 136871508 | 0 | 0 | 0 | 4 |
+| `fleet_yard` | 2 | 342178770 | 0 | 0 | 0 | 7 |
+| `fleet_yard` | 3 | 855446925 | 0 | 0 | 0 | 11 |
+| `logistics_hub` | 1 | 85544692 | 0 | 0 | 0 | 3 |
+| `logistics_hub` | 2 | 213861731 | 0 | 0 | 0 | 4 |
+| `logistics_hub` | 3 | 534654328 | 0 | 0 | 0 | 7 |
+| `power_node` | 1 | 11291899 | 0 | 120 | 0 | 1 |
+| `power_node` | 2 | 28229748 | 0 | 192 | 0 | 1 |
+| `power_node` | 3 | 70574371 | 0 | 307 | 0 | 1 |
+| `retail_complex` | 1 | 136871508 | 0 | 0 | 0 | 4 |
+| `retail_complex` | 2 | 342178770 | 0 | 0 | 0 | 7 |
+| `retail_complex` | 3 | 855446925 | 0 | 0 | 0 | 11 |
+| `robotics_lab` | 1 | 136871508 | 570297 | 400 | 400 | 4 |
+| `robotics_lab` | 2 | 342178770 | 1026534 | 640 | 640 | 7 |
+| `robotics_lab` | 3 | 855446925 | 1847762 | 1024 | 1024 | 11 |
+| `workshop` | 1 | 34217877 | 142574 | 100 | 0 | 1 |
+| `workshop` | 2 | 85544692 | 256633 | 160 | 0 | 2 |
+| `workshop` | 3 | 213861731 | 461939 | 256 | 0 | 3 |
 
 Выведенные `inputs` (забор > 0). Команда: `python content/build.py`.
 
@@ -275,26 +275,26 @@ ROI Lmax/L1 = 5184 bps. inputs выведены, не хранятся.
 
 | N | weight_bps | Capital |
 |---:|---:|---:|
-| 1 | 1500 | 3421787 |
-| 2 | 1680 | 3832402 |
-| 3 | 1881 | 4292290 |
-| 4 | 2107 | 4807365 |
-| 5 | 2360 | 5384249 |
-| 6 | 2643 | 6030359 |
-| 7 | 2960 | 6754002 |
-| 8 | 3316 | 7564482 |
-| 9 | 3713 | 8472220 |
-| 10 | 4159 | 9488886 |
-| 11 | 4658 | 10627553 |
-| 12 | 5217 | 11902859 |
-| 13 | 5843 | 13331202 |
-| 14 | 6545 | 14930947 |
-| 15 | 7330 | 16722660 |
-| 16 | 8210 | 18729379 |
-| 17 | 9195 | 20976905 |
-| 18 | 10299 | 23494134 |
-| 19 | 11534 | 26313430 |
-| 20 | 12919 | 29471042 |
+| 1 | 1500 | 5132681 |
+| 2 | 1680 | 5748603 |
+| 3 | 1881 | 6438435 |
+| 4 | 2107 | 7211048 |
+| 5 | 2360 | 8076373 |
+| 6 | 2643 | 9045538 |
+| 7 | 2960 | 10131003 |
+| 8 | 3316 | 11346723 |
+| 9 | 3713 | 12708330 |
+| 10 | 4159 | 14233330 |
+| 11 | 4658 | 15941329 |
+| 12 | 5217 | 17854289 |
+| 13 | 5843 | 19996804 |
+| 14 | 6545 | 22396420 |
+| 15 | 7330 | 25083991 |
+| 16 | 8210 | 28094069 |
+| 17 | 9195 | 31465358 |
+| 18 | 10299 | 35241201 |
+| 19 | 11534 | 39470145 |
+| 20 | 12919 | 44206563 |
 
 ## T2: уровень агента и XP
 
@@ -312,11 +312,11 @@ ROI Lmax/L1 = 5184 bps. inputs выведены, не хранятся.
 
 | Узел | ключ | effect_bps | Capital | time_ticks |
 |---|---|---:|---:|---:|
-| `circuits` | `compute_cost_bps` | -1000 | 6843575 | 24 |
-| `grid` | `energy_cost_bps` | -1500 | 10265363 | 36 |
-| `handbook` | `xp_rate_bps` | 1000 | 6843575 | 24 |
-| `lathe` | `upgrade_speed_bps` | 1000 | 6843575 | 24 |
-| `tools` | `output_bps` | 1000 | 6843575 | 24 |
+| `circuits` | `compute_cost_bps` | -1000 | 10265363 | 24 |
+| `grid` | `energy_cost_bps` | -1500 | 15398044 | 36 |
+| `handbook` | `xp_rate_bps` | 1000 | 10265363 | 24 |
+| `lathe` | `upgrade_speed_bps` | 1000 | 10265363 | 24 |
+| `tools` | `output_bps` | 1000 | 10265363 | 24 |
 
 ## T2: уровень города и слоты застройки
 
@@ -334,15 +334,15 @@ city_level_max = 7. Автономных играбельных архетипо
 
 ## T2: лестница банка
 
-bank_level_max = 4. L=0 — банка нет, лимит 0. Персональный предел = доля от 1% живой глубины; при превышении суммы запросов — пропорциональное урезание, код `BANK_DAILY_LIMIT_REACHED`.
+bank_level_max = 4. L=0 — банка нет, лимит 0. Персональный предел = доля от 500 bps живой глубины; при превышении суммы запросов — пропорциональное урезание, код `BANK_DAILY_LIMIT_REACHED`.
 
 | L | share_bps | daily_limit_wei (сид) |
 |---:|---:|---:|
 | 0 | 0 | 0 |
-| 1 | 2500 | 10500000000000000 |
-| 2 | 4375 | 18375000000000000 |
-| 3 | 5782 | 24284400000000000 |
-| 4 | 6836 | 28711200000000000 |
+| 1 | 2500 | 52500000000000000 |
+| 2 | 4375 | 91875000000000000 |
+| 3 | 5782 | 121422000000000000 |
+| 4 | 6836 | 143556000000000000 |
 
 ## T2: стейк S_min
 
@@ -378,13 +378,13 @@ bank_level_max = 4. L=0 — банка нет, лимит 0. Персональ�
 | return_at_unit_capture_bps | 5132 (51.32%) |
 | uptime_minimalist_bps | 4750 |
 | uptime_optimizer_bps | 9500 |
-| capture_min_bps | 7800 |
-| capture_opt_bps | 15600 |
-| return_min_bps | 4002 (40.02%) |
-| return_opt_bps | 8005 (80.05%) |
-| amplification_window A | [10230, 13154] |
+| capture_min_bps | 19486 |
+| capture_opt_bps | 38972 |
+| return_min_bps | 10000 (100.00%) |
+| return_opt_bps | 20000 (200.00%) |
+| amplification_window A | [29229, 32152] |
 
-Окно A в разах: [1.0230, 1.3154]. T3: проверить, что при сценариях `docs/LAUNCH.md` §3 усиление попадает в это окно, и назвать число активных городов.
+Окно A в разах: [2.9229, 3.2152]. T3: проверить, что при сценариях `docs/LAUNCH.md` §3 усиление попадает в это окно, и назвать число активных городов.
 
 ## T2: дрожь и энергия
 
@@ -396,7 +396,7 @@ jitter_bps = 10000 + (sha256(`city_id:tick_index:agent_id`)[:8] mod 1001) − 50
 | power_node_output_per_tick | 120 |
 | energy_plant_output_per_tick | 1818 |
 | energy_plant_vs_nodes_bps | 19998 |
-| robotics_lab_output_weight_bps | 6000 |
+| robotics_lab_output_weight_bps | 10000 |
 | upgrade_roi_lmax_over_l1_bps | 5184 |
 
 
@@ -417,7 +417,7 @@ jitter_bps = 10000 + (sha256(`city_id:tick_index:agent_id`)[:8] mod 1001) − 50
 | creator_tax_fund_bps | 100 |
 | creator_tax_prize_bps | 100 |
 | tax_split_total_bps | 200 |
-| fee_split fund/leaderboard/farm/studio | 100 / 30 / 50 / 20 |
+| fee_split fund/leaderboard/farm/studio | 100 / 20 / 60 / 20 |
 | external_vs_internal_breakeven_bps | 72250 |
 | protocol_take_breakeven_bps | 36125 |
 | vault_mint_rate | 1960 |
@@ -451,16 +451,16 @@ jitter_bps = 10000 + (sha256(`city_id:tick_index:agent_id`)[:8] mod 1001) − 50
 |---|---:|
 | prize_assets | `NVDA`, `TSLA`, `AMZN`, `AAPL`, `MSFT`, `COIN` |
 | basket_size | 6 |
-| prize_share_cap_over_contribution_bps | 73334 |
+| prize_share_cap_over_contribution_bps | 70716 |
 | n1_takes_each_pool | 1 |
-| n10_harmonic | 3414,1707,1138,853,682,568,487,426,379,341 |
+| n10_harmonic | 3224,1651,1127,865,707,602,527,471,427,393 |
 | empty_asset_does_not_block | 1 |
 | per_asset_within_pool | 1 |
 | dust_by_asset | NVDA=0, TSLA=0, AMZN=0, AAPL=0, MSFT=0, COIN=0 |
 | optimizer_unclipped | 1 |
 | farm_clones_clipped | 1 |
-| farm_clones_paid | 730 |
-| farm_clones_max | 733 |
+| farm_clones_paid | 700 |
+| farm_clones_max | 707 |
 | n1_share_cap_applied | 0 |
 | split_check | 10000 |
 
@@ -611,10 +611,10 @@ Treasury = tick.capital. Корзина на aggregate. Плашка прото�
 | тир | city_level_req | stake_mult | cost Capital |
 |---:|---:|---:|---:|
 | 1 | 1 | 1×S_min | 0 |
-| 2 | 3 | 2×S_min | 34217877 |
-| 3 | 5 | 3×S_min | 128317038 |
+| 2 | 3 | 2×S_min | 51326815 |
+| 3 | 5 | 3×S_min | 192475558 |
 
-Тир 1 стоит 0 Capital: открытие — только стейк (`DESIGN.md` §4.5). Merge cost = 42772346.
+Тир 1 стоит 0 Capital: открытие — только стейк (`DESIGN.md` §4.5). Merge cost = 64158519.
 
 ## T4: узлы-слияния и паросочетания
 
@@ -668,7 +668,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 | `idle_reduction_bps` | mul_remainder | base | building | 0 | 9500 | 10000 - balance.residual_idle_bps | 5523 | 3977 |
 | `jitter_bps` | mul_remainder | jitter | building | 0 | 5000 | modifiers.trait_relief_share_bps | 5000 | 0 |
 | `offline_cap_hours` | add | post | city | 0 | 6 | countable_unit * sum_1_to(tier_count) | 6 | 0 |
-| `output_bps` | mul | post | building | 5555 | 18000 | balance.output_growth_bps | 16802 | 1198 |
+| `output_bps` | mul | post | building | 802 | 124591 | balance.output_bps_reachable_max_bps | 16802 | 107789 |
 | `population_conversion_bps` | mul | post | building | 5555 | 18000 | balance.output_growth_bps | 13946 | 4054 |
 | `upgrade_speed_bps` | mul | post | building | 6250 | 16000 | balance.build_time_growth_bps | 12100 | 3900 |
 | `xp_rate_bps` | mul | post | building | 6250 | 16000 | balance.xp_growth_bps | 12100 | 3900 |
@@ -711,6 +711,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 | величина | значение |
 |---|---:|
 | capex_trade_ratio_bps | 40303 |
+| output_bps_reachable_max_bps | 124591 |
 | форточка бесплатного выхода bps | 13300 |
 | Specialist output_bps | 11500 |
 | бесплатный стек o | 12650 |
@@ -743,16 +744,16 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 | свидетель stepwise a→b | 5 |
 | свидетель stepwise b→a | 4 |
 | свидетель fused | 5 |
-| fused по стадии ключа | 6418 |
-| fused по стадии строки | 6418 |
-| битность худшего числителя | 134 |
+| fused по стадии ключа | 10674 |
+| fused по стадии строки | 10674 |
+| битность худшего числителя | 138 |
 
 Клип потолком пишет код `MODIFIER_CAP_CLAMPED`. Клиент считает выход в BigInt: битность > 53.
 
 
 ## T6: источники пула
 
-Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `fragments.json` fragment_window_city_days and active_work_creator_tax_bps, `economy.json` capital_unit_usd, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 Краны. Creator tax и пробка фонда — ноль (R-T6-1). NFT — ноль до T8. Живой кран — creator-tax active-work leg; `spend_protocol` закрыт.
 
@@ -765,11 +766,11 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 | NFT companion | 0 |
 | сплит protocol всего | 10000 |
 
-Окно клейма 14 суток города (350 реальных часов), settlement в 6:00. Не хранится: равно `payroll_daily_divisor`.
+Окно клейма 7 суток города (175 реальных часов), settlement в 6:00. Не хранится: равно `fragment_window_city_days`. Горизонт фонда зарплат остаётся `payroll_daily_divisor`.
 
 ## T6: маршруты тикеров
 
-Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `fragments.json` fragment_window_city_days and active_work_creator_tax_bps, `economy.json` capital_unit_usd, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 Один параметр `weth_quote_ticker`. Haircut hop 3 bps на всех, включая COIN (R-T6-2). Пар CORP/сток нет.
 
@@ -784,7 +785,7 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 
 ## T6: свидетели settlement
 
-Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `fragments.json` fragment_window_city_days and active_work_creator_tax_bps, `economy.json` capital_unit_usd, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 | свидетель | выплаты | сумма | пыль | кап | инвариант |
 |---|---|---:|---:|---|---|
@@ -796,19 +797,19 @@ Affordable / meaningful считает `python content/builds.py` → `content/o
 
 ## T6: бюджет окна (DEX active-work leg)
 
-Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `fragments.json` fragment_window_city_days and active_work_creator_tax_bps, `economy.json` capital_unit_usd, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 Сценарий LAUNCH §3 даёт месячный оборот DEX. Для farm берётся доля active-work за 14-дневное окно и применяется hop haircut. Доллар — производная снимка ETH/USD 2026-08-27.
 
 | сценарий | оборот T1 $ | Capital в пул / город | $ / город (8dec) | < 1$ |
 |---|---:|---:|---:|---|
-| low | 50000 | 116665000 | 11663000050 |  |
-| mid | 300000 | 700000000 | 69979000000 |  |
-| hype | 2000000 | 4666665000 | 466526500050 |  |
+| low | 50000 | 69996000 | 6997500120 |  |
+| mid | 300000 | 420000000 | 41987400000 |  |
+| hype | 2000000 | 2799996000 | 279915600120 |  |
 
 ## T6: fragments_season
 
-Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
+Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и `fragments.json` fragment_window_city_days and active_work_creator_tax_bps, `economy.json` capital_unit_usd, `districts.json` ticker/playable_v1, `time.json` city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`.
 
 Метод `produced_x_stack`. Прокси суммы величин `paper` снят. Счёт: линия нормировки (`gdp` сценария) × `fragment_stack_bps / BPS`, скоуп района как T4 spot. Не `produced` после `output_bps` (R-T6-6). Пул settlement в цель доминирования не входит.
 
@@ -851,22 +852,22 @@ uptime_opt 9500, uptime_lazy 4750. optimizer_beats_lazy=1. active_beats_optimize
 
 Сгенерировано. Источники: `seasons.json`, `balance.json` season_city_days, `time.json` city_day_real_hours и efficiency_recalc_hour, `sim.json` архетипы, `economy.json` creator_tax_bps/studio_eth_share_bps и stake_bonus_max_bps, `fragments.json` active_work_creator_tax_bps, `launch.json` T1 scenarios. Команда: `python content/build.py`.
 
-n=10, α=10000, pool свидетеля 10000. Floor. Пыль остаётся. Ceil — шов L107.
+n=10, α=8000, pool свидетеля 10000. Floor. Пыль остаётся. Ceil — шов L107.
 
 | k | вес | payout |
 |---:|---:|---:|
-| 1 | 10000 | 3414 |
-| 2 | 5000 | 1707 |
-| 3 | 3333 | 1138 |
-| 4 | 2500 | 853 |
-| 5 | 2000 | 682 |
-| 6 | 1666 | 568 |
-| 7 | 1428 | 487 |
-| 8 | 1250 | 426 |
-| 9 | 1111 | 379 |
-| 10 | 1000 | 341 |
+| 1 | 8200 | 3224 |
+| 2 | 4200 | 1651 |
+| 3 | 2866 | 1127 |
+| 4 | 2200 | 865 |
+| 5 | 1800 | 707 |
+| 6 | 1532 | 602 |
+| 7 | 1342 | 527 |
+| 8 | 1200 | 471 |
+| 9 | 1088 | 427 |
+| 10 | 1000 | 393 |
 
-Σ payout 9995 пыль 5 инвариант да.
+Σ payout 9994 пыль 6 инвариант да.
 Тройка × пул 10: [5, 2, 1] сумма 8 пыль 2.
 N=1: [10000] пыль 0. N=0: pool_left 10000.
 
@@ -878,9 +879,9 @@ N=1: [10000] пыль 0. N=0: pool_left 10000.
 
 | сценарий | оборот T1 $ | Capital в пул / город | $ / город (8dec) | < 1$ |
 |---|---:|---:|---:|---|
-| low | 50000 | 150000000 | 15000000000 |  |
-| mid | 300000 | 900000000 | 90000000000 |  |
-| hype | 2000000 | 6000000000 | 600000000000 |  |
+| low | 50000 | 100000000 | 10000000000 |  |
+| mid | 300000 | 600000000 | 60000000000 |  |
+| hype | 2000000 | 4000000000 | 400000000000 |  |
 
 ## T7: антисивил
 
@@ -890,17 +891,17 @@ qualify_days 6, слот `wallet`, живой стейк на settlement, инт
 
 | N_cities / сценарий | пул $ 8dec | rank1 | rank10 | rank10>депозит |
 |---|---:|---:|---:|---|
-| n=1000 hype | 600000000000000 | 204862059546571 | 20486205954657 | да |
-| n=1000 low | 15000000000000 | 5121551488664 | 512155148866 | да |
-| n=1000 mid | 90000000000000 | 30729308931985 | 3072930893198 | да |
-| n=100 hype | 60000000000000 | 20486205954657 | 2048620595465 | да |
-| n=100 low | 1500000000000 | 512155148866 | 51215514886 | да |
-| n=100 mid | 9000000000000 | 3072930893198 | 307293089319 | да |
-| n=1 hype | 600000000000 | 600000000000 | 0 |  |
-| n=1 low | 15000000000 | 15000000000 | 0 |  |
-| n=1 mid | 90000000000 | 90000000000 | 0 |  |
+| n=1000 hype | 400000000000000 | 128991662733994 | 15730690577316 | да |
+| n=1000 low | 10000000000000 | 3224791568349 | 393267264432 | да |
+| n=1000 mid | 60000000000000 | 19348749410099 | 2359603586597 | да |
+| n=100 hype | 40000000000000 | 12899166273399 | 1573069057731 | да |
+| n=100 low | 1000000000000 | 322479156834 | 39326726443 | да |
+| n=100 mid | 6000000000000 | 1934874941009 | 235960358659 | да |
+| n=1 hype | 400000000000 | 400000000000 | 0 |  |
+| n=1 low | 10000000000 | 10000000000 | 0 |  |
+| n=1 mid | 60000000000 | 60000000000 | 0 |  |
 
-Стоимость защит: депозит 10000000000 usd_8dec, стейк 10000000000 usd_8dec, время 150 реальных часов. N ключей × 90 суток — остаточный сивил R-T7-4, не KYC.
+Стоимость защит: депозит 15000000000 usd_8dec, стейк 10000000000 usd_8dec, время 150 реальных часов. N ключей × 90 суток — остаточный сивил R-T7-4, не KYC.
 
 
 ## T9: инвентаризация экранов
@@ -923,19 +924,12 @@ qualify_days 6, слот `wallet`, живой стейк на settlement, инт
 | `districts` | screen | `fullscreen` | live | `skeleton` | `no_entities_yet` |
 | `districts_panel` | panel | `left_panel` | live | `skeleton` | `no_entities_yet` |
 | `exchange` | screen | `fullscreen` | live | `stale_freeze` | `no_entities_yet` |
-| `flow_onboard_bank` | flow | `fullscreen` | live | `skeleton` | `no_events_yet` |
-| `flow_onboard_clock` | flow | `fullscreen` | live | `skeleton` | `no_events_yet` |
-| `flow_onboard_idle` | flow | `fullscreen` | live | `skeleton` | `no_events_yet` |
-| `flow_onboard_payout` | flow | `fullscreen` | live | `skeleton` | `no_events_yet` |
-| `flow_onboard_seat` | flow | `fullscreen` | live | `skeleton` | `no_entities_yet` |
-| `flow_onboard_wallet` | flow | `fullscreen` | live | `skeleton` | `no_events_yet` |
 | `flow_return_continue` | flow | `overlay` | live | `skeleton` | `no_events_yet` |
 | `flow_return_summary` | flow | `overlay` | live | `skeleton` | `no_events_yet` |
-| `leaderboard` | screen | `fullscreen` | live | `skeleton` | `not_qualified_yet` |
+| `leaderboard` | screen | `fullscreen` | live | `skeleton` | `no_entities_yet` |
 | `log_panel` | panel | `right_panel` | live | `skeleton` | `no_events_yet` |
 | `missions` | screen | `fullscreen` | stub | `skeleton` | `no_events_yet` |
 | `offline_return` | screen | `overlay` | live | `skeleton` | `no_events_yet` |
-| `onboarding_demo` | screen | `fullscreen` | live | `skeleton` | `no_entities_yet` |
 | `overview` | panel | `left_panel` | live | `stale_freeze` | `no_events_yet` |
 | `research` | screen | `fullscreen` | live | `skeleton` | `no_entities_yet` |
 | `scene` | panel | `fullscreen` | live | `skeleton` | `no_entities_yet` |
@@ -944,7 +938,7 @@ qualify_days 6, слот `wallet`, живой стейк на settlement, инт
 | `topbar` | panel | `topbar` | live | `stale_freeze` | `no_events_yet` |
 | `wallet_connect` | screen | `fullscreen` | live | `spinner_inline` | `no_entities_yet` |
 
-kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов против тринадцати пунктов BRIEF: `exchange` выделен из `DISTRICTS и Exchange`, `district_card` несёт дерево узлов и клейм фрагментов.
+kind=screen 14, kind=panel 11, kind=flow 2. Пятнадцать экранов против тринадцати пунктов BRIEF: `exchange` выделен из `DISTRICTS и Exchange`, `district_card` несёт дерево узлов и клейм фрагментов.
 
 ## T9: панели и поля
 
@@ -966,12 +960,11 @@ kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `districts_list` | `districts` | `districts_stake` |
 | `districts_panel` | `districts_panel` | `districts_rows` |
 | `exchange_quote` | `exchange` | `exchange_quote_capital` |
-| `leaderboard_table` | `leaderboard` | `leaderboard_rank`, `leaderboard_basket`, `leaderboard_period_hours` |
+| `leaderboard_table` | `leaderboard` | `leaderboard_rank`, `leaderboard_live_board`, `leaderboard_basket`, `leaderboard_period_hours` |
 | `log_panel` | `log_panel` | `log_lines` |
 | `missions_stub` | `missions` | `missions_placeholder` |
 | `offline_summary` | `offline_return` | `offline_ticks` |
-| `onboard_stage` | `onboarding_demo` | `onboard_clock` |
-| `overview` | `overview` | `overview_gdp`, `overview_payroll`, `overview_happiness`, `overview_stability`, `overview_treasury` |
+| `overview` | `overview` | `overview_gdp`, `overview_payroll`, `overview_payroll_boost`, `overview_payroll_boost_days`, `overview_happiness`, `overview_stability`, `overview_treasury` |
 | `protocol_plaque` | `city_card` | `protocol_eth_in_flight`, `protocol_vault_corp`, `protocol_prize_kettles`, `protocol_studio_eth` |
 | `research_list` | `research` | `research_cost` |
 | `scene` | `scene` | `scene_footprint` |
@@ -997,16 +990,18 @@ kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `exchange_quote_capital` | interval | pack_derived | server | `generated.screens.exchange_quote_capital_bps` |
 | `fragment_stock` | int | live_state | server | `fragments.city_ledger` |
 | `leaderboard_basket` | list | live_state | server | `seasons.prize_basket` |
+| `leaderboard_live_board` | list | live_state | server | `seasons.influence_rank` |
 | `leaderboard_period_hours` | int | pack_derived | server | `generated.seasons.prize_period_real_hours` |
 | `leaderboard_rank` | int | live_state | server | `seasons.influence_rank` |
 | `log_lines` | list | live_state | server | `log.events` |
 | `menu_items` | list | client_local | client_format |  |
 | `missions_placeholder` | text | client_local | client_format |  |
 | `offline_ticks` | int | pack_derived | server | `generated.screens.offline_return_ticks_cap` |
-| `onboard_clock` | timer | client_local | client_clock |  |
 | `overview_gdp` | int | live_state | server | `aggregate.gdp` |
 | `overview_happiness` | int | live_state | server | `aggregate.happiness` |
 | `overview_payroll` | bps | live_state | server | `aggregate.payroll_ratio` |
+| `overview_payroll_boost` | bps | live_state | server | `aggregate.payroll_boost_bps` |
+| `overview_payroll_boost_days` | int | live_state | server | `aggregate.payroll_boost_days_left` |
 | `overview_stability` | int | live_state | server | `aggregate.stability` |
 | `overview_treasury` | int | live_state | server | `tick.capital` |
 | `overview_zones` | list | client_local | client_format |  |
@@ -1034,19 +1029,26 @@ kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 
 | экран | элемент | эффект | spend | v1 | коды | блокирующий | без демо |
 |---|---|---|---|---|---|---|---|
+| `agent_card` | `agent_assign` | `commit:assign` | none | live |  |  |  |
 | `agent_card` | `agent_set_objective` | `commit:set_objective` | none | live | `IDLE_OUT_OF_HOURS` |  |  |
 | `agents` | `agents_hire` | `commit:hire` | capital | live | `NO_FREE_AGENT_SLOT`, `NOT_ENOUGH_CAPITAL` | `NO_FREE_AGENT_SLOT` | `NO_FREE_AGENT_SLOT` |
 | `agents` | `agents_open_card` | `navigate:agent_card` | none | live |  |  |  |
 | `bank` | `bank_deposit` | `commit:deposit` | corp | live | `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CORP` | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` |
+| `bank` | `bank_present_voucher` | `commit:present_voucher` | none | live | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` |
 | `bank` | `bank_withdraw` | `commit:withdraw` | capital | live | `DEMO_NO_WITHDRAW`, `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CAPITAL`, `BANK_CLOSED`, `BANK_SUNDAY`, `BANK_DAILY_LIMIT_REACHED` | `DEMO_NO_WITHDRAW` | `WALLET_NOT_CONNECTED` |
 | `build` | `build_place` | `commit:build` | capital | live | `CITY_LEVEL_TOO_LOW`, `BUILD_TILE_ILLEGAL`, `NO_FREE_BUILD_SLOT`, `NOT_ENOUGH_CAPITAL` | `CITY_LEVEL_TOO_LOW` | `CITY_LEVEL_TOO_LOW` |
+| `building_card` | `building_activate` | `commit:build` | none | live |  |  |  |
+| `building_card` | `building_build` | `commit:build` | capital | live | `CITY_LEVEL_TOO_LOW`, `NO_FREE_BUILD_SLOT`, `NOT_ENOUGH_CAPITAL` | `CITY_LEVEL_TOO_LOW` | `CITY_LEVEL_TOO_LOW` |
+| `building_card` | `building_deactivate` | `commit:build` | none | live |  |  |  |
 | `building_card` | `building_upgrade` | `commit:upgrade` | capital | live | `NOT_ENOUGH_CAPITAL` | `NOT_ENOUGH_CAPITAL` | `NOT_ENOUGH_CAPITAL` |
 | `district_card` | `district_claim_fragment` | `commit:claim_fragment` | none | live | `DEMO_NO_CLAIM`, `WALLET_NOT_CONNECTED` | `DEMO_NO_CLAIM` | `WALLET_NOT_CONNECTED` |
+| `district_card` | `district_claim_unstaked` | `commit:claim_unstaked` | none | live | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` |
 | `district_card` | `district_merge` | `commit:merge` | none | live | `MERGE_MATCHING_BLOCKED` | `MERGE_MATCHING_BLOCKED` | `MERGE_MATCHING_BLOCKED` |
 | `district_card` | `district_pick_node` | `commit:pick_node` | none | live | `NODE_SIDE_LOCKED` | `NODE_SIDE_LOCKED` | `NODE_SIDE_LOCKED` |
 | `district_card` | `district_stake_more` | `commit:stake` | none | live | `STAKE_MULT_SHORT` | `STAKE_MULT_SHORT` | `STAKE_MULT_SHORT` |
 | `district_card` | `district_unlock_tier` | `commit:unlock_tier` | none | live | `TIER_NOT_UNLOCKED` | `TIER_NOT_UNLOCKED` | `TIER_NOT_UNLOCKED` |
-| `districts` | `districts_open` | `commit:open_district` | corp | live | `WALLET_NOT_CONNECTED`, `STAKE_BELOW_THRESHOLD`, `NOT_ENOUGH_CORP` | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` |
+| `district_card` | `district_unstake` | `commit:unstake` | none | live | `DISTRICT_LOCKED` | `DISTRICT_LOCKED` | `DISTRICT_LOCKED` |
+| `districts` | `districts_open` | `commit:open_district` | none | live | `WALLET_NOT_CONNECTED`, `STAKE_BELOW_THRESHOLD` | `WALLET_NOT_CONNECTED` | `WALLET_NOT_CONNECTED` |
 | `districts` | `districts_open_card` | `navigate:district_card` | none | live |  |  |  |
 | `districts` | `districts_select_automation` | `select:automation` | none | live | `DISTRICT_LOCKED` | `DISTRICT_LOCKED` | `DISTRICT_LOCKED` |
 | `districts` | `districts_select_finance` | `select:finance` | none | live | `DISTRICT_LOCKED` | `DISTRICT_LOCKED` | `DISTRICT_LOCKED` |
@@ -1065,8 +1067,6 @@ kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `bottom_menu` | `menu_research` | `navigate:research` | none | live |  |  |  |
 | `missions` | `missions_start` | `commit:noop` | none | stub | `FEATURE_NOT_IN_V1` | `FEATURE_NOT_IN_V1` | `FEATURE_NOT_IN_V1` |
 | `offline_return` | `offline_continue` | `navigate:build` | none | live |  |  |  |
-| `onboarding_demo` | `onboard_next` | `navigate:onboarding_demo` | none | live |  |  |  |
-| `onboarding_demo` | `onboard_wallet_offer` | `navigate:wallet_connect` | none | live | `DEMO_NO_WITHDRAW` | `DEMO_NO_WITHDRAW` |  |
 | `research` | `research_unlock_circuits` | `commit:research_start` | capital | live | `CITY_LEVEL_TOO_LOW`, `NOT_ENOUGH_CAPITAL` | `CITY_LEVEL_TOO_LOW` | `CITY_LEVEL_TOO_LOW` |
 | `research` | `research_unlock_grid` | `commit:research_start` | capital | live | `CITY_LEVEL_TOO_LOW`, `NOT_ENOUGH_CAPITAL` | `CITY_LEVEL_TOO_LOW` | `CITY_LEVEL_TOO_LOW` |
 | `research` | `research_unlock_handbook` | `commit:research_start` | capital | live | `CITY_LEVEL_TOO_LOW`, `NOT_ENOUGH_CAPITAL` | `CITY_LEVEL_TOO_LOW` | `CITY_LEVEL_TOO_LOW` |
@@ -1143,23 +1143,28 @@ kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `BANK_SUNDAY` | `topbar`, `bank` |
 | `DISTRICT_FREEZING` | `districts_panel`, `district_card` |
 | `DISTRICT_FROZEN` | `districts_panel`, `district_card`, `district_overview` |
+| `EXCHANGE_DELIVERY_UNVERIFIED` | `exchange` |
 | `EXCHANGE_HOP_UNAVAILABLE` | `exchange` |
 | `FEATURE_NOT_IN_V1` | `missions`, `leaderboard` |
 | `FRAGMENT_CITY_CAPPED` | `district_card` |
 | `FRAGMENT_HOP_STALE` | `district_card` |
 | `FRAGMENT_NO_CLAIMS` | `district_card` |
 | `FRAGMENT_POOL_EMPTY` | `district_card` |
+| `FRAGMENT_SLICE_PENDING` | `exchange` |
 | `FRAGMENT_WINDOW_SETTLED` | `district_card` |
 | `IDLE_BANK_CLOSED` | `log_panel`, `agents_panel` |
 | `IDLE_DISTRICT_FROZEN` | `log_panel`, `agents_panel` |
 | `IDLE_NO_AGENT` | `log_panel`, `agents_panel`, `scene` |
 | `IDLE_NO_COMPUTE` | `log_panel`, `agents_panel`, `scene` |
-| `IDLE_NO_ENERGY` | `log_panel`, `agents_panel`, `scene`, `onboarding_demo` |
+| `IDLE_NO_ENERGY` | `log_panel`, `agents_panel`, `scene` |
 | `IDLE_NO_MATERIALS` | `log_panel`, `agents_panel` |
+| `IDLE_NO_RESEARCH_FOCUS` | `log_panel`, `agents_panel` |
+| `IDLE_NO_TRAIN_TARGET` | `log_panel`, `agents_panel` |
 | `IDLE_OFFLINE_CAP_REACHED` | `log_panel`, `agents_panel`, `offline_return` |
 | `IDLE_OUT_OF_HOURS` | `log_panel`, `agents_panel` |
 | `IDLE_UNDER_CONSTRUCTION` | `log_panel`, `agents_panel` |
 | `IDLE_WRONG_ROLE` | `log_panel`, `agents_panel` |
+| `LEDGER_NOT_EMPTY_LIVE` | `bank` |
 | `MINT_RATE_CAPPED` | `bank` |
 | `MODIFIER_CAP_CLAMPED` | `building_card`, `log_panel` |
 | `ORACLE_DECAYING` | `stock_bar`, `districts_panel` |
@@ -1167,6 +1172,7 @@ kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `PAYROLL_TRIMMED` | `overview`, `agents_panel` |
 | `PRIZE_CLAIM_UNCOVERED` | `leaderboard` |
 | `PRIZE_HOP_STALE` | `leaderboard` |
+| `PRIZE_NOTHING_OWED` | `exchange` |
 | `PRIZE_NOT_QUALIFIED` | `leaderboard` |
 | `PRIZE_NO_ELIGIBLE` | `leaderboard` |
 | `PRIZE_PERIOD_SETTLED` | `leaderboard` |
@@ -1177,13 +1183,21 @@ kind=screen 15, kind=panel 11, kind=flow 8. Пятнадцать экранов 
 | `PRIZE_WALLET_MERGED` | `leaderboard` |
 | `RENDER_NO_GPU` | `scene` |
 | `SEASON_SETTLED` | `leaderboard` |
+| `STAKE_LEDGER_LIVE` | `district_card` |
 | `STALE_PRICE` | `stock_bar`, `bank`, `exchange` |
+| `UNSTAKE_COOLING` | `district_card` |
+| `UNSTAKE_NOTHING_PENDING` | `district_card` |
 | `VAULT_EXIT_UNCOVERED` | `bank` |
+| `VOUCHER_EXPIRED` | `bank` |
+| `VOUCHER_EXPIRE_LIMIT` | `bank` |
+| `VOUCHER_PENDING` | `bank` |
+| `VOUCHER_PENDING_SIGN` | `bank` |
+| `VOUCHER_REJECTED` | `bank` |
 | `WALLET_NOT_CONNECTED` | `topbar`, `wallet_connect` |
 | `WALLET_WRONG_CHAIN` | `wallet_connect` |
 
 invisible_state_codes: пусто.
-idle_codes_surfaced: 10.
+idle_codes_surfaced: 12.
 
 ## T9: пустота и загрузка
 
@@ -1203,7 +1217,7 @@ idle_codes_surfaced: 10.
 | `DEMO_NO_CLAIM` | `district_card` | `district_claim_fragment` |
 | `DEMO_NO_COMPANION` |  |  |
 | `DEMO_NO_PRIZE` | `leaderboard` | `leaderboard_claim`, `leaderboard_inspect` |
-| `DEMO_NO_WITHDRAW` | `bank`, `onboarding_demo` | `bank_withdraw`, `onboard_wallet_offer` |
+| `DEMO_NO_WITHDRAW` | `bank` | `bank_withdraw` |
 
 ## T9: онбординг и возвращение
 
@@ -1213,12 +1227,6 @@ idle_codes_surfaced: 10.
 |---|---:|---|---|
 | `offline_return` | 1 | caught-up ticks capped by offline window | `IDLE_OFFLINE_CAP_REACHED` |
 | `offline_return` | 2 | continue is navigate, never a commit |  |
-| `onboarding_demo` | 1 | city clock and topbar hours |  |
-| `onboarding_demo` | 2 | seat Engineer in Workshop |  |
-| `onboarding_demo` | 3 | valid tick with a visible payout |  |
-| `onboarding_demo` | 4 | artificial idle with a written reason | `IDLE_NO_ENERGY` |
-| `onboarding_demo` | 5 | bank plaque and city hours | `BANK_CLOSED` |
-| `onboarding_demo` | 6 | connect wallet after seeing idle | `DEMO_NO_WITHDRAW` |
 
 ## T9: свидетели
 
@@ -1226,19 +1234,19 @@ idle_codes_surfaced: 10.
 
 | величина | значение |
 |---|---|
-| bank_daily_limit_live.wei | 28711200000000000 |
-| ladder_ceiling_wei | 28711200000000000 |
-| pool_cap_wei | 42000000000000000 |
+| bank_daily_limit_live.wei | 143556000000000000 |
+| ladder_ceiling_wei | 143556000000000000 |
+| pool_cap_wei | 210000000000000000 |
 | binds_from_depth | 0 |
 | exchange_quote lo | 397 |
 | exchange_quote hi | 399 |
 | hop_lo/hi bps | 1/3 |
 | offline_return_ticks_cap | 12 |
-| screens_total | 34 |
-| actions_total | 44 |
-| panels_total | 27 |
-| fields_total | 45 |
-| field sources server/clock/format | 38/3/4 |
+| screens_total | 27 |
+| actions_total | 49 |
+| panels_total | 26 |
+| fields_total | 47 |
+| field sources server/clock/format | 41/2/4 |
 | economic_non_server | 0 |
 | unreachable_refusal | пусто |
 
@@ -1360,17 +1368,21 @@ safe_rect 504×432 px; iso 4032×2016; min 1/8.
 | `_buyback` | `3` | ETH tax to CORP to vault | below buyback_min stays in treasury |
 | `_check_term_clamp` | `1` | jobs / park_capacity fixture | test remainder, not a payout |
 | `_collect_requests` | `6` | output chain x bps / BPS | per-step floor, not redistributed |
+| `collect_slot_requests` | `17` | slot output and draw x bps / BPS | per-step floor, not redistributed |
 | `_cork_return` | `1` | cork extra to CORP | wei remainder unconverted |
 | `_equal_weights` | `1` | BPS / 4 | test helper; pack holds the four params |
-| `_fix_day_budget` | `2` | day_budget / ticks_day | remainder stays in the day budget |
+| `_fix_day_budget` | `2` | max(horizon, inflow) then / ticks_day | remainder stays in the day budget |
+| `_smoothed_inflow` | `1` | sum of fund_in_day_buf / n days | inflow dust stays unbudgeted until the next freeze |
 | `_flush_week_drip` | `2` | week shortfall to CORP | wei remainder unconverted |
+| `_focus_scale` | `1` | manager focus quantum x (BPS ± node_effect_base) / BPS | per-step floor, not redistributed |
 | `_fund_cap` | `1` | I7 coverage vs vault | uncovered remainder is the plaque |
 | `_note_virgin_week_drain` | `1` | drained / week_start | remainder of the week share |
-| `_pay` | `3` | ratio and payout | unpaid remainder stays in the fund; nobody zero while fund > 0 |
+| `_pay` | `5` | boost pool, ratio, fund-share claim, and payout | unpaid remainder stays in the fund; nobody zero while fund > 0 |
+| `_payroll_boost_days_left` | `1` | ceil remaining window ticks / ticks_day | partial city day still counts as one day left |
 | `_recalc_efficiency` | `2` | `ema_24h` / `ema_30d` then k x delta | clamp eats the overshoot |
 | `_reserve_drip` | `2` | virgin x drain_bps / BPS | unused room waits for next week |
 | `_resolve_city_time` | `1` | tick_index from city_time | sub-tick hours refused as CITY_TIME |
-| `_update_mint_rate` | `1` | mean of last ema_city_days samples | integer mean floor |
+| `_update_mint_rate` | `2` | ema mean and mint_rate_limit ceiling | over-ceiling mint is dropped, not banked |
 | `apply_dex_turnover` | `2` | tax usd to wei | dust stays in the quoted turnover |
 | `catch_up` | `4` | city_time gap / tick length | prefix beyond cap is one gap record |
 | `city_clock` | `1` | day from absolute hour | hour via modulo, not a second clock |
@@ -1386,6 +1398,7 @@ safe_rect 504×432 px; iso 4032×2016; min 1/8.
 | `pool_price_wei_per_whole` | `1` | ETH per whole $CORP | wei remainder in pool |
 | `productivity_bps` | `1` | realized / nominal | gauge only, not a second fuse |
 | `rate_raw_from_samples` | `2` | usd per capital unit | dust stays unminted |
+| `scale_by_modifier_key` | `1` | value x live key clip / BPS | per-step floor, not redistributed |
 | `split_bank_limit` | `1` | ask x cap / sum asks | floor, remainder undistributed |
 | `tick` | `1` | I7 coverage bps | remainder of vault vs exit |
 
@@ -1445,6 +1458,8 @@ park_capacity_jobs 2. energy_buffer_ticks 12.
 | `BANK_DAILY_LIMIT_REACHED` | bank plaque | global 1% depth fill |
 | `IDLE_NO_ENERGY` | scene / agents | energy stock or energy_ok fails |
 | `IDLE_NO_COMPUTE` | scene / agents | compute stock empty on prod path |
+| `IDLE_NO_TRAIN_TARGET` | agents | scientist train has no living other agent |
+| `IDLE_NO_RESEARCH_FOCUS` | agents | scientist research has no live research_focus |
 | `IDLE_OUT_OF_HOURS` | agents | schedule closed |
 | `IDLE_BANK_CLOSED` | bank | withdraw while door closed |
 | `IDLE_OFFLINE_CAP_REACHED` | agents | offline window or catch-up gap |
@@ -1462,6 +1477,8 @@ park_capacity_jobs 2. energy_buffer_ticks 12.
 | `tick.building_level` | `produce_tick_building_level` |
 | `aggregate.gdp` | `produce_aggregate_gdp` |
 | `aggregate.payroll_ratio` | `produce_aggregate_payroll_ratio` |
+| `aggregate.payroll_boost_bps` | `produce_aggregate_payroll_boost_bps` |
+| `aggregate.payroll_boost_days_left` | `produce_aggregate_payroll_boost_days_left` |
 | `aggregate.happiness` | `produce_aggregate_happiness` |
 | `aggregate.stability` | `produce_aggregate_stability` |
 | `wallet.stake_tokens` | `produce_wallet_stake_tokens` |
@@ -1525,10 +1542,9 @@ park_capacity_jobs 2. energy_buffer_ticks 12.
 | `sampler` | `services/sampler` | 3 | `engine`,`protocol`,`contentpack`,`chainport` | `0` |
 | `buyback` | `services/buyback` | 3 | `engine`,`protocol`,`contentpack`,`chainport` | `0` |
 | `attestor` | `services/attestor` | 3 | `engine`,`protocol`,`contentpack`,`chainport` | `0` |
-| `llm` | `services/llm` | 3 | `protocol`,`contentpack` | `0` |
 | `client` | `apps/client` | 4 | `protocol`,`engine`,`contentpack`,`render` | `1` |
 
-layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`, `buyback`, `llm`, `render`, `sampler`, `client`
+layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`, `buyback`, `render`, `sampler`, `client`
 
 ## T12: services
 
@@ -1540,7 +1556,6 @@ layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`
 | `sampler` | `sampler` | `open` | `0` | `0` |
 | `buyback` | `buyback` | `open` | `0` | `0` |
 | `attestor` | `attestor` | `open` | `0` | `0` |
-| `llm` | `llm` | `open` | `0` | `0` |
 | `pack_gate` | `engine` | `closed` | `1` | `0` |
 
 ## T12: codegen
@@ -1565,7 +1580,7 @@ layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`
 | `dockerfile` | `arch.image` | `deploy/Dockerfile` | `api` |
 | `compose` | `arch.postgres` | `deploy/compose.yaml` | `api` |
 | `compose_prod` | `arch.image` | `deploy/compose.prod.yaml` | `api` |
-| `env_example` | `arch.secrets` | `deploy/.env.example` | `api` |
+| `env_example` | `arch.secrets, arch.env` | `deploy/.env.example` | `api` |
 | `restore_sh` | `arch.backup` | `deploy/restore.sh` | `api` |
 | `ci_runner` | `arch.ci_steps` | `scripts/ci.mjs` | `api` |
 | `ci_workflow` | `arch.ci_steps` | `.github/workflows/ci.yml` | `api` |
@@ -1647,7 +1662,7 @@ implementations `mock`, `rpc`; rpc_import_only `rpc`.
 
 readiness requires `pack_hash`, `migration_version`.
 
-derived: snapshot_every `24`, sampler_age_alert `3`, sampler_period_s `50`, samples_per_window `1800`, rate_limit `40`, voucher_ttl_s `3750`.
+derived: snapshot_every `24`, sampler_age_alert `3`, sampler_period_s `50`, samples_per_window `1800`, rate_limit `40`, voucher_ttl_s `3750`, unstake_cooldown_s `2700000`.
 
 ## T12: endpoints
 
@@ -1655,19 +1670,24 @@ derived: snapshot_every `24`, sampler_age_alert `3`, sampler_period_s `50`, samp
 
 | effect | path | refusals |
 |---|---|---|
+| `assign` | `/command/assign` | — |
 | `build` | `/command/build` | `CITY_LEVEL_TOO_LOW`, `BUILD_TILE_ILLEGAL`, `NO_FREE_BUILD_SLOT`, `NOT_ENOUGH_CAPITAL` |
 | `buy_stock` | `/command/buy_stock` | `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CORP`, `EXCHANGE_HOP_UNAVAILABLE` |
 | `claim_fragment` | `/command/claim_fragment` | `DEMO_NO_CLAIM`, `WALLET_NOT_CONNECTED` |
 | `claim_prize` | `/command/claim_prize` | `DEMO_NO_PRIZE`, `WALLET_NOT_CONNECTED` |
+| `claim_unstaked` | `/command/claim_unstaked` | `WALLET_NOT_CONNECTED` |
 | `deposit` | `/command/deposit` | `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CORP` |
 | `hire` | `/command/hire` | `NO_FREE_AGENT_SLOT`, `NOT_ENOUGH_CAPITAL` |
 | `merge` | `/command/merge` | `MERGE_MATCHING_BLOCKED` |
 | `noop` | `/command/noop` | `FEATURE_NOT_IN_V1` |
-| `open_district` | `/command/open_district` | `WALLET_NOT_CONNECTED`, `STAKE_BELOW_THRESHOLD`, `NOT_ENOUGH_CORP` |
+| `open_district` | `/command/open_district` | `WALLET_NOT_CONNECTED`, `STAKE_BELOW_THRESHOLD` |
 | `pick_node` | `/command/pick_node` | `NODE_SIDE_LOCKED` |
+| `present_voucher` | `/command/present_voucher` | `WALLET_NOT_CONNECTED` |
+| `research_start` | `/command/research_start` | `CITY_LEVEL_TOO_LOW`, `NOT_ENOUGH_CAPITAL` |
 | `set_objective` | `/command/set_objective` | `IDLE_OUT_OF_HOURS` |
 | `stake` | `/command/stake` | `STAKE_MULT_SHORT` |
 | `unlock_tier` | `/command/unlock_tier` | `TIER_NOT_UNLOCKED` |
+| `unstake` | `/command/unstake` | `DISTRICT_LOCKED` |
 | `upgrade` | `/command/upgrade` | `NOT_ENOUGH_CAPITAL` |
 | `withdraw` | `/command/withdraw` | `DEMO_NO_WITHDRAW`, `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CAPITAL`, `BANK_CLOSED`, `BANK_SUNDAY`, `BANK_DAILY_LIMIT_REACHED` |
 
@@ -1679,6 +1699,8 @@ derived: snapshot_every `24`, sampler_age_alert `3`, sampler_period_s `50`, samp
 |---|---|
 | `aggregate.gdp` | `aggregate` |
 | `aggregate.happiness` | `aggregate` |
+| `aggregate.payroll_boost_bps` | `aggregate` |
+| `aggregate.payroll_boost_days_left` | `aggregate` |
 | `aggregate.payroll_ratio` | `aggregate` |
 | `aggregate.stability` | `aggregate` |
 | `fragments.city_ledger` | `aggregate` |
@@ -1712,7 +1734,9 @@ price_channel_period_s `50`.
 | `API_PACK_STALE` | `409` |
 | `API_RATE_LIMITED` | `429` |
 | `API_UNAUTHORIZED` | `401` |
+| `CHAIN_TX_UNCONFIRMED` | `409` |
 | `SERVICE_DEGRADED` | `200` |
+| `WALLET_TX_REJECTED` | `400` |
 
 domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 
@@ -1724,6 +1748,8 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 |---|
 | `aggregate.gdp` |
 | `aggregate.happiness` |
+| `aggregate.payroll_boost_bps` |
+| `aggregate.payroll_boost_days_left` |
 | `aggregate.payroll_ratio` |
 | `aggregate.stability` |
 | `fragments.city_ledger` |
@@ -1760,7 +1786,7 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 | `sampler` | `python content/attack.py --only L239,L241,L242,L243` | `pnpm --filter @corporator/sampler run gate` | `sampler_twap_recompute`, `sampler_twap_sensitive`, `sampler_silence_keeps_age` | `tick_pure` |
 | `buyback` | `python content/attack.py --only L244,L245` | `pnpm --filter @corporator/buyback run gate` | `mint_after_deposit_only`, `buyback_tranche_at_three_depths`, `buyback_below_min_batch_waits` | `I1_I3`, `I11` |
 | `attestor_no_chain` | `python content/attack.py --only L246,L207` | `pnpm --filter @corporator/attestor run gate` | `attestor_down_pay_continues`, `pack_hash_mismatch_halts` | `tick_pure` |
-| `observability_ci` | `python content/lint.py` | `pnpm -w run ci` | `image_pins_pack_hash`, `image_has_no_python`, `llm_refusal_falls_back_to_template`, `ci_step_has_red_run` | `tick_pure`, `I1_I3` |
+| `observability_ci` | `python content/lint.py` | `pnpm -w run ci` | `image_pins_pack_hash`, `image_has_no_python`, `ci_step_has_red_run` | `tick_pure`, `I1_I3` |
 | `chain_v1_1` | `python content/lint.py` | `pnpm --filter @corporator/chainport run gate` | `L204`, `L205` | `layout_v1_bytes` |
 | `seasons_prizes_v1_1` | `python content/lint.py` | `pnpm --filter @corporator/api run gate` | `L115`, `L220` | `payroll_proportional` |
 | `live_form` | `python content/build.py && python content/lint.py && python content/attack.py --only L262,L268` | `pnpm --filter @corporator/contentpack run gate` | `L262`, `L268`, `live_stage_keys_exist`, `code_phase_rule_not_always` | `layout_v1_bytes` |
@@ -1888,5 +1914,6 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 | `keccak_l202` | `L202, content/keccak.py` |
 | `merkle_shapes` | `D-C-5, docs/reports/PLAN_CODE.md` |
 | `cid_city_day` | `D-C-5, DESIGN.md §6.2, docs/TICK.md §9, R-C-6` |
+| `slotted_tick` | `PLAN_LAUNCH M8, DESIGN.md §5.3` |
 
-vector_class_ids: `cid_city_day`, `cyrillic`, `day_boundary`, `empty_tick`, `feed_dead`, `idle_idle_bank_closed`, `idle_idle_district_frozen`, `idle_idle_no_agent`, `idle_idle_no_compute`, `idle_idle_no_energy`, `idle_idle_no_materials`, `idle_idle_offline_cap_reached`, `idle_idle_out_of_hours`, `idle_idle_under_construction`, `idle_idle_wrong_role`, `keccak_l202`, `layout_v1_edge`, `merkle_shapes`, `over_2_53`, `payroll_trim`, `stack_nonempty`
+vector_class_ids: `cid_city_day`, `cyrillic`, `day_boundary`, `empty_tick`, `feed_dead`, `idle_idle_bank_closed`, `idle_idle_district_frozen`, `idle_idle_no_agent`, `idle_idle_no_compute`, `idle_idle_no_energy`, `idle_idle_no_materials`, `idle_idle_no_research_focus`, `idle_idle_no_train_target`, `idle_idle_offline_cap_reached`, `idle_idle_out_of_hours`, `idle_idle_under_construction`, `idle_idle_wrong_role`, `keccak_l202`, `layout_v1_edge`, `merkle_shapes`, `over_2_53`, `payroll_trim`, `slotted_tick`, `stack_nonempty`

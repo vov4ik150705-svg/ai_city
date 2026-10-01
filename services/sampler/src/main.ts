@@ -3,7 +3,11 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import { loadPack } from "@corporator/contentpack"
 import { listenPorts } from "@corporator/protocol"
+import { loadSamplerPack } from "./pack.js"
 import { listenReady } from "./ready.js"
+import { samplerSource } from "./source.js"
+import { memoryPriceStore, startPriceLoop } from "./loop.js"
+import { fetchPoster } from "@corporator/chainport"
 
 function packPath(): string {
   const env = process.env.PACK_PATH
@@ -23,7 +27,24 @@ export async function startMain(): Promise<void> {
     process.exitCode = 1
     return
   }
-  await listenReady(loaded.hash, listenPorts.sampler)
+  const source = samplerSource(process.env)
+  if (source === "refuse") {
+    process.exitCode = 1
+    return
+  }
+  const pack = loadSamplerPack(bytes)
+  const post =
+    source === "chain" && process.env.CORPORATOR_RPC_URL !== undefined
+      ? fetchPoster(process.env.CORPORATOR_RPC_URL, pack.periodMs)
+      : undefined
+  const loop = startPriceLoop(pack, source, memoryPriceStore(), post, process.env)
+  const ready = await listenReady(loaded.hash, listenPorts.sampler)
+  const stop = (): void => {
+    loop.stop()
+    void ready.close()
+  }
+  process.on("SIGTERM", stop)
+  process.on("SIGINT", stop)
 }
 
 const argv1 = process.argv[1]

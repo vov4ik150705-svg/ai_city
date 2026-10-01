@@ -644,6 +644,12 @@
       "src": "art/island_v3/view.html, TZ_ISLAND_LOOK.md I7",
       "why": "Start orbit distance in meters. Not the midpoint of min/max; packed so render src does not invent 2200"
     },
+    "look_orbit_distance_max_mul": {
+      "v": 8,
+      "u": "count",
+      "src": "docs/WORLD.md §8, PLAN_LAUNCH F5, L340",
+      "why": "Farthest orbit as a multiple of the accepted studio camera radius. Packed so lookOrbitLimits does not invent 8 in packages/render/src"
+    },
     "island_orbit_target_y": {
       "v": 160,
       "u": "count",
@@ -836,8 +842,8 @@
     "orbit_distance_default_tiles": "(orbit_distance_min_tiles + orbit_distance_max_tiles) // 2; start distance, not a zoom_levels row",
     "hero_catalog": "building id → lod files, quad counts, material, sha; keys equal buildings.json (D-V3-6)",
     "hero_sha256": "sha256 of sorted id:sha_high:sha_low from the written GLB catalog",
-    "island_mass_bytes": "byte length of art/island_v3/runtime/island_mass.glb",
-    "island_buildings_bytes": "sum of art/island_v3/runtime/buildings/*.glb byte lengths",
+    "island_mass_bytes": "byte length of art/island_v3/runtime_terra19/island_mass.glb",
+    "island_buildings_bytes": "sum of art/island_v3/runtime_terra19/buildings/*.glb byte lengths",
     "island_first_load_bytes": "island_mass_bytes + island_buildings_bytes",
     "island_mass_primitives": "primitive count in island_mass.glb",
     "island_building_primitives": "sum of primitives in runtime building GLBs"

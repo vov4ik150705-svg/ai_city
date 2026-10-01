@@ -44,6 +44,7 @@ export function EconomyLook(props: {
   const shell = props.view.shell
   const pay = shell.payrollPanel
   const capital = shell.capital
+  void props.onManageFunds
   return (
     <section data-id="capital" data-surface="left_panel" className="hud-economy" aria-label={title}>
       <header className="hud-economy__h">
@@ -53,15 +54,6 @@ export function EconomyLook(props: {
         <h2 data-key="UI_ECONOMY" className="hud-economy__title">
           {title}
         </h2>
-        <button
-          type="button"
-          data-key={shell.manageFundsKey}
-          className="hud-economy__go"
-          aria-label={shell.manageFunds}
-          onClick={props.onManageFunds}
-        >
-          <HudIcon glyph="go" size="md" />
-        </button>
       </header>
       <div className="hud-economy__capital">
         <div className="hud-economy__capital-top">
@@ -115,20 +107,33 @@ export function EconomyLook(props: {
               )}
             </span>
           </span>
-          <div className="hud-economy__meter">
-            <Progress
-              label={pay.coverageLabel}
-              labelKey="UI_PAYROLL_COVERAGE"
-              valueBps={0n}
-              maxBps={shell.bps}
-              compact={true}
-              field={pay.coverage}
-            />
-          </div>
           <span data-key="UI_PAYROLL_COVERAGE" className="hud-economy__hint">
             {pay.coverageLabel}
           </span>
+          {exactBigint(pay.coverage) !== undefined ? (
+            <div className="hud-economy__meter">
+              <Progress
+                label={pay.coverageLabel}
+                labelKey="UI_PAYROLL_COVERAGE"
+                valueBps={0n}
+                maxBps={shell.bps}
+                compact={true}
+                field={pay.coverage}
+              />
+            </div>
+          ) : null}
         </button>
+      )}
+      {pay.launchWindow === undefined ? null : (
+        <p
+          data-key={pay.launchWindow.key}
+          data-field-kind={pay.launchWindow.kind}
+          className={
+            pay.launchWindow.kind === "unavailable" ? "hud-economy__window hud-unavailable" : "hud-economy__window"
+          }
+        >
+          {pay.launchWindow.text}
+        </p>
       )}
       <div className="hud-economy__rule" />
       <div className="hud-economy__res">
@@ -145,8 +150,10 @@ function ResourceLine(props: {
   readonly onClick: () => void
 }): ReactElement {
   const row = props.row
+  const available = exactBigint(row.available)
+  const demand = exactBigint(row.demand)
   return (
-    <button type="button" className="hud-economy__res-row" aria-label={row.label} onClick={props.onClick}>
+    <button type="button" data-id={row.id} className="hud-economy__res-row" aria-label={row.label} onClick={props.onClick}>
       <span className="hud-economy__row-l">
         <HudIcon glyph={props.glyph} size="md" />
         <span data-key={row.key}>{row.label}</span>
@@ -158,6 +165,11 @@ function ResourceLine(props: {
         </span>
         <ReadyGrouped field={row.demand} className="hud-economy__row-v" />
       </span>
+      {available === undefined || demand === undefined || demand <= 0n ? null : (
+        <div className="hud-economy__meter">
+          <Progress label={row.label} labelKey={row.key} valueBps={available} maxBps={demand} compact={true} />
+        </div>
+      )}
     </button>
   )
 }

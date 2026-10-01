@@ -33,10 +33,10 @@
       "why": "HUD is a simple table, not a twenty-row board. Zipf n equals this count, never a hand list of shares"
     },
     "prize_curve_alpha_bps": {
-      "v": 10000,
+      "v": 8000,
       "u": "bps",
-      "src": "docs/PRIZES.md T7 Zipf",
-      "why": "Alpha 1: weight is BPS//k. Geometric 1/2 is winner-take-all; equal shares are a ten-sybil grab"
+      "src": "docs/PRIZES.md T7 Zipf, owner 2026-09-19",
+      "why": "80% harmonic BPS//k plus 20% equal BPS//n. Mild flatten: rank-1 keeps the lead without taking a third of the kettle. 10000 is pure Zipf; 0 is uniform"
     },
     "prize_periods_per_season": {
       "v": 3,
@@ -109,17 +109,17 @@
     "prize_period_real_hours": "prize_period_city_days × city_day_real_hours",
     "prize_period_index": "(city_day − 1) // prize_period_city_days",
     "qualify_days": "prize_period_city_days × season_qualify_bps / BPS, never stored",
-    "zipf_weights": "BPS // k for k = 1..n at alpha = 10000",
+    "zipf_weights": "mix: alpha×(BPS//k) + (BPS−alpha)×(BPS//n), alpha = prize_curve_alpha_bps",
     "zipf_payout_witness": "floor Zipf on the BPS pool at prize_top_n; dust stays",
     "influence_witnesses": "optimizer_ref, lazy_whale, active_whale, last_day_clone from existing params",
-    "prize_season_budget": "monthly DEX turnover × leaderboard leg (0.3%); spend_protocol is 0 and never funds prizes",
+    "prize_season_budget": "monthly DEX turnover × leaderboard leg (0.2%); spend_protocol is 0 and never funds prizes",
     "sybil_cost_vs_rank10": "qualify time, reference deposit, stake target vs rank-10 payout at N cities",
     "settle_hour": "efficiency_recalc_hour, first hour of a new prize period",
     "prize_asset": "six district tickers joined, never CORP and never Capital (R-M-3 inverted)",
     "prize_assets": "districts[].ticker in file order, never CORP, never a hand list, never playable_v1",
     "basket_size": "len(prize_assets), never stored",
     "prize_share_cap_over_contribution_bps": "smallest k so T3 rank-1 Zipf at N=2 is unclipped; never stored",
-    "prize_kettles": "farm = DEX active-work leg × 14d tickets; month = DEX leaderboard leg × period Zipf; unmixed",
+    "prize_kettles": "farm = DEX active-work leg × window tickets; month = DEX leaderboard leg × period Zipf; unmixed",
     "basket_zipf_witness": "N=1 takes each pool; N=10 harmonic per asset; empty ticker does not block",
     "share_cap_witness": "optimizer rank-1 unclipped; ten farm clones at 0.1% contrib are clipped",
     "split_check": "protocol_fragments_bps + protocol_prizes_bps, must be 10000"

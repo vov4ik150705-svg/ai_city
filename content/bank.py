@@ -32,6 +32,15 @@ def bank_share_bps(levels: dict, level: int) -> int:
     return 0
 
 
+def city_bank_share_bps(cfg: dict, city: dict) -> int:
+    level = int(city.get("bank_level") or 0)
+    share = bank_share_bps(cfg.get("bank_levels") or {}, level)
+    if share <= 0 and level > 0:
+        share = int(cfg.get("bank_l1_share_bps") or 0)
+    share += int(city.get("bank_share_bonus_bps") or 0)
+    return share
+
+
 def global_cap_wei(depth_wei: int, pool_share_bps: int) -> int:
     if depth_wei <= 0 or pool_share_bps <= 0:
         return 0
@@ -125,7 +134,7 @@ def present(state: dict, city: dict, vid: str) -> dict | None:
         if not isinstance(row, dict) or row.get("id") != vid:
             continue
         if row.get("status") != STATUS_OPEN:
-            return row
+            continue
         eth = int(row.get("eth") or 0)
         row["status"] = STATUS_SETTLED
         if int(row.get("day") or 0) == state.get("bank_day"):
@@ -199,12 +208,13 @@ def unstake(city: dict, ticker: str, amount: int, city_time: int, grace_hours: i
     settled[ticker] = held - take
     tokens = city.setdefault("tokens_held", {})
     tokens[ticker] = int(tokens.get(ticker) or 0) + take
-    city.setdefault("unstake_pending", []).append(
-        {"ticker": ticker, "amount": take, "ready_at": int(city_time) + int(grace_hours)}
-    )
     if settled[ticker] < int(s_min):
+        ready_at = int(city_time) + int(grace_hours)
+        city.setdefault("unstake_pending", []).append(
+            {"ticker": ticker, "amount": take, "ready_at": ready_at}
+        )
         freeze = city.setdefault("district_freeze_until", {})
-        freeze[ticker] = int(city_time) + int(grace_hours)
+        freeze[ticker] = ready_at
         city.setdefault("codes", []).append("DISTRICT_FREEZING")
     return {"ok": 1, "returned": take, "code": ""}
 
@@ -254,6 +264,16 @@ def _check_unstake() -> str | None:
         return "tokens not returned"
     if "DISTRICT_FREEZING" not in city["codes"]:
         return "no freeze"
+    if city.get("unstake_pending") != [{"ticker": "NVDA", "amount": 6, "ready_at": 124}]:
+        return f"pending on freeze {city.get('unstake_pending')}"
+    safe = {"stake_settled": {"NVDA": 10}, "tokens_held": {}, "codes": []}
+    stay = unstake(safe, "NVDA", 5, 100, 24, 5)
+    if stay["ok"] != 1 or safe["stake_settled"]["NVDA"] != 5:
+        return "exact S_min settled"
+    if "unstake_pending" in safe:
+        return "pending above freeze"
+    if "NVDA" in safe.get("district_freeze_until", {}):
+        return "freeze at S_min"
     return None
 
 

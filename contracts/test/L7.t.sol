@@ -45,7 +45,8 @@ contract L7Test {
             guardian,
             safetySigner,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S
+            PackConstants.VOUCHER_TTL_S,
+            address(0)
         );
         address[] memory stocks = new address[](6);
         uint256 i;
@@ -54,7 +55,7 @@ contract L7Test {
             i += 1;
         }
         prizes = new PrizeTreasury(address(this), guardian, safetySigner, stocks);
-        stakes = new StakeRegistry(address(this));
+        stakes = new StakeRegistry(address(this), 1);
         roots = new MerkleRoots(address(this));
         corp.transfer(playerA, OVER_253);
         corp.transfer(playerB, 1);
@@ -66,7 +67,7 @@ contract L7Test {
 
     function test_vault_deposit_then_mint() public {
         vm.expectRevert();
-        vault.mintCapital(playerA, 1);
+        vault.mintCapital(playerA, 1, 1);
 
         vm.startPrank(playerA);
         corp.approve(address(vault), 1);
@@ -74,15 +75,15 @@ contract L7Test {
         vm.stopPrank();
 
         vm.expectRevert();
-        vault.mintCapital(playerA, PackConstants.CAPITAL_ANCHOR + 1);
+        vault.mintCapital(playerA, 1, PackConstants.CAPITAL_ANCHOR + 1);
 
-        vault.mintCapital(playerA, 1);
+        vault.mintCapital(playerA, 1, 1);
         assertEq(vault.capitalOf(playerA), 1);
         assertEq(vault.pending(playerA), 0);
         assertEq(vault.vaultCorp(), 1);
 
         vm.expectRevert();
-        vault.mintCapital(playerA, 1);
+        vault.mintCapital(playerA, 1, 1);
     }
 
     function test_c10_fixture_parity() public {
@@ -91,14 +92,14 @@ contract L7Test {
         assertEq(corp.balanceOf(playerB), OVER_253 + 1);
 
         vm.expectRevert();
-        vault.mintCapital(playerA, 1);
+        vault.mintCapital(playerA, 1, 1);
 
         vm.startPrank(playerB);
         corp.approve(address(vault), 1);
         vault.deposit(playerB, 1);
         vm.stopPrank();
         assertEq(vault.vaultCorp(), 1);
-        vault.mintCapital(playerB, 1);
+        vault.mintCapital(playerB, 1, 1);
         assertEq(vault.capitalOf(playerB), 1);
 
         uint256 issuedAt = block.timestamp;
@@ -138,7 +139,7 @@ contract L7Test {
         corp.approve(address(vault), 1);
         vault.deposit(playerB, 1);
         vm.stopPrank();
-        vault.mintCapital(playerB, 1);
+        vault.mintCapital(playerB, 1, 1);
         uint256 issuedAt = block.timestamp;
         vault.issueVoucher("n3", playerB, 1, issuedAt);
         vm.warp(issuedAt + PackConstants.VOUCHER_TTL_S + 1);

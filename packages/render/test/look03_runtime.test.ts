@@ -41,6 +41,7 @@ import {
   orbitPoseChanged,
   parseIslandLook,
   lookBuildingCount,
+  lookOrbitLimits,
   resizeKeepsOrbitDistance,
 } from "../src/three.ts"
 import { clampOrbit, wrapOrbit } from "../src/orbit.ts"
@@ -160,6 +161,12 @@ describe("LOOK-03 shared runtime", () => {
     expect(prod.some((row) => row.slug === "amazon_warehouse")).toBe(false)
   })
 
+  it("lookOrbitLimits max is the packed multiple of studio radius", () => {
+    const lim = lookOrbitLimits(100n, 8n)
+    expect(lim.min).toBe(25n)
+    expect(lim.max).toBe(800n)
+  })
+
   it("wheel zoom is multiplicative, not a 1 m step", () => {
     const start = 11000n
     const next = zoomOrbitDistance(start, 1n, 800n, 44000n)
@@ -276,14 +283,21 @@ describe("LOOK-03 shared runtime", () => {
     const view = readFileSync(join(repo, "art/island_v3/view.html"), "utf8")
     expect(view.includes("OrbitControls")).toBe(false)
     expect(view.includes("./preview.ts")).toBe(true)
-    expect(view.includes("./runtime/island_mass.glb")).toBe(true)
-    expect(view.includes("./runtime/buildings/")).toBe(true)
+    expect(view.includes("./runtime/island_mass.glb")).toBe(false)
+    expect(view.includes("./runtime/buildings/")).toBe(false)
+    expect(view.includes("./runtime_terra19/island_mass.glb")).toBe(true)
+    expect(view.includes("./runtime_terra19/buildings/")).toBe(true)
     expect(view.includes('data-anchor-prefix="anchor_"')).toBe(true)
     const previewSrc = readFileSync(join(repo, "art/island_v3/preview.ts"), "utf8")
     expect(previewSrc.includes("OrbitControls")).toBe(false)
     expect(previewSrc.includes("bindIslandPreviewOrbit")).toBe(true)
     expect(previewSrc.includes("data-mass")).toBe(true)
     expect(previewSrc.includes("data-anchor-prefix")).toBe(true)
+    expect(previewSrc.includes("./runtime/island_mass.glb")).toBe(false)
+    expect(previewSrc.includes("./runtime/buildings/*.glb")).toBe(false)
+    expect(previewSrc.includes("./runtime_terra19/island_mass.glb")).toBe(true)
+    expect(previewSrc.includes("./runtime_terra19/buildings/*.glb")).toBe(true)
+    expect(previewSrc.includes("maps/terra-look.json")).toBe(true)
     expect(previewSrc.includes("island_mass.glb")).toBe(true)
     expect(previewSrc.includes("res.ok")).toBe(true)
     expect(previewSrc.includes("if (url.length === 0) return new ArrayBuffer(0)")).toBe(false)

@@ -1,0 +1,58 @@
+{
+  "n": 4,
+  "anchor": "money",
+  "dir": "04-money-ready",
+  "title": "Three kinds of money",
+  "eyebrow": "04 — MONEY",
+  "intro": "$CORP lives in your wallet. Capital is the city's own money, and every chip has a $CORP coin behind it in the vault. Stock tokens are shares like NVDA that open districts.",
+  "note": "Capital isn't a token. You can't sell it or send it to a friend.",
+  "linkLabel": "More in the handbook → The backing rule",
+  "ref": "economy.md#the-backing-rule",
+  "alt": "A wallet with a coin, a stack of chips standing on a small safe with a thread from each chip to a coin, and a fan of six stock-token coins.",
+  "w": 1672,
+  "h": 941,
+  "hash": "DAE8C02383CEF22CA502A0F769A4AA2515249D7B31FEB6E02380A6DA3C9D4F2C",
+  "geometry": {
+    "left": 220,
+    "top": 90,
+    "width": 1040,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 4: Three kinds of money",
+      "artBottom": 741.296875,
+      "noteTop": 756,
+      "handbookAnchor": "#the-backing-rule"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

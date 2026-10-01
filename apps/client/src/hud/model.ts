@@ -5,21 +5,22 @@ import { navigateTarget } from "../packview.js"
 import { format, labelKey, lookup } from "../strings.js"
 import type { StringTable } from "../strings.js"
 import { bankOpensIn, bankPlaqueCode, cityClockParts, cityTimeFromWall } from "../clock.js"
-import { formatSi } from "./parts/si.js"
+import { formatSi, groupDigits } from "./parts/si.js"
 import { attestLabelKey } from "./attest.js"
 import {
   clockBoundText,
   clockDayLabel,
   clockFaceText,
   formatShare,
+  formatWalletLabel,
   type EventRowView,
   type OverviewTabId,
 } from "./fields.js"
-import type { ClientSnapshot } from "./snapshot.js"
+import type { ClientSnapshot, SnapshotGate, SnapshotDistrictLive } from "./snapshot.js"
 import { buildShell, clockHourText, type HudShellView } from "./shellModel.js"
 import type { SceneProjection } from "./sceneProjection.js"
 
-export type { ClientSnapshot, HudServerState } from "./snapshot.js"
+export type { ClientSnapshot, HudServerState, SnapshotGate, SnapshotDistrictLive, SnapshotBoardRow, SnapshotPrizeRow } from "./snapshot.js"
 export { emptySnapshot } from "./snapshot.js"
 export type { HudShellView } from "./shellModel.js"
 
@@ -61,9 +62,20 @@ export type HudView = {
     readonly dayPct: string
     readonly effect: string
     readonly tone: "ok" | "bad" | "warn"
+    readonly held?: bigint
   }[]
   readonly agentsKind: "unavailable" | "empty" | "ready"
-  readonly agents: readonly { readonly id: string; readonly idleKey: string; readonly idleText: string }[]
+  readonly agents: readonly {
+    readonly id: string
+    readonly idleKey: string
+    readonly idleText: string
+    readonly role: string
+    readonly buildingId: string
+    readonly objective: string
+    readonly level: bigint
+    readonly xp: bigint
+    readonly traits: readonly string[]
+  }[]
   readonly log: readonly EventRowView[]
   readonly districts: readonly {
     readonly id: string
@@ -71,7 +83,15 @@ export type HudView = {
     readonly role: string
     readonly effect: string
     readonly tone: "ok" | "bad" | "warn"
+    readonly stake: bigint | undefined
+    readonly tier: bigint | undefined
+    readonly frozen: boolean | undefined
+    readonly grace: boolean | undefined
+    readonly opened: boolean | undefined
+    readonly stakeThresholdMet: boolean | undefined
+    readonly stakeMin: bigint | undefined
   }[]
+  readonly fragmentLedger: ClientSnapshot["fragmentLedger"]
   readonly hireText: string
   readonly treasury: {
     readonly key: string
@@ -90,6 +110,9 @@ export type HudView = {
   readonly prizeNotice: { readonly key: string; readonly text: string } | undefined
   readonly basket: readonly { readonly ticker: string; readonly farm: string; readonly month: string }[]
   readonly periodHours: string
+  readonly seasonLabel: string
+  readonly periodLabel: string
+  readonly influencePositiveDays: bigint | undefined
   readonly colLeft: string
   readonly colRight: string
   readonly close: { readonly key: string; readonly text: string }
@@ -110,10 +133,53 @@ export type HudView = {
   readonly quoteHi: string
   readonly quoteLive: boolean | undefined
   readonly quoteAgeMs: bigint | undefined
+  readonly quoteCorpEth: bigint | undefined
   readonly bankLimitLive: bigint | undefined
+  readonly vouchers: ClientSnapshot["vouchers"]
+  readonly unstakeCooldown: ClientSnapshot["unstakeCooldown"]
+  readonly chainTimeS: bigint | undefined
+  readonly offlineHours: bigint | undefined
   readonly logLoading: boolean | undefined
   readonly logError: boolean | undefined
   readonly shell: HudShellView
+  readonly accountKind: string
+  readonly gate: SnapshotGate | undefined
+  readonly cityLevelValue: bigint | undefined
+  readonly stake: bigint | undefined
+  readonly influenceQualified: boolean | undefined
+  readonly influenceRankNumber: bigint | undefined
+  readonly liveBoard: readonly {
+    readonly rank: string
+    readonly wallet: string
+    readonly walletLabel: string
+    readonly influence: string
+    readonly influenceExact: string
+    readonly gdp: string
+    readonly gdpExact: string
+    readonly qualified: boolean
+    readonly self: boolean
+  }[]
+  readonly prizeBoard: readonly {
+    readonly rank: string
+    readonly wallet: string
+    readonly walletLabel: string
+    readonly influence: string
+    readonly influenceExact: string
+    readonly gdp: string
+    readonly gdpExact: string
+    readonly payout: string
+    readonly payoutExact: string
+    readonly qualified: boolean
+    readonly self: boolean
+  }[]
+  readonly researchFocus?: string
+  readonly functionsTotal: bigint | undefined
+  readonly functions: readonly {
+    readonly id: string
+    readonly nameKey: string
+    readonly statusKey: string
+    readonly construction?: bigint
+  }[]
 }
 
 export type HudPresentationView = HudView
@@ -145,7 +211,7 @@ export function buildHud(args: {
   const t = (key: string): string => lookup(args.strings, key, used)
   const cityTime = cityTimeFromWall({
     anchorCityTime: args.snapshot.cityTime,
-    firstLoginMs: args.firstLoginMs,
+    anchorMs: args.firstLoginMs,
     nowMs: args.nowMs,
     rateBps: args.pack.rateBps,
     bps: args.pack.bps,
@@ -316,16 +382,32 @@ export function buildHud(args: {
       dayPct,
       effect: hit === undefined || hit.effect.length === 0 ? d.provides : hit.effect,
       tone,
+      ...(hit === undefined || hit.held === undefined ? {} : { held: hit.held }),
     }
   })
+  const liveById = new Map<string, SnapshotDistrictLive>()
+  const districtLive = snap.gate?.districts
+  if (districtLive !== undefined) {
+    for (const row of districtLive) liveById.set(row.id, row)
+  }
+  const openedSet = new Set(snap.gate?.openedDistricts ?? [])
   const districts = args.pack.districts.map((d) => {
-    const hit = stocks.find((s) => s.ticker === d.ticker)
+    const quote = byTicker.get(d.ticker)
+    const priced = stocks.find((row) => row.ticker === d.ticker)
+    const live = liveById.get(d.id)
     return {
       id: d.id,
       ticker: d.ticker,
       role: d.role,
-      effect: hit === undefined ? d.provides : hit.effect,
-      tone: hit === undefined ? ("ok" as const) : hit.tone,
+      effect: quote === undefined || quote.effect.length === 0 ? "" : quote.effect,
+      tone: priced === undefined ? ("ok" as const) : priced.tone,
+      stake: live?.stake,
+      tier: live?.tier,
+      frozen: live?.frozen,
+      grace: live?.grace,
+      opened: snap.gate?.openedDistricts === undefined ? undefined : openedSet.has(d.id),
+      stakeThresholdMet: live?.stakeThresholdMet,
+      stakeMin: live?.stakeMin,
     }
   })
   function protocolField(id: string, key: string, val: bigint | undefined): HudView["protocol"][number] {
@@ -359,6 +441,12 @@ export function buildHud(args: {
           id: row.id,
           idleKey: row.idleKey,
           idleText: t(row.idleKey),
+          role: row.role ?? "",
+          buildingId: row.buildingId ?? "",
+          objective: row.objective ?? "",
+          level: row.level ?? 0n,
+          xp: row.xp ?? 0n,
+          traits: row.traits ?? [],
         }))
   const log = (args.snapshot.log ?? []).map((row) => {
     const badgeKey = attestLabelKey(row.badge, row.root, row.cid)
@@ -389,6 +477,9 @@ export function buildHud(args: {
       mount: meta.mount,
     }
   }
+  t("UI_LIVE_BOARD")
+  t("UI_INFLUENCE")
+  t("UI_YOU")
   const plaque = { key: plaqueKey, text: plaqueText }
   const shell = buildShell({
     t,
@@ -430,26 +521,74 @@ export function buildHud(args: {
     agents,
     log,
     districts,
+    fragmentLedger: snap.fragmentLedger,
     hireText: t("UI_HIRE"),
     treasury,
     protocol,
     prizeNotice,
     basket,
     periodHours,
+    seasonLabel: snap.seasonLabel === undefined ? "" : snap.seasonLabel,
+    periodLabel: snap.periodLabel === undefined ? "" : snap.periodLabel,
+    influencePositiveDays: snap.influenceRank === undefined ? undefined : snap.influenceRank.positiveDays,
     colLeft: t("UI_COL_LEFT"),
     colRight: t("UI_COL_RIGHT"),
     close,
     chrome,
-    mintRate: args.pack.mintRate.toString(),
+    mintRate: snap.mintRate === undefined ? "" : snap.mintRate.toString(),
     bankLimit: args.pack.bankLimit.toString(),
     quoteLo: args.pack.quoteLo.toString(),
     quoteHi: args.pack.quoteHi.toString(),
     quoteLive: snap.quoteLive,
     quoteAgeMs: snap.quoteAgeMs,
+    quoteCorpEth: snap.quoteCorpEth,
     bankLimitLive: snap.bankLimitLive,
+    vouchers: snap.vouchers,
+    unstakeCooldown: snap.unstakeCooldown,
+    chainTimeS: snap.chainTimeS,
+    offlineHours: snap.offlineHours,
     logLoading: snap.logLoading,
     logError: snap.logError,
     shell,
+    accountKind: snap.accountKind,
+    gate: snap.gate,
+    cityLevelValue: snap.cityLevel,
+    stake: snap.stake,
+    influenceQualified: snap.influenceRank === undefined ? undefined : snap.influenceRank.qualified,
+    influenceRankNumber: snap.influenceRank === undefined ? undefined : snap.influenceRank.rank,
+    liveBoard: (
+      snap.influenceRank === undefined || snap.influenceRank.board === undefined ? [] : snap.influenceRank.board
+    ).map((row) => ({
+      rank: row.rank.toString(),
+      wallet: row.wallet,
+      walletLabel: formatWalletLabel(row.wallet),
+      influence: groupDigits(row.influence),
+      influenceExact: row.influence.toString(),
+      gdp: groupDigits(row.gdp),
+      gdpExact: row.gdp.toString(),
+      qualified: row.qualified,
+      self: row.self,
+    })),
+    prizeBoard: (
+      snap.influenceRank === undefined || snap.influenceRank.prizeBoard === undefined ? [] : snap.influenceRank.prizeBoard
+    ).map((row) => ({
+      rank: row.rank.toString(),
+      wallet: row.wallet,
+      walletLabel: formatWalletLabel(row.wallet),
+      influence: groupDigits(row.influence),
+      influenceExact: row.influence.toString(),
+      gdp: groupDigits(row.gdp),
+      gdpExact: row.gdp.toString(),
+      payout: groupDigits(row.payout),
+      payoutExact: row.payout.toString(),
+      qualified: row.qualified,
+      self: row.self,
+    })),
+    ...(snap.researchFocus === undefined || snap.researchFocus.length === 0
+      ? {}
+      : { researchFocus: snap.researchFocus }),
+    functionsTotal: snap.functions === undefined ? undefined : BigInt(snap.functions.length),
+    functions: snap.functions ?? [],
   }
 }
 

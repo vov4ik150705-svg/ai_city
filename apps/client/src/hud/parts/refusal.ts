@@ -87,3 +87,26 @@ export function Refusal(props: {
     props.text,
   )
 }
+
+/** Code from a command result. A thrown error keeps the code LiveRoot puts in the message. */
+export async function refusalFromIntent(done: void | Promise<unknown>): Promise<string> {
+  try {
+    const result = await done
+    if (result === undefined || result === null || typeof result !== "object") return ""
+    const row = result as { readonly kind?: unknown; readonly code?: unknown }
+    if ((row.kind === "failed" || row.kind === "unavailable") && typeof row.code === "string") return row.code
+    return ""
+  } catch (err) {
+    if (err instanceof Error && err.message.length > 0) return err.message
+    return ""
+  }
+}
+
+/** Lookup text. An unfilled `{slot}` is cut at the colon so the raw code is not the label. */
+export function shownRefusalText(raw: string, code: string): string {
+  if (raw.length === 0) return code
+  if (!raw.includes("{")) return raw
+  const cut = raw.indexOf(":")
+  const head = cut > 0 ? raw.slice(0, cut).trim() : ""
+  return head.length > 0 ? head : code
+}

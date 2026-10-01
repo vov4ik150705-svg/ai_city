@@ -1,0 +1,327 @@
+.agents-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  color: #f4f7fb;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  background: #071018;
+}
+
+.agents-page__stage {
+  position: absolute;
+  inset: 0;
+  --character-frame: 58%;
+  --floor: 82.5%;
+  --character-scale: 1.5;
+  --character-x: -28px;
+  --character-y: 0px;
+  --reflection-opacity: 0.09;
+  --reflection-blur: 3px;
+  --shadow-opacity: 0.62;
+}
+
+.agents-page__copy {
+  position: absolute;
+  z-index: 2;
+  top: 11%;
+  left: 4.2%;
+  width: min(26rem, 28%);
+  pointer-events: none;
+}
+
+.agents-page__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0 0 1.4rem;
+  color: rgba(232, 238, 246, 0.72);
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+}
+
+.agents-page__eyebrow::before {
+  content: "";
+  width: 2.4rem;
+  height: 1px;
+  background: rgba(232, 238, 246, 0.45);
+}
+
+.agents-page__copy h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 3.5vw, 3.7rem);
+  font-weight: 760;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+}
+
+.agents-page__lead {
+  margin: 1.35rem 0 0;
+  max-width: 16rem;
+  color: rgba(236, 242, 248, 0.88);
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.agents-page__sub {
+  margin: 1.15rem 0 0;
+  color: rgba(214, 224, 234, 0.62);
+  font-size: 0.98rem;
+}
+
+.agents-page__meet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1.7rem;
+  color: #f7f4ee;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  pointer-events: auto;
+  border-bottom: 1px solid rgba(247, 244, 238, 0.85);
+  padding-bottom: 0.2rem;
+}
+
+.agents-page__dossier {
+  position: absolute;
+  z-index: 2;
+  top: 7%;
+  right: 2.4%;
+  width: min(26rem, 30%);
+  padding: 1.35rem 1.45rem 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.15rem;
+  background: rgba(8, 14, 22, 0.55);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+}
+
+.agents-page__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.agents-page__hex {
+  width: 3.1rem;
+  height: 3.1rem;
+  color: #f0b429;
+  flex: none;
+}
+
+.agents-page__identity h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.agents-page__identity p {
+  margin: 0.35rem 0 0;
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+
+.agents-page__seats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4rem;
+  margin-top: 1.35rem;
+}
+
+.agents-page__seats h3,
+.agents-page__cap-label,
+.agents-page__meta-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: rgba(226, 232, 240, 0.55);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+}
+
+.agents-page__seats h3 svg,
+.agents-page__seats li svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: none;
+}
+
+.agents-page__seats ul {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+}
+
+.agents-page__seats li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.42rem;
+  color: rgba(244, 247, 251, 0.92);
+  font-size: 0.92rem;
+}
+
+.agents-page__capability {
+  margin-top: 1.25rem;
+}
+
+.agents-page__cap-label i {
+  display: grid;
+  width: 0.85rem;
+  height: 0.85rem;
+  place-items: center;
+  border: 1px solid rgba(226, 232, 240, 0.35);
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 0.55rem;
+}
+
+.agents-page__meter {
+  display: grid;
+  grid-template-columns: 5.4rem 1fr 2.4rem;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.48rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.agents-page__track {
+  height: 0.28rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.agents-page__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.agents-page__meter--gold .agents-page__track span { background: #f0b429; }
+.agents-page__meter--blue .agents-page__track span { background: #d7e4f2; }
+.agents-page__meter b {
+  font-weight: 650;
+  text-align: right;
+}
+
+.agents-page__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.15rem;
+  padding-top: 0.9rem;
+}
+
+.agents-page__meta strong {
+  display: inline-block;
+  margin-right: 0.55rem;
+  font-size: 1.85rem;
+  font-weight: 720;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.agents-page__pips {
+  display: inline-flex;
+  gap: 0.28rem;
+  vertical-align: middle;
+}
+
+.agents-page__pips i {
+  width: 0.85rem;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.agents-page__pips i:nth-child(-n + 3) { background: #f0b429; }
+.agents-page__pips i:nth-child(4) { background: #8eb0d4; }
+
+.agents-page__traits {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+}
+
+.agents-page__traits span {
+  padding: 0.28rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+.agents-page__roster {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 4.6%;
+  display: flex;
+  gap: 0.7rem;
+  transform: translateX(-50%);
+}
+
+.agents-page__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 7.4rem;
+  height: 8.6rem;
+  padding: 0.35rem 0.3rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.85rem;
+  background: rgba(7, 12, 18, 0.45);
+  color: rgba(236, 242, 248, 0.78);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.agents-page__card img {
+  width: 100%;
+  height: 6.2rem;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.agents-page__card.is-selected {
+  border-color: #f0b429;
+  box-shadow: 0 0 0 1px rgba(240, 180, 41, 0.35);
+  color: #fff;
+}
+
+.agents-page__card.is-selected span {
+  box-shadow: inset 0 -2px 0 #f0b429;
+}
+
+.agents-page__note {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 1.1%;
+  margin: 0;
+  color: rgba(214, 222, 232, 0.45);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+@media (max-width: 64rem) {
+  .agents-page__copy { width: min(28rem, 42%); }
+  .agents-page__dossier { width: min(28rem, 40%); top: 4%; }
+  .agents-page__card { width: 6.2rem; height: 7.4rem; }
+  .agents-page__card img { height: 5.1rem; }
+  .agents-page__stage { --character-frame: 62%; --floor: 72%; }
+}

@@ -1,0 +1,279 @@
+{
+  "pages": [
+    {
+      "n": 1,
+      "hash": "#island"
+    },
+    {
+      "n": 2,
+      "hash": "#people"
+    },
+    {
+      "n": 3,
+      "hash": "#shift"
+    },
+    {
+      "n": 4,
+      "hash": "#money"
+    },
+    {
+      "n": 5,
+      "hash": "#the-tank"
+    },
+    {
+      "n": 6,
+      "hash": "#fills"
+    },
+    {
+      "n": 7,
+      "hash": "#way-home"
+    },
+    {
+      "n": 8,
+      "hash": "#keys"
+    },
+    {
+      "n": 9,
+      "hash": "#your-key"
+    },
+    {
+      "n": 10,
+      "hash": "#seasons"
+    },
+    {
+      "n": 11,
+      "hash": "#before"
+    }
+  ],
+  "nextSequence": true,
+  "keyboardPrevious": true,
+  "dots": true,
+  "handbookReturn": true,
+  "deepLink": true,
+  "pinchWidth": 3344,
+  "swipe": true,
+  "escape": true,
+  "finalFooter": {
+    "separateRows": true,
+    "overflow": false,
+    "actionsRight": 363,
+    "viewWidth": 375
+  },
+  "pageErrors": [],
+  "packages": [
+    {
+      "n": 1,
+      "dir": "01-island-ready",
+      "sha256": "75EA9F0200431275E1FF20014226C982BCCEA432C666283CD4917A8A1EB60C36",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 2,
+      "dir": "02-people-ready",
+      "sha256": "713AF8DC82DE323A60656DB5F71C87566109210A4BDCBB083922669BC22A71CC",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 3,
+      "dir": "03-shift-ready",
+      "sha256": "C3E2AA2C849EFA1CB7022A0654D413CCEE9756EBE0EDC1D37EA0FB405BD23DA2",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 4,
+      "dir": "04-money-ready",
+      "sha256": "DAE8C02383CEF22CA502A0F769A4AA2515249D7B31FEB6E02380A6DA3C9D4F2C",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 5,
+      "dir": "05-the-tank-ready",
+      "sha256": "A425093013C8D8A9C324608A28FD3DB9EC43761F02F33F864E114FA26AFCF9AB",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 6,
+      "dir": "06-fills-ready",
+      "sha256": "6021C46BA4EDFE7695EEB17335B8C85B02E120558CC5E51997C1986680AE6ECC",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 7,
+      "dir": "07-way-home-ready",
+      "sha256": "801411E3B9AD5EE2C2B58C651FB47783C9AEFE055CBC4A3ED5ECBABC09856BC6",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 8,
+      "dir": "08-keys-ready",
+      "sha256": "B95BD21F557A4AAB7A628C5EE850CE16EB5047BD3A73E93D7F9904D97CEB238A",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 9,
+      "dir": "09-your-key-ready",
+      "sha256": "7F019D66A597D220A813FC45CDA48262E916B7CC8956099F2E00ACAA0D403AEC",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 10,
+      "dir": "10-seasons-ready",
+      "sha256": "185518859285FE7C032490BC3A135902D3671D083B3005E637DFA16103B7D92B",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    },
+    {
+      "n": 11,
+      "dir": "11-before-ready",
+      "sha256": "8D6C3B57778EA796F0D3B1AC8B89581103F72E5E8979EBD9A0BEF51E33D4363D",
+      "rgba": true,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "desktop": [
+        1672,
+        941
+      ],
+      "mobile": [
+        375,
+        812
+      ],
+      "individualZipMatches": true
+    }
+  ],
+  "styleCheckpoints": [
+    4,
+    8
+  ],
+  "aggregateContents": "11 final ready folders, index.html, gallery.html, README.md, AGENT_HANDOFF.md, VALIDATION.json and original ethalons; no rejected variants or generation archive"
+}

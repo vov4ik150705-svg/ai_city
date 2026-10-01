@@ -1,6 +1,6 @@
 {
   "note": "Owner island overlay. replace_placements=1 empty list means no buildings (not generator). replace_props=1 empty list means no trees, furniture, vehicles. Tiles patch land including water. Dock and waterfall stay derived. Not a player builder.",
-  "src": "docs/WORLD.md §5",
+  "src": "docs/archive/WORLD_PACK_GRID.md §5",
   "placements": [],
   "tiles": [
     {

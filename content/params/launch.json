@@ -57,10 +57,10 @@
       "why": "0.008 ETH ≈ 20 $ на снимке курса: ниже газ съест выкуп, сбор копится до порога и в тик не входит"
     },
     "bank_daily_limit_pool_share_bps": {
-      "v": 100,
+      "v": 500,
       "u": "bps",
-      "src": "DESIGN.md §7.2, docs/LAUNCH.md §6",
-      "why": "1% текущей котировочной глубины, которую читает сервер. Абсолют не хранится: сид ≈ T, доливка хуком не запрещена, владелец сид не доливает"
+      "src": "DESIGN.md §7.2, docs/LAUNCH.md §6, owner 2026-09-20",
+      "why": "5% of live quote depth the server reads. Absolute is not stored: seed ≈ T. Owner raised the daily pipe; L1 personal share stays the T2 2500 bps ladder"
     },
     "risk4_depth_half_eth_day_wei": {
       "v": 50000000000000000000,

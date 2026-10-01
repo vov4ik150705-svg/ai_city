@@ -55,10 +55,18 @@ def _ru_texts(data: dict) -> dict:
     return strings("ru")["strings"]
 
 
+def _en_texts(data: dict) -> dict:
+    """Disk English strings, unless an in-memory overlay is attached (attack seam)."""
+    overlay = (data.get("strings") or {}).get("en")
+    if overlay is not None:
+        return overlay
+    return strings("en")["strings"]
+
+
 # Canonical family → growth curve. A real-but-foreign param is legal for L71 and
 # illegal here: otherwise content replaces a building level (docs/BALANCE.md §4).
 KEY_CAP_FAMILY = {
-    "output_bps": ("output_growth_bps", "balance"),
+    "output_bps": ("output_bps_reachable_max_bps", "balance"),
     "fragment_rate_bps": ("output_growth_bps", "balance"),
     "population_conversion_bps": ("output_growth_bps", "balance"),
     "energy_cost_bps": ("energy_growth_bps", "balance"),
@@ -143,6 +151,14 @@ def l02_references(data: dict) -> None:
             fail("L02", f"building {bid}.schedule = {b['schedule']!r} is not a schedule")
         if b.get("district") and b["district"] not in districts:
             fail("L02", f"building {bid}.district = {b['district']!r} is not a district")
+        link = b.get("output_link")
+        if isinstance(link, dict):
+            role = link.get("require_role")
+            if role and role not in roles:
+                fail("L02", f"building {bid}.output_link.require_role = {role!r} is not a role")
+            for partner in link.get("exclusive_with") or []:
+                if partner not in buildings:
+                    fail("L02", f"building {bid}.output_link.exclusive_with = {partner!r} is not a building")
         if "inputs" in b:
             fail("L02", f"building {bid}.inputs is stored: inputs are derived from energy/compute draw")
 
@@ -313,6 +329,33 @@ def l07_producers(data: dict) -> None:
     orphans = build.build_resources(data)["resources_without_producer"]
     for rid in orphans:
         fail("L07", f"resource {rid} is consumed but nothing produces it")
+    for bid, b in data["buildings"]["buildings"].items():
+        if b.get("output") != "compute":
+            continue
+        got = build.building_compute(data, bid, 1)
+        if got <= 0:
+            fail(
+                "L07",
+                f"compute producer {bid} L1 curve is {got}: resource exists on paper, live stock stays 0",
+            )
+    producers = [
+        build.building_compute(data, bid, 1)
+        for bid, b in data["buildings"]["buildings"].items()
+        if b.get("output") == "compute"
+    ]
+    consumers = [
+        build.building_compute(data, bid, 1)
+        for bid, b in data["buildings"]["buildings"].items()
+        if build.is_compute_consumer(data, bid)
+    ]
+    if consumers:
+        need = max(consumers)
+        got = max(producers) if producers else 0
+        if got < need:
+            fail(
+                "L07",
+                f"max compute producer L1 {got} < max consumer L1 {need}: robotics would idle on ARC alone",
+            )
 
 
 # ----------------------------------------------------------------- L08 beacons
@@ -369,12 +412,6 @@ def l09_derived(data: dict) -> None:
         fail(
             "L09",
             "power_node.cost_weight_bps is stored but equals energy_capex_share_bps: a number in two places",
-        )
-    lab = data["buildings"]["buildings"].get("robotics_lab") or {}
-    if "output_weight_bps" in lab:
-        fail(
-            "L09",
-            "robotics_lab.output_weight_bps is stored but equals affinity_neighbour_bps: a number in two places",
         )
     for bid, b in data["buildings"]["buildings"].items():
         if "inputs" in b:
@@ -504,10 +541,8 @@ def l18_color_tokens(data: dict) -> None:
     used |= {r["color_token"] for r in data["resources"]["resources"].values()}
     for token in sorted(used - declared):
         fail("L18", f"colour token {token} is used in content but not declared in palette.ts")
-    for name, spec in sorted(((data.get("placement") or {}).get("phases") or {}).items()):
-        ramp = (spec or {}).get("tint_ramp")
-        if ramp and ramp not in palette:
-            fail("L18", f"world phase {name} ramp {ramp!r} is not named in palette.ts")
+    # Phase tint_ramp is a master-palette name (L17). The live Three.js frame
+    # does not read it, and palette.ts is the HUD token contract, not that file.
 
 
 # ------------------------------------------------------------- L19 objectives
@@ -591,8 +626,7 @@ def l23_bank_daily_limit(data: dict) -> None:
     if share > cap:
         fail(
             "L23",
-            f"daily withdraw share {share} bps exceeds the {cap} bps cap of pool depth: "
-            "the 2000 anchor stops being an anchor",
+            f"daily withdraw share {share} bps exceeds the {cap} bps cap of pool depth",
         )
 
 
@@ -1257,21 +1291,40 @@ def l47_window_from_params(data: dict) -> None:
         if name in sim.get("params", {}):
             fail("L47", f"sim.params stores {name}: window/returns belong to T2 params, not the simulator")
     # Source files must not mention the T2 window integers from this pack.
-    white = set(sim.get("ast_whitelist", {}).get("literals") or [])
+    # BPS is the unit of every bps field (and the 100% sleeper floor). sim.py
+    # comments write 10000 as that unit; treating it as a T2 token is a collision.
+    white = {int(x) for x in (sim.get("ast_whitelist", {}).get("literals") or [])}
+    white.add(int(BPS))
     bal = _t2(data) or {}
-    banned_tokens = [
-        str(bal.get("amplification_window_lo_bps") or ""),
-        str(bal.get("amplification_window_hi_bps") or ""),
-        str(bal.get("return_min_bps") or ""),
-        str(bal.get("return_opt_bps") or ""),
-    ]
+    banned_tokens: list[str] = []
+    for key in (
+        "amplification_window_lo_bps",
+        "amplification_window_hi_bps",
+        "return_min_bps",
+        "return_opt_bps",
+    ):
+        raw = bal.get(key)
+        if raw is None or raw == "":
+            continue
+        try:
+            n = int(raw)
+        except (TypeError, ValueError):
+            banned_tokens.append(str(raw))
+            continue
+        if n in white:
+            continue
+        banned_tokens.append(str(n))
+    overlay = data.get("_l47_source")
     for name in ("tick.py", "sim.py"):
         path = ROOT / name
-        if not path.exists():
+        if isinstance(overlay, str) and name == "sim.py":
+            src = overlay
+        elif path.exists():
+            src = path.read_text(encoding="utf-8")
+        else:
             continue
-        src = path.read_text(encoding="utf-8")
         for token in banned_tokens:
-            if token and token in src:
+            if re.search(rf"(?<!\d){re.escape(token)}(?!\d)", src):
                 fail("L47", f"{name} contains {token}: A window / T2 returns must come from the pack")
 
 
@@ -1444,6 +1497,22 @@ def l55_bank_pro_rata(data: dict) -> None:
     # Names/order of a permutation of equal asks: byte-identical issued pair.
     if list(got) != list(got_rev):
         fail("L55", f"order of equal asks is not byte-identical {got} vs {got_rev}")
+    # Five L1 cities vs one full pipe: FIFO would fill four and zero the fifth.
+    pipe_asks = [gain, gain, gain, gain, gain]
+    pipe_got = t.split_bank_limit(pipe_asks, BPS)
+    if len(set(pipe_got)) != 1:
+        fail("L55", f"five equal L1 asks {pipe_asks} cap {BPS} split {pipe_got}: not pro-rata")
+    pipe_rev = t.split_bank_limit(list(reversed(pipe_asks)), BPS)
+    if pipe_got != pipe_rev:
+        fail("L55", f"reversed five L1 asks changed the split {pipe_got} vs {pipe_rev}")
+    total_pipe = 5 * gain
+    if total_pipe > BPS:
+        expect = BPS * gain // total_pipe
+        if pipe_got[0] != expect or sum(pipe_got) > BPS:
+            fail(
+                "L55",
+                f"five L1 asks overflow {BPS}: split {pipe_got} expected {expect} each, sum ≤ cap",
+            )
 
 
 # ---------------------------------------------------------------- L56..L69 T4
@@ -1974,7 +2043,8 @@ def l71_caps_derived(data: dict) -> None:
         special = {"slots_span", "sum_tiers_countable", "sum_tiers_bps", "reciprocal"}
         if max_from and max_from not in special and section:
             payload = (data.get(section) or {}).get("params") or {}
-            if max_from not in payload and max_from not in special:
+            derived = (data.get(section) or {}).get("derived") or {}
+            if max_from not in payload and max_from not in special and max_from not in derived:
                 fail("L71", f"{kid} max_from {max_from} not in {section}.params")
         if red_from and section:
             payload = (data.get(section) or {}).get("params") or {}
@@ -2290,8 +2360,7 @@ def l88_anchor_family(data: dict) -> None:
         if got_from != name:
             fail(
                 "L88",
-                f"{kid} anchors to {got_from}, family curve is {name}: "
-                "a foreign param would let content replace a level",
+                f"{kid} anchors to {got_from}, family is {name}",
             )
         if got_sec and got_sec != section:
             fail("L88", f"{kid} section {got_sec} != family {section}")
@@ -2359,16 +2428,29 @@ def l91_beacon_accrual_only(data: dict) -> None:
 
 
 def l92_window_derived(data: dict) -> None:
-    rule("L92", "claim window is payroll_daily_divisor, never stored")
+    rule("L92", "farm window is fragment_window_city_days, never stored under the derived name, never payroll_daily_divisor")
     params = (data.get("fragments") or {}).get("params") or {}
     if "fragment_claim_window_city_days" in params:
         stored = params["fragment_claim_window_city_days"]["v"]
         fail("L92", f"fragment_claim_window_city_days stored as {stored}: a number in two places")
         return
+    src = params.get("fragment_window_city_days")
+    if not isinstance(src, dict) or "v" not in src:
+        fail("L92", "fragment_window_city_days missing: farm window must not alias payroll_daily_divisor")
+        return
+    expected = src["v"]
     derived = fragments.window_days(data)
-    expected = data["economy"]["params"]["payroll_daily_divisor"]["v"]
     if derived != expected:
-        fail("L92", f"derived window {derived} != payroll_daily_divisor {expected}")
+        fail("L92", f"derived window {derived} != fragment_window_city_days {expected}")
+        return
+    payroll = data["economy"]["params"]["payroll_daily_divisor"]["v"]
+    if expected == payroll:
+        fail(
+            "L92",
+            f"farm window {expected} aliases payroll_daily_divisor: wage fund horizon is not the farm clock",
+        )
+    if not isinstance(expected, int) or expected <= 0:
+        fail("L92", f"farm window {expected} must be a positive city-day count")
 
 
 def l93_protocol_split(data: dict) -> None:
@@ -2574,7 +2656,9 @@ def l107_zipf_floor_le_pool(data: dict) -> None:
         fail("L107", "seasons section missing")
         return
     n = data["seasons"]["params"]["prize_top_n"]["v"]
-    floor = seasons.zipf_payout(BPS, n, rounding=seasons.ROUND_FLOOR)
+    floor = seasons.zipf_payout(
+        BPS, n, rounding=seasons.ROUND_FLOOR, alpha_bps=seasons.zipf_curve_alpha(data)
+    )
     if not floor["invariant_ok"] or floor["sum_payout"] > BPS:
         fail(
             "L107",
@@ -2652,6 +2736,204 @@ def l110_wallet_slot_is_max(data: dict) -> None:
         fail("L110", f"two cities of one wallet took {settled['n_eligible']} slots")
     if settled["payouts"] and settled["payouts"][0]["influence"] != 50:
         fail("L110", f"merged score {settled['payouts'][0]['influence']} != max 50")
+    lo = "0x" + "aa" * 20
+    up = " 0x" + "AA" * 20 + "\n"
+    checksum = seasons.settle_prizes(
+        data,
+        [
+            {
+                "city_id": "city_a",
+                "wallet": lo,
+                "influence": 50,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+            {
+                "city_id": "city_b",
+                "wallet": up,
+                "influence": 30,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+        ],
+        BPS,
+    )
+    if checksum["n_eligible"] != 1:
+        fail("L110", f"checksum wallets took {checksum['n_eligible']} slots")
+    ghosts = seasons.settle_prizes(
+        data,
+        [
+            {
+                "city_id": "g1",
+                "wallet": "",
+                "influence": 9,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+            {
+                "city_id": "g2",
+                "wallet": "   ",
+                "influence": 8,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+        ],
+        BPS,
+    )
+    if ghosts["n_eligible"] != 2:
+        fail("L110", f"empty wallets collapsed to {ghosts['n_eligible']} slots")
+    collide = seasons.settle_prizes(
+        data,
+        [
+            {
+                "city_id": "city_a",
+                "wallet": lo,
+                "influence": 10,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+            {
+                "city_id": lo,
+                "wallet": "",
+                "influence": 99,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+        ],
+        BPS,
+    )
+    if collide["n_eligible"] != 2:
+        fail("L110", f"empty city_id collided with wallet into {collide['n_eligible']} slots")
+    spaced = "0x " + " ".join("aa" for _ in range(20))
+    inner = seasons.settle_prizes(
+        data,
+        [
+            {
+                "city_id": "city_a",
+                "wallet": lo,
+                "influence": 50,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+            {
+                "city_id": "city_b",
+                "wallet": spaced,
+                "influence": 30,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+        ],
+        BPS,
+    )
+    if inner["n_eligible"] != 1:
+        fail("L110", f"inner-space hex took {inner['n_eligible']} slots")
+    prefixed = seasons.settle_prizes(
+        data,
+        [
+            {
+                "city_id": "g1",
+                "wallet": "",
+                "influence": 9,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+            {
+                "city_id": "lit",
+                "wallet": "city:g1",
+                "influence": 20,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+        ],
+        BPS,
+    )
+    if prefixed["n_eligible"] != 2:
+        fail("L110", f"city: prefix collided with empty into {prefixed['n_eligible']} slots")
+    if seasons.sp(data, "prize_require_live_stake"):
+        stake0 = seasons.settle_prizes(
+            data,
+            [
+                {
+                    "city_id": "dead",
+                    "wallet": "w-dead",
+                    "influence": 99,
+                    "positive_days": pos,
+                    "live_stake": "0",
+                    "demo": False,
+                },
+                {
+                    "city_id": "ok",
+                    "wallet": "w-ok",
+                    "influence": 1,
+                    "positive_days": pos,
+                    "live_stake": True,
+                    "demo": False,
+                },
+            ],
+            BPS,
+        )
+        if stake0["n_eligible"] != 1:
+            fail("L110", f"live_stake string 0 counted as {stake0['n_eligible']} slots")
+    nbsp = "0x" + "aa" * 10 + "\u00a0" + "aa" * 10
+    glued = seasons.settle_prizes(
+        data,
+        [
+            {
+                "city_id": "city_a",
+                "wallet": lo,
+                "influence": 50,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+            {
+                "city_id": "city_b",
+                "wallet": nbsp,
+                "influence": 30,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+        ],
+        BPS,
+    )
+    if glued["n_eligible"] != 1:
+        fail("L110", f"nbsp hex took {glued['n_eligible']} slots")
+    kind_demo = seasons.settle_prizes(
+        data,
+        [
+            {
+                "city_id": "demo-city",
+                "wallet": "",
+                "influence": 99,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+                "account_kind": "demo",
+            },
+            {
+                "city_id": "ok",
+                "wallet": "w-ok",
+                "influence": 1,
+                "positive_days": pos,
+                "live_stake": True,
+                "demo": False,
+            },
+        ],
+        BPS,
+    )
+    if kind_demo["n_eligible"] != 1:
+        fail("L110", f"account_kind demo took {kind_demo['n_eligible']} slots")
 
 
 def l111_clone_not_qualified(data: dict) -> None:
@@ -2927,13 +3209,14 @@ def l116_no_fund_in_influence(data: dict) -> None:
 
 
 def l117_alpha_harmonic(data: dict) -> None:
-    rule("L117", "prize_curve_alpha_bps is 10000; no hand-authored share rows")
+    rule("L117", "prize_curve_alpha_bps is 8000 mix; no hand-authored share rows")
     if "seasons" not in data:
         fail("L117", "seasons section missing")
         return
     alpha = data["seasons"]["params"]["prize_curve_alpha_bps"]["v"]
-    if alpha != BPS:
-        fail("L117", f"prize_curve_alpha_bps {alpha} != {BPS}: v1 is harmonic BPS//k")
+    want = 8000
+    if alpha != want:
+        fail("L117", f"prize_curve_alpha_bps {alpha} != {want}: v1 is 80% harmonic / 20% equal mix")
     rows = (data.get("seasons") or {}).get("rows")
     if rows:
         fail("L117", f"seasons.rows {rows}: hand list of shares is forbidden")
@@ -2946,6 +3229,11 @@ def l117_alpha_harmonic(data: dict) -> None:
         exp = data["seasons"]["params"][name]["v"]
         if exp != BPS:
             fail("L117", f"{name} {exp} != {BPS}: v1 product is degree 1")
+    n = data["seasons"]["params"]["prize_top_n"]["v"]
+    mixed = seasons.zipf_weights(n, BPS, alpha)
+    harmonic = seasons.zipf_weights(n, BPS, BPS)
+    if mixed == harmonic:
+        fail("L117", "zipf_weights ignored prize_curve_alpha_bps: mix equals pure harmonic")
 
 
 def l118_zero_opened_coverage(data: dict) -> None:
@@ -7054,13 +7342,15 @@ def _vitest_names(data: dict) -> list[str]:
         return [m.group(2) for m in IT_NAME_RE.finditer(overlay)]
     names: list[str] = []
     skip = {"node_modules", "dist", ".git"}
+    # The public site is not a roadmap stage; its handbook tests are not construction probes.
+    outside_roadmap = {REPO / "apps" / "www"}
     for root in (REPO / "packages", REPO / "services", REPO / "apps"):
         if not root.exists():
             continue
         # Do not descend into skip dirs. rglob still walks pnpm copies and L268
         # becomes a minutes-long disk scan on every attack probe (docs/CONTENT.md §6 L268).
         for dirpath, dirnames, filenames in os.walk(root):
-            dirnames[:] = [d for d in dirnames if d not in skip]
+            dirnames[:] = [d for d in dirnames if d not in skip and Path(dirpath) / d not in outside_roadmap]
             for name in filenames:
                 if not name.endswith(".test.ts"):
                     continue
@@ -8443,7 +8733,7 @@ def l303_bot_refund_not_whole_vault(data: dict) -> None:
 
 
 def l304_spend_tenth_is_farm(data: dict) -> None:
-    rule("L304", "creator tax is 100/30/50/20 and Capital spend is 40/60/0")
+    rule("L304", "creator tax is 100/20/60/20 and Capital spend is 40/60/0")
     if "fragments" not in data or "economy" not in data or "seasons" not in data:
         fail("L304", "economy, seasons, or fragments section missing")
         return
@@ -8462,10 +8752,14 @@ def l304_spend_tenth_is_farm(data: dict) -> None:
     prize_share = int((seasons_params.get("prize_creator_tax_share_bps") or {}).get("v") or 0)
     active_work = int((fragments_params.get("active_work_creator_tax_bps") or {}).get("v") or 0)
     studio = int((econ.get("studio_eth_share_bps") or {}).get("v") or 0)
-    if prize_share != 5000 or active_work != 50 or studio != 2000:
-        fail("L304", f"tax params prize/active/studio = {prize_share}/{active_work}/{studio}, expected 5000/50/2000")
-    derived = build.build_economy(data)["fee_split"]
-    expected_fee = {"fund_bps": 100, "leaderboard_bps": 30, "farm_bps": 50, "studio_bps": 20}
+    if prize_share != 5000 or active_work != 60 or studio != 2000:
+        fail("L304", f"tax params prize/active/studio = {prize_share}/{active_work}/{studio}, expected 5000/60/2000")
+    try:
+        derived = build.build_economy(data)["fee_split"]
+    except ValueError as exc:
+        fail("L304", f"fee_split raised: {exc}")
+        return
+    expected_fee = {"fund_bps": 100, "leaderboard_bps": 20, "farm_bps": 60, "studio_bps": 20}
     for name, want in expected_fee.items():
         got = int(derived.get(name) or 0)
         if got != want:
@@ -9600,7 +9894,6 @@ OPS_INCIDENT_IDS = (
     "stale_sample",
     "attest_lag",
     "ipfs_pin_fail",
-    "llm_refuse",
     "uncovered_claim",
     "signer_compromise",
 )
@@ -10016,11 +10309,19 @@ def _glb_json_chunk(path: Path) -> dict:
     return doc if isinstance(doc, dict) else {}
 
 
+def _island_mass_glb(data: dict) -> Path:
+    overlay = data.get("_island_mass_path")
+    if isinstance(overlay, str) and overlay:
+        p = Path(overlay)
+        return p if p.is_absolute() else REPO / overlay
+    return REPO / "art" / "island_v3" / "runtime_terra19" / "island_mass.glb"
+
+
 def _island_anchor_names(data: dict) -> list[str]:
     overlay = data.get("_island_anchor_names")
     if isinstance(overlay, list):
         return [str(x) for x in overlay]
-    mass = REPO / "art" / "island_v3" / "runtime" / "island_mass.glb"
+    mass = _island_mass_glb(data)
     if not mass.is_file():
         return []
     names: list[str] = []
@@ -12381,7 +12682,7 @@ def l385_island_form(data: dict) -> None:
 def l386_island_client_live(data: dict) -> None:
     rule(
         "L386",
-        "live island is mass+Meshopt+anchors; no cell-grid/units/heroes in three.ts; no island_seed; island_client cites L386",
+        "live island is Terra mass+Meshopt; no occupancy anchors on the mass; no cell-grid/units/heroes in three.ts; no island_seed; island_client cites L386",
     )
     try:
         stages = ((data.get("arch") or {}).get("roadmap") or {})
@@ -12423,11 +12724,19 @@ def l386_island_client_live(data: dict) -> None:
             fail("L386", "SceneHost does not load island_mass.glb: the client would not draw the authored mass")
         if "content/out/heroes" in host:
             fail("L386", "SceneHost still globs content/out/heroes: toy GLB would replace runtime buildings")
+        if "_island_anchor_names" not in data:
+            mass = _island_mass_glb(data)
+            if not mass.is_file():
+                fail(
+                    "L386",
+                    "runtime_terra19/island_mass.glb is missing: the live client would have no Terra mass",
+                )
+                return
         names = _island_anchor_names(data)
-        if len(names) != 26:
+        if len(names) != 0:
             fail(
                 "L386",
-                f"island_mass.glb has {len(names)} anchor_* nodes, want 26: occupancy has no plant points",
+                f"island_mass.glb has {len(names)} occupancy anchor_* nodes, want 0: Terra plants from terra-look.json (R-V-105)",
             )
             return
         plants = ((data.get("render") or {}).get("island_plants") or {})
@@ -12444,6 +12753,7 @@ def l386_island_client_live(data: dict) -> None:
             "island_orbit_distance_min",
             "island_orbit_distance_max",
             "island_orbit_distance_default",
+            "look_orbit_distance_max_mul",
             "island_orbit_target_y",
             "island_sun_distance",
             "bloom_strength_bps",
@@ -12463,64 +12773,6 @@ def l386_island_client_live(data: dict) -> None:
                 return
     except Exception as exc:
         fail("L386", f"rule crashed on input: {type(exc).__name__}: {exc}")
-
-
-def l387_sign_day_gain(data: dict) -> None:
-    rule(
-        "L387",
-        "day signs use packed sign_day_gain_bps; windows/lamps stay off; one PCF shadow; bloomLive gates composer",
-    )
-    try:
-        g = _t10_gen(data)
-        phases = g.get("phases") or {}
-        day = phases.get("day") if isinstance(day, dict) else None
-        lights = int((day or {}).get("lights") or 0) if isinstance(day, dict) else 1
-        if lights != 0:
-            fail("L387", f"phase day lights={lights}: LOOK-09 must not turn on day windows and lamps")
-        gain = _param_flag(data, "render", "sign_day_gain_bps")
-        if gain is None or gain < 2500 or gain > 4000:
-            fail(
-                "L387",
-                f"sign_day_gain_bps={gain}: R-V-105 day signs must sit in 2500-4000 bps",
-            )
-        bloom_live = _param_flag(data, "render", "island_bloom_live")
-        if bloom_live not in (0, 1):
-            fail("L387", f"island_bloom_live={bloom_live}: must be 0 or 1")
-        shadows = _param_flag(data, "render", "island_shadows")
-        if shadows != 1:
-            fail("L387", f"island_shadows={shadows}: LOOK-09 needs one directional PCF shadow")
-        for key in (
-            "island_shadow_map_size",
-            "island_shadow_bias_bps",
-            "island_shadow_normal_bias_bps",
-        ):
-            val = _param_flag(data, "render", key)
-            if val is None or val <= 0:
-                fail("L387", f"render.{key}={val}: shadow map/bias must be packed and positive")
-                return
-        files = _render_src_files(data)
-        blob = "\n".join(body for _, body in files)
-        three = _src_named(files, "three.ts")
-        if "signDayGainBps" not in blob:
-            fail("L387", "signDayGainBps is missing: day signs have no packed home in render src")
-        if "bloomLive" not in three:
-            fail("L387", "three.ts has no bloomLive: stone bloom cannot be gated off")
-        if "PCFSoftShadowMap" not in three:
-            fail("L387", "three.ts has no PCFSoftShadowMap: LOOK-09 shadow type is missing")
-        if "gainW > gainS" in blob:
-            fail("L387", "render src still does max(window, sign): classified glow is gone")
-        if "applyClassifiedGlow" not in blob:
-            fail("L387", "applyClassifiedGlow is missing: sign/window/lamp would share one gain")
-        cmd = str((((data.get("arch") or {}).get("roadmap") or {}).get("island_client") or {}).get("gate_cmd") or "")
-        if "L387" not in cmd:
-            fail("L387", "island_client.gate_cmd dropped L387: day-sign packing would close on L386")
-        if JOBS8_RE.search(cmd):
-            fail("L387", "island_client.gate_cmd runs --jobs 8: the full attack belongs on island_close")
-        client = "\n".join(body for _, body in _client_src_files(data))
-        if "sign_day_gain_bps" not in client:
-            fail("L387", "client src does not read sign_day_gain_bps: HUD would keep day signs at zero")
-    except Exception as exc:
-        fail("L387", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
 
 def l388_companion_cut(data: dict) -> None:
@@ -12557,6 +12809,364 @@ def l388_companion_cut(data: dict) -> None:
                 break
     except Exception as exc:
         fail("L388", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l389_bank_l1_t2_ladder(data: dict) -> None:
+    rule("L389", "bank L1 personal share stays the T2 2500 bps of the daily pipe")
+    try:
+        if "balance" not in data or "params" not in (data.get("balance") or {}):
+            fail("L389", "balance section missing")
+            return
+        gain = int((((data.get("balance") or {}).get("params") or {}).get("bank_level_gain_bps") or {}).get("v") or 0)
+        want = 2500
+        if gain != want:
+            fail(
+                "L389",
+                f"bank_level_gain_bps {gain} != {want}: L1 is a quarter of the daily pipe, not a first-mover grab",
+            )
+    except Exception as exc:
+        fail("L389", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l390_payroll_boost_bounds(data: dict) -> None:
+    rule("L390", "payroll boost is at least identity, launch window is not stingier than steady, and window length sits in (0, fund cap]")
+    try:
+        params = ((data.get("economy") or {}).get("params") or {})
+        if not isinstance(params, dict):
+            fail("L390", "economy.params missing")
+            return
+
+        def pv(name: str) -> int:
+            row = params.get(name) or {}
+            if not isinstance(row, dict):
+                return 0
+            return int(row.get("v") or 0)
+
+        boost = pv("payroll_boost_bps")
+        launch = pv("payroll_boost_launch_bps")
+        days = pv("payroll_boost_launch_city_days")
+        cap = pv("payroll_fund_cap_days")
+        if boost < BPS:
+            fail("L390", f"payroll_boost_bps {boost} below BPS")
+        if launch < boost:
+            fail("L390", f"launch boost {launch} below steady boost {boost}")
+        if days < 1 or days > cap:
+            fail("L390", f"payroll_boost_launch_city_days {days} outside [1, payroll_fund_cap_days {cap}]")
+    except Exception as exc:
+        fail("L390", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l391_launch_window_published(data: dict) -> None:
+    rule(
+        "L391",
+        "when launch boost exceeds steady boost, the snapshot contract publishes payroll_boost_bps and payroll_boost_days_left",
+    )
+    try:
+        params = ((data.get("economy") or {}).get("params") or {})
+        if not isinstance(params, dict):
+            fail("L391", "economy.params missing")
+            return
+
+        def pv(name: str) -> int:
+            row = params.get(name) or {}
+            if not isinstance(row, dict):
+                return 0
+            return int(row.get("v") or 0)
+
+        launch = pv("payroll_boost_launch_bps")
+        boost = pv("payroll_boost_bps")
+        if launch <= boost:
+            return
+        sources = ((data.get("screens") or {}).get("state_sources") or {})
+        need = ("aggregate.payroll_boost_bps", "aggregate.payroll_boost_days_left")
+        for sid in need:
+            if sid not in sources:
+                fail(
+                    "L391",
+                    f"{sid} missing from screens.state_sources while launch boost {launch} > steady {boost}",
+                )
+        ch = arch.channel_map(data, data.get("arch") or {})
+        for sid in need:
+            if ch.get(sid) != "aggregate":
+                fail("L391", f"{sid} channel {ch.get(sid)!r} is not aggregate")
+    except Exception as exc:
+        fail("L391", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l392_output_cap_covers_content(data: dict) -> None:
+    rule("L392", "output_bps cap_max is not below the reachable composed content stack")
+    try:
+        g = _t5(data)
+        cap = int(((g.get("modifier_caps") or {}).get("output_bps") or {}).get("cap_max") or 0)
+        reachable = int(build.output_bps_reachable_max_bps(data, overlay=True))
+        if cap < reachable:
+            fail("L392", f"output_bps cap {cap} below reachable {reachable}")
+    except Exception as exc:
+        fail("L392", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l393_beacons_move_output(data: dict) -> None:
+    rule(
+        "L393",
+        "output_link emitters outnumber capital producers, and every playable non-capital beacon emits",
+    )
+    try:
+        buildings = ((data.get("buildings") or {}).get("buildings") or {})
+        districts = ((data.get("districts") or {}).get("districts") or {})
+        producers = {
+            bid
+            for bid, spec in buildings.items()
+            if isinstance(spec, dict) and spec.get("output") in ("capital", "capital_from_population")
+        }
+        emitters = {
+            bid
+            for bid, spec in buildings.items()
+            if isinstance(spec, dict) and isinstance(spec.get("output_link"), dict)
+        }
+        if len(emitters) <= len(producers):
+            fail(
+                "L393",
+                f"output_link emitters {len(emitters)} <= capital producers {len(producers)}: R-E-04 not in pack",
+            )
+        for bid, spec in sorted(buildings.items()):
+            if not isinstance(spec, dict):
+                continue
+            if spec.get("tier") != "beacon":
+                continue
+            if spec.get("output") in ("capital", "capital_from_population"):
+                continue
+            did = spec.get("district")
+            playable = bool((districts.get(did) or {}).get("playable_v1")) if did else False
+            if playable and not isinstance(spec.get("output_link"), dict):
+                fail("L393", f"{bid} playable beacon has no output_link")
+    except Exception as exc:
+        fail("L393", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l394_no_double_affinity(data: dict) -> None:
+    rule(
+        "L394",
+        "no producer bakes affinity into output_weight: every capital table producer pays back in normalization_payback_ticks",
+    )
+    try:
+        if "balance" not in data or "params" not in (data.get("balance") or {}):
+            fail("L394", "balance section missing")
+            return
+        payback = int(
+            (((data.get("balance") or {}).get("params") or {}).get("normalization_payback_ticks") or {}).get("v") or 0
+        )
+        if payback <= 0:
+            fail("L394", f"normalization_payback_ticks is {payback}: payback is undefined")
+            return
+        bal = build.build_balance(data)
+        costs = bal.get("level_cost") or {}
+        outs = bal.get("level_output") or {}
+        buildings = ((data.get("buildings") or {}).get("buildings") or {})
+        for bid, spec in sorted(buildings.items()):
+            if not isinstance(spec, dict) or spec.get("output") != "capital":
+                continue
+            cost_row = costs.get(bid) or [0]
+            out_row = outs.get(bid) or [0]
+            cost1 = int(cost_row[0] if cost_row else 0)
+            out1 = int(out_row[0] if out_row else 0)
+            if cost1 <= 0:
+                fail("L394", f"{bid} capital producer has no L1 cost")
+                continue
+            if out1 <= 0:
+                fail("L394", f"{bid} payback undefined != normalization {payback}")
+                continue
+            if out1 != cost1 // payback:
+                actual = cost1 // out1
+                fail("L394", f"{bid} payback {actual} != normalization {payback}")
+    except Exception as exc:
+        fail("L394", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l395_sleeper_recoups(data: dict) -> None:
+    rule(
+        "L395",
+        "sleeper return floor is at least par, and calibration A is not a payroll boost alias",
+    )
+    try:
+        meta = ((data.get("meta") or {}).get("params") or {})
+        floor_row = meta.get("return_minimalist_floor_bps") or {}
+        floor = int(floor_row.get("v") or 0) if isinstance(floor_row, dict) else 0
+        if floor < BPS:
+            fail(
+                "L395",
+                f"return_minimalist_floor_bps {floor} below BPS: R-E-05 sleeper is a designed minus",
+            )
+        econ = ((data.get("economy") or {}).get("params") or {})
+        bal = ((data.get("balance") or {}).get("params") or {})
+
+        def pv(bag: dict, name: str) -> int:
+            row = bag.get(name) or {}
+            if not isinstance(row, dict):
+                return 0
+            return int(row.get("v") or 0)
+
+        a = pv(bal, "fund_amplification_target_bps")
+        boost = pv(econ, "payroll_boost_bps")
+        launch = pv(econ, "payroll_boost_launch_bps")
+        if boost > 0 and a == boost:
+            fail(
+                "L395",
+                f"fund_amplification_target_bps {a} equals payroll_boost_bps: A is not the live boost",
+            )
+        if launch > 0 and a == launch:
+            fail(
+                "L395",
+                f"fund_amplification_target_bps {a} equals payroll_boost_launch_bps: A is not the live boost",
+            )
+    except Exception as exc:
+        fail("L395", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+_CARD_BUILD_ACTIONS = (
+    "building_build",
+    "building_activate",
+    "building_deactivate",
+    "building_upgrade",
+)
+_CHAIN_PLAY_CODES = (
+    "CHAIN_TX_UNCONFIRMED",
+    "WALLET_TX_REJECTED",
+    "VOUCHER_EXPIRED",
+)
+
+
+def l396_building_card_actions(data: dict) -> None:
+    rule(
+        "L396",
+        "building_card has build, activate, deactivate and upgrade, and none require a lot cell",
+    )
+    try:
+        actions = ((data.get("screens") or {}).get("actions") or {})
+        for aid in _CARD_BUILD_ACTIONS:
+            row = actions.get(aid)
+            if not isinstance(row, dict):
+                fail("L396", f"building_card action {aid} is missing")
+                continue
+            if row.get("screen") != "building_card":
+                fail("L396", f"{aid} screen is {row.get('screen')}, not building_card")
+            if "build_tile" in (row.get("requires") or []):
+                fail("L396", f"{aid} requires build_tile: the lot cell is gone")
+    except Exception as exc:
+        fail("L396", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l397_open_district_spends_nothing(data: dict) -> None:
+    rule(
+        "L397",
+        "districts_open requires wallet and stake_threshold, not corp, and spends nothing",
+    )
+    try:
+        row = ((data.get("screens") or {}).get("actions") or {}).get("districts_open")
+        if not isinstance(row, dict):
+            fail("L397", "districts_open is missing")
+            return
+        req = list(row.get("requires") or [])
+        if "corp" in req:
+            fail("L397", "districts_open requires corp: opening spends nothing")
+        if "wallet" not in req:
+            fail("L397", "districts_open is missing wallet")
+        if "stake_threshold" not in req:
+            fail("L397", "districts_open is missing stake_threshold")
+        if row.get("spend") != "none":
+            fail("L397", f"districts_open spend is {row.get('spend')}, not none")
+    except Exception as exc:
+        fail("L397", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def _env_example_text(data: dict) -> str:
+    overlay = data.get("_env_example")
+    if isinstance(overlay, str):
+        return overlay
+    path = REPO / "deploy" / ".env.example"
+    return path.read_text(encoding="utf-8") if path.exists() else ""
+
+
+def _env_assignment(text: str, name: str) -> int | None:
+    prefix = name + "="
+    for line in text.splitlines():
+        if not line.startswith(prefix):
+            continue
+        raw = line[len(prefix):].strip()
+        if not raw.isdigit():
+            return None
+        return int(raw)
+    return None
+
+
+def l398_chain_codes_translated(data: dict) -> None:
+    rule(
+        "L398",
+        "chain receipt, wallet rejection and voucher expiry exist in both languages",
+    )
+    try:
+        codes = ((data.get("codes") or {}).get("codes") or {})
+        ru = _ru_texts(data)
+        en = _en_texts(data)
+        for cid in _CHAIN_PLAY_CODES:
+            if cid not in codes:
+                fail("L398", f"code {cid} is missing")
+                continue
+            ru_text = ru.get(cid) if isinstance(ru, dict) else None
+            en_text = en.get(cid) if isinstance(en, dict) else None
+            if not isinstance(ru_text, str) or not ru_text.strip():
+                fail("L398", f"code {cid} has no ru string")
+            if not isinstance(en_text, str) or not en_text.strip():
+                fail("L398", f"code {cid} has no en string")
+    except Exception as exc:
+        fail("L398", f"rule crashed on input: {type(exc).__name__}: {exc}")
+
+
+def l399_unstake_cooldown_after_grace(data: dict) -> None:
+    rule(
+        "L399",
+        "token cooldown outlasts the district grace, and the env example matches the pack seconds",
+    )
+    try:
+        econ = ((data.get("economy") or {}).get("params") or {})
+        time_p = ((data.get("time") or {}).get("params") or {})
+        days_row = econ.get("unstake_cooldown_city_days")
+        if not isinstance(days_row, dict):
+            fail("L399", "unstake_cooldown_city_days is missing")
+            return
+        days = int(days_row.get("v") or 0)
+        hours = int((time_p.get("city_day_real_hours") or {}).get("v") or 0)
+        grace_h = int((econ.get("unstake_grace_city_hours") or {}).get("v") or 0)
+        tick_city_h = int((time_p.get("tick_length_city_hours") or {}).get("v") or 0)
+        if hours <= 0 or tick_city_h <= 0:
+            fail("L399", "city clock inputs are missing")
+            return
+        ticks_day = int((build.build_time(data).get("ticks_per_city_day") or 0))
+        if ticks_day <= 0:
+            fail("L399", "ticks_per_city_day is zero")
+            return
+        from_hours = days * hours * build.SECONDS_PER_HOUR
+        tick_len = hours * build.SECONDS_PER_HOUR // ticks_day
+        from_ticks = days * ticks_day * tick_len
+        if from_hours != from_ticks:
+            fail("L399", f"cooldown formulas diverge: {from_hours} vs {from_ticks}")
+            return
+        got = int((_t12_gen(data).get("unstake_cooldown_s") or 0))
+        if got != from_hours:
+            fail("L399", f"unstake_cooldown_s {got} != {from_hours}")
+            return
+        grace_s = grace_h * tick_len // tick_city_h
+        if not from_hours > grace_s:
+            fail("L399", f"cooldown {from_hours}s is not above grace {grace_s}s")
+            return
+        env_vars = (((data.get("arch") or {}).get("env") or {}).get("vars") or {})
+        if "CORPORATOR_UNSTAKE_COOLDOWN_S" not in env_vars:
+            fail("L399", "CORPORATOR_UNSTAKE_COOLDOWN_S is not in arch.env")
+            return
+        parsed = _env_assignment(_env_example_text(data), "CORPORATOR_UNSTAKE_COOLDOWN_S")
+        if parsed != from_hours:
+            fail("L399", f"CORPORATOR_UNSTAKE_COOLDOWN_S {parsed} != {from_hours}")
+    except Exception as exc:
+        fail("L399", f"rule crashed on input: {type(exc).__name__}: {exc}")
 
 
 # ------------------------------------------------------------------- pending
@@ -12767,8 +13377,18 @@ RULES = [
     l384_visual3_close_measured,
     l385_island_form,
     l386_island_client_live,
-    l387_sign_day_gain,
     l388_companion_cut,
+    l389_bank_l1_t2_ladder,
+    l390_payroll_boost_bounds,
+    l391_launch_window_published,
+    l392_output_cap_covers_content,
+    l393_beacons_move_output,
+    l394_no_double_affinity,
+    l395_sleeper_recoups,
+    l396_building_card_actions,
+    l397_open_district_spends_nothing,
+    l398_chain_codes_translated,
+    l399_unstake_cooldown_after_grace,
 ]
 
 

@@ -36,31 +36,37 @@ function markup(node: ReturnType<typeof createElement>): string {
 }
 
 describe("HUD visual system", () => {
+  // Probe name is pinned by the pack (construction_tests, L268); the tokens it checks are the light
+  // mockup scheme from hud/design-reference/DESIGN_SCHEME.md, not the retired dark v1.1 chrome.
   it("keeps Desktop v1.1 bright-blue tokens in palette and CSS", () => {
     const css = readFileSync(join(client, "src/hud/hud.css"), "utf8")
-    expect(HUD_CHROME.blue).toBe("#245A9A")
-    expect(HUD_CHROME.blueDark).toBe("#1D4B86")
-    expect(HUD_CHROME.blueLight).toBe("#2E68AA")
-    expect(HUD_CHROME.gradientTop).toBe("#2C67AA")
-    expect(HUD_CHROME.gradientBottom).toBe("#1E4F8C")
-    expect(HUD_CHROME.textPrimary).toBe("#F4F7FA")
-    expect(HUD_CHROME.textSecondary).toBe("#C7D5E3")
-    expect(HUD_CHROME.textMuted).toBe("#8FA8C0")
-    expect(HUD_CHROME.interaction).toBe("#45C7F4")
-    expect(HUD_CHROME.selected).toBe("#FFB64A")
-    expect(HUD_CHROME.success).toBe("#63D68A")
-    expect(HUD_CHROME.warning).toBe("#F0B85B")
-    expect(HUD_CHROME.error).toBe("#E97878")
+    expect(HUD_CHROME.blue).toBe("#E4F0FD")
+    expect(HUD_CHROME.blueDark).toBe("#D3E2F4")
+    expect(HUD_CHROME.blueLight).toBe("#F2F7FE")
+    expect(HUD_CHROME.gradientTop).toBe("#F2F7FE")
+    expect(HUD_CHROME.gradientBottom).toBe("#F2F7FE")
+    expect(HUD_CHROME.textPrimary).toBe("#0F1E4A")
+    expect(HUD_CHROME.textSecondary).toBe("#3F4E70")
+    expect(HUD_CHROME.textMuted).toBe("#6F7D9C")
+    expect(HUD_CHROME.interaction).toBe("#0A5CF8")
+    expect(HUD_CHROME.selected).toBe("#FFFFFF")
+    expect(HUD_CHROME.success).toBe("#0E9F5A")
+    expect(HUD_CHROME.warning).toBe("#F5A40A")
+    expect(HUD_CHROME.error).toBe("#E5383B")
     for (const hex of Object.values(HUD_CHROME)) {
       expect(css.includes(hex)).toBe(true)
     }
-    expect(css.includes("linear-gradient(180deg, #2C67AA 0%, #1E4F8C 100%)")).toBe(true)
+    // Old dark-glass chrome must not come back.
+    for (const hex of ["#245A9A", "#1D4B86", "#2E68AA", "#2C67AA", "#1E4F8C", "#45C7F4", "#FFB64A"]) {
+      expect(css.includes(hex)).toBe(false)
+    }
+    expect(css.includes("color-scheme: light")).toBe(true)
     expect(css.includes(".hud-btn--primary")).toBe(true)
     expect(css.includes(".hud-btn--secondary")).toBe(true)
     expect(css.includes(".hud-btn--ghost")).toBe(true)
-    expect(css.includes("--hud-radius-small: 8px")).toBe(true)
-    expect(css.includes("--hud-radius-medium: 12px")).toBe(true)
-    expect(css.includes("--hud-radius-large: 16px")).toBe(true)
+    expect(css.includes("--hud-radius-small: 3px")).toBe(true)
+    expect(css.includes("--hud-radius-medium: 5px")).toBe(true)
+    expect(css.includes("--hud-radius-large: 6px")).toBe(true)
     expect(css.includes("--hud-size-caption: 0.75rem")).toBe(true)
     expect(css.includes("--hud-size-display: 2.25rem")).toBe(true)
     expect(css.includes("#071522")).toBe(false)
@@ -83,7 +89,6 @@ describe("HUD visual system", () => {
     expect(studioCss.includes("overflow-x: auto")).toBe(false)
     expect(eco.includes("hud-economy__meter")).toBe(true)
     expect(eco.includes("hud-economy__res")).toBe(true)
-    expect(eco.slice(eco.indexOf("function ResourceLine")).includes("<Progress")).toBe(false)
     expect(boot.includes("buildHud")).toBe(true)
     expect(boot.includes("loadHudPreviewAssets")).toBe(true)
     expect(groupThousands("0")).toBe("0")

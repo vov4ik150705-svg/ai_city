@@ -1,11 +1,10 @@
 import type { ReactElement } from "react"
 import type { ClientPack } from "../../packview.js"
-import { lookup, type StringTable } from "../../strings.js"
+import type { StringTable } from "../../strings.js"
 import { exactBigint, type FieldView, type StatusRowView } from "../fields.js"
 import type { HudView } from "../model.js"
 import { HudIcon, glyphForStatus, type HudGlyph } from "../parts/HudIcon.js"
 import { groupThousands } from "../parts/groupThousands.js"
-import { Progress } from "../parts/ProgressMeter.js"
 import { FieldValue } from "../parts/ValueRow.js"
 
 function statusGlyph(id: string): HudGlyph {
@@ -19,27 +18,20 @@ function statusGlyph(id: string): HudGlyph {
   }
 }
 
-function nextPopulationThreshold(pack: ClientPack, level: bigint | undefined): bigint | undefined {
-  if (level === undefined) return undefined
-  return pack.populationThresholdByLevel[(level + 1n).toString()]
-}
-
 export function CityStatusLook(props: {
   readonly view: HudView
   readonly strings: StringTable
   readonly pack: ClientPack
   readonly onDetails?: () => void
+  readonly onDistricts?: () => void
 }): ReactElement {
-  const used = new Set<string>()
-  const nextLabel = lookup(props.strings, "UI_NEXT", used)
   const shell = props.view.shell
   const popRow = shell.cityStatus.find((row) => row.id === "population")
-  const levelRow = shell.cityStatus.find((row) => row.id === "city_level")
   const rest = shell.cityStatus.filter((row) => row.id !== "population")
-  const pop = popRow === undefined ? undefined : exactBigint(popRow.field)
-  const level = levelRow === undefined ? undefined : exactBigint(levelRow.field)
-  const next = nextPopulationThreshold(props.pack, level)
   const details = props.onDetails
+  void props.strings
+  void props.pack
+  void props.onDistricts
   return (
     <section
       data-id="city"
@@ -56,7 +48,7 @@ export function CityStatusLook(props: {
         </h2>
       </header>
       <div className="hud-economy__res">
-        {popRow === undefined ? null : <PopulationBlock row={popRow} pop={pop} next={next} nextLabel={nextLabel} />}
+        {popRow === undefined ? null : <StatusLine row={popRow} grouped={true} />}
         {rest.map((row) => (
           <StatusLine key={row.id} row={row} />
         ))}
@@ -73,38 +65,6 @@ export function CityStatusLook(props: {
         </button>
       )}
     </section>
-  )
-}
-
-function PopulationBlock(props: {
-  readonly row: StatusRowView
-  readonly pop: bigint | undefined
-  readonly next: bigint | undefined
-  readonly nextLabel: string
-}): ReactElement {
-  const row = props.row
-  const next = props.next
-  const pop = props.pop
-  return (
-    <div className="hud-economy__pop">
-      <StatusLine row={row} grouped={true} />
-      {next === undefined || next <= 0n ? null : (
-        <div className="hud-economy__pop-track">
-          <div className="hud-economy__meter">
-            <Progress
-              label={row.label}
-              labelKey={row.key}
-              valueBps={pop === undefined ? 0n : pop}
-              maxBps={next}
-              compact={true}
-            />
-          </div>
-          <span data-key="UI_NEXT" className="hud-economy__pop-next">
-            {props.nextLabel}: {groupThousands(next.toString())}
-          </span>
-        </div>
-      )}
-    </div>
   )
 }
 

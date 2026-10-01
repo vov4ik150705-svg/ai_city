@@ -14,6 +14,7 @@ export type BuybackPack = {
   readonly capitalAnchor: bigint
   readonly creatorTaxBps: bigint
   readonly bps: bigint
+  readonly gasHeadroomBps: bigint
   readonly order: readonly StampField[]
   readonly executorService: string
   readonly voucherService: string
@@ -100,6 +101,8 @@ export function loadBuybackPack(bytes: Uint8Array): BuybackPack {
   ) {
     throw new LoadError(codes.API_MALFORMED)
   }
+  const api = asObj(atPath(pack, ["sections", "api"]))
+  const gasHeadroomBps = paramV(api, "server_gas_headroom_bps")
   const burn = paramV(economy, "spend_burn_bps")
   const fund = paramV(economy, "spend_fund_bps")
   const proto = paramV(economy, "spend_protocol_bps")
@@ -134,6 +137,7 @@ export function loadBuybackPack(bytes: Uint8Array): BuybackPack {
     capitalAnchor: paramV(economy, "capital_anchor"),
     creatorTaxBps: paramV(economy, "creator_tax_bps"),
     bps,
+    gasHeadroomBps,
     order: orderOf(strList(arch["buyback_order"])),
     executorService: asText(buy["service"]),
     voucherService: asText(voucher["service"]),

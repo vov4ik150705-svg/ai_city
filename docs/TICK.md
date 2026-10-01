@@ -1,6 +1,6 @@
 # Тик и аттестация
 
-Канон движка Corporator. Механика экономики — `DESIGN.md`. Интерфейс — `HUD.md`. Порядок шагов T3 — `docs/SIMULATION.md` §1. Стадии модификаторов — `docs/PROGRESSION.md` `T5.2`. Фрагменты и сезоны — `docs/PRIZES.md`.  Догон на экране — `docs/SCREENS.md` §5. Парки как счётчик — `docs/WORLD.md` `R-T10-1`. Числа баланса — `docs/BALANCE.md` и `content/out/GENERATED.md`, не копия.
+Канон движка Corporator. Механика экономики — `DESIGN.md`. Интерфейс — `docs/reports/HUD_DESIGN_SYSTEM.md`. Порядок шагов T3 — `docs/SIMULATION.md` §1. Стадии модификаторов — `docs/PROGRESSION.md` `T5.2`. Фрагменты и сезоны — `docs/PRIZES.md`.  Догон на экране — `docs/SCREENS.md` §5. Парки как счётчик — `docs/WORLD.md` `R-T10-1`. Числа баланса — `docs/BALANCE.md` и `content/out/GENERATED.md`, не копия.
 
 Широкие таблицы — маркеры `<!-- GEN:... -->`, секции пака «T11: …», команда `python content/build.py`. Ни одного голого двухзначного литерала вне бэктиков, GEN и ссылок.
 
@@ -43,7 +43,7 @@ BRIEF: `tick(state, inputs) -> (state, records)`.
 
 Запрещено внутри `tick` и модулей записи/агрегатов на этом пути: внешний инференс; `random` без сида; системное время; сеть; диск; `float`, `Decimal`, `math` кроме целого `//`. Случайность — только `hash` стрима §5. Время — только `city_time` с сервера.
 
-**Экономика падает закрыто. Аттестация падает открыто.** Несовпавший `pack_hash` — отказ считать. Упавший IPFS/RPC — выплата уже в `state`, записи в outbox, HUD `· logged` (`HUD.md` §5.3, §9). `derived.attest_failure_mode` — open. Ни одного `raise` аттестации внутрь тика.
+**Экономика падает закрыто. Аттестация падает открыто.** Несовпавший `pack_hash` — отказ считать. Упавший IPFS/RPC — выплата уже в `state`, записи в outbox, HUD `· logged` (`docs/SCREENS.md`, `docs/reports/HUD_DESIGN_SYSTEM.md`). `derived.attest_failure_mode` — open. Ни одного `raise` аттестации внутрь тика.
 
 ---
 
@@ -238,7 +238,7 @@ node = keccak256(domain_node || left || right)   # позиционно
 
 Батчер: все запечатанные тики всех городов за минуту стены → одно дерево → один корень (`attest_root_period_s`, `L204`). IPFS: один объект `derived.ipfs_aggregate_key` `(city_id, city_day)` (`L205`); CID в событии корня, который закрывает сутки города (тик этого города с `hour==0`). CID суток — канонические `{city_id, city_day, root}` и коды `attest.params.cid_*`. Хост зовёт аттестатор после COMMIT; отказ IPFS/RPC не откатывает выплату (`L349`). Реализация `rpc` пишет тот же hex, что локальный `merkleRoot`; отказ — `SERVICE_DEGRADED`, тик не ждёт.
 
-Отказ IPFS/RPC: outbox, `attest_lag_ticks`, HUD `· logged`. Игрок кликает бейдж — proof и CID, когда слой включён (`HUD.md` §5.3).
+Отказ IPFS/RPC: outbox, `attest_lag_ticks`, HUD `· logged`. Игрок кликает бейдж — proof и CID, когда слой включён (`docs/SCREENS.md`).
 
 <!-- GEN:tick.attest_params -->
 Сгенерировано. Источники: `content/out/GENERATED.md` «T11: attest params». Команда: `python content/build.py`.
@@ -296,7 +296,7 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 
 **T5.** `apply_stack` на `city["nodes"]`. Пустой стек — тождество `BPS`, полосы T2 не двигаются (D6, `R-T11-6` / `R-T5-12` наполовину). Стадии в порядке T5.2: `base` до проверки входов, `post` после выхода до payroll. Слот `productivity` в сплаве — тождество; измерение — §11.
 
-**Фрагменты.** Начисление только если `fragments.tick_accrues` (валидный оплаченный маяк). База — gross до `payroll_ratio` (`DESIGN.md` §2.9, `docs/PRIZES.md`). Дельта в записи. Settlement в час `efficiency_recalc_hour`. Неоплаченный тик — дельта `0` (`L219`).
+**Фрагменты.** Начисление только если `fragments.tick_accrues` (валидный оплаченный маяк). База — gross до `payroll_ratio` (`DESIGN.md` §2.9, `docs/PRIZES.md`). Дельта в записи. Settlement в час `efficiency_recalc_hour` на границе `fragment_window_city_days` (7 суток города, не `payroll_daily_divisor`). Неоплаченный тик — дельта `0` (`L219`).
 
 **Сезоны.** `I_day` на закрытии суток. Текущий pack имеет
 `season_prizes_live = 1`: ранг и sizing призов включены, а фактическая
@@ -310,7 +310,7 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 ## §13. Версионирование
 
 `pack_version` растёт при любой публикации. Текущий reference pack —
-`138`, `rules_version` — `0.24.0`, `layout_version` — `1`. Исторические
+`176` (`7bbdc470c0b3d4d188…`), `rules_version` — `0.24.0`, `layout_version` — `1`. Исторические
 значения конкретного шага не являются текущим pack.
 
 Совместимое (minor): новая сущность, которой не было; текст без смены слотов; ключ, который никто не читает; обоснование.
@@ -325,7 +325,7 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 
 ## §14. Расхождения `R-T11-*`
 
-Пословные правки `DESIGN.md` / `HUD.md` этого шага помечены **внесено**. Одно-два предложения, не раздел целиком (`DESIGN.md` §12). `docs/CONTENT.md` этой зоной не правится.
+Пословные правки `DESIGN.md` / `docs/reports/HUD_DESIGN_SYSTEM.md` этого шага помечены **внесено**. Одно-два предложения, не раздел целиком (`DESIGN.md` §12). `docs/CONTENT.md` этой зоной не правится.
 
 ### `R-T11-1` — период корня: час → минута; CID суток города
 
@@ -385,7 +385,7 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 
 ### `R-T11-7` — пороги Happiness / Stability в пак
 
-`HUD.md` §4.1. **Внесено** в `HUD.md` §4.1.
+`docs/reports/HUD_DESIGN_SYSTEM.md`. **Внесено** в `docs/reports/HUD_DESIGN_SYSTEM.md`.
 
 **Было:** «Ниже `50%` — штраф к Productivity, строка краснеет»; «Ниже `70%` — подсказка «проверь energy»».
 
@@ -417,7 +417,7 @@ IPFS key `(city_id , city_day)`. header leaf `0`; records `1`..n sorted by `agen
 
 ### `R-T11-12` — владельцы `state_sources` кошелька
 
-Исходное ТЗ отдавало все `wallet.*` тику. Правка `DESIGN.md` / `HUD.md` не нужна: стейк уже гейт района (`DESIGN.md` §4.5); баланс `$CORP` и сеть — `HUD.md` §3 / T12.
+Исходное ТЗ отдавало все `wallet.*` тику. Правка `DESIGN.md` / `docs/reports/HUD_DESIGN_SYSTEM.md` не нужна: стейк уже гейт района (`DESIGN.md` §4.5); баланс `$CORP` и сеть — `docs/SCREENS.md` / T12.
 
 **Было:** все `wallet.*` — T11.
 
@@ -435,7 +435,7 @@ L42 — `[10230, 13154]`, а динамическая проверка ново�
 
 ### `R-T11-14` — HUD Productivity «множитель» vs §8
 
-После `R-T11-9` `DESIGN.md` §8 больше не зовёт Productivity множителем, а `HUD.md` §4.1 в соседней строке ещё писал «Множитель выхода». **Внесено** минимально: смысл строки Productivity в `HUD.md` §4.1 — измерение выхода, ссылка на `docs/TICK.md` §11.
+После `R-T11-9` `DESIGN.md` §8 больше не зовёт Productivity множителем, а `docs/reports/HUD_DESIGN_SYSTEM.md` в соседней строке ещё писал «Множитель выхода». **Внесено** минимально: смысл строки Productivity в `docs/reports/HUD_DESIGN_SYSTEM.md` — измерение выхода, ссылка на `docs/TICK.md` §11.
 
 ### `R-T11-15` — `DESIGN.md` §6.3 и лист-заголовок
 

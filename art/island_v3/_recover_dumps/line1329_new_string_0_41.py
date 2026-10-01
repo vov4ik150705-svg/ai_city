@@ -1,0 +1,1 @@
+            if c.z > -1.5 * ISLAND_SCALE:

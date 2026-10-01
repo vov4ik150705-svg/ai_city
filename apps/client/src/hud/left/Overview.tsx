@@ -33,10 +33,32 @@ export function ActiveEvents(props: {
   readonly title: string
   readonly titleKey: string
   readonly empty: string
+  readonly events: HudView["shell"]["events"]
 }): ReactElement {
+  const events = props.events
+  if (events.kind === "unavailable") {
+    return (
+      <Panel id="events" title={props.title} titleKey={props.titleKey}>
+        <Empty textKey={events.messageKey} text={events.message} />
+      </Panel>
+    )
+  }
+  if (events.kind === "empty" || events.rows.length === 0) {
+    return (
+      <Panel id="events" title={props.title} titleKey={props.titleKey}>
+        <Empty textKey="UI_EMPTY_NO_EVENTS" text={props.empty} />
+      </Panel>
+    )
+  }
   return (
     <Panel id="events" title={props.title} titleKey={props.titleKey}>
-      <Empty textKey="UI_EMPTY_NO_EVENTS" text={props.empty} />
+      <ul className="hud-list" data-events="ready">
+        {events.rows.map((row) => (
+          <li key={row.id} data-key={row.key}>
+            {row.text}
+          </li>
+        ))}
+      </ul>
     </Panel>
   )
 }

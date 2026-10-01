@@ -14,9 +14,10 @@ import {
 } from "three"
 import type { Intersection, Object3D } from "three"
 import { clipRadiusWithTest, isDeckSample } from "./contactClip.js"
+import { FORTY, FORTY_EIGHT, TWENTY, TWO } from "../literals.js"
 
-const RAY_LIFT = 40
-const RAY_FAR = 48
+const RAY_LIFT = FORTY
+const RAY_FAR = FORTY_EIGHT
 
 const _box = new Box3()
 const _pos = new Vector3()
@@ -84,7 +85,7 @@ export function buildContactOcclusion(
     if (isContactHost(node)) rows.push(node)
   }
   if (rows.length === 0) return null
-  const geo = new CircleGeometry(1, 20)
+  const geo = new CircleGeometry(1, TWENTY)
   const mat = new MeshBasicMaterial({
     color: new Color(0x1c1814),
     transparent: true,
@@ -99,7 +100,7 @@ export function buildContactOcclusion(
   mesh.castShadow = false
   mesh.receiveShadow = false
   mesh.frustumCulled = false
-  mesh.renderOrder = 2
+  mesh.renderOrder = TWO
   mesh.raycast = skipRaycast
   _quat.setFromAxisAngle(_tilt, Math.PI * -0.5)
   let i = 0

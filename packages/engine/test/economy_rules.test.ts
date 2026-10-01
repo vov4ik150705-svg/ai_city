@@ -76,6 +76,18 @@ describe("economy owner rules", () => {
     awardTrain(city, asDict(agents[0]), curve, 5n, 1500n, 10000n, [])
     expect(asBig(asDict(agents[0])["xp"])).toBe(1n)
     expect(asBig(asDict(agents[1])["xp"])).toBe(2n)
+    const boosted: Dict = {
+      payout: 1n,
+      idle: "",
+      agents: [
+        { id: "s", level: 1n, xp: 0n, xp_remainder: 0n, train_target: "e", xp_rate_mags: [10000n] },
+        { id: "e", level: 1n, xp: 0n, xp_remainder: 0n },
+      ],
+    }
+    awardPaidTick(boosted, curve, 5n, 1500n, 10000n, [])
+    const boostedAgents = boosted["agents"] as Dict[]
+    awardTrain(boosted, asDict(boostedAgents[0]), curve, 5n, 1500n, 10000n, [])
+    expect(asBig(asDict(boostedAgents[1])["xp"])).toBe(3n)
     const self: Dict = { id: "s", train_target: "s" }
     expect(awardTrain(city, self, curve, 5n, 1500n, 10000n, [])).toBe(0n)
     const a: Dict = { xp: 0n, level: 1n, xp_remainder: 0n }
@@ -139,8 +151,11 @@ describe("economy owner rules", () => {
     const pack = loadPack()
     const cfg = loadConfig(pack)
     const data = asDict(cfg["data"])
-    expect(windowSettleDue(data, 15n, asBig(cfg["efficiency_recalc_hour"]))).toBe(true)
-    expect(windowSettleDue(data, 14n, asBig(cfg["efficiency_recalc_hour"]))).toBe(false)
+    const days = asBig(
+      asDict(asDict(asDict(data["fragments"])["params"])["fragment_window_city_days"])["v"],
+    )
+    expect(windowSettleDue(data, days + 1n, asBig(cfg["efficiency_recalc_hour"]))).toBe(true)
+    expect(windowSettleDue(data, days, asBig(cfg["efficiency_recalc_hour"]))).toBe(false)
     const base = fragmentGrossBase(undefined, 240000n, undefined, 10000n, 1n, 240n, 10000n)
     expect(base).toBe(1000n)
     const solo = settleFromData(data, [10000n], 100n)
@@ -161,12 +176,12 @@ describe("economy owner rules", () => {
     expect(asBig(econ["round_trip_cost_bps"])).toBe(1445n)
   })
 
-  it("creator tax split is 100/30/50/20 of tax atoms on turnover", () => {
+  it("creator tax split is 100/20/60/20 of tax atoms on turnover", () => {
     const shareBps = 10000n
     const creatorTaxBps = 200n
     const prizeShareBps = 5000n
     const studioShareBps = 2000n
-    const activeWorkCreatorTaxBps = 50n
+    const activeWorkCreatorTaxBps = 60n
     const cfg: Dict = {
       share_bps: shareBps,
       creator_tax_bps: creatorTaxBps,
@@ -186,8 +201,8 @@ describe("economy owner rules", () => {
       creatorTaxBps,
     )
     expect(split[0]).toBe(100n)
-    expect(split[1]).toBe(30n)
-    expect(split[2]).toBe(50n)
+    expect(split[1]).toBe(20n)
+    expect(split[2]).toBe(60n)
     expect(split[3]).toBe(20n)
     expect(split[0] + split[1] + split[2] + split[3]).toBe(tax)
     const state: Dict = {
@@ -204,8 +219,8 @@ describe("economy owner rules", () => {
     }
     applyDexTurnover(cfg, state, shareBps)
     expect(asBig(state["treasury_fund_eth"])).toBe(100n)
-    expect(asBig(state["treasury_leaderboard_eth"])).toBe(30n)
-    expect(asBig(state["treasury_farm_eth"])).toBe(50n)
+    expect(asBig(state["treasury_leaderboard_eth"])).toBe(20n)
+    expect(asBig(state["treasury_farm_eth"])).toBe(60n)
     expect(asBig(state["treasury_studio_eth"])).toBe(20n)
     expect(asBig(state["treasury_basket_eth"])).toBe(80n)
     const missing: Dict = { ...cfg }
@@ -260,5 +275,18 @@ describe("economy owner rules", () => {
     expect(asBig(ok["returned"])).toBe(6n)
     expect(asBig(asDict(city["stake_settled"])["NVDA"])).toBe(4n)
     expect(asBig(asDict(city["tokens_held"])["NVDA"])).toBe(6n)
+    expect(asBig(asDict(city["district_freeze_until"])["NVDA"])).toBe(124n)
+    const freezePending = city["unstake_pending"]
+    expect(Array.isArray(freezePending)).toBe(true)
+    if (Array.isArray(freezePending)) {
+      expect(freezePending.length).toBe(1)
+      expect(asDict(freezePending[0] ?? {})["ready_at"]).toBe(124n)
+    }
+    const citySafe: Dict = { stake_settled: { NVDA: 10n }, tokens_held: {}, codes: [] }
+    const stay = unstake(citySafe, "NVDA", 5n, 100n, 24n, 5n)
+    expect(asBig(stay["ok"])).toBe(1n)
+    expect(asBig(asDict(citySafe["stake_settled"])["NVDA"])).toBe(5n)
+    expect("NVDA" in asDict(citySafe["district_freeze_until"] ?? {})).toBe(false)
+    expect(citySafe["unstake_pending"]).toBe(undefined)
   })
 })

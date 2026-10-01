@@ -10,3 +10,7 @@ allowBuilds:
   "@embedded-postgres/linux-x64": true
   "@embedded-postgres/linux-arm64": true
   sharp: true
+minimumReleaseAgeExclude:
+  - framer-motion@13.4.5
+  - motion-dom@13.4.5
+  - motion@13.4.5

@@ -3,9 +3,10 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import { loadPack } from "@corporator/contentpack"
 import { listenPorts } from "@corporator/protocol"
+import { collectorDepsFromEnv, selectConveyorSource } from "./collect.js"
 import { loadBuybackPack } from "./pack.js"
 import { listenReady } from "./ready.js"
-import { createDefaultConveyorSubmit } from "./worker.js"
+import { createBuybackPort, createConveyorSubmit } from "./worker.js"
 
 function packPath(): string {
   const env = process.env.PACK_PATH
@@ -26,7 +27,12 @@ export async function startMain(): Promise<void> {
     return
   }
   const pack = loadBuybackPack(bytes)
-  await listenReady(loaded.hash, listenPorts.buyback, createDefaultConveyorSubmit(bytes, pack))
+  const env = process.env
+  await listenReady(
+    loaded.hash,
+    listenPorts.buyback,
+    createConveyorSubmit(pack, createBuybackPort(bytes, pack), selectConveyorSource(env, pack, collectorDepsFromEnv(env, pack))),
+  )
 }
 
 const argv1 = process.argv[1]

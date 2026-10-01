@@ -7,7 +7,7 @@ const repo = join(root, "..", "..")
 
 export default defineConfig({
   root,
-  publicDir: false,
+  publicDir: "public",
   assetsInclude: ["**/*.hex", "**/*.woff2", "**/*.glb"],
   server: {
     fs: { allow: [repo] },

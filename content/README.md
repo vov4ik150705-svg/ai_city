@@ -30,9 +30,9 @@ python content/builds.py     доминирование T4: BUILDS.md и BUILDS.
 | `fixtures/design_11_scope.json` | дословная выписка скоупа v1 из §11, эталон для генератора | только вместе с каноном |
 | `fixtures/kottara_launch.json` | замеренные факты запуска KOTS: первая покупка и 5/7 supply | только вместе с логом чейна |
 | `fixtures/brief_t9_screens.json` | дословная выписка BRIEF §6 T9, эталон инвентаря экранов | только вместе с BRIEF |
-| `fixtures/hud_screens.json` | дословная выписка HUD: панели, рез, never-cut | только вместе с HUD.md |
+| `fixtures/hud_screens.json` | дословная выписка панелей, резов, never-cut | только вместе с `docs/SCREENS.md` |
 | `fixtures/brief_t10_world.json` | дословная выписка BRIEF §6 T10, эталон инвентаря вида города | только вместе с BRIEF |
-| `fixtures/hud_layout.json` | дословная выписка геометрии HUD §2 (колонки, топбар, сток-полоса, нижнее меню) | только вместе с HUD.md |
+| `fixtures/hud_layout.json` | геометрия legacy-шелла (колонки, топбар, сток-полоса, нижнее меню) для L341 | числа не копировать в пак; живой вид — `hud/design-reference/` и errata `docs/reports/HUD_DESIGN_SYSTEM.md` |
 | `fixtures/authored_layout.json` | посадка лотов владельца: пустой список держит генератор | да, студией `studio.py` |
 | `fixtures/brief_t11_tick.json` | дословная выписка BRIEF §6 T11, эталон инвентаря тика | только вместе с BRIEF |
 | `fixtures/tick_aggregates.json` | векторы keccak256 и свидетели Happiness/Productivity | вместе с `keccak.py` / `aggregates.py` |

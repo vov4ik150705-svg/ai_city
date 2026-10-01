@@ -1,18 +1,28 @@
+/** Arrow keys move cabinets only when they are not driving the island or a tab. */
+export function cabinetArrows(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false
+  if (target.closest("[data-surface='scene'], [data-surface='scene-stub']") !== null) return false
+  if (target.closest("[role='tab'], [role='listbox'], [role='option'], .hud-pick") !== null) return false
+  return true
+}
+
 export function isTypingTarget(target: EventTarget | null): boolean {
   if (target === null || !(target instanceof Element)) return false
   const hit = target.closest("input, textarea, select, [contenteditable='true']")
   return hit !== null
 }
 
-export type HudEscapeTarget = "hold" | "workspace" | "selection" | "none"
+export type HudEscapeTarget = "hold" | "review" | "workspace" | "selection" | "none"
 
 /** Escape closes the topmost visible overlay; an in-flight txn is not dismissible. */
 export function hudEscapeTarget(args: {
   readonly txnInFlight: boolean
+  readonly reviewOpen: boolean
   readonly workspaceOpen: boolean
   readonly selected: boolean
 }): HudEscapeTarget {
   if (args.txnInFlight) return "hold"
+  if (args.reviewOpen) return "review"
   if (args.workspaceOpen) return "workspace"
   if (args.selected) return "selection"
   return "none"

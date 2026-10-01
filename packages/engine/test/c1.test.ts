@@ -16,6 +16,7 @@ import {
   newState,
   spawnCity,
   tick,
+  agentLevelMultBps,
 } from "../src/index.ts"
 import { asBig, asDict, asStr, bytesEq } from "../src/values.ts"
 import type { Dict } from "../src/values.ts"
@@ -331,6 +332,50 @@ describe.sequential("C1 construction", () => {
       }),
       { numRuns: runs },
     )
+    const slotCity = liveCity(cfg, pack)
+    const bps = asBig(cfg["bps"])
+    const gain = asBig(cfg["agent_level_gain_bps"])
+    const mult = agentLevelMultBps(1n, gain, bps)
+    slotCity["functions"] = [
+      { id: "workshop", level: 1n },
+      { id: "bank", level: 1n },
+      { id: "logistics_hub", level: 1n },
+      { id: "ai_research_center", level: 1n },
+      { id: "city_hall", level: 1n },
+    ]
+    slotCity["agents"] = [
+      { id: "e1", role: "engineer", building_id: "workshop", objective: "produce", level: 1n, xp: 0n, level_mult_bps: mult, traits: [] },
+      { id: "t1", role: "trader", building_id: "bank", objective: "desk", level: 1n, xp: 0n, level_mult_bps: mult, traits: [] },
+      { id: "l1", role: "logistician", building_id: "logistics_hub", objective: "route", level: 1n, xp: 0n, level_mult_bps: mult, traits: [] },
+      { id: "s1", role: "scientist", building_id: "ai_research_center", objective: "train", level: 1n, xp: 0n, level_mult_bps: mult, traits: [] },
+      { id: "m1", role: "manager", building_id: "city_hall", objective: "focus", level: 1n, xp: 0n, level_mult_bps: mult, traits: [] },
+    ]
+    const slotState = newState(cfg, { a: slotCity }, {})
+    const replayState = newState(cfg, { a: cloneDict(slotCity) }, {})
+    armFund(slotState, cfg)
+    armFund(replayState, cfg)
+    const slottedTick = tick(slotState, makeInputs(cfg, 0n))
+    const replayTick = tick(replayState, makeInputs(cfg, 0n))
+    const ids = slottedTick[1].map((rec) => asStr(rec["agent_id"]))
+    expect(ids.includes("shift")).toBe(false)
+    expect(new Set(ids)).toEqual(new Set(["e1", "t1", "l1", "s1", "m1"]))
+    const engRec = slottedTick[1].find((rec) => asStr(rec["agent_id"]) === "e1")
+    expect(engRec !== undefined).toBe(true)
+    if (engRec !== undefined) {
+      expect(asBig(engRec["output"]) > 0n).toBe(true)
+      expect(asStr(engRec["reason"])).toBe("")
+      expect(asStr(engRec["building_id"])).toBe("workshop")
+      expect(bytesToHex(canonical(engRec))).toBe(
+        "7b226167656e745f6964223a226531222c226275696c64696e675f6964223a22776f726b73686f70222c22636974795f6964223a2261222c22636974795f74696d65223a31322c2264697374726963745f656666696369656e63795f627073223a31303030302c22667261676d656e74735f64656c7461223a3335363433362c22696e70757473223a7b22636f6d70757465223a302c22656e65726779223a39302c226d6174657269616c73223a307d2c226c61796f75745f76657273696f6e223a312c226f626a656374697665223a2270726f64756365222c226f7574707574223a323030302c22706179726f6c6c5f726174696f5f627073223a3131312c22726561736f6e223a22222c2273656564223a2266613332323534393830336636316236222c2273746167655f627073223a7b2262617365223a31303030302c22706f7374223a31333230307d2c22737461747573223a2270616964222c227469636b5f696e646578223a307d",
+      )
+    }
+    expect(slottedTick[1].length).toBe(replayTick[1].length)
+    for (let i = 0; i < slottedTick[1].length; i += 1) {
+      const left = slottedTick[1][i]
+      const right = replayTick[1][i]
+      if (left === undefined || right === undefined) continue
+      expect(bytesEq(canonical(left), canonical(right))).toBe(true)
+    }
   })
 
   it("catchup_equals_replay", () => {

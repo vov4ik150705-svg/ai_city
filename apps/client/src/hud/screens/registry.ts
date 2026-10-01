@@ -10,7 +10,6 @@ import { ExchangeScreen } from "./exchange.js"
 import { LeaderboardScreen } from "./leaderboard.js"
 import { MissionsScreen } from "./missions.js"
 import { OfflineReturnScreen } from "./offline_return.js"
-import { OnboardingDemoScreen } from "./onboarding_demo.js"
 import { ResearchScreen } from "./research.js"
 import { SettingsScreen } from "./settings.js"
 import { WalletConnectScreen } from "./wallet_connect.js"
@@ -28,7 +27,6 @@ export const PACK_SCREEN_IDS = [
   "leaderboard",
   "missions",
   "offline_return",
-  "onboarding_demo",
   "research",
   "settings",
   "wallet_connect",
@@ -60,8 +58,6 @@ export function renderPackScreen(id: string, props: ScreenProps): ReactElement |
       return createElement(MissionsScreen, props)
     case "offline_return":
       return createElement(OfflineReturnScreen, props)
-    case "onboarding_demo":
-      return createElement(OnboardingDemoScreen, props)
     case "research":
       return createElement(ResearchScreen, props)
     case "settings":

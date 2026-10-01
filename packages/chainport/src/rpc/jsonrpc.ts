@@ -72,6 +72,8 @@ export async function postEth(
   const result = row["result"]
   if (typeof result === "string") return { status: "ok", body: result }
   if (result === true) return { status: "ok", body: "0x" }
+  if (result === null) return { status: "ok", body: "null" }
+  if (typeof result === "object") return { status: "ok", body: JSON.stringify(result) }
   if (result === undefined) return { status: "silence" }
   return { status: "silence" }
 }

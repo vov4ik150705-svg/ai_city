@@ -6,10 +6,10 @@ alwaysApply: false
 
 # HUD
 
-Визуальный дизайн — `docs/reports/HUD_DESIGN_SYSTEM.md`; `docs/SCREENS.md` и `DESIGN.md` задают экранный контракт и механику. `docs/reports/TZ_HUD.md` — legacy-справка, не дизайн-источник; `HUD.md` удалён; `hud_prompt.md` — не HUD-авторитет. Живая сцена — 3D-остров с орбитальной камерой (`docs/reports/PLAN_ISLAND.md`, `R-V-98`), не Pixi-ромбы и не клеточная сетка.
-Интерфейс — HTML/CSS поверх canvas в композиции из `docs/reports/HUD_DESIGN_SYSTEM.md`.
-HUD не начинают, пока владелец не принял вид острова. Около 60% экрана арта не требует.
-Меню — текст, не спрайты. Интерфейс не из PNG. Мультяшные золотые иконки отменены.
+Вид HUD — `hud/design-reference/` (`00` + `DESIGN_SCHEME.md`) и `.cursor/rules/hud-visual.mdc`. `docs/SCREENS.md` и `DESIGN.md` задают экранный контракт и механику. `docs/reports/HUD_DESIGN_SYSTEM.md` — errata (нет Settings, нет bottom nav), не lock вида. `docs/archive/reports/TZ_HUD.md` — legacy-справка; `HUD.md` удалён; `docs/archive/reports/hud_prompt.md` — не HUD-авторитет. Живая сцена — 3D-остров с орбитальной камерой (`docs/reports/PLAN_LAUNCH.md`, `R-V-98`), не Pixi-ромбы и не клеточная сетка.
+Интерфейс — HTML/CSS поверх canvas. Мокапы — эталон вида, не спрайты экрана.
+Вид острова принят 2026-09-14 (`ACCEPT LOOK-11`); HUD — текущая работа. Около 60% экрана арта не требует.
+Меню — текст, не спрайты. Мультяшные золотые иконки отменены.
 Shop / Inventory / Mail / Tasks в игре нет.
 
 Остров общий (`R-V-98`). BUILD — каталог экономики плюс выбор свободной авторской точки привязки (`R-V-100`); не спавн меша (`D-V3-15`); клик по тайлу — архив (`R-V-55`).
@@ -36,11 +36,8 @@ Shop / Inventory / Mail / Tasks в игре нет.
 
 ## Цвета
 
-Токены панелей — CSS-переменные действующего palette-контракта: `--bg-panel`, `--stroke`, `--text`,
-`--accent-*`, `--good`, `--bad`, `--warn`. Палитра и материал панелей — bright blue / sky / corporate
-из `docs/reports/HUD_DESIGN_SYSTEM.md`; `corporator.hex` — ориентир акцентов района
-для HUD. Живая сцена — 3D-остров с орбитой, не snap на 53 цвета (`R-V-98`).
-Числа геометрии могут жить в `hud_layout.json`; тёмный navy/graphite мокап не возвращать.
+Токены панелей — `--hud-tone-*` из `hud/design-reference/DESIGN_SCHEME.md`. Акценты района — `--accent-*` / `corporator.hex`. Живая сцена — 3D-остров с орбитой, не snap на 53 цвета (`R-V-98`).
+Тёмный navy/graphite и живой сайт — не эталон вида.
 
 Шрифты: IBM Plex Sans для UI; JetBrains Mono для technical/data (балансы, время, статусы, табличные числа). Оба local, без CDN.
 

@@ -1,8 +1,10 @@
-/* GENERATED from pack dc58998f9a46f00a8cddcb575abcbde9ed17061717e9f500357bab8dda30efc4; do not edit */
+/* GENERATED from pack 8f0dc753eeee37c59e38184159db4b118eebe107f24af48a996695dafaad01a1; do not edit */
 
 export const channelMap = {
   "aggregate.gdp": "aggregate",
   "aggregate.happiness": "aggregate",
+  "aggregate.payroll_boost_bps": "aggregate",
+  "aggregate.payroll_boost_days_left": "aggregate",
   "aggregate.payroll_ratio": "aggregate",
   "aggregate.stability": "aggregate",
   "fragments.city_ledger": "aggregate",

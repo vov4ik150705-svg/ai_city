@@ -8,16 +8,30 @@ import {
   Bell,
   BriefcaseBusiness,
   Building2,
+  ChartColumn,
   ChevronDown,
   CircleCheck,
   CircleHelp,
   CircleX,
   ClipboardList,
   Clock,
+  Copy,
+  Crown,
+  Diamond,
+  Gift,
+  Hexagon,
+  ArrowDownToLine,
+  ArrowUp,
+  ArrowUpFromLine,
+  Award,
+  Trophy,
+  Wallet,
   ArrowUpRight,
   Coins,
   Cpu,
+  Database,
   Factory,
+  FaceSlightlySmiling,
   FlaskConical,
   Gauge,
   GitBranch,
@@ -35,10 +49,13 @@ import {
   Mail,
   Maximize2,
   Plus,
+  Power,
+  RefreshCw,
   ScrollText,
   Search,
   Settings,
   Shield,
+  ShieldPlus,
   SlidersHorizontal,
   Store,
   Sun,
@@ -132,6 +149,23 @@ export type HudGlyph =
   | "notify"
   | "message"
   | "wifi"
+  | "copy"
+  | "deposit"
+  | "withdraw"
+  | "trophy"
+  | "award"
+  | "crown"
+  | "purse"
+  | "upgrade"
+  | "shutdown"
+  | "cycle"
+  | "database"
+  | "smile"
+  | "shieldPlus"
+  | "chart"
+  | "gem"
+  | "gift"
+  | "hex"
 
 export const HUD_ICONS: { readonly [K in HudGlyph]: LucideIcon } = {
   coin: Coins,
@@ -195,6 +229,23 @@ export const HUD_ICONS: { readonly [K in HudGlyph]: LucideIcon } = {
   event: List,
   notify: Bell,
   message: Mail,
+  copy: Copy,
+  deposit: ArrowDownToLine,
+  withdraw: ArrowUpFromLine,
+  trophy: Trophy,
+  award: Award,
+  crown: Crown,
+  purse: Wallet,
+  upgrade: ArrowUp,
+  shutdown: Power,
+  cycle: RefreshCw,
+  database: Database,
+  smile: FaceSlightlySmiling,
+  shieldPlus: ShieldPlus,
+  chart: ChartColumn,
+  gem: Diamond,
+  gift: Gift,
+  hex: Hexagon,
 }
 
 export const HUD_LUCIDE: { readonly [K in HudGlyph]: string } = {
@@ -259,6 +310,23 @@ export const HUD_LUCIDE: { readonly [K in HudGlyph]: string } = {
   event: "List",
   notify: "Bell",
   message: "Mail",
+  copy: "Copy",
+  deposit: "ArrowDownToLine",
+  withdraw: "ArrowUpFromLine",
+  trophy: "Trophy",
+  award: "Award",
+  crown: "Crown",
+  purse: "Wallet",
+  upgrade: "ArrowUp",
+  shutdown: "Power",
+  cycle: "RefreshCw",
+  database: "Database",
+  smile: "FaceSlightlySmiling",
+  shieldPlus: "ShieldPlus",
+  chart: "ChartColumn",
+  gem: "Diamond",
+  gift: "Gift",
+  hex: "Hexagon",
 }
 
 /** Accessible names for icon-only use. `gear` is registry-only; not a Settings destination. */
@@ -324,6 +392,23 @@ export const HUD_ICON_NAME: { readonly [K in HudGlyph]: string } = {
   event: "Event log",
   notify: "Notifications",
   message: "Message",
+  copy: "Copy",
+  deposit: "Deposit",
+  withdraw: "Withdraw",
+  trophy: "Prize",
+  award: "Rank",
+  crown: "Crown",
+  purse: "Wallet",
+  upgrade: "Upgrade",
+  shutdown: "Deactivate",
+  cycle: "Cycle",
+  database: "Database",
+  smile: "Happiness",
+  shieldPlus: "Stability",
+  chart: "Overview",
+  gem: "ETH",
+  gift: "Prize",
+  hex: "Protocol",
 }
 
 export function hudIconName(glyph: HudGlyph): string {

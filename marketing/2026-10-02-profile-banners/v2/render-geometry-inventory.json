@@ -1,0 +1,110 @@
+{
+  "buildings": {
+    "city_hall": {
+      "objects": 7,
+      "vertices": 23874,
+      "polygons": 11424
+    },
+    "ai_research_center": {
+      "objects": 17,
+      "vertices": 71884,
+      "polygons": 34596
+    },
+    "cloud_campus": {
+      "objects": 16,
+      "vertices": 47154,
+      "polygons": 24920
+    },
+    "finance_tower": {
+      "objects": 6,
+      "vertices": 18478,
+      "polygons": 10208
+    },
+    "bank": {
+      "objects": 29,
+      "vertices": 46725,
+      "polygons": 28140
+    },
+    "exchange": {
+      "objects": 17,
+      "vertices": 35865,
+      "polygons": 19164
+    },
+    "power_node": {
+      "objects": 30,
+      "vertices": 56322,
+      "polygons": 18774
+    },
+    "agent_hub": {
+      "objects": 9,
+      "vertices": 37361,
+      "polygons": 26504
+    },
+    "workshop": {
+      "objects": 10,
+      "vertices": 36886,
+      "polygons": 34388
+    },
+    "energy_plant": {
+      "objects": 224,
+      "vertices": 11726,
+      "polygons": 4782
+    },
+    "logistics_hub": {
+      "objects": 27,
+      "vertices": 40814,
+      "polygons": 21670
+    },
+    "flagship_store": {
+      "objects": 408,
+      "vertices": 15102,
+      "polygons": 8992
+    },
+    "drone_depot": {
+      "objects": 8,
+      "vertices": 43398,
+      "polygons": 14466
+    },
+    "data_center": {
+      "objects": 22,
+      "vertices": 31276,
+      "polygons": 18638
+    },
+    "retail_complex": {
+      "objects": 25,
+      "vertices": 38784,
+      "polygons": 18000
+    },
+    "robotics_lab": {
+      "objects": 448,
+      "vertices": 14361,
+      "polygons": 7442
+    },
+    "clearing_house": {
+      "objects": 186,
+      "vertices": 20659,
+      "polygons": 10904
+    },
+    "fleet_yard": {
+      "objects": 974,
+      "vertices": 38862,
+      "polygons": 24942
+    },
+    "neon_residence": {
+      "objects": 15,
+      "vertices": 18696,
+      "polygons": 9348
+    }
+  },
+  "cameraElevation": 14,
+  "cameraAzimuth": -9,
+  "samples": 96,
+  "resolution": [
+    3000,
+    1000
+  ],
+  "modelSource": "models/*.glb",
+  "mapSource": "art/island_v3/maps/terra-look.json",
+  "renderEngine": "Blender Cycles CPU",
+  "originalBuildingGeometryModified": false
+}

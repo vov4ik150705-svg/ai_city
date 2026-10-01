@@ -6,6 +6,7 @@ import { atPath, loadPack, type Json } from "@corporator/contentpack"
 import { codes } from "@corporator/protocol"
 import { type PortConfig } from "@corporator/chainport"
 import {
+  createBuybackPort,
   createDefaultConveyorSubmit,
   emptyBasketState,
   loadBuybackPack,
@@ -103,6 +104,7 @@ describe.sequential("M4 construction", () => {
     const handler = createDefaultConveyorSubmit(packBytes(), pack)
     const degraded = await handler(new Uint8Array())
     expect(degraded.length > 0).toBe(true)
+    expect(createBuybackPort(packBytes(), pack).kind).toBe("mock")
   })
 
   it("thin_pool_throttles_not_reallocates", async () => {

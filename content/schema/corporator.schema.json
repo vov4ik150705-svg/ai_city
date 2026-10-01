@@ -29,8 +29,8 @@
     "note": { "type": "string", "minLength": 24 },
     "unit": {
       "enum": [
-        "bps", "count", "days", "city_hours", "real_hours",
-        "weekday_iso", "day", "capital_per_corp", "tokens",
+        "bps", "count", "days", "city_days", "city_hours", "real_hours",
+        "weekday_iso", "day", "capital", "capital_per_corp", "corp", "tokens",
         "usdg", "usd", "wei", "usd_8dec", "seconds", "ms", "flag",
         "bytes", "px"
       ]
@@ -370,6 +370,28 @@
       }
     },
 
+    "output_link": {
+      "type": "object",
+      "required": ["steps", "target", "require_role"],
+      "additionalProperties": false,
+      "properties": {
+        "steps": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "target": {
+          "type": "string",
+          "enum": [
+            "contour_table",
+            "contour_pay",
+            "compute_table",
+            "engineer_table",
+            "population",
+            "any_pay",
+            "autonomous_table"
+          ]
+        },
+        "exclusive_with": { "$ref": "#/$defs/id_list" },
+        "require_role": { "$ref": "#/$defs/id" }
+      }
+    },
     "building": {
       "type": "object",
       "required": ["tier", "contour", "contour_secondary", "schedule", "autonomous", "src", "why"],
@@ -389,6 +411,7 @@
         "cost_weight_bps": { "$ref": "#/$defs/param" },
         "output_weight_bps": { "$ref": "#/$defs/param" },
         "energy_base_per_tick": { "type": "integer", "minimum": 0 },
+        "output_link": { "$ref": "#/$defs/output_link" },
         "src": { "$ref": "#/$defs/src" },
         "why": { "$ref": "#/$defs/why" }
       }
@@ -453,12 +476,18 @@
           "propertyNames": { "$ref": "#/$defs/id" },
           "additionalProperties": {
             "type": "object",
-            "required": ["home_contours", "produces", "v1", "src", "why"],
+            "required": ["home_contours", "produces", "v1", "callsigns", "src", "why"],
             "additionalProperties": false,
             "properties": {
               "home_contours": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1, "uniqueItems": true },
               "produces": { "$ref": "#/$defs/id" },
               "v1": { "type": "boolean" },
+              "callsigns": {
+                "type": "array",
+                "items": { "type": "string", "pattern": "^[A-Z][a-z]{1,12}$" },
+                "minItems": 1,
+                "uniqueItems": true
+              },
               "src": { "$ref": "#/$defs/src" },
               "why": { "$ref": "#/$defs/why" }
             }
@@ -797,8 +826,8 @@
         "src": { "$ref": "#/$defs/src" },
         "items": {
           "type": "array",
-          "minItems": 13,
-          "maxItems": 13,
+          "minItems": 12,
+          "maxItems": 12,
           "items": {
             "type": "object",
             "required": ["id", "brief"],
@@ -940,9 +969,8 @@
         "flows": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["onboarding_demo", "offline_return"],
+          "required": ["offline_return"],
           "properties": {
-            "onboarding_demo": { "$ref": "#/$defs/screen_flow" },
             "offline_return": { "$ref": "#/$defs/screen_flow" }
           }
         },
@@ -1970,14 +1998,13 @@
         "container_bind": { "type": "string", "minLength": 7, "maxLength": 15, "pattern": "^[0-9.]+$" },
         "ports": {
           "type": "object",
-          "required": ["api", "sampler", "buyback", "attestor", "llm"],
+          "required": ["api", "sampler", "buyback", "attestor"],
           "additionalProperties": false,
           "properties": {
             "api": { "type": "integer", "minimum": 1024, "maximum": 65535 },
             "sampler": { "type": "integer", "minimum": 1024, "maximum": 65535 },
             "buyback": { "type": "integer", "minimum": 1024, "maximum": 65535 },
-            "attestor": { "type": "integer", "minimum": 1024, "maximum": 65535 },
-            "llm": { "type": "integer", "minimum": 1024, "maximum": 65535 }
+            "attestor": { "type": "integer", "minimum": 1024, "maximum": 65535 }
           }
         },
         "src": { "$ref": "#/$defs/src" },
@@ -2019,6 +2046,31 @@
         "env": { "type": "string", "minLength": 8, "pattern": "^[A-Z][A-Z0-9_]+$" },
         "src": { "$ref": "#/$defs/src" },
         "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_env_var": {
+      "type": "object",
+      "required": ["value_src", "src", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "value_src": { "type": "string", "minLength": 8 },
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" }
+      }
+    },
+    "arch_env": {
+      "type": "object",
+      "required": ["src", "why", "vars"],
+      "additionalProperties": false,
+      "properties": {
+        "src": { "$ref": "#/$defs/src" },
+        "why": { "$ref": "#/$defs/why" },
+        "vars": {
+          "type": "object",
+          "propertyNames": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]+$" },
+          "additionalProperties": { "$ref": "#/$defs/arch_env_var" },
+          "minProperties": 1
+        }
       }
     },
     "arch_secrets": {
@@ -2173,7 +2225,7 @@
     },
     "arch_file": {
       "type": "object",
-      "required": ["section", "note", "params", "toolchain", "packages", "services", "codegen", "schema_tables", "session", "port", "keys", "secrets", "metrics", "ops", "incidents", "environments", "listen", "postgres", "readiness", "channel_rules", "buyback_refs", "buyback_order", "basket_routes", "basket_order", "custody", "sampler_input_fields", "aggregation", "demo_transfer_edges", "vector_classes", "roadmap_order", "roadmap", "derived", "ci_steps", "image", "backup", "audit", "rehearsal"],
+      "required": ["section", "note", "params", "toolchain", "packages", "services", "codegen", "schema_tables", "session", "port", "keys", "secrets", "env", "metrics", "ops", "incidents", "environments", "listen", "postgres", "readiness", "channel_rules", "buyback_refs", "buyback_order", "basket_routes", "basket_order", "custody", "sampler_input_fields", "aggregation", "demo_transfer_edges", "vector_classes", "roadmap_order", "roadmap", "derived", "ci_steps", "image", "backup", "audit", "rehearsal"],
       "additionalProperties": false,
       "properties": {
         "section": { "const": "arch" },
@@ -2234,6 +2286,7 @@
           "additionalProperties": { "$ref": "#/$defs/arch_key_role" }
         },
         "secrets": { "$ref": "#/$defs/arch_secrets" },
+        "env": { "$ref": "#/$defs/arch_env" },
         "metrics": {
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/id" },

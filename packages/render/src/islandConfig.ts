@@ -12,8 +12,8 @@ export const RENDERER_REVISION = "look11-terra-canon"
 export const WORLD_HEMI_SKY = 0xe4eef8
 export const WORLD_HEMI_GROUND = 0x5c6672
 export const WORLD_CLEAR = 0x6fb4f0
-/** Restrained amber selection treatment. HUD token --hud-select. */
-export const SELECT_EMISSIVE = 0xffb54a
+/** Neon-white GLB silhouette. HUD token --hud-select. */
+export const SELECT_EMISSIVE = 0xffffff
 export const WORLD_EXPOSURE = 1.2
 export const DPR_CAP = TWO
 /** Game MSAA. Pre-GO cheap present: rollback-look11-pre-msaa.json (ANTIALIAS false). Owner GO 2026-09-15. */

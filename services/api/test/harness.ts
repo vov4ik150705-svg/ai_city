@@ -3,11 +3,12 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { canonical, fromUtf8, loadPack, parseJson } from "@corporator/contentpack"
 import { authSessionTemplate } from "@corporator/protocol"
-import { mintFromBacking, newState, spawnCity, type Dict } from "@corporator/engine"
+import { mintFromBacking, newState, spawnCity, plantPrebuilt, type Dict } from "@corporator/engine"
 import { makeCtx } from "../src/pack_ctx.ts"
 import { createHost, type ApiHost } from "../src/host.ts"
 import { asBigint, asEngineDict, asObj, asText, jsonToDict } from "../src/values.ts"
-import { openPglite, type Store } from "../src/store.ts"
+import { cityKind } from "../src/envelope.ts"
+import { openPglite, putJson, type Store } from "../src/store.ts"
 
 export const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
@@ -40,10 +41,28 @@ export function armFund(state: Dict, cfg: Dict): void {
   const units = asBigint(cfg["capital_anchor"])
   const ticks = asBigint(cfg["ticks_day"])
   const div = asBigint(cfg["payroll_daily_divisor"])
-  state["fund"] = units * div * ticks
-  state["day_budget"] = div === 0n ? 0n : asBigint(state["fund"]) / div
+  const want = units * div * ticks
+  state["fund"] = want
+  state["day_budget"] = div === 0n ? 0n : want / div
   state["tick_budget"] = ticks === 0n ? 0n : asBigint(state["day_budget"]) / ticks
   state["day_budget_day"] = asBigint(cfg["anchor_day"])
+  let bags = want
+  const cities = asEngineDict(state["cities"])
+  for (const cid of Object.keys(cities)) {
+    bags += asBigint(asEngineDict(cities[cid])["capital"])
+  }
+  const anchor = asBigint(cfg["capital_anchor"])
+  const needVault = anchor <= 0n ? bags : (bags + anchor - 1n) / anchor
+  if (asBigint(state["vault_corp"]) < needVault) {
+    const add = needVault - asBigint(state["vault_corp"])
+    state["vault_corp"] = needVault
+    state["corp_deposited_total"] = asBigint(state["corp_deposited_total"]) + add
+  }
+  if (asBigint(state["capital_outstanding"]) < bags) {
+    const d = bags - asBigint(state["capital_outstanding"])
+    state["capital_outstanding"] = asBigint(state["capital_outstanding"]) + d
+    state["capital_minted_total"] = asBigint(state["capital_minted_total"]) + d
+  }
 }
 
 export function liveGenesis(cfg: Dict, pack: Dict): Dict {
@@ -54,11 +73,14 @@ export function liveGenesis(cfg: Dict, pack: Dict): Dict {
   city["login_period"] = 1n
   city["output_base"] = asBigint(cfg["workshop_out"])
   city["account_kind"] = "demo"
+  city["demo"] = 1n
   city["city_level"] = 1n
   city["agents"] = []
   city["buildings"] = []
+  city["functions"] = []
+  city["created_day"] = 1n
+  plantPrebuilt(cfg, city)
   const state = newState(cfg, { a: city }, {})
-  armFund(state, cfg)
   state["day_budget_day"] = null
   return state
 }
@@ -98,6 +120,29 @@ export function seedPlayerCapital(host: ApiHost, cityId: string, want: bigint): 
 export { asBigint, asEngineDict, asObj, asText }
 export { openPglite }
 export { createHost }
+
+export async function stateHeaders(
+  host: ApiHost,
+  cityId: string,
+): Promise<{ readonly authorization: string }> {
+  const kind = cityKind(host.state, cityId)
+  const accountKind = kind === "demo" ? "demo" : "wallet"
+  const sessionId = "read:" + cityId
+  const expires = asBigint(host.state["city_time"]) + host.ctx.sessionTtlCity
+  await putJson(
+    host.store,
+    "sessions",
+    sessionId,
+    {
+      kind: "session",
+      city_id: cityId,
+      account_kind: accountKind,
+      expires_city_time: expires.toString(),
+    },
+    accountKind,
+  )
+  return { authorization: host.ctx.sessionScheme + " " + sessionId }
+}
 
 export async function demoAuth(host: ApiHost): Promise<{
   readonly sessionId: string

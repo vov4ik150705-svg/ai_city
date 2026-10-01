@@ -1,6 +1,12 @@
 export type PortKind = "mock" | "rpc"
 
-export type PortOk = { readonly ok: true }
+export type PortOk = {
+  readonly ok: true
+  readonly txHash?: string
+  readonly txNonce?: string
+  readonly txRaw?: string
+  readonly txConfirmed?: boolean
+}
 export type PortErr = { readonly ok: false; readonly code: string }
 export type PortResult = PortOk | PortErr
 export type PortAmount = (PortOk & { readonly amount: bigint }) | PortErr
@@ -9,6 +15,8 @@ export type PortConfig = {
   readonly voucherTtlS: bigint
   readonly voucherSignerService: string
   readonly buybackExecutorService: string
+  readonly bps?: bigint
+  readonly gasHeadroomBps?: bigint
 }
 
 export type Voucher = {
@@ -23,8 +31,24 @@ export type StakeRow = {
   readonly amount: bigint
 }
 
+export type CoolingRow = {
+  readonly ticker: string
+  readonly amount: bigint
+  readonly readyAtS: bigint
+}
+
+export type TxLog = {
+  readonly address: string
+  readonly topics: readonly string[]
+  readonly data: string
+}
+
 export const PRIZE_KETTLE_FARM = 0n
 export const PRIZE_KETTLE_MONTH = 1n
+/** Vault.OUTCOME_PRESENTED */
+export const OUTCOME_PRESENTED = 1n
+/** Vault.OUTCOME_RELEASED */
+export const OUTCOME_RELEASED = 2n
 
 export function kettleOk(kettle: bigint): boolean {
   return kettle === PRIZE_KETTLE_FARM || kettle === PRIZE_KETTLE_MONTH
@@ -32,6 +56,7 @@ export function kettleOk(kettle: bigint): boolean {
 
 export type MockSeed = {
   readonly corp?: { readonly [account: string]: bigint }
+  readonly house?: string
   readonly prizeStocks?: readonly string[]
   readonly prizeBalances?: { readonly [account: string]: { readonly [token: string]: bigint } }
   readonly prizeDepositor?: string

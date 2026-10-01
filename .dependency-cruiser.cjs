@@ -1,4 +1,4 @@
-/* GENERATED from pack dc58998f9a46f00a8cddcb575abcbde9ed17061717e9f500357bab8dda30efc4; do not edit */
+/* GENERATED from pack 8f0dc753eeee37c59e38184159db4b118eebe107f24af48a996695dafaad01a1; do not edit */
 module.exports = {
   "forbidden": [
     {
@@ -107,18 +107,6 @@ module.exports = {
       "to": {
         "path": "(^(packages|apps|services)/|^@corporator/)",
         "pathNot": "^(packages/engine|@corporator/engine|packages/protocol|@corporator/protocol|packages/contentpack|@corporator/contentpack|packages/chainport|@corporator/chainport|services/attestor|@corporator/attestor)"
-      }
-    },
-    {
-      "name": "layer-llm",
-      "comment": "llm may import only allowed_deps from arch.packages",
-      "severity": "error",
-      "from": {
-        "path": "^services/llm/src"
-      },
-      "to": {
-        "path": "(^(packages|apps|services)/|^@corporator/)",
-        "pathNot": "^(packages/protocol|@corporator/protocol|packages/contentpack|@corporator/contentpack|services/llm|@corporator/llm)"
       }
     },
     {

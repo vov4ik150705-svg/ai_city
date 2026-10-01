@@ -49,7 +49,8 @@ describe.sequential("C11 construction", () => {
   it("season_prize_distribution_proportional", () => {
     const loaded = loadPack(packBytes())
     const data = sectionsOf(loaded.pack)
-    const bps = asBig(atPath(loaded.pack, ["sections", "seasons", "params", "prize_curve_alpha_bps", "v"]))
+    const bps = asBig(atPath(loaded.pack, ["sections", "seasons", "params", "influence_intensity_exp_bps", "v"]))
+    const alpha = asBig(atPath(loaded.pack, ["sections", "seasons", "params", "prize_curve_alpha_bps", "v"]))
     const topN = asBig(atPath(loaded.pack, ["sections", "seasons", "params", "prize_top_n", "v"]))
     const hop = asBig(atPath(loaded.pack, ["sections", "seasons", "params", "prize_hop_haircut_bps", "v"]))
     const live = asBig(atPath(loaded.pack, ["sections", "seasons", "params", "season_prizes_live", "v"]))
@@ -58,16 +59,16 @@ describe.sequential("C11 construction", () => {
     const qualify = asBig(atPath(loaded.pack, ["sections", "seasons", "params", "season_qualify_bps", "v"]))
     const need = ((days / periods) * qualify) / bps
     const pool = bps
-    const empty = zipfPayout(pool, 0n, bps)
+    const empty = zipfPayout(pool, 0n, bps, alpha)
     expect(empty.sumPayout).toBe(0n)
     expect(empty.dust).toBe(pool)
-    const solo = zipfPayout(pool, 1n, bps)
+    const solo = zipfPayout(pool, 1n, bps, alpha)
     expect(solo.payouts.length).toBe(1)
     const soloPay = solo.payouts[0]
     expect(soloPay).toBe(pool)
-    const curve = zipfPayout(pool, topN, bps)
+    const curve = zipfPayout(pool, topN, bps, alpha)
     expect(curve.sumPayout <= pool).toBe(true)
-    const weights = zipfWeights(topN, bps)
+    const weights = zipfWeights(topN, bps, alpha)
     let total = 0n
     for (const w of weights) total += w
     let i = 0n

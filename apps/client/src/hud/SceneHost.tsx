@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from "react"
+import { useEffect, useLayoutEffect, useRef, useState, type ReactElement } from "react"
 import { codes } from "@corporator/protocol"
 import { gpuCode, probeCanvas } from "@corporator/render"
 import type { IslandHandle, IslandObjectProjection, OccupiedPlant } from "@corporator/render"
@@ -13,7 +13,7 @@ import {
 import { wallNowMs } from "../clock.js"
 import type { Palette } from "../palette.js"
 import type { ClientCamera, ClientLight } from "../packview.js"
-import { applyCam, bindSceneInput, lookCam, startCam, type CamPos } from "./sceneInput.js"
+import { bindSceneInput, lookCam, startCam, type CamPos } from "./sceneInput.js"
 import {
   fetchCloudBytes,
   fetchIslandLook,
@@ -94,6 +94,7 @@ export function SceneHost(props: {
         tiltMaxBps: orbit.tiltMaxBps,
         distanceMin: orbit.distanceMin,
         distanceMax: orbit.distanceMax,
+        lookOrbitMaxMul: orbit.lookOrbitMaxMul,
         fovDeg: orbit.fovDeg,
         spanBps: orbit.spanBps,
         targetY: orbit.targetY,
@@ -116,6 +117,7 @@ export function SceneHost(props: {
           emissiveBps: props.light.emissiveBps,
           gradeBps: props.light.gradeBps,
           sunDistance: props.light.sunDistance,
+          waterStepsPerTick: props.light.waterStepsPerTick,
         },
         fillSky: WORLD_HEMI_SKY,
         fillGround: WORLD_HEMI_GROUND,
@@ -135,10 +137,12 @@ export function SceneHost(props: {
       handleRef.current = mounted
       const meta = mounted.captureMeta()
       const dist = BigInt(Math.round(meta.camera.distance > 0 ? meta.camera.distance : 1))
-      const lim = lookOrbitLimits(dist)
+      const lim = lookOrbitLimits(dist, orbit.lookOrbitMaxMul)
       camRef.current.azimuthBps = azimuthToBps(meta.camera.azimuthDeg, orbit.spanBps)
       camRef.current.tiltBps = elevationToTiltBps(meta.camera.elevationDeg, orbit.spanBps)
       camRef.current.distance = dist
+      camRef.current.lookX = meta.camera.target.x
+      camRef.current.lookZ = meta.camera.target.z
       const cameraForInput = {
         ...props.camera,
         orbit: { ...orbit, distanceMin: lim.min, distanceMax: lim.max },
@@ -181,19 +185,16 @@ export function SceneHost(props: {
   ])
   useEffect(() => {
     if (props.lookId.length === 0) return
+    // Tile aim only. Republishing the orbit here clamps the planted distance
+    // into the pack window (800–44000) and snaps the shot into the sky.
     camRef.current = lookCam(props.camera, props.lookId, camRef.current)
-    const handle = handleRef.current
-    if (handle !== undefined) {
-      applyCam(handle, camRef.current, props.camera)
-      emitProjection(handle, selectedRef.current)
-    }
   }, [props.lookId, props.lookRev, props.camera])
   useEffect(() => {
     const handle = handleRef.current
     if (handle === undefined) return
     handle.setCityTime(props.cityTime)
   }, [props.cityTime])
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handle = handleRef.current
     if (handle === undefined) return
     handle.selectObject(props.selectedObjectId)

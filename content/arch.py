@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections import deque
 
 import basket
+import screens
 import treasury
 
 try:
@@ -28,6 +29,8 @@ TRANSPORT_CODES = (
     "API_PACK_STALE",
     "API_INTENT_REPLAY",
     "SERVICE_DEGRADED",
+    "CHAIN_TX_UNCONFIRMED",
+    "WALLET_TX_REJECTED",
 )
 STUB_FEATURE_CODE = "FEATURE_NOT_IN_V1"
 PACK_GATE = "pack_gate"
@@ -114,6 +117,16 @@ def voucher_ttl_s(tick_length_real_seconds: int) -> int:
     return tick_length_real_seconds
 
 
+def _seconds_per_hour() -> int:
+    import build as build_mod
+
+    return int(build_mod.SECONDS_PER_HOUR)
+
+
+def unstake_cooldown_s(city_days: int, city_day_real_hours: int, seconds_per_hour: int) -> int:
+    return city_days * city_day_real_hours * seconds_per_hour
+
+
 def session_ttl_s(ticks_per_city_day: int, tick_length_real_seconds: int) -> int:
     return ticks_per_city_day * tick_length_real_seconds
 
@@ -138,7 +151,7 @@ def authored_actions(data: dict) -> dict:
 def commit_effects(data: dict) -> list[str]:
     found: list[str] = []
     seen: set[str] = set()
-    for spec in authored_actions(data).values():
+    for spec in screens.effective_actions(data).values():
         effect = str(spec.get("effect") or "")
         if not effect.startswith(COMMIT_PREFIX):
             continue
@@ -160,7 +173,7 @@ def command_endpoints(data: dict) -> list[str]:
 
 def gate_order(action_id: str, data: dict) -> tuple[list[str], list[str]]:
     caps = (data.get("screens") or {}).get("capabilities") or {}
-    action = authored_actions(data).get(action_id) or {}
+    action = screens.effective_actions(data).get(action_id) or {}
     tokens = [t for t in (action.get("requires") or []) if t in caps]
     tokens.sort(key=lambda t: (int(caps[t]["tier"]), t))
     codes = [str(caps[t]["code"]) for t in tokens]
@@ -173,7 +186,7 @@ def endpoint_refusals(data: dict) -> dict[str, list[str]]:
     Several elements may share an effect; the union is sorted by the first
     element's gate order, then stable-merged so a missing token cannot hide.
     """
-    actions = authored_actions(data)
+    actions = screens.effective_actions(data)
     by_effect: dict[str, list[str]] = {}
     for spec in actions.values():
         effect = str(spec.get("effect") or "")
@@ -376,6 +389,11 @@ def build_arch(data: dict, generated: dict | None = None) -> dict:
     tph = ticks_per_city_hour(data)
     if tph <= 0:
         tph = 1
+    cool_s = unstake_cooldown_s(
+        _pv(data.get("economy") or {}, "unstake_cooldown_city_days"),
+        _pv(data.get("time") or {}, "city_day_real_hours"),
+        _seconds_per_hour(),
+    )
     return {
         "layer_graph": graph,
         "layer_order": order or [],
@@ -395,6 +413,7 @@ def build_arch(data: dict, generated: dict | None = None) -> dict:
         "session_ttl_s": session_ttl_s(ticks_day, tick_len),
         "nonce_ttl_s": nonce_ttl_s(tick_len),
         "voucher_ttl_s": voucher_ttl_s(tick_len),
+        "unstake_cooldown_s": cool_s,
         "sampler_period_s": period,
         "price_channel_period_s": period,
         "samples_per_twap_window": twap_hours * tph * samples,
@@ -425,7 +444,6 @@ def build_arch(data: dict, generated: dict | None = None) -> dict:
         "envelope_error_fields": list(api.get("envelope_error_fields") or []),
         "replay_code": api.get("replay_code") or "",
         "price_day_published": _pv(arch, "price_day_published"),
-        "llm_worker_concurrency": _pv(arch, "llm_worker_concurrency"),
         "attest_lag_alert_ticks": _pv(arch, "attest_lag_alert_ticks"),
         "sampler_samples_per_tick": samples,
         "ws_heartbeat_s": _pv(api, "ws_heartbeat_s"),
@@ -453,6 +471,7 @@ def build_api(data: dict, generated: dict | None = None) -> dict:
         "session_ttl_s": arch_g["session_ttl_s"],
         "nonce_ttl_s": arch_g["nonce_ttl_s"],
         "voucher_ttl_s": arch_g["voucher_ttl_s"],
+        "unstake_cooldown_s": arch_g["unstake_cooldown_s"],
         "command_endpoints": arch_g["command_endpoints"],
         "endpoint_refusals": arch_g["endpoint_refusals"],
         "snapshot_sections": arch_g["snapshot_sections"],

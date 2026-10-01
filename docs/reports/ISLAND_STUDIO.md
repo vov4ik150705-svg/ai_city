@@ -1,8 +1,8 @@
 # Corporator — студийный остров и 18 зданий
 
-Паспорт source-сцены visual rescue. План — `docs/reports/PLAN_ISLAND.md`,
-цель — `docs/reports/TZ_ISLAND_LOOK.md`, точные операции —
-`docs/reports/TZ_ISLAND_LOOK_STEPS.md`.
+Паспорт source-сцены visual rescue. Закрытый план — `docs/archive/plans/PLAN_ISLAND.md`,
+история LOOK — `docs/archive/reports/TZ_ISLAND_LOOK.md` и
+`docs/archive/reports/TZ_ISLAND_LOOK_STEPS.md`. Не исполнять.
 
 Клеточная сетка пака и кадр V3-0…V3-7 — архив, не эта сцена. Живая масса —
 Terra (`R-V-109`). Снимок `Island` 2026-09-06 — архив (`R-V-104`).

@@ -268,7 +268,7 @@
       "research_order": {
         "v": ["grid", "tools"],
         "src": "DESIGN.md §5.11",
-        "why": "Grid затем Tools: сначала снимает energy, потом +выход. Handbook не нужен полосе 70–90%"
+        "why": "Grid then Tools: energy first, then +output. Handbook is not required for the 165/83 optimizer recoup band"
       }
     },
     "whale": {

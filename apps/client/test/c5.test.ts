@@ -147,7 +147,7 @@ describe("C5 construction", () => {
     expect(
       cityTimeFromWall({
         anchorCityTime: pack.anchorCityTime,
-        firstLoginMs: 0n,
+        anchorMs: 0n,
         nowMs: 0n,
         rateBps: pack.rateBps,
         bps: pack.bps,

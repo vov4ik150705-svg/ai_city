@@ -78,7 +78,8 @@ contract P3AuditTest {
             guardian,
             safetySigner,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S
+            PackConstants.VOUCHER_TTL_S,
+            address(0)
         );
         address[] memory stocks = new address[](6);
         stocks[0] = address(nvda);
@@ -88,7 +89,7 @@ contract P3AuditTest {
         stocks[4] = address(uint160(0x104));
         stocks[5] = address(uint160(0x105));
         prizes = new PrizeTreasury(bot, guardian, safetySigner, stocks);
-        stakes = new StakeRegistry(address(this));
+        stakes = new StakeRegistry(address(this), 1);
         stakes.setToken("NVDA", address(nvda));
         stakes.setToken("TSLA", address(fee));
         corp.transfer(player, 100);
@@ -108,7 +109,7 @@ contract P3AuditTest {
         corp.approve(address(vault), 100);
         vault.deposit(player, 100);
         vm.stopPrank();
-        vault.mintCapital(player, 100);
+        vault.mintCapital(player, 100, 100);
         require(vault.totalBacking() <= corp.balanceOf(address(vault)), "backing");
         vm.prank(safetySigner);
         vault.refundPlayer(player, 40);
@@ -127,12 +128,12 @@ contract P3AuditTest {
         amounts[0] = 10;
         vm.prank(guardian);
         vm.expectRevert();
-        prizes.slice(address(nvda), 0, players, amounts);
+        prizes.slice(bytes32(uint256(1)), address(nvda), 0, players, amounts);
         vm.startPrank(player);
         corp.approve(address(vault), 50);
         vault.deposit(player, 50);
         vm.stopPrank();
-        vault.mintCapital(player, 50);
+        vault.mintCapital(player, 50, 50);
         vm.prank(guardian);
         vm.expectRevert();
         vault.refundPlayer(player, 1);
@@ -150,10 +151,10 @@ contract P3AuditTest {
         amounts[0] = 901;
         vm.prank(safetySigner);
         vm.expectRevert();
-        prizes.slice(address(fee), 0, players, amounts);
+        prizes.slice(bytes32(uint256(1)), address(fee), 0, players, amounts);
         amounts[0] = 900;
         vm.prank(safetySigner);
-        prizes.slice(address(fee), 0, players, amounts);
+        prizes.slice(bytes32(uint256(1)), address(fee), 0, players, amounts);
         assertEq(prizes.unsliced(0, address(fee)), 0);
         assertEq(prizes.owed(0, address(fee), player), 900);
     }
@@ -186,7 +187,7 @@ contract P3AuditTest {
         address[] memory players;
         uint256[] memory amounts;
         vm.prank(safetySigner);
-        prizes.slice(address(nvda), 0, players, amounts);
+        prizes.slice(bytes32(uint256(1)), address(nvda), 0, players, amounts);
         assertEq(prizes.unsliced(0, address(nvda)), 10);
     }
 
@@ -200,7 +201,7 @@ contract P3AuditTest {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 40;
         vm.prank(safetySigner);
-        prizes.slice(address(nvda), 0, players, amounts);
+        prizes.slice(bytes32(uint256(1)), address(nvda), 0, players, amounts);
         vm.prank(bot);
         prizes.returnUnsettled(address(nvda), 0);
         assertEq(prizes.owed(0, address(nvda), player), 40);
@@ -214,7 +215,7 @@ contract P3AuditTest {
         corp.approve(address(vault), 100);
         vault.deposit(player, 100);
         vm.stopPrank();
-        vault.mintCapital(player, 100);
+        vault.mintCapital(player, 100, 100);
         uint256 issuedAt = block.timestamp;
         vault.issueVoucher("r1", player, 60, issuedAt);
         assertEq(vault.reservedOf(player), 60);
@@ -236,7 +237,7 @@ contract P3AuditTest {
         corp.approve(address(vault), 50);
         vault.deposit(player, 50);
         vm.stopPrank();
-        vault.mintCapital(player, 50);
+        vault.mintCapital(player, 50, 50);
         uint256 issuedAt = block.timestamp;
         vault.issueVoucher("exp", player, 50, issuedAt);
         vm.warp(issuedAt + PackConstants.VOUCHER_TTL_S + 1);
@@ -258,7 +259,7 @@ contract P3AuditTest {
         corp.approve(address(vault), 80);
         vault.deposit(player, 80);
         vm.stopPrank();
-        vault.mintCapital(player, 80);
+        vault.mintCapital(player, 80, 80);
         bytes32 leaf = keccak256(abi.encodePacked(player, uint256(30)));
         vm.prank(guardian);
         vault.setRefundRoot(leaf);
@@ -279,15 +280,17 @@ contract P3AuditTest {
         vm.stopPrank();
         assertEq(nvda.balanceOf(player), 300);
         vm.prank(player);
-        stakes.unstake("NVDA", 80);
+        stakes.requestUnstake("NVDA", 80);
         assertEq(stakes.amountOf(player, keccak256(bytes("NVDA"))), 120);
-        assertEq(nvda.balanceOf(player), 380);
+        assertEq(nvda.balanceOf(player), 300);
+        (uint256 cooling,) = stakes.coolingOf(player, keccak256(bytes("NVDA")));
+        assertEq(cooling, 80);
         vm.prank(guardian);
         vm.expectRevert();
-        stakes.unstake("NVDA", 1);
+        stakes.requestUnstake("NVDA", 1);
         vm.prank(player);
         vm.expectRevert();
-        stakes.unstake("NVDA", 121);
+        stakes.requestUnstake("NVDA", 121);
     }
 
     function testFuzz_depositGot(uint96 amount) public {

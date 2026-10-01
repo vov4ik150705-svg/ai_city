@@ -18,6 +18,16 @@
       "slots": [],
       "src": "DESIGN.md §5.7"
     },
+    "IDLE_NO_TRAIN_TARGET": {
+      "category": "idle",
+      "slots": [],
+      "src": "DESIGN.md §5.9"
+    },
+    "IDLE_NO_RESEARCH_FOCUS": {
+      "category": "idle",
+      "slots": [],
+      "src": "DESIGN.md §5.9, §5.11"
+    },
     "IDLE_NO_MATERIALS": {
       "category": "idle",
       "slots": [],
@@ -438,6 +448,91 @@
       "slots": [],
       "http": 200,
       "src": "D6, D13 host lag alert"
+    },
+    "CHAIN_TX_UNCONFIRMED": {
+      "category": "transport",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_PLAYABLE.md §2.1"
+    },
+    "WALLET_TX_REJECTED": {
+      "category": "transport",
+      "slots": [],
+      "http": 400,
+      "src": "docs/reports/TZ_PLAYABLE.md §2.1"
+    },
+    "VOUCHER_EXPIRED": {
+      "category": "state",
+      "slots": [],
+      "src": "docs/reports/TZ_PLAYABLE.md §2.1"
+    },
+    "VOUCHER_PENDING_SIGN": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "VOUCHER_PENDING": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "VOUCHER_REJECTED": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "VOUCHER_EXPIRE_LIMIT": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "UNSTAKE_COOLING": {
+      "category": "state",
+      "slots": [
+        "ready_at_s"
+      ],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "UNSTAKE_NOTHING_PENDING": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "STAKE_LEDGER_LIVE": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "FRAGMENT_SLICE_PENDING": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "PRIZE_NOTHING_OWED": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "EXCHANGE_DELIVERY_UNVERIFIED": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
+    },
+    "LEDGER_NOT_EMPTY_LIVE": {
+      "category": "state",
+      "slots": [],
+      "http": 409,
+      "src": "docs/reports/TZ_WITHDRAW.md X2"
     }
   },
   "derived": {

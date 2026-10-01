@@ -1,0 +1,59 @@
+{
+  "n": 2,
+  "anchor": "people",
+  "dir": "02-people-ready",
+  "title": "Everyone has their own place",
+  "eyebrow": "02 — PEOPLE",
+  "intro": "You hire agents, and each has one of five jobs. In their own building an agent works at full strength, in a related one at 60%. Anywhere else, they just stand there.",
+  "note": "No AI inside. Agents follow the same fixed rules, every time.",
+  "linkLabel": "More in the handbook → Roles",
+  "ref": "agents.md#roles",
+  "alt": "The same engineer in three doorways, working at full strength, at part strength and standing idle in a bank; five small portraits below.",
+  "w": 1672,
+  "h": 941,
+  "hash": "713AF8DC82DE323A60656DB5F71C87566109210A4BDCBB083922669BC22A71CC",
+  "geometry": {
+    "left": 80,
+    "top": 0,
+    "width": 1200,
+    "introTop": 270,
+    "titleHtml": "Everyone has<br>their own place"
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 2: Everyone has their own place",
+      "artBottom": 741.34375,
+      "noteTop": 756,
+      "handbookAnchor": "#roles"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

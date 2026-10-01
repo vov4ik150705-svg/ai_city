@@ -140,6 +140,14 @@ export {
   orbitDefaultDistance,
   orbitEye,
 } from "./orbit.js"
+export {
+  clampLookPoint,
+  focusDistance,
+  lookSlideWeight,
+  panLookDelta,
+  shownLook,
+} from "./lookPan.js"
+export type { LookBox, LookFrame, LookPoint } from "./lookPan.js"
 export type { IslandHandle, IslandObjectProjection } from "./frame.js"
 export {
   cloudLift,

@@ -1,6 +1,6 @@
 {
   "section": "fragments",
-  "note": "T6 stock-token fragment farm. Fragments are internal claim chips, not ERC-20 and not a game-NVDA. Pool is real ERC-20 bought outside the tick. Claim window is derived from payroll_daily_divisor, never stored.",
+  "note": "T6 stock-token fragment farm. Fragments are internal claim chips, not ERC-20 and not a game-NVDA. Pool is real ERC-20 bought outside the tick. Claim window is fragment_window_city_days, never payroll_daily_divisor.",
   "params": {
     "protocol_fragments_bps": {
       "v": 10000,
@@ -12,7 +12,7 @@
       "v": 0,
       "u": "bps",
       "src": "D-M-16, docs/PRIZES.md §6.5",
-      "why": "Legacy route split retained for pack compatibility; the live month kettle is funded by the 30 bps creator-tax leaderboard leg, not this disabled route"
+      "why": "Legacy route split retained for pack compatibility; the live month kettle is funded by the 20 bps creator-tax leaderboard leg, not this disabled route"
     },
     "fragment_creator_tax_share_bps": {
       "v": 0,
@@ -21,10 +21,10 @@
       "why": "Creator tax body feeds payroll via buyback. The increment of the 2% rate is seasons.prize_creator_tax_share_bps, not fragments. Diverting the body would starve the wage fund"
     },
     "active_work_creator_tax_bps": {
-      "v": 50,
+      "v": 60,
       "u": "bps",
-      "src": "DESIGN.md §2.5, D-M-12",
-      "why": "50 bps of turnover from the 200 bps creator tax goes directly to the active-work stock pool; runtime converts this direct turnover bps from tax atoms using creator_tax_bps"
+      "src": "DESIGN.md §2.5, D-M-12, owner 2026-09-19",
+      "why": "60 bps of turnover from the 200 bps creator tax goes to the active-work stock pool (farm 0.6%); leaderboard is the residual 20 bps after studio 20. Runtime converts this direct turnover bps from tax atoms using creator_tax_bps"
     },
     "fragment_cork_share_bps": {
       "v": 0,
@@ -49,6 +49,12 @@
       "u": "bps",
       "src": "docs/BRIEF.md §6 T6 cap",
       "why": "When at least two cities claim, one city takes at most half the window pool. N=1 is uncapped so the first player is not taxed for being alone"
+    },
+    "fragment_window_city_days": {
+      "v": 7,
+      "u": "days",
+      "src": "DESIGN.md §2.9, owner 2026-09-20",
+      "why": "Owner weekly farm settle. Seven city days is 175 real hours. Payroll daily budget stays fund/14; gluing the two clocks would double wage spend"
     }
   },
   "routes": {
@@ -59,14 +65,14 @@
     }
   },
   "derived": {
-    "fragment_claim_window_city_days": "equals payroll_daily_divisor, never stored",
+    "fragment_claim_window_city_days": "equals fragment_window_city_days, never stored",
     "fragment_claim_window_real_hours": "window_days × city_day_real_hours",
     "protocol_split_total_bps": "legacy protocol_fragments_bps + protocol_prizes_bps, must be 10000; live spend_protocol_bps is 0",
     "quote_asset_by_ticker": "WETH if ticker == weth_quote_ticker else USDG, from districts[].ticker",
     "fragment_ledgers_v1": "tickers of districts with playable_v1, not a hand list of three",
     "fragment_city_cap_applies": "true only when N_claiming >= 2",
     "settlement_witnesses": "floor 1,1,1×10; 50/50; whale 90/10; N=1; sum_frag=0",
-    "fragment_window_budget": "DEX turnover for the 14-day window × active-work leg × hop haircut, using the T1 low/mid/hype monthly scenarios",
+    "fragment_window_budget": "DEX turnover for the farm window × active-work leg × hop haircut, using the T1 low/mid/hype monthly scenarios",
     "fragment_sources": "live taps: creator-tax active-work 50 bps; legacy spend_protocol 0; cork 0; nft 0",
     "fragment_accrual_probe": "paid beacon playable >0; workshop, synergy, IDLE, construction, non-playable = 0",
     "fragment_season_method": "produced × fragment_rate stack, never paper-magnitude proxy",

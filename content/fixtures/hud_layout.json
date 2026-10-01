@@ -1,6 +1,6 @@
 {
-  "note": "Literal HUD.md §2 geometry. Not a pack param: duplicating these numbers in placement.json is a defect. Strip heights closed in T12 (D15).",
-  "src": "HUD.md §2",
+  "note": "Literal geometry of the deleted HUD.md §2 shell. Not a pack param: duplicating these numbers in placement.json is a defect. Strip heights closed in T12 (D15). Live visual canon is hud/design-reference plus docs/reports/HUD_DESIGN_SYSTEM.md errata (no bottom nav). L341 still pins these numbers.",
+  "src": "deleted HUD.md §2; live: docs/reports/HUD_DESIGN_SYSTEM.md, docs/SCREENS.md",
   "aspect_w": 16,
   "aspect_h": 9,
   "column_width_px": 260,

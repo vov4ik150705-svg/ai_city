@@ -1,6 +1,6 @@
 import { codes } from "@corporator/protocol"
 import type { PrizeTreasuryPort } from "./port.js"
-import { err, kettleOk, mapGet, ok, type PortResult } from "./values.js"
+import { err, kettleOk, mapGet, ok, amountOk, type PortAmount, type PortResult } from "./values.js"
 
 export type PrizeMockSeed = {
   readonly depositor: string
@@ -26,6 +26,7 @@ export function createPrizeTreasuryPort(seed: PrizeMockSeed): PrizeTreasuryPort 
   const bal = new Map<string, bigint>()
   const unsliced = new Map<string, bigint>()
   const owed = new Map<string, bigint>()
+  const batches = new Set<string>()
   const initial = seed.balances
   if (initial !== undefined) {
     for (const account of Object.keys(initial)) {
@@ -57,14 +58,29 @@ export function createPrizeTreasuryPort(seed: PrizeMockSeed): PrizeTreasuryPort 
       unsliced.set(bagKey(kettle, token), mapGet(unsliced, bagKey(kettle, token)) + amount)
       return ok()
     },
+    async owed(kettle: bigint, token: string, account: string): Promise<PortAmount> {
+      if (!kettleOk(kettle) || !isStock(token) || account.length === 0) return err(codes.API_MALFORMED)
+      return amountOk(mapGet(owed, owedKey(kettle, token, account)))
+    },
+    async unsliced(kettle: bigint, token: string): Promise<PortAmount> {
+      if (!kettleOk(kettle) || !isStock(token)) return err(codes.API_MALFORMED)
+      return amountOk(mapGet(unsliced, bagKey(kettle, token)))
+    },
+    async batchUsed(batchId: string): Promise<PortAmount> {
+      if (batchId.length === 0) return err(codes.API_MALFORMED)
+      return amountOk(batches.has(batchId) ? 1n : 0n)
+    },
     async slice(
       caller: string,
+      batchId: string,
       token: string,
       kettle: bigint,
       players: readonly string[],
       amounts: readonly bigint[],
     ): Promise<PortResult> {
       if (caller !== seed.signer) return err(codes.API_UNAUTHORIZED)
+      if (batchId.length === 0) return err(codes.API_MALFORMED)
+      if (batches.has(batchId)) return err(codes.API_INTENT_REPLAY)
       if (!kettleOk(kettle) || !isStock(token)) return err(codes.API_MALFORMED)
       if (players.length !== amounts.length) return err(codes.API_MALFORMED)
       let sum = 0n
@@ -78,6 +94,7 @@ export function createPrizeTreasuryPort(seed: PrizeMockSeed): PrizeTreasuryPort 
       }
       const bag = mapGet(unsliced, bagKey(kettle, token))
       if (sum > bag) return err(codes.API_MALFORMED)
+      batches.add(batchId)
       for (let i = 0; i < players.length; i += 1) {
         const player = players[i]
         const amt = amounts[i]

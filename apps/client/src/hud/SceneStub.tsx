@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactElement } from "react"
+import { useEffect, useLayoutEffect, useRef, type ReactElement } from "react"
 import type { SceneProjection } from "./sceneProjection.js"
 
 export type SceneStubBuilding = {
@@ -30,19 +30,27 @@ export function SceneStub(props: {
     }
     const chip = host.querySelector(`[data-stub-building="${CSS.escape(objectId)}"]`)
     if (!(chip instanceof HTMLElement)) {
-      projectRef.current({ x: host.clientWidth / 2, y: host.clientHeight / 2, visible: true })
+      projectRef.current({
+        x: host.clientWidth / 2,
+        y: host.clientHeight / 2,
+        width: 0,
+        height: 0,
+        visible: true,
+      })
       return
     }
     const box = chip.getBoundingClientRect()
     const hostBox = host.getBoundingClientRect()
     projectRef.current({
       x: box.left - hostBox.left + box.width / 2,
-      y: box.top - hostBox.top,
+      y: box.top - hostBox.top + box.height / 2,
+      width: box.width,
+      height: box.height,
       visible: true,
     })
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     emitProjection(props.selectedObjectId)
   }, [props.selectedObjectId, props.buildings])
 

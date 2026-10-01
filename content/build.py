@@ -83,6 +83,8 @@ IMPLEMENTED_DERIVED = frozenset(
         "buildings_by_tier",
         "buildings_without_home_role",
         "buildings_playable_v1",
+        "output_links",
+        "building_link_quantum_bps",
         "slots_at_city_level",
         "city_level_at_slots_cap",
         "hire_pool_total_bps",
@@ -124,6 +126,7 @@ IMPLEMENTED_DERIVED = frozenset(
         "level_output",
         "level_build_time",
         "level_energy",
+        "level_compute",
         "deposit_to_capital_bps",
         "fund_contribution_bps",
         "bank_exit_return_bps",
@@ -174,6 +177,7 @@ IMPLEMENTED_DERIVED = frozenset(
         "tick_length_real_seconds",
         "reference_deposit_wei",
         "robotics_lab_output_weight_bps",
+        "output_bps_reachable_max_bps",
         "building_inputs",
         "upgrade_roi_lmax_over_l1_bps",
         "archetype_ids",
@@ -372,6 +376,7 @@ IMPLEMENTED_DERIVED = frozenset(
         "session_ttl_s",
         "nonce_ttl_s",
         "voucher_ttl_s",
+        "unstake_cooldown_s",
         "codegen_artifacts",
         "vector_class_ids",
         "toolchain_engines",
@@ -983,6 +988,143 @@ def build_districts(data: dict) -> dict:
     }
 
 
+def building_link_quantum_bps(data: dict) -> int:
+    return pp(data, "node_effect_base_bps") * mp(data, "building_link_quantum_mult")
+
+
+def build_output_links(data: dict) -> dict:
+    """Bake output_bps magnitudes. Tick path must not multiply steps × quantum."""
+    q = building_link_quantum_bps(data)
+    out: dict[str, dict] = {}
+    for bid, spec in sorted(((data.get("buildings") or {}).get("buildings") or {}).items()):
+        if not isinstance(spec, dict):
+            continue
+        link = spec.get("output_link")
+        if not isinstance(link, dict):
+            continue
+        steps = int(link.get("steps") or 0)
+        excl = [str(x) for x in (link.get("exclusive_with") or []) if str(x)]
+        out[bid] = {
+            "key": "output_bps",
+            "magnitude": q * steps,
+            "target": str(link.get("target") or ""),
+            "exclusive_with": excl,
+            "require_role": str(link.get("require_role") or ""),
+        }
+    return out
+
+
+def building_contours(spec: dict) -> set[str]:
+    out: set[str] = set()
+    contour = spec.get("contour")
+    secondary = spec.get("contour_secondary")
+    if contour:
+        out.add(str(contour))
+    if secondary:
+        out.add(str(secondary))
+    return out
+
+
+def output_link_hits(
+    data: dict,
+    affinity: dict,
+    level_compute: dict,
+    emitter_bid: str,
+    recipient_bid: str,
+    target: str,
+) -> bool:
+    buildings = ((data.get("buildings") or {}).get("buildings") or {})
+    emitter = buildings.get(emitter_bid) or {}
+    recipient = buildings.get(recipient_bid) or {}
+    out = recipient.get("output")
+    if target == "contour_table":
+        return out == "capital" and bool(building_contours(emitter) & building_contours(recipient))
+    if target == "contour_pay":
+        return out in ("capital", "capital_from_population") and bool(
+            building_contours(emitter) & building_contours(recipient)
+        )
+    if target == "compute_table":
+        if out != "capital":
+            return False
+        row = level_compute.get(recipient_bid) or [0]
+        return int(row[0] if row else 0) > 0
+    if target == "engineer_table":
+        if out != "capital":
+            return False
+        roles = affinity.get("roles") or []
+        row = (affinity.get("matrix") or {}).get(recipient_bid) or []
+        if "engineer" not in roles:
+            return False
+        idx = roles.index("engineer")
+        if idx >= len(row):
+            return False
+        return str(row[idx]) in ("home", "neighbour")
+    if target == "population":
+        return out == "capital_from_population"
+    if target == "any_pay":
+        return out in ("capital", "capital_from_population")
+    if target == "autonomous_table":
+        return out == "capital" and bool(recipient.get("autonomous"))
+    return False
+
+
+def accepted_output_link_mags(
+    data: dict,
+    affinity: dict,
+    level_compute: dict,
+    recipient_bid: str,
+    live_ids: set[str],
+) -> list[int]:
+    links = build_output_links(data)
+    matching: list[tuple[int, str, list[str]]] = []
+    for eid in live_ids:
+        spec = links.get(eid)
+        if not isinstance(spec, dict):
+            continue
+        if not output_link_hits(data, affinity, level_compute, eid, recipient_bid, str(spec.get("target") or "")):
+            continue
+        matching.append((int(spec.get("magnitude") or 0), eid, list(spec.get("exclusive_with") or [])))
+    matching.sort(key=lambda row: (-row[0], row[1]))
+    taken: set[str] = set()
+    mags: list[int] = []
+    for mag, eid, excl in matching:
+        if mag <= 0:
+            continue
+        if any(partner in taken for partner in excl):
+            continue
+        mags.append(mag)
+        taken.add(eid)
+    return mags
+
+
+def max_building_link_output_mags(data: dict, generated: dict | None = None) -> list[int]:
+    """Largest legal output_bps link stack on one capital payer, all emitters live."""
+    links = build_output_links(data)
+    if not links:
+        return []
+    affinity = ((generated or {}).get("buildings") or {}).get("affinity_matrix")
+    if not affinity:
+        affinity = build_affinity(data)
+    level_compute = ((generated or {}).get("balance") or {}).get("level_compute")
+    if not level_compute:
+        level_compute = (build_balance(data) or {}).get("level_compute") or {}
+    live = set(links)
+    buildings = ((data.get("buildings") or {}).get("buildings") or {})
+    best: list[int] = []
+    best_composed = -1
+    for bid, spec in buildings.items():
+        if not isinstance(spec, dict):
+            continue
+        if spec.get("output") not in ("capital", "capital_from_population"):
+            continue
+        mags = accepted_output_link_mags(data, affinity, level_compute, bid, live)
+        composed, _ = compose_key_mags(mags, "mul") if mags else (0, 0)
+        if composed > best_composed:
+            best_composed = composed
+            best = mags
+    return best
+
+
 def build_buildings(data: dict, affinity: dict, scope: list[str]) -> dict:
     buildings = data["buildings"]["buildings"]
     by_tier: dict[str, list[str]] = {}
@@ -995,6 +1137,8 @@ def build_buildings(data: dict, affinity: dict, scope: list[str]) -> dict:
             bid for bid, b in buildings.items() if b["contour"] is None
         ),
         "buildings_playable_v1": scope,
+        "output_links": build_output_links(data),
+        "building_link_quantum_bps": building_link_quantum_bps(data),
     }
 
 
@@ -1115,8 +1259,6 @@ def output_weight_bps(data: dict, bid: str) -> int | None:
     stored = b.get("output_weight_bps")
     if stored is not None:
         return stored["v"]
-    if bid == "robotics_lab":
-        return data["economy"]["params"]["affinity_neighbour_bps"]["v"]
     return None
 
 
@@ -1174,6 +1316,22 @@ def compute_base(data: dict, bid: str) -> int:
     if not is_compute_consumer(data, bid):
         return 0
     return workshop_energy_per_tick(data) * cost_weight_bps(data, bid) // BPS
+
+
+def compute_output_per_tick(data: dict, bid: str) -> int:
+    """L1 compute production. Same mulDiv as energy draw; no second authored efficiency."""
+    b = data["buildings"]["buildings"].get(bid) or {}
+    if b.get("output") != "compute":
+        return 0
+    return workshop_energy_per_tick(data) * cost_weight_bps(data, bid) // BPS
+
+
+def building_compute(data: dict, bid: str, level: int) -> int:
+    growth = bp(data, "energy_growth_bps")
+    b = data["buildings"]["buildings"][bid]
+    if b.get("output") == "compute":
+        return mul_pow(compute_output_per_tick(data, bid), growth, level - 1)
+    return mul_pow(compute_base(data, bid), growth, level - 1)
 
 
 def building_inputs(data: dict, bid: str) -> list[str]:
@@ -1552,7 +1710,7 @@ def build_balance(
                     "cost": building_cost(data, bid, L, workshop_l1),
                     "output": building_output(data, bid, L, workshop_l1),
                     "energy": building_energy(data, bid, L),
-                    "compute": mul_pow(compute_base(data, bid), bp(data, "energy_growth_bps"), L - 1),
+                    "compute": building_compute(data, bid, L),
                     "build_time": building_build_time(data, bid, L),
                     "prebuilt": 1 if data["buildings"]["buildings"][bid].get("prebuilt") else 0,
                 }
@@ -2119,11 +2277,81 @@ def sum_1_to(n: int) -> int:
     return n * (n + 1) // 2
 
 
+def output_bps_node_mags(
+    data: dict, progression: dict | None = None, overlay: bool = False
+) -> list[int]:
+    """Simultaneously legal output_bps node magnitudes.
+
+    Exclusive partners on another key do not cut the product. A pair that is
+    both output_bps contributes the larger magnitude. Overlay lets L392 see a
+    patched node table the generator did not rebuild into the published cap.
+    """
+    prog = progression if progression is not None else build_progression(data)
+    nodes = {nid: dict(spec) for nid, spec in (prog.get("progression_nodes") or {}).items()}
+    if overlay:
+        extra = ((data.get("progression") or {}).get("progression_nodes") or {})
+        for nid, spec in extra.items():
+            if not isinstance(spec, dict):
+                continue
+            base = nodes.get(nid) or {}
+            merged = dict(base)
+            merged.update(spec)
+            if "key" not in merged:
+                merged["key"] = "output_bps"
+            nodes[nid] = merged
+    output = {nid: n for nid, n in nodes.items() if n.get("key") == "output_bps"}
+    used: set[str] = set()
+    mags: list[int] = []
+    for nid in sorted(output):
+        if nid in used:
+            continue
+        n = output[nid]
+        excl = n.get("exclusive_with") or ""
+        if excl in output:
+            a = int(n.get("magnitude") or 0)
+            b = int(output[excl].get("magnitude") or 0)
+            mags.append(a if a >= b else b)
+            used.add(nid)
+            used.add(excl)
+        else:
+            mags.append(int(n.get("magnitude") or 0))
+            used.add(nid)
+    return mags
+
+
+def output_bps_reachable_max_bps(
+    data: dict, progression: dict | None = None, overlay: bool = False, generated: dict | None = None
+) -> int:
+    """Unclipped compose of compatible output_bps nodes + manager focus + tools + links.
+
+    Same compose_key_mags path as runtime apply_stack for one key. Do not clip
+    against output_growth_bps: that clip is what this derived cap replaces.
+    """
+    mags = output_bps_node_mags(data, progression, overlay=overlay)
+    mags.append(pp(data, "node_effect_base_bps"))
+    axes = research_axes(data)
+    tools = axes.get("tools")
+    if tools:
+        mags.append(research_axis_effect_bps(data, tools))
+    else:
+        node = ((data.get("research") or {}).get("nodes") or {}).get("tools") or {}
+        if "effect_bps" in node:
+            mags.append(int(node["effect_bps"]))
+    mags.extend(max_building_link_output_mags(data, generated))
+    composed, _ = compose_key_mags(mags, "mul")
+    return composed
+
+
 def lookup_param(data: dict, section: str, name: str) -> int:
     payload = data.get(section) or {}
     params = payload.get("params") or {}
     if name in params:
         return params[name]["v"]
+    derived = ((data.get("_derived") or {}).get(section) or {})
+    if name in derived:
+        return int(derived[name])
+    if section == "balance" and name == "output_bps_reachable_max_bps":
+        return output_bps_reachable_max_bps(data, overlay=False)
     raise KeyError(f"anchor {section}.{name} missing")
 
 
@@ -2600,7 +2828,7 @@ def apply_stack(
     mul_terms: list[int] = []
     stage_fused: dict[str, int] = {}
     for st in stages:
-        if st in ("affinity", "agent_level", "district_efficiency", "productivity", "objective"):
+        if st in ("affinity", "agent_level", "district_efficiency", "productivity", "objective", "base", "jitter"):
             mul_terms.append(BPS)
             stage_fused[st] = BPS
             continue
@@ -2837,6 +3065,15 @@ def build_modifier_system(data: dict, generated: dict | None = None) -> dict:
         return {}
     progression = (generated or {}).get("progression") or build_progression(data)
     balance = (generated or {}).get("balance") or build_balance(data)
+    bag = generated if generated is not None else {
+        "balance": balance,
+        "buildings": {"affinity_matrix": build_affinity(data)},
+    }
+    reachable = output_bps_reachable_max_bps(data, progression, overlay=False, generated=bag)
+    data.setdefault("_derived", {}).setdefault("balance", {})["output_bps_reachable_max_bps"] = reachable
+    if generated is not None:
+        generated.setdefault("balance", {})["output_bps_reachable_max_bps"] = reachable
+        balance["output_bps_reachable_max_bps"] = reachable
     caps = build_modifier_caps(data)
     rows = build_modifier_rows(data, progression)
     floor = build_modifier_content_floor(data, rows, caps)
@@ -2864,7 +3101,7 @@ def build_modifier_system(data: dict, generated: dict | None = None) -> dict:
     }
 
 
-TICK_PATH_FLOORDIV_FILES = ("tick.py", "aggregates.py", "record.py")
+TICK_PATH_FLOORDIV_FILES = ("tick.py", "aggregates.py", "record.py", "slots.py")
 
 # Named remainder sink per function that floor-divides on the tick path.
 # floor_divs is pinned: a new // inside a listed function is a catalog edit, not a silent pass.
@@ -2877,17 +3114,21 @@ REMAINDER_SINK_CATALOG: tuple[tuple[str, int, str, str], ...] = (
     ("_buyback", 3, "ETH tax to CORP to vault", "below buyback_min stays in treasury"),
     ("_check_term_clamp", 1, "jobs / park_capacity fixture", "test remainder, not a payout"),
     ("_collect_requests", 6, "output chain x bps / BPS", "per-step floor, not redistributed"),
+    ("collect_slot_requests", 17, "slot output and draw x bps / BPS", "per-step floor, not redistributed"),
     ("_cork_return", 1, "cork extra to CORP", "wei remainder unconverted"),
     ("_equal_weights", 1, "BPS / 4", "test helper; pack holds the four params"),
-    ("_fix_day_budget", 2, "day_budget / ticks_day", "remainder stays in the day budget"),
+    ("_fix_day_budget", 2, "max(horizon, inflow) then / ticks_day", "remainder stays in the day budget"),
+    ("_smoothed_inflow", 1, "sum of fund_in_day_buf / n days", "inflow dust stays unbudgeted until the next freeze"),
     ("_flush_week_drip", 2, "week shortfall to CORP", "wei remainder unconverted"),
+    ("_focus_scale", 1, "manager focus quantum x (BPS ± node_effect_base) / BPS", "per-step floor, not redistributed"),
     ("_fund_cap", 1, "I7 coverage vs vault", "uncovered remainder is the plaque"),
     ("_note_virgin_week_drain", 1, "drained / week_start", "remainder of the week share"),
-    ("_pay", 3, "ratio and payout", "unpaid remainder stays in the fund; nobody zero while fund > 0"),
+    ("_pay", 5, "boost pool, ratio, fund-share claim, and payout", "unpaid remainder stays in the fund; nobody zero while fund > 0"),
+    ("_payroll_boost_days_left", 1, "ceil remaining window ticks / ticks_day", "partial city day still counts as one day left"),
     ("_recalc_efficiency", 2, "`ema_24h` / `ema_30d` then k x delta", "clamp eats the overshoot"),
     ("_reserve_drip", 2, "virgin x drain_bps / BPS", "unused room waits for next week"),
     ("_resolve_city_time", 1, "tick_index from city_time", "sub-tick hours refused as CITY_TIME"),
-    ("_update_mint_rate", 1, "mean of last ema_city_days samples", "integer mean floor"),
+    ("_update_mint_rate", 2, "ema mean and mint_rate_limit ceiling", "over-ceiling mint is dropped, not banked"),
     ("apply_dex_turnover", 2, "tax usd to wei", "dust stays in the quoted turnover"),
     ("catch_up", 4, "city_time gap / tick length", "prefix beyond cap is one gap record"),
     ("city_clock", 1, "day from absolute hour", "hour via modulo, not a second clock"),
@@ -2903,6 +3144,7 @@ REMAINDER_SINK_CATALOG: tuple[tuple[str, int, str, str], ...] = (
     ("pool_price_wei_per_whole", 1, "ETH per whole $CORP", "wei remainder in pool"),
     ("productivity_bps", 1, "realized / nominal", "gauge only, not a second fuse"),
     ("rate_raw_from_samples", 2, "usd per capital unit", "dust stays unminted"),
+    ("scale_by_modifier_key", 1, "value x live key clip / BPS", "per-step floor, not redistributed"),
     ("split_bank_limit", 1, "ask x cap / sum asks", "floor, remainder undistributed"),
     ("tick", 1, "I7 coverage bps", "remainder of vault vs exit"),
 )
@@ -3103,6 +3345,8 @@ def build_tick(data: dict, generated: dict) -> tuple[dict, list[str]]:
         {"code": "BANK_DAILY_LIMIT_REACHED", "surface": "bank plaque", "when": "global 1% depth fill"},
         {"code": "IDLE_NO_ENERGY", "surface": "scene / agents", "when": "energy stock or energy_ok fails"},
         {"code": "IDLE_NO_COMPUTE", "surface": "scene / agents", "when": "compute stock empty on prod path"},
+        {"code": "IDLE_NO_TRAIN_TARGET", "surface": "agents", "when": "scientist train has no living other agent"},
+        {"code": "IDLE_NO_RESEARCH_FOCUS", "surface": "agents", "when": "scientist research has no live research_focus"},
         {"code": "IDLE_OUT_OF_HOURS", "surface": "agents", "when": "schedule closed"},
         {"code": "IDLE_BANK_CLOSED", "surface": "bank", "when": "withdraw while door closed"},
         {"code": "IDLE_OFFLINE_CAP_REACHED", "surface": "agents", "when": "offline window or catch-up gap"},
@@ -3297,8 +3541,8 @@ def _island_runtime_derived(data: dict) -> dict[str, int]:
             "island_mass_primitives": int(overlay.get("island_mass_primitives") or 0),
             "island_building_primitives": int(overlay.get("island_building_primitives") or 0),
         }
-    mass = REPO / "art" / "island_v3" / "runtime" / "island_mass.glb"
-    bdir = REPO / "art" / "island_v3" / "runtime" / "buildings"
+    mass = REPO / "art" / "island_v3" / "runtime_terra19" / "island_mass.glb"
+    bdir = REPO / "art" / "island_v3" / "runtime_terra19" / "buildings"
     mass_bytes = mass.stat().st_size if mass.is_file() else 0
     mass_prims = _glb_primitive_count(mass) if mass.is_file() else 0
     b_bytes = 0
@@ -3432,10 +3676,26 @@ def build_pack() -> tuple[dict, list[str]]:
     generated["api"] = arch.build_api(data, generated)
     generated["render"] = build_render(data)
 
+    pack_sections = {
+        k: v for k, v in data.items() if k not in ("pending", "exceptions", "_derived", "_lint_t5")
+    }
+    reachable = int((generated.get("balance") or {}).get("output_bps_reachable_max_bps") or 0)
+    if reachable > 0:
+        bal = dict(pack_sections["balance"])
+        params = dict(bal["params"])
+        params["output_bps_reachable_max_bps"] = {
+            "v": reachable,
+            "u": "bps",
+            "src": "docs/BALANCE.md §4, docs/CANON.md R-E-03",
+            "why": "Runtime lookupParam reads params; this is the generator reachable stack, not an authored cap",
+        }
+        bal["params"] = params
+        pack_sections = dict(pack_sections)
+        pack_sections["balance"] = bal
     pack = {
         "rules_version": data["meta"]["rules_version"],
         "pack_version": data["meta"]["pack_version"],
-        "sections": {k: v for k, v in data.items() if k not in ("pending", "exceptions")},
+        "sections": pack_sections,
         "generated": generated,
         "strings": {"ru": strings("ru")["strings"]},
     }
@@ -3539,6 +3799,7 @@ def report(pack: dict) -> str:
     ln = g["launch"]
     eth_usd = pack["sections"]["launch"]["params"]["eth_usd_8dec"]["v"]
     buy_share = pack["sections"]["launch"]["params"]["launch_buy_share_bps"]["v"]
+    bank_share = pack["sections"]["launch"]["params"]["bank_daily_limit_pool_share_bps"]["v"]
     buy_pct = f"{buy_share / 100:.2f}%"
     lines += [
         "## Запуск: стоимость доли supply (ETH)",
@@ -3579,7 +3840,7 @@ def report(pack: dict) -> str:
         f"| Точка перелома на полной ставке | {ln['protocol_take_breakeven_bps']} bps | круг / (2 × creator_tax) |",
         f"| Глубина пула после graduation | {ln['pool_depth_quote_wei']} wei | сид ≈ T; владелец сид не доливает |",
         f"| Токены в пул | {ln['pool_token_amount']} | 10/49 supply при Q0/T = 0.4 |",
-        f"| Дневной лимит банка (на сиде) | {ln['bank_daily_limit_wei']} wei | 1% живой глубины; абсолют не параметр |",
+        f"| Дневной лимит банка (на сиде) | {ln['bank_daily_limit_wei']} wei | {bank_share} bps живой глубины; абсолют не параметр |",
         f"| KOTS первая покупка (формула) | {ln['kottara_first_buy_tokens']} | сверка с фикстурой |",
         f"| KOTS чистая продажа кривой | {ln['kottara_curve_sold_tokens']} | S × T / (Q0 + T) |",
         "",
@@ -3671,7 +3932,7 @@ def report(pack: dict) -> str:
         "## T2: кривые уровней (18 архетипов × 3 уровня)",
         "",
         "Источники: `workshop_cost_l1`, `cost_weight_bps` / тирный вес, `cost_growth_bps`, `output_growth_bps`, `energy_growth_bps`, `build_time_growth_bps`. Команда: `python content/build.py`.",
-        "City Hall предпостроен: стоимость и время 0, уровень равен уровню города.",
+        "Колонка Compute у `output: compute` — выпуск в склад, не забор. City Hall предпостроен: стоимость и время 0, уровень равен уровню города.",
         f"ROI Lmax/L1 = {bal['upgrade_roi_lmax_over_l1_bps']} bps. inputs выведены, не хранятся.",
         "",
         "| Здание | L | Стоимость | Выход/тик | Energy | Compute | Время |",
@@ -3750,7 +4011,7 @@ def report(pack: dict) -> str:
         "",
         "## T2: лестница банка",
         "",
-        f"bank_level_max = {bal['bank_level_max']}. L=0 — банка нет, лимит 0. Персональный предел = доля от 1% живой глубины; при превышении суммы запросов — пропорциональное урезание, код `BANK_DAILY_LIMIT_REACHED`.",
+        f"bank_level_max = {bal['bank_level_max']}. L=0 — банка нет, лимит 0. Персональный предел = доля от {bank_share} bps живой глубины; при превышении суммы запросов — пропорциональное урезание, код `BANK_DAILY_LIMIT_REACHED`.",
         "",
         "| L | share_bps | daily_limit_wei (сид) |",
         "|---:|---:|---:|",
@@ -4192,6 +4453,7 @@ def report_t5(pack: dict) -> list[str]:
     rows = g.get("modifier_rows") or {}
     floor = g.get("modifier_content_floor") or {}
     probe = g.get("modifier_stack_probe") or {}
+    reachable = (pack["generated"].get("balance") or {}).get("output_bps_reachable_max_bps")
     src = (
         "Сгенерировано. Источники: `modifiers.json` якоря и формулы, "
         "`modifier_keys.json` стадии и режимы, `balance.json` кривые, "
@@ -4243,6 +4505,7 @@ def report_t5(pack: dict) -> list[str]:
         "| величина | значение |",
         "|---|---:|",
         f"| capex_trade_ratio_bps | {probe.get('capex_trade_ratio_bps')} |",
+        f"| output_bps_reachable_max_bps | {reachable} |",
         f"| форточка бесплатного выхода bps | {probe.get('window_bps')} |",
         f"| Specialist output_bps | {probe.get('specialist_out_bps')} |",
         f"| бесплатный стек o | {probe.get('free_out_bps')} |",
@@ -4291,7 +4554,8 @@ def report_t6(pack: dict) -> list[str]:
         return []
     src = (
         "Сгенерировано. Источники: `fragments.json` active_work_creator_tax_bps и "
-        "`economy.json` capital_unit_usd/payroll_daily_divisor, `districts.json` ticker/playable_v1, `time.json` "
+        "`fragments.json` fragment_window_city_days and active_work_creator_tax_bps, "
+        "`economy.json` capital_unit_usd, `districts.json` ticker/playable_v1, `time.json` "
         "city_day_real_hours и efficiency_recalc_hour, `launch.json` T1 scenarios и "
         "eth_usd_8dec (снимок 2026-08-27). Команда: `python content/build.py`."
     )
@@ -4319,7 +4583,8 @@ def report_t6(pack: dict) -> list[str]:
         "",
         f"Окно клейма {g.get('fragment_claim_window_city_days')} суток города "
         f"({g.get('fragment_claim_window_real_hours')} реальных часов), "
-        f"settlement в {g.get('settle_hour')}:00. Не хранится: равно `payroll_daily_divisor`.",
+        f"settlement в {g.get('settle_hour')}:00. Не хранится: равно `fragment_window_city_days`. "
+        "Горизонт фонда зарплат остаётся `payroll_daily_divisor`.",
         "",
         "## T6: маршруты тикеров",
         "",
@@ -4477,7 +4742,7 @@ def report_t7(pack: dict) -> list[str]:
         "",
         src,
         "",
-        f"n={g.get('prize_top_n')}, α=10000, pool свидетеля {zipf.get('pool')}. "
+        f"n={g.get('prize_top_n')}, α={pack['sections']['seasons']['params']['prize_curve_alpha_bps']['v']}, pool свидетеля {zipf.get('pool')}. "
         "Floor. Пыль остаётся. Ceil — шов L107.",
         "",
         "| k | вес | payout |",
@@ -5265,7 +5530,8 @@ def report_t12(pack: dict) -> list[str]:
         f"sampler_period_s `{g.get('sampler_period_s')}`, "
         f"samples_per_window `{g.get('samples_per_twap_window')}`, "
         f"rate_limit `{g.get('command_rate_limit_per_city_tick')}`, "
-        f"voucher_ttl_s `{g.get('voucher_ttl_s')}`.",
+        f"voucher_ttl_s `{g.get('voucher_ttl_s')}`, "
+        f"unstake_cooldown_s `{g.get('unstake_cooldown_s')}`.",
         "",
         "## T12: endpoints",
         "",
@@ -5433,6 +5699,8 @@ def main() -> int:
         pr = t5.get("modifier_stack_probe") or {}
         print(
             f"T5 caps    : {len(t5.get('modifier_caps') or {})}  rows {t5.get('row_count', 0)}  "
+            f"out {((t5.get('modifier_caps') or {}).get('output_bps') or {}).get('cap_max')}  "
+            f"reachable {b.get('output_bps_reachable_max_bps')}  "
             f"free {pr.get('free_out_bps')}/{pr.get('free_net_payback')}  "
             f"div {pr.get('divisions')}  bits {pr.get('worst_numerator_bits')}"
         )

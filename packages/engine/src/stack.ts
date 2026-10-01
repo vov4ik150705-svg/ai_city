@@ -137,6 +137,8 @@ const SKIP_FUSE = new Set([
   "district_efficiency",
   "productivity",
   "objective",
+  "base",
+  "jitter",
 ])
 
 export function applyStack(data: Dict, rows: readonly Dict[], bps: bigint): Dict {

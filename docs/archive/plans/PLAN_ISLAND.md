@@ -1,7 +1,8 @@
 # PLAN_ISLAND — visual rescue до HUD и P7
 
-Живой план авторского 3D-острова Corporator. Точка входа —
-`docs/CANON.md`.
+**Архив 2026-09-18. Не исполнять.** Вид принят (`ACCEPT LOOK-11`).
+Живой план — `docs/reports/PLAN_LAUNCH.md`. Этот файл — история приёмки,
+не ТЗ. Точка входа — `docs/CANON.md`.
 
 ## 1. Статус
 

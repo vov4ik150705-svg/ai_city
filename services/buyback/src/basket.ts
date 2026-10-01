@@ -46,6 +46,39 @@ export function splitCollected(
   return { fundWei, prizeWei, studioWei, stocksWei: prizeWei - studioWei }
 }
 
+export type FeeSplitWei = {
+  readonly fundWei: bigint
+  readonly leaderboardWei: bigint
+  readonly farmWei: bigint
+  readonly studioWei: bigint
+}
+
+export function splitTurnover(
+  turnoverWei: bigint,
+  fundBps: bigint,
+  leaderboardBps: bigint,
+  farmBps: bigint,
+  studioBps: bigint,
+  bps: bigint,
+): FeeSplitWei {
+  if (
+    bps <= 0n ||
+    turnoverWei <= 0n ||
+    fundBps < 0n ||
+    leaderboardBps < 0n ||
+    farmBps < 0n ||
+    studioBps < 0n
+  ) {
+    return { fundWei: 0n, leaderboardWei: 0n, farmWei: 0n, studioWei: 0n }
+  }
+  const fundWei = (turnoverWei * fundBps) / bps
+  const farmWei = (turnoverWei * farmBps) / bps
+  const studioWei = (turnoverWei * studioBps) / bps
+  const taxWei = (turnoverWei * (fundBps + leaderboardBps + farmBps + studioBps)) / bps
+  const leaderboardWei = taxWei - fundWei - farmWei - studioWei
+  return { fundWei, leaderboardWei, farmWei, studioWei }
+}
+
 export function uniformBudget(stocksWei: bigint, n: bigint): { readonly perWei: bigint; readonly dustWei: bigint } {
   if (n <= 0n) return { perWei: 0n, dustWei: stocksWei < 0n ? 0n : stocksWei }
   const perWei = stocksWei / n

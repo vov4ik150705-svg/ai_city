@@ -40,7 +40,11 @@ export function buildingLabelKey(objectId: string): string {
   return `UI_BLD_${objectId.toUpperCase()}`
 }
 
-export function resolveBuildingSelection(objectId: string, pack: ClientPack): BuildingSelection {
+export function resolveBuildingSelection(
+  objectId: string,
+  pack: ClientPack,
+  functions?: readonly { readonly id: string }[],
+): BuildingSelection {
   if (objectId.length === 0) {
     return { objectId: "", kind: "none", labelKey: "UI_SELECTED_BUILDING", manage: undefined }
   }
@@ -58,7 +62,7 @@ export function resolveBuildingSelection(objectId: string, pack: ClientPack): Bu
     objectId,
     kind: "mapped",
     labelKey: buildingLabelKey(objectId),
-    manage: manageForBuilding(objectId, pack),
+    manage: manageForBuilding(objectId, pack, functions),
   }
 }
 
@@ -67,13 +71,17 @@ export function popoverMode(
   narrow: boolean,
   workspaceOpen = false,
 ): PopoverMode {
+  void narrow
   if (workspaceOpen) return "hidden"
-  if (narrow) return "dock"
-  if (projection === undefined || !projection.visible) return "dock"
-  return "float"
+  if (projection !== undefined && projection.visible) return "float"
+  return "dock"
 }
 
-/** Clamp the popover box inside measured chrome, not raw projection pixels. */
+/** Gap between the projected GLB box and the popover card, in CSS pixels. */
+export const POPOVER_ANCHOR_GAP_PX = 12
+
+/** Place the popover below (prefer) or above the projected GLB box, then clamp to chrome.
+ * Does not slide the card onto the selected mesh when a vertical slot still fits. */
 export function clampPopoverPlacement(
   anchorX: number,
   anchorY: number,
@@ -82,40 +90,109 @@ export function clampPopoverPlacement(
   viewW: number,
   viewH: number,
   insets: PopoverInsets,
+  anchorW = 0,
+  anchorH = 0,
 ): { readonly left: number; readonly top: number } {
-  const gap = 12
+  const gap = POPOVER_ANCHOR_GAP_PX
+  const halfW = anchorW > 0 ? anchorW / 2 : 0
+  const halfH = anchorH > 0 ? anchorH / 2 : 0
+  const bLeft = anchorX - halfW
+  const bRight = anchorX + halfW
+  const bTop = anchorY - halfH
+  const bBottom = anchorY + halfH
   const minL = insets.left
   const maxL = viewW - insets.right - boxW
   const minT = insets.top
   const maxT = viewH - insets.bottom - boxH
-  let left = anchorX - boxW / 2
-  let top = anchorY + gap
-  if (maxL < minL) left = minL
-  else if (left < minL) left = minL
-  else if (left > maxL) left = maxL
-  if (maxT < minT) top = minT
-  else if (top < minT) top = minT
-  else if (top > maxT) top = maxT
-  return { left, top }
+
+  function clampLeft(left: number): number {
+    if (maxL < minL) return minL
+    if (left < minL) return minL
+    if (left > maxL) return maxL
+    return left
+  }
+
+  function clampTop(top: number): number {
+    if (maxT < minT) return minT
+    if (top < minT) return minT
+    if (top > maxT) return maxT
+    return top
+  }
+
+  function fitsX(left: number): boolean {
+    if (maxL < minL) return false
+    return left >= minL && left <= maxL
+  }
+
+  function fitsY(top: number): boolean {
+    if (maxT < minT) return false
+    return top >= minT && top <= maxT
+  }
+
+  function overlapsBuilding(left: number, top: number): boolean {
+    if (anchorW <= 0 && anchorH <= 0) return false
+    const pRight = left + boxW
+    const pBottom = top + boxH
+    const kLeft = bLeft - gap
+    const kTop = bTop - gap
+    const kRight = bRight + gap
+    const kBottom = bBottom + gap
+    return left < kRight && pRight > kLeft && top < kBottom && pBottom > kTop
+  }
+
+  const centerLeft = clampLeft(anchorX - boxW / 2)
+  const below = bBottom + gap
+  const above = bTop - gap - boxH
+  const right = bRight + gap
+  const leftSide = bLeft - gap - boxW
+
+  function alongRow(top: number): { readonly left: number; readonly top: number } | undefined {
+    if (!fitsY(top)) return undefined
+    const mid = clampLeft(anchorX - boxW / 2)
+    if (!overlapsBuilding(mid, top)) return { left: mid, top }
+    if (fitsX(right) && !overlapsBuilding(right, top)) return { left: right, top }
+    if (fitsX(leftSide) && !overlapsBuilding(leftSide, top)) return { left: leftSide, top }
+    return undefined
+  }
+
+  const under = alongRow(below)
+  if (under !== undefined) return under
+  const over = alongRow(above)
+  if (over !== undefined) return over
+
+  const midTop = clampTop(anchorY - boxH / 2)
+  if (fitsX(right) && fitsY(midTop) && !overlapsBuilding(right, midTop)) {
+    return { left: right, top: midTop }
+  }
+  if (fitsX(leftSide) && fitsY(midTop) && !overlapsBuilding(leftSide, midTop)) {
+    return { left: leftSide, top: midTop }
+  }
+
+  if (fitsY(below)) return { left: centerLeft, top: below }
+  if (fitsY(above)) return { left: centerLeft, top: above }
+  return { left: centerLeft, top: clampTop(below) }
 }
 
 export function readHudInsets(root: Element): {
   readonly width: number
   readonly height: number
+  readonly originLeft: number
+  readonly originTop: number
   readonly insets: PopoverInsets
 } {
   const rootBox = root.getBoundingClientRect()
   return {
     width: rootBox.width,
     height: rootBox.height,
+    originLeft: rootBox.left,
+    originTop: rootBox.top,
     insets: {
       top: edgeBottom(root.querySelector(".hud-topbar"), rootBox),
       left: edgeRight(root.querySelector(".hud-col--left"), rootBox),
       right: edgeFromRight(root.querySelector(".hud-col--right"), rootBox),
-      bottom: Math.max(
-        edgeFromBottom(root.querySelector(".hud-functions"), rootBox),
-        edgeFromBottom(root.querySelector(".hud-activity"), rootBox),
-      ),
+      // Functions/activity live in the overlay row under the island well.
+      // Using them as a hard bottom inset slides the card onto the GLB or into the sky.
+      bottom: 0,
     },
   }
 }
@@ -149,15 +226,15 @@ function edgeFromRight(el: Element | null, root: DOMRect): number {
   return v > 0 ? v : 0
 }
 
-function edgeFromBottom(el: Element | null, root: DOMRect): number {
-  if (el === null) return 0
-  const box = el.getBoundingClientRect()
-  if (box.width <= 0 || box.height <= 0) return 0
-  const v = root.bottom - box.top
-  return v > 0 ? v : 0
-}
-
-function manageForBuilding(objectId: string, pack: ClientPack): BuildingManage {
+function manageForBuilding(
+  objectId: string,
+  pack: ClientPack,
+  functions: readonly { readonly id: string }[] | undefined,
+): BuildingManage {
+  const built = functionBuilt(functions, objectId)
+  if (!built && (objectId === "bank" || objectId === "exchange" || objectId === "agent_hub")) {
+    return { route: "building_card", overviewTab: undefined, districtId: undefined }
+  }
   if (objectId === "bank") {
     return { route: "bank", overviewTab: undefined, districtId: undefined }
   }
@@ -178,4 +255,24 @@ function manageForBuilding(objectId: string, pack: ClientPack): BuildingManage {
     return { route: "building_card", overviewTab: undefined, districtId }
   }
   return { route: "building_card", overviewTab: undefined, districtId: undefined }
+}
+
+function functionBuilt(functions: readonly { readonly id: string }[] | undefined, objectId: string): boolean {
+  if (functions === undefined) return true
+  for (const row of functions) {
+    if (row.id === objectId) return true
+  }
+  return false
+}
+
+/** Seated agent for a building. Contour/slot role on the function row is not a person. */
+export function agentAtBuilding<T extends { readonly buildingId: string }>(
+  agents: readonly T[],
+  buildingId: string,
+): T | undefined {
+  if (buildingId.length === 0) return undefined
+  for (const row of agents) {
+    if (row.buildingId === buildingId) return row
+  }
+  return undefined
 }

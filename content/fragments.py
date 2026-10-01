@@ -47,7 +47,10 @@ def rounding_of(data: dict) -> str:
 
 
 def window_days(data: dict) -> int:
-    return data["economy"]["params"]["payroll_daily_divisor"]["v"]
+    row = ((data.get("fragments") or {}).get("params") or {}).get("fragment_window_city_days")
+    if not isinstance(row, dict):
+        return 0
+    return int(row.get("v") or 0)
 
 
 def window_index(day: int, days: int) -> int:
@@ -57,7 +60,7 @@ def window_index(day: int, days: int) -> int:
 
 
 def window_settle_due(data: dict, city_day: int, hour: int) -> bool:
-    """Global 14-day farm window. First hour of a new window, never a backfill."""
+    """Global farm window from fragment_window_city_days. First hour of a new window, never a backfill."""
     if hour != settle_hour(data):
         return False
     days = window_days(data)

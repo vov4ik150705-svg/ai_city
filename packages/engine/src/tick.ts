@@ -16,6 +16,7 @@ import {
   reserveDrip,
   updateMintRate,
 } from "./economy.js"
+import { applyCityScope, buildingDistrictFrozen, cityUsesSlots, liveModifierNodes, tagDistrictFrozen } from "./slots.js"
 import {
   buildSlotsOf,
   cityLevelFromPopulation,
@@ -27,11 +28,23 @@ import {
 } from "./aggregates.js"
 import { accrueAmount, fragmentGrossBase, settleCities, windowSettleDue } from "./fragments.js"
 import { accumulateDay, consumeAfterSettle, periodSettleDue, seasonSettle, seasonSettleDue } from "./seasons.js"
-import { awardPaidTick, awardTrain, trainComputeCost } from "./xp.js"
+import { awardPaidTick, awardTrain, trainComputeCost, trainTargetOf, trainTargetOk } from "./xp.js"
 import { encodeHeader, requireHeader, requireRecord } from "./record.js"
 import { cityClock, companionCommandsHash, resolveCityTime, shiftSeedHex } from "./state.js"
 import { asBig, asBool, asDict, asList, asStr, clampInt, sortedKeys, TickError } from "./values.js"
 import type { Dict } from "./values.js"
+
+function overlaySettleWallet(city: Dict, row: Dict): void {
+  if (asStr(row["wallet"]).trim().length > 0) return
+  const wallet = asStr(city["wallet"]).trim()
+  if (wallet.length > 0) row["wallet"] = wallet
+}
+
+function overlaySettleDemo(city: Dict, row: Dict): void {
+  if (asStr(city["account_kind"]) === "demo" || asStr(row["account_kind"]) === "demo") {
+    row["demo"] = 1n
+  }
+}
 
 function pyOr(value: unknown, fallback: bigint): bigint {
   if (value === undefined || value === null || value === false || value === "") return fallback
@@ -74,8 +87,15 @@ function awardXp(cfg: Dict, state: Dict): void {
     for (const raw of agents) {
       if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
       const agent = asDict(raw)
-      if (!asStr(agent["train_target"]) && !asStr(city["train_target"])) continue
-      if ("compute_stock" in city) {
+      if (asStr(agent["idle"]) !== "") continue
+      if (cityUsesSlots(city)) {
+        if (asStr(agent["building_id"]).length === 0) continue
+        if (asStr(agent["role"]) !== "scientist" || asStr(agent["objective"]) !== "train") continue
+      }
+      const targetId = trainTargetOf(agent, city)
+      if (!targetId) continue
+      if (!trainTargetOk(city, asStr(agent["id"]), targetId)) continue
+      if (!cityUsesSlots(city) && "compute_stock" in city) {
         const mags: bigint[] = []
         for (const m of asList(agent["compute_cost_mags"])) mags.push(asBig(m))
         for (const m of asList(agent["train_compute_mags"])) mags.push(asBig(m))
@@ -112,6 +132,7 @@ function refreshCityProgress(cfg: Dict, state: Dict): void {
       city["population"] = population(jobs, per, housing)
       const derived = cityLevelFromPopulation(asBig(city["population"]), thresholds, levelMax)
       city["city_level"] = stickyCityLevel(asBig(city["city_level"], 1n), derived)
+      applyCityScope(cfg, city, asBig(state["city_time"]))
       const agentSlots = asBig(city["agent_slots"], asBig(packSlots[asBig(city["city_level"]).toString()]))
       if (agentSlots > 0n) city["build_slots"] = buildSlotsOf(agentSlots)
     }
@@ -218,16 +239,23 @@ function hourSix(cfg: Dict, state: Dict, day: bigint, hour: bigint): void {
     if (!("influence" in city) && !("season_row" in city)) continue
     const seeded = asDict(city["season_row"])
     if (Object.keys(seeded).length > 0) {
-      rows.push(seeded)
+      const row: Dict = { ...seeded }
+      overlaySettleWallet(city, row)
+      overlaySettleDemo(city, row)
+      rows.push(row)
     } else {
-        rows.push({
-          city_id: cid,
-          influence: asBig(city["influence"]),
-          positive_days: asBig(city["positive_days"]),
-          live_stake: city["live_stake"],
-          demo: city["demo"],
-          spend_protocol: asBig(city["spend_protocol_period"]),
-        })
+      const row: Dict = {
+        city_id: cid,
+        influence: asBig(city["influence"]),
+        positive_days: asBig(city["positive_days"]),
+        live_stake: city["live_stake"],
+        demo: city["demo"],
+        account_kind: city["account_kind"],
+        spend_protocol: asBig(city["spend_protocol_period"]),
+      }
+      overlaySettleWallet(city, row)
+      overlaySettleDemo(city, row)
+      rows.push(row)
     }
   }
   if (rows.length > 0) {
@@ -279,25 +307,95 @@ function fragmentGrossOf(cfg: Dict, building: Dict): bigint {
     if (storedOw !== undefined && storedOw !== null && typeof storedOw === "object") {
       ow = asBig(asDict(storedOw)["v"])
     }
-    const weights = spec["cost_weight_bps"]
-    if (costL1 <= 0n && weights !== undefined && weights !== null && typeof weights === "object") {
-      costL1 = (asBig(cfg["workshop_cost"]) * asBig(asDict(weights)["v"])) / bps
+    if (costL1 <= 0n) {
+      const costs = asList(asDict(asDict(asDict(cfg["generated"])["balance"])["level_cost"])[bid])
+      if (costs.length > 0) costL1 = asBig(costs[0])
     }
-    if (costL1 <= 0n) costL1 = asBig(cfg["workshop_cost"])
+    if (costL1 <= 0n) {
+      const weights = spec["cost_weight_bps"]
+      if (weights !== undefined && weights !== null && typeof weights === "object") {
+        costL1 = (asBig(cfg["workshop_cost"]) * asBig(asDict(weights)["v"])) / bps
+      }
+    }
+    if (costL1 <= 0n) costL1 = asBig(building["cost_l1"])
   }
   return fragmentGrossBase(authored, costL1, ow, growth, level, payback, bps)
 }
 
+function fragmentRateMags(cfg: Dict, city: Dict, cityTime: bigint): bigint[] {
+  const mags: bigint[] = []
+  for (const m of asList(city["fragment_rate_mags"])) mags.push(asBig(m))
+  for (const node of liveModifierNodes(cfg, city, cityTime)) {
+    if (asStr(node["key"]) === "fragment_rate_bps") mags.push(asBig(node["magnitude"]))
+  }
+  return mags
+}
+
+function creditFragments(city: Dict, data: Dict, building: Dict, delta: bigint): void {
+  city["fragments"] = asBig(city["fragments"]) + delta
+  if (delta <= 0n) return
+  const did = asStr(building["district"])
+  const ticker = did ? asStr(asDict(asDict(asDict(data["districts"])["districts"])[did])["ticker"]) : ""
+  if (ticker.length === 0) return
+  const ledger = asDict(city["fragment_ledger"] ?? {})
+  ledger[ticker] = asBig(ledger[ticker]) + delta
+  city["fragment_ledger"] = ledger
+}
+
+function slotWorked(city: Dict, bid: string): boolean {
+  for (const raw of asList(city["_slot_rows"])) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
+    const slot = asDict(raw)
+    if (asStr(slot["building_id"]) !== bid) continue
+    if (asStr(slot["idle"]) === "") return true
+  }
+  return false
+}
+
+function accrueSlottedFragments(cfg: Dict, city: Dict, cityTime: bigint): bigint {
+  const data = asDict(cfg["data"])
+  const defs = asDict(asDict(data["buildings"])["buildings"])
+  const paid = asStr(cfg["status_paid"])
+  const mags = fragmentRateMags(cfg, city, cityTime)
+  const bps = asBig(cfg["bps"])
+  let total = 0n
+  for (const raw of asList(city["functions"])) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
+    const fn = asDict(raw)
+    if (fn["deactivated"] === true || asBig(fn["deactivated"]) > 0n) continue
+    if (fn["frozen"] === true || asBig(fn["frozen"]) > 0n) continue
+    if (fn["construction"] === true || asBig(fn["construction"]) > 0n) continue
+    const bid = asStr(fn["id"])
+    if (bid.length === 0) continue
+    if (buildingDistrictFrozen(cfg, city, bid, cityTime)) continue
+    if (!slotWorked(city, bid)) continue
+    const spec = asDict(defs[bid])
+    const building: Dict = {
+      ...spec,
+      id: bid,
+      level: asBig(fn["level"], 1n),
+    }
+    let gross = fragmentGrossOf(cfg, building)
+    if (gross <= 0n && asBool(building["force_fragment_accrual"])) gross = asBig(city["payout"])
+    const delta = accrueAmount(data, gross, mags, building, paid, false, bps, paid)
+    creditFragments(city, data, building, delta)
+    total += delta
+  }
+  return total
+}
+
 function accrueFragments(cfg: Dict, state: Dict, city: Dict): bigint {
   const data = asDict(cfg["data"])
+  if (Object.keys(data).length === 0) return 0n
+  const cityTime = asBig(state["city_time"])
+  if (cityUsesSlots(city)) return accrueSlottedFragments(cfg, city, cityTime)
   const building = city["building"]
-  if (Object.keys(data).length === 0 || !building || typeof building !== "object") return 0n
+  if (!building || typeof building !== "object" || Array.isArray(building)) return 0n
   const idle = asStr(city["idle"]) !== ""
   const payout = asBig(city["payout"])
   let status = payout > 0n && !idle ? asStr(cfg["status_paid"]) : asStr(cfg["status_idle"])
   if (asBool(city["construction"])) status = asStr(cfg["status_construction"])
-  const mags: bigint[] = []
-  for (const m of asList(city["fragment_rate_mags"])) mags.push(asBig(m))
+  const mags = fragmentRateMags(cfg, city, cityTime)
   let gross = fragmentGrossOf(cfg, asDict(building))
   if (gross <= 0n && asBool(asDict(building)["force_fragment_accrual"])) gross = payout
   const delta = accrueAmount(
@@ -310,16 +408,7 @@ function accrueFragments(cfg: Dict, state: Dict, city: Dict): bigint {
     asBig(cfg["bps"]),
     asStr(cfg["status_paid"]),
   )
-  city["fragments"] = asBig(city["fragments"]) + delta
-  if (delta > 0n) {
-    const did = asStr(asDict(building)["district"])
-    const ticker = did ? asStr(asDict(asDict(asDict(data["districts"])["districts"])[did])["ticker"]) : ""
-    if (ticker) {
-      const ledger = asDict(city["fragment_ledger"] ?? {})
-      ledger[ticker] = asBig(ledger[ticker]) + delta
-      city["fragment_ledger"] = ledger
-    }
-  }
+  creditFragments(city, data, asDict(building), delta)
   return delta
 }
 
@@ -332,16 +421,74 @@ function recordsOf(state: Dict): Dict[] {
   const cities = asDict(state["cities"])
   for (const cid of sortedKeys(cities)) {
     const city = asDict(cities[cid])
-    const idle = asStr(city["idle"])
-    const payout = asBig(city["payout"])
-    let status = idle || payout <= 0n ? asStr(cfg["status_idle"]) : asStr(cfg["status_paid"])
-    if (asBool(city["construction"])) status = asStr(cfg["status_construction"])
-    const delta = accrueFragments(cfg, state, city)
-    const stage = asDict(city["stage_bps"])
     let cityTime = state["city_time"]
     if (cityTime === undefined || cityTime === null) {
       cityTime = asBig(cfg["anchor_hour"]) + asBig(state["tick_index"]) * length
     }
+    const delta = accrueFragments(cfg, state, city)
+    const slotRows = asList(city["_slot_rows"])
+    if (cityUsesSlots(city)) {
+      const ordered: Dict[] = []
+      for (const raw of slotRows) {
+        if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
+        ordered.push(asDict(raw))
+      }
+      ordered.sort((a, b) => {
+        const x = asStr(a["agent_id"])
+        const y = asStr(b["agent_id"])
+        if (x < y) return -1
+        if (x > y) return 1
+        return 0
+      })
+      let first = true
+      for (const slot of ordered) {
+        const idle = asStr(slot["idle"])
+        const payout = asBig(slot["payout"])
+        let status = idle || payout <= 0n ? asStr(cfg["status_idle"]) : asStr(cfg["status_paid"])
+        if (asBool(city["construction"])) status = asStr(cfg["status_construction"])
+        const stage = asDict(slot["stage"])
+        const agentId = asStr(slot["agent_id"])
+        const seedRaw = asStr(slot["seed_id"])
+        const seedId = seedRaw.length > 0 ? seedRaw : agentId
+        const rec: Dict = {
+          layout_version: asBig(cfg["layout_version"]),
+          city_id: cid,
+          tick_index: asBig(state["tick_index"]),
+          city_time: asBig(cityTime),
+          agent_id: agentId,
+          building_id: asStr(slot["building_id"]),
+          objective: asStr(slot["objective"]),
+          inputs: {
+            compute: asBig(slot["compute"]),
+            energy: asBig(slot["energy"]),
+            materials: 0n,
+          },
+          district_efficiency_bps: asBig(city["district_efficiency_bps"], bps),
+          seed: shiftSeedHex(cid, asBig(state["tick_index"]), seedId),
+          output: payout,
+          payroll_ratio_bps: asBig(state["payroll_ratio_bps"]),
+          status,
+          reason: idle,
+          fragments_delta: first ? delta : 0n,
+          stage_bps: {
+            base: asBig(stage["base"], bps),
+            post: asBig(stage["post"], bps),
+          },
+        }
+        first = false
+        if (Object.keys(spec).length > 0) {
+          requireRecord(rec, spec, asBig(state["tick_index"]), cid)
+        }
+        out.push(rec)
+        canonical(rec)
+      }
+      continue
+    }
+    const idle = asStr(city["idle"])
+    const payout = asBig(city["payout"])
+    let status = idle || payout <= 0n ? asStr(cfg["status_idle"]) : asStr(cfg["status_paid"])
+    if (asBool(city["construction"])) status = asStr(cfg["status_construction"])
+    const stage = asDict(city["stage_bps"])
     const rec: Dict = {
       layout_version: asBig(cfg["layout_version"]),
       city_id: cid,
@@ -398,7 +545,7 @@ export function tick(state: Dict, inputs: Dict): readonly [Dict, Dict[]] {
   if (asBig(state["mint_rate"]) > asBig(cfg["capital_anchor"])) {
     throw new TickError("I1_RATE_CEILING", asBig(state["tick_index"]), "-", { rate: asBig(state["mint_rate"]) })
   }
-  applyDexTurnover(cfg, state, asBig(inputs["dex_turnover_usd_8dec"]))
+  applyDexTurnover(cfg, state, asBig(inputs["dex_turnover_usd_8dec"]), asBig(inputs["eth_usd_8dec"]))
   accumulateInfluenceDay(cfg, state, clock[0], clock[1])
   hourSix(cfg, state, clock[0], clock[1])
   fixDayBudget(cfg, state, clock[0], clock[1])
@@ -411,6 +558,7 @@ export function tick(state: Dict, inputs: Dict): readonly [Dict, Dict[]] {
   for (const cid of sortedKeys(cities)) {
     const city = asDict(cities[cid])
     city["codes"] = []
+    tagDistrictFrozen(city, asBig(state["city_time"]))
     applySpend(cfg, state, city, asBig(city["spend_intent"]), asBig(city["spend_from_earned"]))
     city["spend_intent"] = 0n
   }
@@ -474,7 +622,11 @@ export function catchUp(state: Dict, inputsNow: Dict, lastCityTime: bigint): rea
   const now = asBig(inputsNow["city_time"])
   const elapsed = length === 0n ? 0n : (now - lastCityTime) / length
   if (elapsed <= 0n) return [state, []]
-  const capHours = clipOfflineHours(asBig(cfg["offline_cap"]), asBig(state["offline_cap_hours"]), asBig(cfg["offline_hard_cap"], 18n))
+  const gapCity = asStr(inputsNow["city_id"])
+  const gapLive = asDict(asDict(state["cities"])[gapCity])
+  if (Object.keys(gapLive).length > 0) applyCityScope(cfg, gapLive, now)
+  const added = asBig(gapLive["offline_cap_hours"], asBig(state["offline_cap_hours"]))
+  const capHours = clipOfflineHours(asBig(cfg["offline_cap"]), added, asBig(cfg["offline_hard_cap"]))
   const cap = length === 0n ? 0n : capHours / length
   const credited = elapsed < cap ? elapsed : cap
   const skipped = elapsed - credited
@@ -482,18 +634,18 @@ export function catchUp(state: Dict, inputsNow: Dict, lastCityTime: bigint): rea
   const bps = asBig(cfg["bps"])
   if (skipped > 0n) {
     const fromTick = length === 0n ? 0n : (lastCityTime - asBig(cfg["anchor_hour"])) / length + 1n
-    const gapCity = asStr(inputsNow["city_id"])
+    const gapAgent = cityUsesSlots(gapLive) ? "" : "shift"
     records.push({
       layout_version: asBig(cfg["layout_version"]),
       city_id: gapCity,
       tick_index: fromTick,
       city_time: lastCityTime + length,
-      agent_id: "shift",
+      agent_id: gapAgent,
       building_id: "",
       objective: "",
       inputs: { compute: 0n, energy: 0n, materials: 0n },
       district_efficiency_bps: bps,
-      seed: shiftSeedHex(gapCity, fromTick, "shift"),
+      seed: shiftSeedHex(gapCity, fromTick, gapAgent),
       output: 0n,
       payroll_ratio_bps: asBig(state["payroll_ratio_bps"]),
       status: asStr(cfg["status_gap"]),

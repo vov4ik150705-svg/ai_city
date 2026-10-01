@@ -1,4 +1,4 @@
-/* GENERATED from pack dc58998f9a46f00a8cddcb575abcbde9ed17061717e9f500357bab8dda30efc4; do not edit */
+/* GENERATED from pack 8f0dc753eeee37c59e38184159db4b118eebe107f24af48a996695dafaad01a1; do not edit */
 export const screens = {
   build: "build",
   agents: "agents",
@@ -12,7 +12,6 @@ export const screens = {
   agent_card: "agent_card",
   district_card: "district_card",
   offline_return: "offline_return",
-  onboarding_demo: "onboarding_demo",
   wallet_connect: "wallet_connect",
   settings: "settings",
   topbar: "topbar",
@@ -26,12 +25,6 @@ export const screens = {
   scene: "scene",
   stock_bar: "stock_bar",
   bottom_menu: "bottom_menu",
-  flow_onboard_clock: "flow_onboard_clock",
-  flow_onboard_seat: "flow_onboard_seat",
-  flow_onboard_payout: "flow_onboard_payout",
-  flow_onboard_idle: "flow_onboard_idle",
-  flow_onboard_bank: "flow_onboard_bank",
-  flow_onboard_wallet: "flow_onboard_wallet",
   flow_return_summary: "flow_return_summary",
   flow_return_continue: "flow_return_continue",
 } as const;

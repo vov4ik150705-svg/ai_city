@@ -1,8 +1,8 @@
 """Agent XP: 1 XP per valid paid tick, Train +1 to a same-city target.
 
 Bonus sources use a fixed-point remainder accumulator (bps). Normal XP and
-Train XP are additive. Trainer rows affect Compute cost only; XP remainder
-reads recipient and city modifiers. Integer floor, no floats.
+Train XP are additive. Trainer xp_rate_mags enter the Train remainder; paid
+ticks still read the recipient. Integer floor, no floats.
 
 DEPLOYMENT-ONLY: on-chain agent identity is not in this repo.
 """
@@ -98,6 +98,24 @@ def train_target_ok(city: dict, trainer_id: str, target_id: str) -> bool:
     return target_id in ids
 
 
+def _owned_str(row: dict, key: str) -> str | None:
+    if key not in row:
+        return None
+    value = row[key]
+    if isinstance(value, str):
+        return value
+    return str(value) if value is not None else ""
+
+
+def train_target_of(trainer: dict, city: dict) -> str:
+    """Empty agent field stays empty. City fallback only when the key is missing."""
+    own = _owned_str(trainer, "train_target")
+    if own is not None:
+        return own
+    city_t = _owned_str(city, "train_target")
+    return city_t if city_t is not None else ""
+
+
 def award_paid_tick(
     city: dict,
     curve: dict,
@@ -106,10 +124,12 @@ def award_paid_tick(
     city_xp_mags: list[int] | None = None,
 ) -> int:
     """1 XP to each working agent on a valid paid tick, plus recipient/city remainder."""
-    if city.get("idle"):
-        return 0
-    if int(city.get("payout") or 0) <= 0 and int(city.get("request") or 0) <= 0:
-        return 0
+    slotted = "functions" in city
+    if not slotted:
+        if city.get("idle"):
+            return 0
+        if int(city.get("payout") or 0) <= 0 and int(city.get("request") or 0) <= 0:
+            return 0
     agents = city.get("agents")
     if not isinstance(agents, list) or not agents:
         return 0
@@ -120,6 +140,11 @@ def award_paid_tick(
             continue
         if agent.get("idle"):
             continue
+        if slotted:
+            if not str(agent.get("building_id") or ""):
+                continue
+            if int(agent.get("payout") or 0) <= 0 and int(agent.get("request") or 0) <= 0:
+                continue
         recip = bonus_bps_from_mags(list(agent.get("xp_rate_mags") or []))
         total += grant_with_remainder(agent, XP_BASE, city_bonus + recip, curve, level_max, gain_bps)
     return total
@@ -133,8 +158,8 @@ def award_train(
     gain_bps: int,
     city_xp_mags: list[int] | None = None,
 ) -> int:
-    """+1 XP to the selected same-city target. Trainer mags do not enter the XP remainder."""
-    target_id = str(trainer.get("train_target") or city.get("train_target") or "")
+    """+1 XP to the selected same-city target. Trainer xp_rate_mags enter the XP remainder."""
+    target_id = train_target_of(trainer, city)
     trainer_id = str(trainer.get("id") or "")
     if not train_target_ok(city, trainer_id, target_id):
         return 0
@@ -146,8 +171,8 @@ def award_train(
     if target is None:
         return 0
     city_bonus = bonus_bps_from_mags(list(city_xp_mags or city.get("xp_rate_mags") or []))
-    recip = bonus_bps_from_mags(list(target.get("xp_rate_mags") or []))
-    return grant_with_remainder(target, TRAIN_XP, city_bonus + recip, curve, level_max, gain_bps)
+    trainer_bonus = bonus_bps_from_mags(list(trainer.get("xp_rate_mags") or []))
+    return grant_with_remainder(target, TRAIN_XP, city_bonus + trainer_bonus, curve, level_max, gain_bps)
 
 
 def _check_curve() -> str | None:
@@ -194,6 +219,29 @@ def _check_train_additive() -> str | None:
         return f"target not additive normal+train {city['agents'][1]}"
     if award_train(city, {"id": "s", "train_target": "s"}, curve, 5, 1500, []):
         return "self-train was accepted"
+    if train_target_ok(city, "s", ""):
+        return "empty target was accepted"
+    if train_target_ok(city, "s", "ghost"):
+        return "ghost target was accepted"
+    empty = {"id": "s", "train_target": ""}
+    if award_train({"agents": city["agents"], "train_target": "e"}, empty, curve, 5, 1500, []):
+        return "empty agent target fell back to city"
+    if train_target_of({}, {"train_target": "e"}) != "e":
+        return "missing agent key did not fall back to city"
+    if train_target_of({"train_target": ""}, {"train_target": "e"}) != "":
+        return "empty agent key fell back to city"
+    boosted = {
+        "payout": 1,
+        "idle": "",
+        "agents": [
+            {"id": "s", "level": 1, "xp": 0, "xp_remainder": 0, "train_target": "e", "xp_rate_mags": [10000]},
+            {"id": "e", "level": 1, "xp": 0, "xp_remainder": 0},
+        ],
+    }
+    award_paid_tick(boosted, curve, 5, 1500, [])
+    award_train(boosted, boosted["agents"][0], curve, 5, 1500, [])
+    if boosted["agents"][1]["xp"] != 3:
+        return f"trainer xp_rate did not add a train quantum {boosted['agents'][1]}"
     return None
 
 

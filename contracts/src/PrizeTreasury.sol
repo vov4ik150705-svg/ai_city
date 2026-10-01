@@ -23,6 +23,7 @@ contract PrizeTreasury {
     mapping(address => bool) public isPrizeStock;
     mapping(uint8 => mapping(address => uint256)) public unsliced;
     mapping(uint8 => mapping(address => mapping(address => uint256))) public owed;
+    mapping(bytes32 => bool) public batchUsed;
 
     constructor(
         address depositor_,
@@ -59,10 +60,16 @@ contract PrizeTreasury {
         unsliced[kettle][token] += got;
     }
 
-    function slice(address token, uint8 kettle, address[] calldata players, uint256[] calldata amounts)
-        external
-    {
+    function slice(
+        bytes32 batchId,
+        address token,
+        uint8 kettle,
+        address[] calldata players,
+        uint256[] calldata amounts
+    ) external {
         require(msg.sender == signer, "signer");
+        require(!batchUsed[batchId], "batch");
+        batchUsed[batchId] = true;
         require(_kettleOk(kettle) && isPrizeStock[token], "slice");
         require(players.length == amounts.length, "len");
         uint256 sum;

@@ -1,0 +1,99 @@
+{
+  "verifiedAt": "2026-10-02",
+  "files": [
+    {
+      "file": "scene-clean-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 3143903,
+      "format": "png"
+    },
+    {
+      "file": "scene-clean-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 1031352,
+      "format": "png"
+    },
+    {
+      "file": "x-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 3137741,
+      "format": "png"
+    },
+    {
+      "file": "x-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 1048550,
+      "format": "png"
+    },
+    {
+      "file": "dexscreener-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 3214794,
+      "format": "png"
+    },
+    {
+      "file": "dexscreener-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 1059179,
+      "format": "png"
+    }
+  ],
+  "originalChecks": [
+    {
+      "file": "media/island/island_03_tight.png",
+      "sha256": "8ba3437e4d27b7c49d07517f71baf24693bf3ad89b90397b9c25dd59797a0521",
+      "manifestMatch": true
+    },
+    {
+      "file": "media/island/island_04_hero_walk_left.png",
+      "sha256": "baf3a38633f2f0bbf0d737ab7ef4dce8f21795d1ff4898b940f041db0fd953df",
+      "manifestMatch": true
+    },
+    {
+      "file": "media/island/island_06_lowest_fill.png",
+      "sha256": "22882f4bd8c86b3013fa377a5fb2d3aa85adc378efaa3c601625942e53e04c87",
+      "manifestMatch": true
+    },
+    {
+      "file": "media/corporator_logo/logo solo.png",
+      "sha256": "58395b6846eb9e60bea4edc4e0bee3f50ac94e5b4c2a73ca8dae40dc02beef57",
+      "manifestMatch": true
+    },
+    {
+      "file": "media/corporator_logo/logo token.png",
+      "sha256": "19288af558af3db670078d269c11a38c27763b6da4521671294808dd044ae9e0",
+      "manifestMatch": true
+    },
+    {
+      "file": "media/arts/economy-sky-art.png",
+      "sha256": "02a43e60bd08947ef0dfabeee6e4cf55a587ea7fd0141eee04a5fe62ea2db0e7",
+      "manifestMatch": true
+    }
+  ],
+  "foregroundPreservation": {
+    "fullyOpaquePixels": 1610765,
+    "changedRgbPixels": 0,
+    "uniformScale": 0.55,
+    "mirrored": false
+  },
+  "masters": {
+    "x": {
+      "editableText": true,
+      "fontEmbedded": true,
+      "rasterLayers": 5,
+      "openRasterValid": true
+    },
+    "dexscreener": {
+      "editableText": true,
+      "fontEmbedded": true,
+      "rasterLayers": 5,
+      "openRasterValid": true
+    }
+  }
+}

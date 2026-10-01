@@ -42,6 +42,7 @@ export type PackCtx = {
   readonly packTemplate: string
   readonly packCache: string
   readonly readyTemplate: string
+  readonly ratingTemplate: string
   readonly wsTemplate: string
   readonly envelopeOk: readonly string[]
   readonly envelopeErr: readonly string[]
@@ -148,6 +149,7 @@ export function makeCtx(loaded: LoadedPack): PackCtx {
   const state = asObj(paths["state"] ?? {})
   const packRule = asObj(paths["pack"] ?? {})
   const readyRule = asObj(paths["ready"] ?? {})
+  const ratingRule = asObj(paths["rating"] ?? {})
   const wsRule = asObj(paths["ws"] ?? {})
   const prefix = asText(command["prefix"])
   const archGen = asObj(walk(pack, ["generated", "arch"]))
@@ -186,6 +188,7 @@ export function makeCtx(loaded: LoadedPack): PackCtx {
     packTemplate: asText(packRule["template"]),
     packCache: asText(packRule["cache"]),
     readyTemplate: asText(readyRule["template"]),
+    ratingTemplate: asText(ratingRule["template"]),
     wsTemplate: asText(wsRule["template"]),
     envelopeOk: strList(api["envelope_ok_fields"] ?? []),
     envelopeErr: strList(api["envelope_error_fields"] ?? []),
@@ -207,19 +210,14 @@ export function codeSlots(ctx: PackCtx, code: string): readonly string[] {
 }
 
 export function commitPathsFromPack(ctx: PackCtx): readonly string[] {
-  const actions = asObj(walk(ctx.pack, ["sections", "screens", "actions"]))
-  const names = new Set<string>()
-  const template = ctx.commandTemplate
-  const prefix = asText(asObj(walk(ctx.pack, ["sections", "api", "path_rules", "command"]))["prefix"])
-  for (const key of Object.keys(actions)) {
-    const spec = actions[key]
-    if (spec === undefined) continue
-    const effect = asText(asObj(spec)["effect"])
-    if (!effect.startsWith(prefix)) continue
-    const name = effect.slice(prefix.length)
-    names.add(applyTemplate(template, "effect", name))
+  const raw = walk(ctx.pack, ["generated", "arch", "command_endpoints"])
+  const out: string[] = []
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === "string" && item.length > 0) out.push(item)
+    }
   }
-  return [...names].sort()
+  return [...out].sort()
 }
 
 export function applyTemplate(template: string, param: string, value: string): string {

@@ -7,25 +7,30 @@ import type { Palette } from "../palette.js"
 import type { HudFixture } from "../layout.js"
 import { lookup, type StringTable } from "../strings.js"
 import { SceneStub } from "./SceneStub.js"
-import { IslandTopbar as Topbar } from "./topbar/IslandTopbar.js"
+import { IslandTopbar as Topbar, type TopbarWallet } from "./topbar/IslandTopbar.js"
 import { LeftRail } from "./left/LeftRail.js"
 import { RecentActivity, RightRail } from "./right/RightRail.js"
 import { FunctionStrip } from "./center/FunctionStrip.js"
 import { WorkspaceDrawer } from "./parts/Drawer.js"
-import { failedTokens } from "./parts/refusal.js"
 import { renderPackScreen } from "./screens/registry.js"
 import type { ScreenProps } from "./parts/ScreenFrame.js"
 import type { HudView } from "./model.js"
 import type { OverviewTabId } from "./fields.js"
 import {
+  HUD_NAVIGATION,
+  hudDestinationByShortcut,
+  hudDestinationStep,
+  hudPaneMotion,
   packWorkspaceId,
   resolveHudRoute,
   sceneClickOpensWorkspace,
   workspaceDrawerWide,
+  workspaceLoading,
 } from "./navigation.js"
 import {
   captureHudFocus,
   hudEscapeTarget,
+  cabinetArrows,
   isTypingTarget,
   resolveHudFocusReturn,
   type HudFocusReturn,
@@ -33,13 +38,18 @@ import {
 import { OverviewWorkspace } from "./workspace/OverviewWorkspace.js"
 import { IndustriesWorkspace } from "./workspace/IndustriesWorkspace.js"
 import { JournalFromLog } from "./workspace/JournalFromLog.js"
+import { CityLevelWorkspace } from "./workspace/CityLevelWorkspace.js"
 import { BuildingPopover } from "./BuildingPopover.js"
-import { islandChromeVisible, resolveBuildingSelection } from "./selection.js"
-import { isTxnInFlight, type UiTxnState } from "./uiState.js"
+import { resolveBuildingSelection } from "./selection.js"
+import { isLocalReview, isTxnInFlight, type UiTxnState } from "./uiState.js"
+import type { BankVoucher } from "./screens/bank.js"
 import type { SceneProjection } from "./sceneProjection.js"
 import { HudShell } from "./HudShell.js"
 import type { CommitExtra, LiveAdapterResult, UiIntent } from "./liveAdapter.js"
+import { storeLastCityTime } from "./flows.js"
 import "./hud.css"
+import "./hud-look.css"
+import "./hud-light.css"
 
 const NO_OPENED: { readonly [district: string]: bigint } = {}
 
@@ -107,6 +117,14 @@ const IslandScene = memo(function IslandScene(props: IslandSceneProps): ReactEle
 
 export type HudSceneMode = "live" | "stub"
 
+type HudPlace = {
+  readonly route: string
+  readonly overviewTab: OverviewTabId
+  readonly lookId: string
+  readonly selectedId: string
+  readonly focusedAgentId: string
+}
+
 export const App = memo(function App(props: {
   readonly view: HudView
   readonly pack: ClientPack
@@ -122,11 +140,21 @@ export const App = memo(function App(props: {
   readonly demo: boolean
   readonly adapterStatus: string
   readonly adapterCode: string
+  readonly linkStale?: boolean
+  readonly linkAgeMs?: bigint
+  readonly linkWaitMs?: bigint
   readonly onDrawer: (id: string) => void
   readonly onIntent: (intent: UiIntent, extra?: CommitExtra) => void | Promise<void | LiveAdapterResult>
   readonly onCommit: (effect: string, extra?: CommitExtra) => void | Promise<void | LiveAdapterResult>
+  readonly initialRoute?: string
+  readonly cityId?: string
+  readonly wallet?: TopbarWallet
+  readonly bindTxn?: (set: (state: UiTxnState | undefined) => void) => void
+  readonly bankVoucher?: BankVoucher
+  readonly stockOut?: string
 }): ReactElement {
-  const [route, setRoute] = useState("")
+  const [route, setRoute] = useState(props.initialRoute ?? "")
+  const [stack, setStack] = useState<readonly HudPlace[]>([])
   const [lookId, setLookId] = useState("")
   const [lookRev, setLookRev] = useState(0n)
   const [proofId, setProofId] = useState("")
@@ -135,9 +163,16 @@ export const App = memo(function App(props: {
   const [pendingTileY, setPendingTileY] = useState(0n)
   const [overviewTab, setOverviewTab] = useState<OverviewTabId>("summary")
   const [selectedId, setSelectedId] = useState("")
+  const [focusedAgentId, setFocusedAgentId] = useState("")
   const [projection, setProjection] = useState<SceneProjection | undefined>(undefined)
   const [moneyTxn, setMoneyTxn] = useState<UiTxnState | undefined>(undefined)
+  useEffect(() => {
+    props.bindTxn?.(setMoneyTxn)
+  }, [props.bindTxn])
   const [txnHold, setTxnHold] = useState(false)
+  const [shellMotion, setShellMotion] = useState<"in" | "out">("in")
+  const [paneMotion, setPaneMotion] = useState<"in" | "forward" | "back">("in")
+  const leavingRef = useRef(false)
   const lastReturnRef = useRef<HudFocusReturn | undefined>(undefined)
   const pendingRestoreRef = useRef(false)
   const routeRef = useRef(route)
@@ -161,18 +196,15 @@ export const App = memo(function App(props: {
     pendingCell.length === 0 ||
     (pendingCell !== "." && pendingCell !== "p") ||
     isShore(sceneMap, pendingTileX, pendingTileY)
-  const failed = failedTokens({
-    demo: props.demo,
-    walletConnected: !props.demo,
-    capitalPositive: props.view.treasury.kind === "ready" && props.view.treasury.exact !== "0",
-    corpPositive: props.view.corp !== undefined && props.view.corp !== 0n,
-    bankOpen: props.view.plaque.key !== "BANK_CLOSED" && props.view.plaque.key !== "BANK_SUNDAY",
-    bankSunday: props.view.plaque.key === "BANK_SUNDAY",
-    buildTileIllegal: tileBad,
-  })
-  const selection = resolveBuildingSelection(selectedId, props.pack)
+  const failed = new Set<string>()
+  if (tileBad) failed.add("build_tile")
+  const selection = resolveBuildingSelection(selectedId, props.pack, props.view.functions)
   const used = new Set<string>()
   const continuesText = lookup(props.strings, "UI_TXN_CONTINUES", used)
+  const staleText = lookup(props.strings, "UI_UNAVAILABLE", used)
+  const linkStale = props.linkStale === true
+  const linkAgeMs = props.linkAgeMs === undefined ? 0n : props.linkAgeMs
+  const linkWaitMs = props.linkWaitMs === undefined ? 0n : props.linkWaitMs
   function rememberFocus(from?: EventTarget | null): void {
     const source = from === undefined ? document.activeElement : from
     const hit = captureHudFocus(source)
@@ -219,19 +251,63 @@ export const App = memo(function App(props: {
     setLookId(id)
     setLookRev((n) => n + 1n)
   }
-  function applyRoute(id: string, toggle: boolean, tab: OverviewTabId | undefined = undefined): void {
+  function pickOverviewTab(id: OverviewTabId): void {
+    if (id === overviewTab) return
+    if (route === "overview") {
+      const place: HudPlace = { route, overviewTab, lookId, selectedId, focusedAgentId }
+      setStack((prev) => [...prev, place])
+    }
+    setOverviewTab(id)
+  }
+  function backOverviewHome(): void {
+    setOverviewTab("summary")
+  }
+  function applyRoute(
+    id: string,
+    toggle: boolean,
+    tab: OverviewTabId | undefined = undefined,
+    agentId: string | undefined = undefined,
+  ): void {
     const dest = resolveHudRoute(id, tab)
     if (dest === undefined) return
     if (dest.overviewTab !== undefined) setOverviewTab(dest.overviewTab)
     if (toggle && route === dest.route) {
-      setRoute("")
-      requestRestore()
+      closeWorkspace()
       return
     }
+    leavingRef.current = false
+    setShellMotion("in")
+    setPaneMotion(hudPaneMotion(route, dest.route, false))
+    const agentChanges = agentId !== undefined && agentId.length > 0 && agentId !== focusedAgentId
+    const peer = HUD_NAVIGATION.some((row) => row.id === dest.route)
+    if (route.length === 0 || peer) setStack([])
+    else if (route !== dest.route || agentChanges) {
+      const place: HudPlace = { route, overviewTab, lookId, selectedId, focusedAgentId }
+      setStack((prev) => [...prev, place])
+    }
+    if (agentId !== undefined && agentId.length > 0) setFocusedAgentId(agentId)
+    else if (dest.route !== "agent_card") setFocusedAgentId("")
     if (route.length === 0) rememberFocus()
     setRoute(dest.route)
   }
-  function go(id: string): void {
+  function backWorkspace(): void {
+    const place = stack[stack.length - 1]
+    if (place === undefined) return
+    leavingRef.current = false
+    setShellMotion("in")
+    setPaneMotion("back")
+    setStack((prev) => prev.slice(0, -1))
+    setOverviewTab(place.overviewTab)
+    setLookId(place.lookId)
+    setSelectedId(place.selectedId)
+    setFocusedAgentId(place.focusedAgentId)
+    setRoute(place.route)
+  }
+  function go(id: string, objectId?: string): void {
+    if (objectId !== undefined && objectId.length > 0) {
+      applyRoute(id, false, undefined, objectId)
+      return
+    }
     applyRoute(id, true)
   }
   function openRoute(id: string, tab: OverviewTabId | undefined = undefined): void {
@@ -239,12 +315,21 @@ export const App = memo(function App(props: {
   }
   function clearSelection(): void {
     setSelectedId("")
+    setFocusedAgentId("")
     setProjection(undefined)
     restoreFocus()
   }
   function selectBuilding(objectId: string): void {
     rememberFocus()
     setSelectedId(objectId)
+  }
+  function openFunction(objectId: string): void {
+    rememberFocus()
+    setSelectedId(objectId)
+    const dest = resolveBuildingSelection(objectId, props.pack, props.view.functions).manage
+    if (dest === undefined) return
+    if (dest.districtId !== undefined) look(dest.districtId)
+    openRoute(dest.route, dest.overviewTab)
   }
   function onLocal(_effect: string): void {
     void _effect
@@ -254,12 +339,23 @@ export const App = memo(function App(props: {
       setTxnHold(true)
       return
     }
+    if (route === "offline_return") storeLastCityTime(props.cityId, cityTime)
     setTxnHold(false)
-    setRoute("")
     requestRestore()
     if (moneyTxn !== undefined && moneyTxn.kind !== "confirmed" && moneyTxn.kind !== "failed") {
       setMoneyTxn(undefined)
     }
+    const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (leavingRef.current || reduce || route.length === 0) {
+      leavingRef.current = false
+      setShellMotion("in")
+      setStack([])
+      setRoute("")
+      setFocusedAgentId("")
+      return
+    }
+    leavingRef.current = true
+    setShellMotion("out")
   }
   function manageSelected(): void {
     const dest = selection.manage
@@ -277,7 +373,7 @@ export const App = memo(function App(props: {
     strings: props.strings,
     demo: props.demo,
     failed,
-    loading: false,
+    loading: workspaceLoading(route, props.view.logLoading),
     onClose: closeWorkspace,
     onNavigate: go,
     pendingCell,
@@ -289,7 +385,14 @@ export const App = memo(function App(props: {
     moneyTxn,
     onMoneyTxn: setMoneyTxn,
     ...(lookId.length > 0 ? { lookId } : {}),
-    ...(selectedId.length > 0 ? { selectedObjectId: selectedId } : {}),
+    ...(route === "agent_card" && focusedAgentId.length > 0
+      ? { selectedObjectId: focusedAgentId }
+      : selectedId.length > 0
+        ? { selectedObjectId: selectedId }
+        : {}),
+    ...(props.bankVoucher === undefined ? {} : { bankVoucher: props.bankVoucher }),
+    ...(props.stockOut === undefined ? {} : { stockOut: props.stockOut }),
+    ...(props.adapterCode.length > 0 ? { adapterCode: props.adapterCode } : {}),
   }
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
@@ -297,6 +400,7 @@ export const App = memo(function App(props: {
       if (e.key === "Escape") {
         const target = hudEscapeTarget({
           txnInFlight: isTxnInFlight(moneyTxn),
+          reviewOpen: isLocalReview(moneyTxn),
           workspaceOpen: route.length > 0,
           selected: selectedId.length > 0,
         })
@@ -304,8 +408,13 @@ export const App = memo(function App(props: {
           setTxnHold(true)
           return
         }
+        if (target === "review") {
+          setMoneyTxn(undefined)
+          return
+        }
         if (target === "workspace") {
-          closeWorkspace()
+          if (stack.length > 0) backWorkspace()
+          else closeWorkspace()
           return
         }
         if (target === "selection") {
@@ -316,19 +425,70 @@ export const App = memo(function App(props: {
         setTxnHold(false)
         return
       }
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        if (e.altKey || e.ctrlKey || e.metaKey) return
+        if (route.length === 0 || !cabinetArrows(e.target)) return
+        const dir = e.key === "ArrowRight" ? 1 : -1
+        const next = hudDestinationStep(route, dir)
+        if (next === undefined) {
+          if (dir > 0) return
+          e.preventDefault()
+          if (stack.length > 0) backWorkspace()
+          else closeWorkspace()
+          return
+        }
+        e.preventDefault()
+        openRoute(next)
+        return
+      }
+      if (e.altKey || e.ctrlKey || e.metaKey) return
+      const dest = hudDestinationByShortcut(e.key)
+      if (dest === undefined) return
+      e.preventDefault()
+      openRoute(dest.id)
     }
     window.addEventListener("keydown", onKey)
     return () => {
       window.removeEventListener("keydown", onKey)
     }
-  }, [selectedId, moneyTxn, route])
+  }, [selectedId, moneyTxn, route, stack])
   useEffect(() => {
     if (route.length > 0 || !pendingRestoreRef.current) return
     pendingRestoreRef.current = false
     restoreFocus()
   }, [route])
+  useEffect(() => {
+    if (route.length === 0) return
+    function onPointerDown(event: PointerEvent): void {
+      if (leavingRef.current) return
+      if (isTxnInFlight(moneyTxn) || isLocalReview(moneyTxn)) return
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (target.closest("[data-surface='workspace'], .hud-dialog, .hud-dialog-scrim, .hud-flyout, .hud-popover, .hud-pick__menu, .hud-topbar, .hud-col--left") !== null) {
+        return
+      }
+      closeWorkspace()
+    }
+    document.addEventListener("pointerdown", onPointerDown)
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown)
+    }
+  }, [route, moneyTxn])
+  useEffect(() => {
+    if (selectedId.length === 0 || route.length > 0) return
+    function onPointerDown(event: PointerEvent): void {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (target.closest("[data-surface='selection'], .hud-dialog, .hud-dialog-scrim, .hud-flyout, .hud-pick__menu") !== null) return
+      if (target.closest("[data-stub-building], canvas, [data-function] button") !== null) return
+      clearSelection()
+    }
+    document.addEventListener("pointerdown", onPointerDown)
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown)
+    }
+  }, [selectedId, route])
   const workspaceOpen = route.length > 0
-  const islandChrome = islandChromeVisible(workspaceOpen)
   const workspaceTitle = workspaceLabel(props.view, route)
   const packId = packWorkspaceId(route)
   const workspace =
@@ -339,7 +499,18 @@ export const App = memo(function App(props: {
         closeLabel={props.view.close.text}
         closeKey={props.view.close.key}
         onClose={closeWorkspace}
+        onExited={closeWorkspace}
+        motion={shellMotion}
+        pane={paneMotion}
+        paneKey={route}
         wide={workspaceDrawerWide(route)}
+        workspaceId={route}
+        {...(stack.length > 0
+          ? { onBack: backWorkspace, backLabel: lookup(props.strings, "UI_BACK", used), backKey: "UI_BACK" }
+          : route === "overview" && overviewTab !== "summary"
+            ? { onBack: backOverviewHome, backLabel: lookup(props.strings, "UI_BACK", used), backKey: "UI_BACK" }
+            : {})}
+        {...(route === "overview" ? { mark: "chart" as const } : route === "journal" ? { mark: "log" as const } : route === "city_level" ? { mark: "city" as const } : {})}
       >
         {isTxnInFlight(moneyTxn) ? (
           <p data-key="UI_TXN_CONTINUES" className="hud-row" role="status" aria-live="polite">
@@ -350,9 +521,9 @@ export const App = memo(function App(props: {
           <OverviewWorkspace
             view={props.view}
             tab={overviewTab}
-            onTab={setOverviewTab}
+            onTab={pickOverviewTab}
             screen={screenProps}
-            onSelectBuilding={selectBuilding}
+            onSelectBuilding={openFunction}
           />
         ) : null}
         {route === "industries" ? (
@@ -360,16 +531,21 @@ export const App = memo(function App(props: {
             view={props.view}
             pack={props.pack}
             strings={props.strings}
+            screen={screenProps}
             onLook={(id) => {
               look(id)
               openRoute("district_card")
             }}
           />
         ) : null}
+        {route === "city_level" ? (
+          <CityLevelWorkspace view={props.view} pack={props.pack} strings={props.strings} />
+        ) : null}
         {route === "journal" ? (
           <JournalFromLog
             view={props.view}
             strings={props.strings}
+            pack={props.pack}
             extra={[]}
             openId={proofId}
             onBadge={(id) => {
@@ -409,7 +585,7 @@ export const App = memo(function App(props: {
   return (
     <HudShell
       style={geo}
-      sceneRoute={route}
+      sceneRoute={shellMotion === "out" ? "" : route}
       sceneMode={stubMode ? "stub" : "live"}
       narrow={props.narrow}
       drawer={props.drawer}
@@ -440,7 +616,16 @@ export const App = memo(function App(props: {
       }
       chrome={
         <>
-          <Topbar view={props.view} onNavigate={go} />
+          <Topbar
+            view={props.view}
+            onNavigate={go}
+            strings={props.strings}
+            linkStale={linkStale}
+            demo={props.demo}
+            chainId={props.pack.chainId}
+            weiDecimals={props.pack.weiDecimals}
+            {...(props.wallet === undefined ? {} : { wallet: props.wallet })}
+          />
           <LeftRail
             view={props.view}
             strings={props.strings}
@@ -455,42 +640,40 @@ export const App = memo(function App(props: {
             }}
           />
           <div className="hud-scene-slot" aria-hidden="true" />
-          {islandChrome ? (
-            <RightRail
-              view={props.view}
-              strings={props.strings}
-              pack={props.pack}
-              onDetails={() => {
-                openRoute("overview", "summary")
-              }}
-            />
-          ) : null}
-          {islandChrome ? (
-            <FunctionStrip
-              view={props.view}
-              pack={props.pack}
-              strings={props.strings}
-              selectedId={selectedId}
-              onViewAll={() => {
-                openRoute("overview", "functions")
-              }}
-              onSelectBuilding={selectBuilding}
-            />
-          ) : null}
-          {islandChrome ? (
-            <RecentActivity
-              view={props.view}
-              strings={props.strings}
-              extra={[]}
-              openId={proofId}
-              onBadge={(id) => {
-                setProofId((cur) => (cur === id ? "" : id))
-              }}
-              onViewAll={() => {
-                openRoute("journal")
-              }}
-            />
-          ) : null}
+          <RightRail
+            view={props.view}
+            strings={props.strings}
+            pack={props.pack}
+            onDetails={() => {
+              openRoute("overview", "summary")
+            }}
+            onLevel={() => {
+              openRoute("city_level")
+            }}
+          />
+          <FunctionStrip
+            view={props.view}
+            pack={props.pack}
+            strings={props.strings}
+            selectedId={selectedId}
+            onViewAll={() => {
+              openRoute("overview", "functions")
+            }}
+            onSelectBuilding={selectBuilding}
+          />
+          <RecentActivity
+            view={props.view}
+            strings={props.strings}
+            pack={props.pack}
+            extra={[]}
+            openId={proofId}
+            onBadge={(id) => {
+              setProofId((cur) => (cur === id ? "" : id))
+            }}
+            onViewAll={() => {
+              openRoute("journal")
+            }}
+          />
         </>
       }
       selection={
@@ -508,17 +691,33 @@ export const App = memo(function App(props: {
       }
       workspace={workspace}
       feedback={
-        isTxnInFlight(moneyTxn) && route.length === 0 ? (
-          <p data-key="UI_TXN_CONTINUES" className="hud-txn-banner" role="status" aria-live="polite">
-            {continuesText}
-          </p>
-        ) : null
+        <>
+          {linkStale ? (
+            <p
+              data-link="stale"
+              data-stale-age={linkAgeMs.toString()}
+              data-stale-wait={linkWaitMs.toString()}
+              className="hud-stale"
+              role="status"
+              aria-live="polite"
+            >
+              {staleText}
+            </p>
+          ) : null}
+          {isTxnInFlight(moneyTxn) && route.length === 0 ? (
+            <p data-key="UI_TXN_CONTINUES" className="hud-txn-banner" role="status" aria-live="polite">
+              {continuesText}
+            </p>
+          ) : null}
+        </>
       }
     />
   )
 })
 
 function workspaceLabel(view: HudView, route: string): { readonly title: string; readonly key: string } {
+  if (route === "leaderboard") return { title: view.shell.season.text, key: view.shell.season.key }
+  if (route === "city_level") return { title: view.shell.cityLevelLabel, key: view.shell.cityLevelLabelKey }
   for (const row of view.shell.nav) {
     if (row.id === route) return { title: row.label, key: row.key }
   }

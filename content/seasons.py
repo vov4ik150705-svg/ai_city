@@ -57,6 +57,43 @@ def leaderboard_scope(data: dict) -> str:
     return SCOPE_WALLET
 
 
+def flag_on(value) -> bool:
+    if value is True:
+        return True
+    if value is False or value is None:
+        return False
+    if isinstance(value, str):
+        if value == "":
+            return False
+        return int(value, 0) != 0
+    if isinstance(value, int):
+        return value != 0
+    return False
+
+
+def face_wallet(raw) -> str:
+    trimmed = raw.strip() if isinstance(raw, str) else ""
+    if not trimmed:
+        return ""
+    compact = "".join(trimmed.split())
+    body = compact[2:] if len(compact) >= 2 and compact[:2].lower() == "0x" else compact
+    if len(body) == 40 and all(c in "0123456789abcdefABCDEF" for c in body):
+        return "0x" + body.lower()
+    return trimmed
+
+
+def slot_key(face: str, city_id: str, city_scope: bool) -> str:
+    if city_scope:
+        return city_id
+    if not face:
+        return "c:" + city_id
+    return "w:" + face
+
+
+def slot_wallet(raw, city_id: str) -> str:
+    return slot_key(face_wallet(raw), city_id, False)
+
+
 def district_tickers(data: dict) -> list[str]:
     rows = (data.get("districts") or {}).get("districts") or {}
     return [str(row["ticker"]) for row in rows.values()]
@@ -313,10 +350,24 @@ def rank_wallets(
     return items[:n]
 
 
-def zipf_weights(n: int, bps: int) -> list[int]:
+def zipf_curve_alpha(data: dict) -> int:
+    return int(data["seasons"]["params"]["prize_curve_alpha_bps"]["v"])
+
+
+def zipf_weights(n: int, bps: int, alpha_bps: int | None = None) -> list[int]:
     if n <= 0:
         return []
-    return [int(bps) // k for k in range(1, n + 1)]
+    a = int(bps) if alpha_bps is None else int(alpha_bps)
+    if a >= bps:
+        return [int(bps) // k for k in range(1, n + 1)]
+    if a <= 0:
+        return [int(bps) // n] * n
+    uniform = int(bps) // n
+    out: list[int] = []
+    for k in range(1, n + 1):
+        harm = int(bps) // k
+        out.append((a * harm + (bps - a) * uniform) // bps)
+    return out
 
 
 def _share(pool: int, weight: int, total: int, rounding: str) -> int:
@@ -334,6 +385,7 @@ def zipf_payout(
     bps: int = BPS,
     pad_to: int | None = None,
     wipe_pool_on_zero: bool = False,
+    alpha_bps: int | None = None,
 ) -> dict:
     if n <= 0:
         if wipe_pool_on_zero:
@@ -358,11 +410,11 @@ def zipf_payout(
             "codes": [CODE_NO_ELIGIBLE],
         }
     if pad_to and pad_to > n:
-        full = zipf_weights(pad_to, bps)
+        full = zipf_weights(pad_to, bps, alpha_bps)
         weights = full[:n] + [0] * (pad_to - n)
         total = sum(full)
     else:
-        weights = zipf_weights(n, bps)
+        weights = zipf_weights(n, bps, alpha_bps)
         total = sum(weights)
     payouts = [_share(pool, w, total, rounding) for w in weights]
     paid = sum(payouts)
@@ -401,7 +453,7 @@ def share_cap_over_contribution_bps(data: dict) -> int:
     if not deps:
         return 0
     n_pair = 1 + 1
-    rank1_row = zipf_payout(BPS, n_pair, rounding=ROUND_FLOOR)
+    rank1_row = zipf_payout(BPS, n_pair, rounding=ROUND_FLOOR, alpha_bps=zipf_curve_alpha(data))
     rank1 = int(rank1_row["payouts"][0]) if rank1_row["payouts"] else 0
     k = 1
     for dep in deps:
@@ -451,6 +503,7 @@ def zipf_payout_from_data(data: dict, pool: int, n: int) -> dict:
         bps=BPS,
         pad_to=pad,
         wipe_pool_on_zero=wipe,
+        alpha_bps=zipf_curve_alpha(data),
     )
 
 
@@ -612,17 +665,17 @@ def settle_prizes(
     k_bps = 0 if disable_cap else share_cap_over_contribution_bps(data)
 
     def _is_demo(row: dict) -> bool:
-        return bool(row.get("demo")) or bool(demo_real)
+        return flag_on(row.get("demo")) or flag_on(demo_real) or row.get("account_kind") == "demo"
 
     city_scope = leaderboard_scope(data) == SCOPE_CITY
     by_wallet: dict[str, dict] = {}
 
     def _ingest(row: dict, skip_demo: bool) -> None:
         city_id = str(row["city_id"])
-        wallet = str(row.get("wallet") or city_id)
+        wallet = face_wallet(row.get("wallet"))
         influence = int(row.get("influence") or 0)
         pos = int(row.get("positive_days") or 0)
-        stake = bool(row.get("live_stake"))
+        stake = flag_on(row.get("live_stake"))
         spend = int(row.get("spend_protocol") or 0)
         if _is_demo(row):
             if skip_demo:
@@ -635,7 +688,7 @@ def settle_prizes(
         if require_stake and not stake:
             codes.append(CODE_STAKE_REQUIRED)
             return
-        slot = city_id if city_scope else wallet
+        slot = slot_key(wallet, city_id, city_scope)
         cur = by_wallet.get(slot)
         if cur is None:
             by_wallet[slot] = {
@@ -860,7 +913,7 @@ def sybil_cost_vs_rank10(data: dict, budgets: dict) -> dict:
             per = int(brow.get("prize_usd_8dec_per_city") or 0)
             pool = per * n_cities
             n_pay = min(n_cities, top_n)
-            zp = zipf_payout(pool, n_pay)
+            zp = zipf_payout(pool, n_pay, alpha_bps=zipf_curve_alpha(data))
             payouts = zp["payouts"]
             rank1 = payouts[0] if payouts else 0
             rank10 = payouts[top_n - 1] if len(payouts) >= top_n else 0
@@ -999,7 +1052,7 @@ def share_cap_witness(data: dict) -> dict:
     first = payouts[0] if payouts else {}
     opt_payout = int(first.get("payout") or 0)
     n_pair = 1 + 1
-    rank1 = zipf_payout(BPS, n_pair)["payouts"]
+    rank1 = zipf_payout(BPS, n_pair, alpha_bps=zipf_curve_alpha(data))["payouts"]
     rank1_one = int(rank1[0]) if rank1 else 0
     cap_one = share_cap_max(BPS, opt_dep, pair, k, n_pair)
     opt_uncapped = 1
@@ -1048,7 +1101,7 @@ def share_cap_witness(data: dict) -> dict:
 def build_seasons(data: dict, generated: dict | None = None) -> dict:
     wits = witnesses(data)
     top_n = sp(data, "prize_top_n")
-    floor_n10 = zipf_payout(BPS, top_n, rounding=ROUND_FLOOR)
+    floor_n10 = zipf_payout(BPS, top_n, rounding=ROUND_FLOOR, alpha_bps=zipf_curve_alpha(data))
     triple = zipf_payout(10, 3, rounding=ROUND_FLOOR)
     solo = zipf_payout(BPS, 1, rounding=ROUND_FLOOR)
     empty = zipf_payout(BPS, 0, rounding=ROUND_FLOOR)

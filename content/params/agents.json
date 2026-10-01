@@ -14,6 +14,7 @@
       "home_contours": ["work_production"],
       "produces": "output",
       "v1": true,
+      "callsigns": ["Bram", "Cole", "Hugo"],
       "src": "DESIGN.md §5.7",
       "why": "Производство. Качает выход здания: Capital на заводе, Energy на станции, Compute в лаборатории"
     },
@@ -21,6 +22,7 @@
       "home_contours": ["work_logistics"],
       "produces": "idle_reduction",
       "v1": true,
+      "callsigns": ["Nia", "Mara", "Vera"],
       "src": "DESIGN.md §5.7",
       "why": "Не производит ресурс сам, снимает простои. С открытым Logistics режет простой по всей цепочке"
     },
@@ -28,6 +30,7 @@
       "home_contours": ["work_finance", "work_retail"],
       "produces": "spread_and_retail",
       "v1": true,
+      "callsigns": ["Felix", "Miles", "Oscar"],
       "src": "DESIGN.md §5.7",
       "why": "Два родных контура — единственная роль с двумя. Именно это делает посадку на выходные головоломкой: банк спит, магазин работает"
     },
@@ -35,6 +38,7 @@
       "home_contours": ["work_research"],
       "produces": "xp_and_research",
       "v1": true,
+      "callsigns": ["Mira", "Lena", "Nora"],
       "src": "DESIGN.md §5.7, §11",
       "why": "Тратит Compute на Train или Research. Без Compute стоит IDLE(нет compute). Лабораторию по-прежнему может крутить Engineer соседом"
     },
@@ -42,6 +46,7 @@
       "home_contours": ["work_admin"],
       "produces": "focus",
       "v1": true,
+      "callsigns": ["Dean", "Karl", "Seth"],
       "src": "DESIGN.md §5.7, §11",
       "why": "Сам ничего не производит, усиливает один выбранный игроком контур. Focus — выбор контура, keys пусты"
     }
@@ -80,7 +85,7 @@
       "v": 20,
       "u": "count",
       "src": "DESIGN.md §12",
-      "why": "Двадцать — уже плотный город, не армия. Упирается фонд зарплат, а не стоимость LLM"
+      "why": "Двадцать — уже плотный город, не армия. Упирается фонд зарплат, а не вызов снаружи"
     },
     "hire_pool_engineer_bps": { "v": 5000, "u": "bps", "src": "DESIGN.md §5.12", "why": "Вес инженера в стартовом пуле найма" },
     "hire_pool_logistician_bps": { "v": 2500, "u": "bps", "src": "DESIGN.md §5.12", "why": "Вес логиста в стартовом пуле. Четверть, потому что в v1 он режет простой локально и второй такой же почти не нужен" },

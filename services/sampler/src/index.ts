@@ -13,4 +13,7 @@ export {
   headerFromPriceDay,
 } from "./step.js"
 export type { Observation, Sample, TickPriceInputs, SamplerState, StepOut } from "./step.js"
+export { samplerSource } from "./source.js"
+export type { SamplerSource } from "./source.js"
+export { publishOnce, memoryPriceStore, startPriceLoop } from "./loop.js"
 export { stepWalletPrice } from "./wallet.js"

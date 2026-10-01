@@ -48,9 +48,18 @@ function spyPort(inner: AssetPort): { readonly port: AssetPort; readonly calls: 
           calls.push({ op: "deposit", kettle, token })
           return inner.prizeTreasury.deposit(caller, token, kettle, amount)
         },
-        async slice(caller, token, kettle, players, amounts) {
+        async slice(caller, batchId, token, kettle, players, amounts) {
           calls.push({ op: "slice", kettle, token })
-          return inner.prizeTreasury.slice(caller, token, kettle, players, amounts)
+          return inner.prizeTreasury.slice(caller, batchId, token, kettle, players, amounts)
+        },
+        async owed(kettle, token, account) {
+          return inner.prizeTreasury.owed(kettle, token, account)
+        },
+        async unsliced(kettle, token) {
+          return inner.prizeTreasury.unsliced(kettle, token)
+        },
+        async batchUsed(batchId) {
+          return inner.prizeTreasury.batchUsed(batchId)
         },
         async returnUnsettled(caller, token, kettle) {
           calls.push({ op: "returnUnsettled", kettle, token })
@@ -193,9 +202,24 @@ export async function assertConveyorBotOnlyAndFailures(pack: BuybackPack, cfg: P
     ],
     returns: [{ kettle: PRIZE_KETTLE_FARM, token: first }],
   })
-  expect(sliced.calls.filter((c) => c.op === "slice").length).toBe(1)
+  expect(sliced.calls.filter((c) => c.op === "slice").length).toBe(0)
   expect(sliced.calls.filter((c) => c.op === "returnUnsettled").length).toBe(0)
-  expect(sliced.degraded).toBe(0n)
+  expect(sliced.degraded).toBe(1n)
+
+  const marked = spyPort(inner)
+  const sentBack = await runStockConveyor(pack, marked.port, emptyConveyorState(pack.tickers), {
+    ...baseBatch(pack, 1n),
+    returns: [{ kettle: PRIZE_KETTLE_FARM, token: first, windowId: "4" }],
+    farmWindows: { "4": "sent" },
+  })
+  expect(sentBack.calls.filter((c) => c.op === "returnUnsettled" && c.kettle === PRIZE_KETTLE_FARM).length).toBe(1)
+  const held = spyPort(inner)
+  const shortBack = await runStockConveyor(pack, held.port, emptyConveyorState(pack.tickers), {
+    ...baseBatch(pack, 1n),
+    returns: [{ kettle: PRIZE_KETTLE_FARM, token: first, windowId: "4" }],
+    farmWindows: { "4": "short" },
+  })
+  expect(shortBack.calls.filter((c) => c.op === "returnUnsettled").length).toBe(0)
 
   const over = await runStockConveyor(pack, live.port, emptyConveyorState(pack.tickers), {
     ...baseBatch(pack, 0n),

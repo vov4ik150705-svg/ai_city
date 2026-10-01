@@ -21,6 +21,7 @@ import {
   type SkyEnvironmentConfig,
   type WorldCloudHint,
 } from "./config.js"
+import { THREE, TWO } from "../literals.js"
 
 const _pos = new Vector3()
 const _quat = new Quaternion()
@@ -70,14 +71,14 @@ function compactWorldGeo(src: BufferGeometry, world: Mesh): BufferGeometry {
 
 function flattenVertexColor(geo: BufferGeometry): void {
   const col = geo.getAttribute("color")
-  if (col === undefined || col.itemSize === 3) return
-  const rgb = new Float32Array(col.count * 3)
+  if (col === undefined || col.itemSize === THREE) return
+  const rgb = new Float32Array(col.count * THREE)
   for (let i = 0; i < col.count; i++) {
-    rgb[i * 3] = col.getX(i)
-    rgb[i * 3 + 1] = col.getY(i)
-    rgb[i * 3 + 2] = col.getZ(i)
+    rgb[i * THREE] = col.getX(i)
+    rgb[i * THREE + 1] = col.getY(i)
+    rgb[i * THREE + TWO] = col.getZ(i)
   }
-  geo.setAttribute("color", new BufferAttribute(rgb, 3))
+  geo.setAttribute("color", new BufferAttribute(rgb, THREE))
 }
 
 /** GLB clouds bake gray-blue facet shade. Lift toward white; keep a hint of form. */
@@ -86,14 +87,14 @@ const CLOUD_VERTEX_LIFT = 0.86
 function bleachCloudColor(geo: BufferGeometry): void {
   const col = geo.getAttribute("color")
   if (col === undefined) return
-  const rgb = new Float32Array(col.count * 3)
+  const rgb = new Float32Array(col.count * THREE)
   const keep = 1 - CLOUD_VERTEX_LIFT
   for (let i = 0; i < col.count; i++) {
-    rgb[i * 3] = CLOUD_VERTEX_LIFT + col.getX(i) * keep
-    rgb[i * 3 + 1] = CLOUD_VERTEX_LIFT + col.getY(i) * keep
-    rgb[i * 3 + 2] = CLOUD_VERTEX_LIFT + col.getZ(i) * keep
+    rgb[i * THREE] = CLOUD_VERTEX_LIFT + col.getX(i) * keep
+    rgb[i * THREE + 1] = CLOUD_VERTEX_LIFT + col.getY(i) * keep
+    rgb[i * THREE + TWO] = CLOUD_VERTEX_LIFT + col.getZ(i) * keep
   }
-  geo.setAttribute("color", new BufferAttribute(rgb, 3))
+  geo.setAttribute("color", new BufferAttribute(rgb, THREE))
 }
 
 function meshGeo(root: Group): BufferGeometry {
@@ -123,9 +124,9 @@ function meshGeo(root: Group): BufferGeometry {
   if (merged.getAttribute("color") === undefined) {
     const pos = merged.getAttribute("position")
     if (pos !== undefined) {
-      const fill = new Float32Array(pos.count * 3)
+      const fill = new Float32Array(pos.count * THREE)
       fill.fill(1)
-      merged.setAttribute("color", new BufferAttribute(fill, 3))
+      merged.setAttribute("color", new BufferAttribute(fill, THREE))
     }
   }
   bleachCloudColor(merged)
@@ -167,7 +168,7 @@ const FALL_OFFSETS: readonly {
   readonly dy: number
   readonly s: number
   readonly yaw: number
-  readonly family: 0 | 1 | 2 | 3
+  readonly family: number
 }[] = [
   { dx: 0.0, dz: 0.0, dy: -0.01, s: 0.22, yaw: 0.4, family: 0 },
   { dx: 0.05, dz: 0.04, dy: 0.02, s: 0.16, yaw: 1.8, family: 1 },
@@ -218,9 +219,9 @@ function ensureVertexColors(geo: BufferGeometry): void {
   if (geo.getAttribute("color") !== undefined) return
   const pos = geo.getAttribute("position")
   if (pos === undefined) return
-  const fill = new Float32Array(pos.count * 3)
+  const fill = new Float32Array(pos.count * THREE)
   fill.fill(1)
-  geo.setAttribute("color", new BufferAttribute(fill, 3))
+  geo.setAttribute("color", new BufferAttribute(fill, THREE))
 }
 
 export async function buildCloudLayer(

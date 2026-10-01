@@ -80,6 +80,7 @@ function parseSlices(value: Json | undefined): readonly ConveyorSlice[] | undefi
       throw new Error(codes.API_MALFORMED)
     }
     out.push({
+      batchId: asText(row["batch_id"]),
       kettle: asBig(row["kettle"]),
       token: asText(row["token"]),
       players: players.map((player) => asText(player)),
@@ -118,6 +119,8 @@ function parseBatch(raw: Uint8Array): ConveyorBatch | undefined {
   if (raw.length === 0) return undefined
   try {
     const row = asObj(parseJson(fromUtf8(raw)))
+    if (row["hop_ok"] === undefined || row["hop_ok"] === null) return undefined
+    if (row["caller_service"] === undefined || row["caller_service"] === null) return undefined
     const tokens = asTextMap(row["token_by_ticker"])
     const monthFills = asMap(row["month_fills"])
     const farmFills = asMap(row["farm_fills"])
@@ -172,7 +175,7 @@ export function createConveyorSubmit(
     try {
       let batch = parseBatch(body)
       if (batch === undefined) {
-        const pulled = await source.pull()
+        const pulled = await source.pull(body, state)
         if (!pulled.ok) {
           return canonical({ ok: 0n, code: pulled.code, degraded: 1n })
         }
@@ -210,17 +213,25 @@ export function createDefaultConveyorSubmit(bytes: Uint8Array, pack: BuybackPack
   return createConveyorSubmit(pack, createBuybackPort(bytes, pack), createMockConveyorSource())
 }
 
+export function liveRpcReady(env: { readonly [key: string]: string | undefined }): boolean {
+  return readLiveRpc(env) !== undefined
+}
+
 function liveRpcConfig(): LiveRpcConfig | undefined {
-  const url = process.env.CORPORATOR_RPC_URL
-  const chainIdRaw = process.env.CORPORATOR_CHAIN_ID
-  const timeoutRaw = process.env.CORPORATOR_RPC_TIMEOUT_MS
-  const corpToken = process.env.CORPORATOR_CORP_TOKEN
-  const vault = process.env.CORPORATOR_VAULT
-  const stakeRegistry = process.env.CORPORATOR_STAKE_REGISTRY
-  const merkleRoots = process.env.CORPORATOR_MERKLE_ROOTS
-  const prizeTreasury = process.env.CORPORATOR_PRIZE_TREASURY
-  const prizeDepositor = process.env.CORPORATOR_BUYBACK_EXECUTOR
-  const prizeSigner = process.env.CORPORATOR_SIGNER
+  return readLiveRpc(process.env)
+}
+
+function readLiveRpc(env: { readonly [key: string]: string | undefined }): LiveRpcConfig | undefined {
+  const url = env.CORPORATOR_RPC_URL
+  const chainIdRaw = env.CORPORATOR_CHAIN_ID
+  const timeoutRaw = env.CORPORATOR_RPC_TIMEOUT_MS
+  const corpToken = env.CORPORATOR_CORP_TOKEN
+  const vault = env.CORPORATOR_VAULT
+  const stakeRegistry = env.CORPORATOR_STAKE_REGISTRY
+  const merkleRoots = env.CORPORATOR_MERKLE_ROOTS
+  const prizeTreasury = env.CORPORATOR_PRIZE_TREASURY
+  const prizeDepositor = env.CORPORATOR_BUYBACK_EXECUTOR
+  const prizeSigner = env.CORPORATOR_SIGNER
   if (
     url === undefined ||
     url.length === 0 ||

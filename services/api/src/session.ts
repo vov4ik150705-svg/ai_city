@@ -1,9 +1,11 @@
 import { randomBytes } from "node:crypto"
 import { assembleSessionMessage, fromUtf8, parseJson, sessionMessageValues, type Json } from "@corporator/contentpack"
-import { spawnCity, type Dict } from "@corporator/engine"
+import { spawnCity, plantPrebuilt, type Dict } from "@corporator/engine"
 import { codes } from "@corporator/protocol"
+import { withWorldLock } from "./city_lock.js"
 import { cityKind, errResult, okResult, type HttpResult } from "./envelope.js"
 import { type PackCtx } from "./pack_ctx.js"
+import { persistLiveState, restoreMemory } from "./tick_host.js"
 import { recoverAddress, normalizeAddress } from "./recover.js"
 import { getBytes, putJson, type Store } from "./store.js"
 import { asBigint, asEngineDict, asObj, asText, jsonToDict, walk } from "./values.js"
@@ -41,11 +43,13 @@ function spawnIntoState(ctx: PackCtx, state: Dict, cityId: string, kind: string)
   const spec = jsonToDict(walk(ctx.pack, ["sections", "sim", "archetypes", "minimalist"]))
   const city = spawnCity(ctx.cfg, "minimalist", spec, cityId, 1n, 0n)
   city["account_kind"] = kind
+  if (kind === "demo") city["demo"] = 1n
   city["city_level"] = 1n
   city["agents"] = []
   city["buildings"] = []
   city["functions"] = []
   city["created_day"] = asBigint(state["day"], 1n)
+  plantPrebuilt(ctx.cfg, city)
   const cities = asEngineDict(state["cities"])
   cities[cityId] = city
   state["cities"] = cities
@@ -62,7 +66,41 @@ function firstUnownedDemo(state: Dict): string | undefined {
   return undefined
 }
 
+async function writeWorld(
+  store: Store,
+  state: Dict,
+  cityId: string,
+  writes: () => Promise<void>,
+): Promise<void> {
+  let opened = false
+  try {
+    await store.exec("BEGIN")
+    opened = true
+    await writes()
+    await persistLiveState(store, state, cityId)
+    await store.exec("COMMIT")
+  } catch (err) {
+    if (opened) {
+      try {
+        await store.exec("ROLLBACK")
+      } catch {
+        // The original error is the one to surface.
+      }
+    }
+    throw err
+  }
+}
+
 export async function handleAuthNonce(
+  ctx: PackCtx,
+  store: Store,
+  state: Dict,
+  body: Uint8Array,
+): Promise<HttpResult> {
+  return withWorldLock(() => authNonce(ctx, store, state, body))
+}
+
+async function authNonce(
   ctx: PackCtx,
   store: Store,
   state: Dict,
@@ -94,6 +132,15 @@ export async function handleAuthNonce(
 }
 
 export async function handleAuthSession(
+  ctx: PackCtx,
+  store: Store,
+  state: Dict,
+  body: Uint8Array,
+): Promise<HttpResult> {
+  return withWorldLock(() => authSession(ctx, store, state, body))
+}
+
+async function authSession(
   ctx: PackCtx,
   store: Store,
   state: Dict,
@@ -138,11 +185,20 @@ export async function handleAuthSession(
   if (recovered === undefined || normalizeAddress(recovered) !== address) {
     return errResult(ctx, state, codes.API_UNAUTHORIZED)
   }
-  await putJson(store, "sessions", nonceKey(nonce), { kind: "spent" }, "wallet")
-  return issueWalletSession(ctx, store, state, address)
+  return issueWalletSession(ctx, store, state, address, nonce)
 }
 
 async function issueDemoSession(ctx: PackCtx, store: Store, state: Dict): Promise<HttpResult> {
+  const snapshot = structuredClone(state)
+  try {
+    return await issueDemoSessionMut(ctx, store, state)
+  } catch (err) {
+    restoreMemory(state, snapshot)
+    throw err
+  }
+}
+
+async function issueDemoSessionMut(ctx: PackCtx, store: Store, state: Dict): Promise<HttpResult> {
   const now = asBigint(state["city_time"])
   const expires = now + ctx.sessionTtlCity
   let cityId = firstUnownedDemo(state)
@@ -153,19 +209,21 @@ async function issueDemoSession(ctx: PackCtx, store: Store, state: Dict): Promis
   const bound = asEngineDict(asEngineDict(state["cities"])[cityId])
   bound["session_bound"] = 1n
   const sessionId = opaqueId()
-  await putJson(
-    store,
-    "sessions",
-    sessionId,
-    {
-      kind: "session",
-      city_id: cityId,
-      account_kind: "demo",
-      expires_city_time: expires.toString(),
-    },
-    "demo",
-  )
-  await putJson(store, "city_owners", "demo:" + sessionId, { city_id: cityId }, "demo")
+  await writeWorld(store, state, cityId, async () => {
+    await putJson(
+      store,
+      "sessions",
+      sessionId,
+      {
+        kind: "session",
+        city_id: cityId,
+        account_kind: "demo",
+        expires_city_time: expires.toString(),
+      },
+      "demo",
+    )
+    await putJson(store, "city_owners", "demo:" + sessionId, { city_id: cityId }, "demo")
+  })
   return okResult(ctx, state, {
     session_id: sessionId,
     city_id: cityId,
@@ -179,29 +237,52 @@ async function issueWalletSession(
   store: Store,
   state: Dict,
   address: string,
+  nonce: string,
+): Promise<HttpResult> {
+  const snapshot = structuredClone(state)
+  try {
+    return await issueWalletSessionMut(ctx, store, state, address, nonce)
+  } catch (err) {
+    restoreMemory(state, snapshot)
+    throw err
+  }
+}
+
+async function issueWalletSessionMut(
+  ctx: PackCtx,
+  store: Store,
+  state: Dict,
+  address: string,
+  nonce: string,
 ): Promise<HttpResult> {
   const now = asBigint(state["city_time"])
   const expires = now + ctx.sessionTtlCity
   const owned = asPayload(await getBytes(store, "city_owners", address))
   let cityId = asText(owned?.["city_id"])
-  if (cityId.length === 0) {
+  const spawned = cityId.length === 0
+  if (spawned) {
     cityId = opaqueId()
     spawnIntoState(ctx, state, cityId, "wallet")
-    await putJson(store, "city_owners", address, { city_id: cityId }, "wallet")
   }
+  const bound = asEngineDict(asEngineDict(state["cities"])[cityId])
+  bound["wallet"] = address
   const sessionId = opaqueId()
-  await putJson(
-    store,
-    "sessions",
-    sessionId,
-    {
-      kind: "session",
-      city_id: cityId,
-      account_kind: "wallet",
-      expires_city_time: expires.toString(),
-    },
-    "wallet",
-  )
+  await writeWorld(store, state, cityId, async () => {
+    await putJson(store, "sessions", nonceKey(nonce), { kind: "spent" }, "wallet")
+    if (spawned) await putJson(store, "city_owners", address, { city_id: cityId }, "wallet")
+    await putJson(
+      store,
+      "sessions",
+      sessionId,
+      {
+        kind: "session",
+        city_id: cityId,
+        account_kind: "wallet",
+        expires_city_time: expires.toString(),
+      },
+      "wallet",
+    )
+  })
   return okResult(ctx, state, {
     session_id: sessionId,
     city_id: cityId,

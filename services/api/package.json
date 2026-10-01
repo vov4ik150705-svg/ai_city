@@ -13,6 +13,7 @@
     }
   },
   "dependencies": {
+    "@corporator/chainport": "workspace:*",
     "@corporator/contentpack": "workspace:*",
     "@corporator/engine": "workspace:*",
     "@corporator/protocol": "workspace:*",

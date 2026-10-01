@@ -1,0 +1,19 @@
+{
+  "name": "@corporator/www",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:docs": "vitest run --root ../.. apps/www/src/docs"
+  },
+  "dependencies": {
+    "katex": "0.18.9",
+    "motion": "13.4.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.8",
+    "@types/react-dom": "19.2.5"
+  }
+}

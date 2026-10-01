@@ -28,6 +28,8 @@ function transportStatus(code: string): bigint | undefined {
       return transportHttp.API_RATE_LIMITED
     case "API_UNAUTHORIZED":
       return transportHttp.API_UNAUTHORIZED
+    case "CHAIN_TX_UNCONFIRMED":
+      return transportHttp.CHAIN_TX_UNCONFIRMED
     case "SERVICE_DEGRADED":
       return transportHttp.SERVICE_DEGRADED
     default:
@@ -75,10 +77,15 @@ export function okResult(ctx: PackCtx, state: Dict, extra: { readonly [key: stri
   }
 }
 
-export function errResult(ctx: PackCtx, state: Dict, code: string): HttpResult {
+export function errResult(ctx: PackCtx, state: Dict, code: string, retryable?: boolean): HttpResult {
+  const row = envelopeErr(ctx, state, code)
+  const body =
+    retryable === true && row !== null && typeof row === "object" && !Array.isArray(row)
+      ? { ...row, retryable: 1n }
+      : row
   return {
     status: statusFor(ctx, code),
-    body: canonical(envelopeErr(ctx, state, code)),
+    body: canonical(body),
     headers: {},
   }
 }

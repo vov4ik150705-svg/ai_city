@@ -51,10 +51,10 @@
       "why": "Три уровня. Оверлеи на базовом спрайте, не новые спрайты. Четвёртый уровень упёрся бы в потолок оффлайна по времени стройки"
     },
     "reference_deposit_usd_8dec": {
-      "v": 10000000000,
+      "v": 15000000000,
       "u": "usd_8dec",
-      "src": "DESIGN.md §12, docs/LAUNCH.md §6",
-      "why": "100 $: середина полосы 50–150 $. Дневной лимит банка на сиде 105 $ на всех игроков не даёт депозиту быть выше без того, чтобы очередь на выход стала связывающим ограничением вместо экономики"
+      "src": "DESIGN.md §12, owner 2026-09-20",
+      "why": "150 $: owner set the T2 buy-in. Building and hire prices scale from this deposit. Stake S_min stays the frozen ~100 $ paper. Seed L1 bank day is 2500 bps of the 5% pipe, not a silent match to the door"
     },
     "starter_city_cost_share_bps": {
       "v": 5000,
@@ -125,14 +125,14 @@
     "bank_level_gain_bps": {
       "v": 2500,
       "u": "bps",
-      "src": "DESIGN.md §7.1, §7.2",
-      "why": "Насыщающаяся лестница доли пула, никогда не достигающая потолка 10000 bps. L23 держится конструктивно: даже на последней ступени личный лимит — доля от уже урезанного 1% глубины"
+      "src": "DESIGN.md §7.1, §7.2, owner 2026-09-20",
+      "why": "L1 takes 2500 bps of the global daily pool (T2 ladder). Saturates below 10000. Same-tick overflow stays proportional. L389 refuses any other gain; L23 holds the 5% depth cap"
     },
     "district_stake_usd_target_8dec": {
       "v": 10000000000,
       "u": "usd_8dec",
       "src": "DESIGN.md §12, §4.5",
-      "why": "Открытие любого района стоит примерно одинаково в живых деньгах, порядка 50–150 $. Равенство с депозитом 100 $ делает открытие района решением того же веса, что вход в игру, при том что стейк возвращается, а депозит тратится"
+      "why": "Открытие любого района стоит примерно одинаково в живых деньгах, порядка 50–150 $. Stake stays the frozen paper; the T2 buy-in is now 150 $. Stake returns, the deposit is spent"
     },
     "residual_idle_bps": {
       "v": 500,
@@ -141,10 +141,10 @@
       "why": "Остаточный простой управляемого города: дрожь тика и стыки расписаний. Даже оптимизатор не держит 100% аптайма, и это входит в полосы возврата, а не списывается на игрока"
     },
     "fund_amplification_target_bps": {
-      "v": 11700,
+      "v": 29229,
       "u": "bps",
-      "src": "docs/BRIEF.md §6 T2, docs/SIMULATION.md 6.4",
-      "why": "Перекалибровка после spend_fund_bps=6000: static return witnesses 4002/8005 bps попадают в фиксированные полосы 3500–4500/7000–9000; резервная капля и внешний сбор считаются вместе"
+      "src": "DESIGN.md §2.7, docs/CANON.md R-E-05",
+      "why": "Static A so fused returns witness 10000/20000 bps ($150/$300 of the $150 door) inside 10000–11000 / 20000–22000. Smallest A with sleeper at par; not payroll_boost_bps (30000). Round trip untouched"
     },
     "season_city_days": {
       "v": 90,
@@ -168,7 +168,7 @@
       "v": 25000,
       "u": "bps",
       "src": "DESIGN.md §12, docs/BRIEF.md §6 T2",
-      "why": "Маяк района — 2.5 Workshop: около 56 $ при референсном депозите 100 $, то есть открытие района это решение сверх стейка, а не сдача после порога"
+      "why": "Маяк района — 2.5 Workshop: dollars scale with reference_deposit. Opening a district is a decision on top of the frozen stake, not a giveaway after the gate"
     },
     "tier_cost_weight_synergy_bps": {
       "v": 40000,
@@ -225,8 +225,10 @@
     "jitter_hi_bps": "10000 + jitter_width_bps",
     "tick_length_real_seconds": "city_day_real_hours × 3600 / ticks_per_city_day",
     "reference_deposit_wei": "reference_deposit_usd_8dec × 10^18 / eth_usd_8dec, производная снимка",
-    "robotics_lab_output_weight_bps": "равен affinity_neighbour_bps: автономный слот как неродной работник, который не спит",
+    "robotics_lab_output_weight_bps": "хранимый output_weight_bps лаборатории, равен BPS как у Workshop; affinity_neighbour применяется в рантайме один раз",
+    "output_bps_reachable_max_bps": "compose_key_mags совместимых progression_nodes[key=output_bps] + node_effect_base_bps (фокус менеджера) + research tools + max legal building-link stack on one capital payer; то же слияние, что runtime applyStack по ключу, без клипа output_growth_bps",
     "level_energy": "energy_base(a) × energy_growth_bps^(L−1) / 10000^(L−1)",
+    "level_compute": "compute_base(a) × energy_growth_bps^(L−1) / 10000^(L−1); у output:compute — выпуск workshop_energy × cost_weight / BPS, не забор",
     "upgrade_roi_lmax_over_l1_bps": "(output_growth_bps / cost_growth_bps)^(building_level_max−1) в bps"
   }
 }

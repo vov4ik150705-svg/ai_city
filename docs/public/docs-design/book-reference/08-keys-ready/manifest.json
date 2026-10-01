@@ -1,0 +1,58 @@
+{
+  "n": 8,
+  "anchor": "keys",
+  "dir": "08-keys-ready",
+  "title": "Six districts, six keys",
+  "eyebrow": "08 — DISTRICTS",
+  "intro": "The island has six districts, and each one has a key: a stock token. Stake NVDA, and Compute opens. TSLA opens Energy, and so on.",
+  "note": "Opening a district costs no Capital, only the stake. Demo cities can't open districts.",
+  "linkLabel": "More in the handbook → The six districts",
+  "ref": "industries.md#the-six-districts",
+  "alt": "Six district buildings in a ring around the island, each with a lock and a key shaped like a stock-token coin.",
+  "w": 1672,
+  "h": 941,
+  "hash": "B95BD21F557A4AAB7A628C5EE850CE16EB5047BD3A73E93D7F9904D97CEB238A",
+  "geometry": {
+    "left": 90,
+    "top": 0,
+    "width": 1200,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 8: Six districts, six keys",
+      "artBottom": 741.34375,
+      "noteTop": 756,
+      "handbookAnchor": "#the-six-districts"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

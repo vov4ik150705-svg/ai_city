@@ -155,6 +155,10 @@ declare module "three" {
     translate(x: number, y: number, z: number): this
   }
 
+  export class EdgesGeometry extends BufferGeometry {
+    constructor(geometry: BufferGeometry, thresholdAngle?: number)
+  }
+
   export class Material {
     name: string
     needsUpdate: boolean
@@ -184,6 +188,18 @@ declare module "three" {
       readonly depthTest?: boolean
       readonly transparent?: boolean
       readonly opacity?: number
+      readonly fog?: boolean
+      readonly toneMapped?: boolean
+    })
+  }
+
+  export class LineBasicMaterial extends Material {
+    constructor(params?: {
+      readonly color?: number | Color
+      readonly transparent?: boolean
+      readonly opacity?: number
+      readonly depthTest?: boolean
+      readonly depthWrite?: boolean
       readonly fog?: boolean
       readonly toneMapped?: boolean
     })
@@ -315,6 +331,12 @@ declare module "three" {
     material: Material | Material[]
     constructor(geometry: BufferGeometry, material: Material | Material[])
     lookAt(x: number, y: number, z: number): void
+  }
+
+  export class LineSegments extends Object3D {
+    geometry: BufferGeometry
+    material: Material
+    constructor(geometry: BufferGeometry, material: Material)
   }
 
   export class InstancedMesh extends Mesh {

@@ -59,10 +59,28 @@ export function makeInputs(cfg: Dict, tickIndex: bigint, extra: Dict = {}): Dict
 export function armFund(state: Dict, cfg: Dict, units: bigint = 2000n): void {
   const ticks = asBig(cfg["ticks_day"])
   const div = asBig(cfg["payroll_daily_divisor"])
-  state["fund"] = units * div * ticks
-  state["day_budget"] = div === 0n ? 0n : asBig(state["fund"]) / div
+  const want = units * div * ticks
+  state["fund"] = want
+  state["day_budget"] = div === 0n ? 0n : want / div
   state["tick_budget"] = ticks === 0n ? 0n : asBig(state["day_budget"]) / ticks
   state["day_budget_day"] = asBig(cfg["anchor_day"])
+  let bags = want
+  const cities = asDict(state["cities"])
+  for (const cid of Object.keys(cities)) {
+    bags += asBig(asDict(cities[cid])["capital"])
+  }
+  const anchor = asBig(cfg["capital_anchor"])
+  const needVault = anchor <= 0n ? bags : (bags + anchor - 1n) / anchor
+  if (asBig(state["vault_corp"]) < needVault) {
+    const add = needVault - asBig(state["vault_corp"])
+    state["vault_corp"] = needVault
+    state["corp_deposited_total"] = asBig(state["corp_deposited_total"]) + add
+  }
+  if (asBig(state["capital_outstanding"]) < bags) {
+    const d = bags - asBig(state["capital_outstanding"])
+    state["capital_outstanding"] = asBig(state["capital_outstanding"]) + d
+    state["capital_minted_total"] = asBig(state["capital_minted_total"]) + d
+  }
 }
 
 export function liveCity(cfg: Dict, pack: Dict, cityId: string = "a"): Dict {

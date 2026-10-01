@@ -47,7 +47,6 @@ describe.sequential("P6 construction", () => {
       "stale_sample",
       "attest_lag",
       "ipfs_pin_fail",
-      "llm_refuse",
       "uncovered_claim",
       "signer_compromise",
     ]

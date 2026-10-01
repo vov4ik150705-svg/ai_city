@@ -100,6 +100,7 @@ async function main(): Promise<void> {
   const refused = gpuCode(probe)
   const cityTime = 12n
   const spanBps = 10000n
+  const lookOrbitMaxMul = 8n
   const plants: readonly OccupiedPlant[] = STUDIO_PLANTS
   const massUrl = islandMassUrl()
   if (massUrl.includes("island.glb") && !massUrl.includes("island_mass.glb")) {
@@ -128,6 +129,7 @@ async function main(): Promise<void> {
     tiltMaxBps: captureMode ? 9111n : 6889n,
     distanceMin: 800n,
     distanceMax: 44000n,
+    lookOrbitMaxMul,
     fovDeg: 36n,
     spanBps,
     targetY: 0n,
@@ -147,6 +149,7 @@ async function main(): Promise<void> {
       emissiveBps: 8000n,
       gradeBps: spanBps,
       sunDistance: 12000n,
+      waterStepsPerTick: 1n,
     },
     fillSky: WORLD_HEMI_SKY,
     fillGround: WORLD_HEMI_GROUND,
@@ -209,7 +212,7 @@ async function main(): Promise<void> {
   if (!forceNoGpu && mounted.code.length === 0 && !captureMode) {
     const meta = mounted.captureMeta()
     const dist = BigInt(Math.round(meta.camera.distance > 0 ? meta.camera.distance : 1))
-    const lim = lookOrbitLimits(dist)
+    const lim = lookOrbitLimits(dist, lookOrbitMaxMul)
     bindIslandPreviewOrbit({
       host,
       handle: mounted,

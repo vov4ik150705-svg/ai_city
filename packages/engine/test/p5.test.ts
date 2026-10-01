@@ -33,12 +33,16 @@ describe.sequential("P5 construction", () => {
   it("farm_window_settles_at_fourteen", () => {
     const pack = loadPack()
     const cfg = loadConfig(pack)
-    const divisor = asBig(cfg["payroll_daily_divisor"])
-    expect(divisor).toBe(14n)
-    const windowEnd = divisor
-    const nextOpen = divisor + 1n
-    expect((windowEnd - 1n) / divisor).toBe(0n)
-    expect((nextOpen - 1n) / divisor).toBe(1n)
+    const data = asDict(cfg["data"])
+    const window = asBig(
+      asDict(asDict(asDict(asDict(pack["sections"])["fragments"])["params"])["fragment_window_city_days"])["v"],
+    )
+    expect(window).toBe(7n)
+    expect(asBig(cfg["payroll_daily_divisor"])).toBe(14n)
+    const windowEnd = window
+    const nextOpen = window + 1n
+    expect((windowEnd - 1n) / window).toBe(0n)
+    expect((nextOpen - 1n) / window).toBe(1n)
     const city = liveCity(cfg, pack)
     city["fragment_ledger"] = { NVDA: 1n }
     city["fragment_pool"] = 100n
@@ -83,5 +87,228 @@ describe.sequential("P5 construction", () => {
     const settle = asDict(out["season_settlement"])
     const codes = asList(settle["codes"]).map((c) => asStr(c))
     expect(codes.includes("PRIZE_PERIOD_SETTLED")).toBe(true)
+  })
+
+  it("tick_settle_copies_city_wallet_and_merges", () => {
+    const pack = loadPack()
+    const cfg = loadConfig(pack)
+    const data = asDict(cfg["data"])
+    const hour = asBig(cfg["efficiency_recalc_hour"])
+    const period = 30n
+    expect(periodSettleDue(data, period + 1n, hour)).toBe(true)
+    const addr = "0x" + "cc".repeat(20)
+    function walletCity(id: string, influence: bigint, wallet: string): Dict {
+      const city = liveCity(cfg, pack, id)
+      city["influence"] = influence
+      city["positive_days"] = period
+      city["live_stake"] = 1n
+      city["spend_protocol_period"] = 1n
+      city["wallet"] = wallet
+      city["demo"] = 0n
+      return city
+    }
+    const b = walletCity("b", 10n, ` ${addr}`)
+    const z = walletCity("z", 4n, `${addr.toUpperCase()}\n`)
+    const g1 = walletCity("g1", 9n, "")
+    const g2 = walletCity("g2", 8n, "   ")
+    const state = newState(cfg, { b, z, g1, g2 }, {})
+    armFund(state, cfg)
+    state["season_prize_pool"] = 0n
+    const idx = tickIndexAt(cfg, period + 1n, hour)
+    const [out] = tick(state, makeInputs(cfg, idx))
+    const settle = asDict(out["season_settlement"])
+    expect(asBig(settle["n_eligible"])).toBe(3n)
+    const codes = asList(settle["codes"]).map((c) => asStr(c))
+    expect(codes.includes("PRIZE_WALLET_MERGED")).toBe(true)
+    const payouts = asList(settle["payouts"])
+    const first = asDict(payouts[0])
+    expect(asStr(first["wallet"])).toBe(addr)
+    expect(asStr(first["city_id"])).toBe("b")
+  })
+
+  it("tick_settle_empty_wallet_does_not_collide_with_address", () => {
+    const pack = loadPack()
+    const cfg = loadConfig(pack)
+    const data = asDict(cfg["data"])
+    const hour = asBig(cfg["efficiency_recalc_hour"])
+    const period = 30n
+    const addr = "0x" + "dd".repeat(20)
+    function cityOf(id: string, influence: bigint, wallet: string): Dict {
+      const city = liveCity(cfg, pack, id)
+      city["influence"] = influence
+      city["positive_days"] = period
+      city["live_stake"] = 1n
+      city["spend_protocol_period"] = 1n
+      city["wallet"] = wallet
+      city["demo"] = 0n
+      return city
+    }
+    const player = cityOf("b", 10n, addr)
+    const spoof = cityOf(addr, 100n, "")
+    const state = newState(cfg, { b: player, [addr]: spoof }, {})
+    armFund(state, cfg)
+    state["season_prize_pool"] = 0n
+    const idx = tickIndexAt(cfg, period + 1n, hour)
+    const [out] = tick(state, makeInputs(cfg, idx))
+    const settle = asDict(out["season_settlement"])
+    expect(asBig(settle["n_eligible"])).toBe(2n)
+    const codes = asList(settle["codes"]).map((c) => asStr(c))
+    expect(codes.includes("PRIZE_WALLET_MERGED")).toBe(false)
+    const payouts = asList(settle["payouts"]).map((row) => asDict(row))
+    const wallets = payouts.map((row) => asStr(row["wallet"]))
+    expect(wallets.includes(addr)).toBe(true)
+    expect(wallets.includes("")).toBe(true)
+  })
+
+  it("tick_settle_seeded_row_copies_city_wallet", () => {
+    const pack = loadPack()
+    const cfg = loadConfig(pack)
+    const data = asDict(cfg["data"])
+    const hour = asBig(cfg["efficiency_recalc_hour"])
+    const period = 30n
+    const addr = "0x" + "11".repeat(20)
+    const b = liveCity(cfg, pack, "b")
+    b["wallet"] = addr
+    b["season_row"] = {
+      city_id: "b",
+      influence: 12n,
+      positive_days: period,
+      live_stake: 1n,
+      demo: 0n,
+      spend_protocol: 1n,
+    }
+    const z = liveCity(cfg, pack, "z")
+    z["influence"] = 3n
+    z["positive_days"] = period
+    z["live_stake"] = 1n
+    z["spend_protocol_period"] = 1n
+    z["wallet"] = ` ${addr.toUpperCase()}\n`
+    z["demo"] = 0n
+    const state = newState(cfg, { b, z }, {})
+    armFund(state, cfg)
+    state["season_prize_pool"] = 0n
+    const idx = tickIndexAt(cfg, period + 1n, hour)
+    const [out] = tick(state, makeInputs(cfg, idx))
+    const settle = asDict(out["season_settlement"])
+    expect(asBig(settle["n_eligible"])).toBe(1n)
+    const codes = asList(settle["codes"]).map((c) => asStr(c))
+    expect(codes.includes("PRIZE_WALLET_MERGED")).toBe(true)
+    const first = asDict(asList(settle["payouts"])[0])
+    expect(asStr(first["wallet"])).toBe(addr)
+    expect(asStr(first["city_id"])).toBe("b")
+  })
+
+  it("tick_settle_slot_keys_hex_space_prefix_and_stake", () => {
+    const pack = loadPack()
+    const cfg = loadConfig(pack)
+    const hour = asBig(cfg["efficiency_recalc_hour"])
+    const period = 30n
+    const addr = "0x" + "ee".repeat(20)
+    let inner = "0x"
+    for (let i = 0; i < 20; i++) inner += "ee "
+    inner = inner.trim()
+    const ff = "0x" + "ff".repeat(20)
+    function cityOf(id: string, influence: bigint, wallet: string, stake: unknown): Dict {
+      const city = liveCity(cfg, pack, id)
+      city["influence"] = influence
+      city["positive_days"] = period
+      city["live_stake"] = stake
+      city["spend_protocol_period"] = 1n
+      city["wallet"] = wallet
+      city["demo"] = 0n
+      return city
+    }
+    const a = cityOf("a", 10n, inner, 1n)
+    const b = cityOf("b", 4n, addr, 1n)
+    const g1 = cityOf("g1", 9n, "", 1n)
+    const lit = cityOf("lit", 20n, "city:g1", 1n)
+    const dead = cityOf("dead", 99n, ff, "0")
+    const ok = cityOf("ok", 2n, ff, 1n)
+    const state = newState(cfg, { a, b, g1, lit, dead, ok }, {})
+    armFund(state, cfg)
+    state["season_prize_pool"] = 0n
+    const idx = tickIndexAt(cfg, period + 1n, hour)
+    const [out] = tick(state, makeInputs(cfg, idx))
+    const settle = asDict(out["season_settlement"])
+    expect(asBig(settle["n_eligible"])).toBe(4n)
+    const codes = asList(settle["codes"]).map((c) => asStr(c))
+    expect(codes.includes("PRIZE_WALLET_MERGED")).toBe(true)
+    expect(codes.includes("PRIZE_STAKE_REQUIRED")).toBe(true)
+    const payouts = asList(settle["payouts"]).map((row) => asDict(row))
+    const wallets = payouts.map((row) => asStr(row["wallet"]))
+    expect(wallets.filter((w) => w === addr).length).toBe(1)
+    expect(wallets.includes("city:g1")).toBe(true)
+    expect(wallets.includes("")).toBe(true)
+    expect(wallets.includes(ff)).toBe(true)
+    expect(asStr(asDict(payouts.find((row) => asStr(row["wallet"]) === addr) ?? {})["city_id"])).toBe("a")
+  })
+
+  it("tick_settle_demo_account_kind_does_not_take_prize", () => {
+    const pack = loadPack()
+    const cfg = loadConfig(pack)
+    const hour = asBig(cfg["efficiency_recalc_hour"])
+    const period = 30n
+    const addr = "0x" + "ab".repeat(20)
+    function cityOf(id: string, influence: bigint, wallet: string): Dict {
+      const city = liveCity(cfg, pack, id)
+      city["influence"] = influence
+      city["positive_days"] = period
+      city["live_stake"] = 1n
+      city["spend_protocol_period"] = 1n
+      city["wallet"] = wallet
+      city["demo"] = 0n
+      return city
+    }
+    const ghost = cityOf("demo-city", 100n, "")
+    ghost["account_kind"] = "demo"
+    const player = cityOf("b", 10n, addr)
+    player["account_kind"] = "wallet"
+    const state = newState(cfg, { "demo-city": ghost, b: player }, {})
+    armFund(state, cfg)
+    state["season_prize_pool"] = 0n
+    const idx = tickIndexAt(cfg, period + 1n, hour)
+    const [out] = tick(state, makeInputs(cfg, idx))
+    const settle = asDict(out["season_settlement"])
+    expect(asBig(settle["n_eligible"])).toBe(1n)
+    const codes = asList(settle["codes"]).map((c) => asStr(c))
+    expect(codes.includes("DEMO_NO_PRIZE")).toBe(true)
+    const first = asDict(asList(settle["payouts"])[0])
+    expect(asStr(first["wallet"])).toBe(addr)
+    expect(asStr(first["city_id"])).toBe("b")
+  })
+
+  it("tick_settle_nbsp_hex_and_padded_stake", () => {
+    const pack = loadPack()
+    const cfg = loadConfig(pack)
+    const hour = asBig(cfg["efficiency_recalc_hour"])
+    const period = 30n
+    const addr = "0x" + "12".repeat(20)
+    const nbsp = "0x" + "12".repeat(10) + "\u00a0" + "12".repeat(10)
+    function cityOf(id: string, influence: bigint, wallet: string, stake: unknown): Dict {
+      const city = liveCity(cfg, pack, id)
+      city["influence"] = influence
+      city["positive_days"] = period
+      city["live_stake"] = stake
+      city["spend_protocol_period"] = 1n
+      city["wallet"] = wallet
+      city["demo"] = 0n
+      return city
+    }
+    const a = cityOf("a", 8n, nbsp, " 1")
+    const b = cityOf("b", 3n, addr, 1n)
+    const dead = cityOf("dead", 50n, "w-pad", " 0")
+    const state = newState(cfg, { a, b, dead }, {})
+    armFund(state, cfg)
+    state["season_prize_pool"] = 0n
+    const idx = tickIndexAt(cfg, period + 1n, hour)
+    const [out] = tick(state, makeInputs(cfg, idx))
+    const settle = asDict(out["season_settlement"])
+    expect(asBig(settle["n_eligible"])).toBe(1n)
+    const codes = asList(settle["codes"]).map((c) => asStr(c))
+    expect(codes.includes("PRIZE_WALLET_MERGED")).toBe(true)
+    expect(codes.includes("PRIZE_STAKE_REQUIRED")).toBe(true)
+    const first = asDict(asList(settle["payouts"])[0])
+    expect(asStr(first["wallet"])).toBe(addr)
+    expect(asStr(first["city_id"])).toBe("a")
   })
 })

@@ -14,4 +14,4 @@ export { rulesVersion, packVersion, packHash, layoutVersion } from "./versions.j
 export { commandRoutes, domainConflictHttp } from "./routes.js"
 export { channelMap } from "./channels.js"
 export type { StateSourceId } from "./channels.js"
-export { listenBind, listenBindOrEnv, listenContainerBind, listenPorts, packTemplate, postgresDatabase, postgresImageMajor, postgresPasswordEnv, postgresPort, postgresService, postgresUser, readyTemplate, samplerPeriodMs, stateTemplate, commandTemplate, authNonceTemplate, authSessionTemplate, sessionMessageFields, sessionDomain, sessionHeader, sessionScheme, tickLengthRealMs, wsHeartbeatMs, wsTemplate } from "./listen.js"
+export { listenBind, listenBindOrEnv, listenContainerBind, listenPorts, packTemplate, postgresDatabase, postgresImageMajor, postgresPasswordEnv, postgresPort, postgresService, postgresUser, readyTemplate, ratingTemplate, samplerPeriodMs, stateTemplate, commandTemplate, authNonceTemplate, authSessionTemplate, sessionMessageFields, sessionDomain, sessionHeader, sessionScheme, tickLengthRealMs, wsHeartbeatMs, wsTemplate } from "./listen.js"

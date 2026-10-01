@@ -1,0 +1,1494 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Corporator Handbook — local reference</title><link rel="stylesheet" href="book.css"><body><main class="handbook-body"><nav class="handbook-nav"><a href="index.html" data-book-return>In pictures</a><span class="active">Handbook</span><a href="#chapter-index">Getting started</a><a href="#chapter-city">city</a><a href="#chapter-agents">agents</a><a href="#chapter-economy">economy</a><a href="#chapter-industries">industries</a><a href="#chapter-seasons">seasons</a><a href="#chapter-protocol">protocol</a><a href="#chapter-reference">reference</a></nav><section id="chapter-index"><h1>index</h1><pre>---
+title: Getting Started
+description: What Corporator is, what you need to play, the core loop and your first session.
+sidebar_position: 1
+---
+
+</pre><h2 id="getting-started">Getting Started</h2><pre>
+Corporator is a city-management game on Robinhood Chain. Every player runs one city on the same hand-built island, and every building already stands on it. You open buildings with Capital, seat agents in them and upgrade what works. Once every city hour the game runs a **tick**: each seated agent either works and asks Payroll to pay for that work, or records why it couldn't.
+
+You bring value in by depositing `$CORP` into a vault. You take value out through the Bank, which keeps opening hours and daily limits. Stock Tokens such as NVDA or TSLA open industries and pay out as season prizes.
+
+&gt; **Release status.** Corporator hasn't launched. `$CORP` and the game contracts aren't deployed yet, so these pages describe the rules as they stand before launch. The [deployment register](protocol.md#deployment-register) will list every production address once it exists. Until then, no address is official.
+
+</pre><h2 id="three-units">Three units</h2><pre>
+| Unit | What it is | Where it lives | Can you trade it? |
+|---|---|---|---|
+| `$CORP` | The game's ERC-20 token, traded in one CORP/ETH pool | Your wallet or the vault | Yes |
+| Capital | The chips you spend in your city: opening buildings, hires, upgrades | Your city's state on the game server | No. It isn't a token and can't be transferred. |
+| Stock Tokens | Tokenised shares issued by third parties on Robinhood Chain (NVDA, TSLA, AMZN, AAPL, MSFT, COIN) | Your wallet, staked, or cooling down for 30 city days after an unstake ([details](industries.md#where-your-stock-tokens-are)) | Yes, from your wallet, under the issuer's terms |
+
+Capital comes from two places: a `$CORP` deposit, or Payroll paying your agents' work from a fund that `$CORP` already backs. It leaves your city when you spend it or withdraw it through the Bank. The [Economy](economy.md) page explains the full cycle.
+
+</pre><h2 id="the-core-loop">The core loop</h2><pre>
+```mermaid
+flowchart LR
+    D[&quot;Deposit $CORP&quot;] --&gt; C[&quot;Capital&quot;]
+    C --&gt; B[&quot;Open and upgrade&lt;br/&gt;buildings&quot;]
+    C --&gt; H[&quot;Hire agents&quot;]
+    B --&gt; S[&quot;Seat agents&quot;]
+    H --&gt; S
+    S --&gt; T[&quot;Tick: each seat works&lt;br/&gt;or records an idle reason&quot;]
+    T --&gt; P[&quot;Payroll pays&lt;br/&gt;valid work&quot;]
+    P --&gt; C
+    C --&gt; W[&quot;Withdraw at the Bank&quot;]
+    W --&gt; X[&quot;$CORP&quot;]
+    T --&gt; I[&quot;Influence and fragments&quot;]
+    I --&gt; R[&quot;Stock Token prizes&quot;]
+```
+
+An open building earns nothing on its own. Only a seated agent who works during the building's hours, with its Energy and Compute covered, files a payment request. Payroll then pays that request from a shared, finite fund.
+
+</pre><h2 id="what-you-need">What you need</h2><pre>
+| To play | You need |
+|---|---|
+| A demo city | A browser. No wallet, no deposit. Progress doesn't carry over, and you can't withdraw or claim prizes. |
+| A wallet city | A wallet on Robinhood Chain (chain ID `4663`), ETH for gas, and `$CORP` to deposit |
+| An industry | Its Stock Token, staked from your wallet. For example, NVDA opens Compute. See [Industries](industries.md). |
+
+To sign in, you sign a login message. That opens a session and nothing else: it doesn't approve tokens or move funds.
+
+</pre><h2 id="your-first-session">Your first session</h2><pre>
+A minimal working city costs 73,499,998 Capital:
+
+| Item | Capital | Why |
+|---|---:|---|
+| Workshop, level 1 | 34,217,877 | Your first Capital producer |
+| Power Node, level 1 | 11,291,899 | Makes the Energy the Workshop draws |
+| Agent Hub, level 1 | 17,108,938 | With a Scientist seated, adds a +10% link to the Workshop |
+| First hire | 5,132,681 | |
+| Second hire | 5,748,603 | Each hire costs more than the last |
+
+1. **Deposit.** Open the Bank (key `4`). The Review screen shows the `$CORP` amount, the 2% entry fee and the Capital you'll get. Nothing leaves your wallet until you confirm and sign.
+2. **Open buildings.** Click the Workshop on the island and open it from its card. It starts working after one tick. Then open the Power Node and the Agent Hub.
+3. **Hire.** A random hire is an Engineer (50%), a Logistician (25%) or a Trader (25%). You can also choose a role for the same price.
+4. **Seat.** Put an Engineer in the Workshop and another in the Power Node. Only an Engineer makes Energy. A Logistician in the Power Node lowers Energy costs but makes none.
+5. **Watch a tick.** The Journal (key `6`) shows each seat's result. A paid seat shows its payment. An idle seat shows a code that names what's missing, such as `IDLE_NO_ENERGY`.
+
+</pre><h2 id="rules-to-know-on-day-one">Rules to know on day one</h2><pre>
+- **Payroll is shared.** Every city is paid from one fund. When requests outgrow the fund's budget, every payment is scaled by the same ratio. See [Payroll](economy.md#payroll).
+- **The Bank keeps hours.** Withdrawals run 08:00–20:00 city time and stop on city Sundays. Deposits work at any hour.
+- **Offline time is capped.** Your city keeps working for 12 city hours after you leave, or up to 18 with upgrades. Later hours are skipped, not saved.
+- **City Level never drops.** Once reached, it stays.
+- **Industry choices are final.** Nodes and merges can't be undone. The HUD asks you to confirm first.
+
+</pre><h2 id="the-hud">The HUD</h2><pre>
+The island stays on screen, with the HUD over it.
+
+| Key | Workspace | What you do there |
+|---|---|---|
+| `1` | Overview | City metrics, Payroll state, research |
+| `2` | Agents | Hire, open an agent card, assign a seat, set a task |
+| `3` | Exchange | Buy a Stock Token with `$CORP` |
+| `4` | Bank | Deposit `$CORP`, withdraw Capital |
+| `5` | Industries | Stake, open districts, unlock tiers, pick nodes, merge, claim fragments |
+| `6` | Journal | Shift records, events, verification status |
+
+Click a building to see its card: level, workers, output, and the open, upgrade and on/off buttons. The `$CORP` chip in the top bar opens your wallet panel, and the season plaque opens rankings and prizes.
+
+When an action can't run, its button shows the reason code, such as `NOT_ENOUGH_CAPITAL` or `BANK_CLOSED`. A value the server hasn't sent shows as `—`, never as a guess. All codes are in the [Reference](reference.md#codes).
+
+</pre><h2 id="reading-the-numbers">Reading the numbers</h2><pre>
+- Rates are in **basis points** (bps): 10,000 bps = 100%, so 200 bps = 2%.
+- Capital is counted in whole units. The HUD may shorten large amounts, for example `34.2M`.
+- Every number on these pages comes from one versioned rule set, the **rules pack**. See [Versions](reference.md#versions).
+- Examples show arithmetic under stated inputs. They aren't forecasts.
+- `[NEEDS CONFIRMATION]` marks something we can't state as final yet.
+
+Corporator doesn't promise a return. `$CORP` and Stock Tokens can lose value, Payroll can pay less than you asked for, and the Bank limits when and how much you can withdraw. Read [Risks](protocol.md#risks) before you deposit.
+</pre></section><section id="chapter-city"><h1>city</h1><pre>---
+title: Your City
+description: Opening and upgrading buildings, Energy and Compute, city time, Population, City Level and offline play.
+sidebar_position: 2
+---
+
+</pre><h2 id="your-city">Your City</h2><pre>
+Every player sees the same island, and all 18 buildings already stand on it. You never place or construct anything. The map isn't generated from your wallet or your city, and nothing you do changes the scene. What's yours is the economy behind the models: which buildings you've opened and at what level, who works in them, and what that work earns.
+
+</pre><h2 id="buildings">Buildings</h2><pre>
+</pre><h2 id="building-states">Building states</h2><pre>
+| State | Meaning | Uses a building slot | Works |
+|---|---|:-:|:-:|
+| Closed | On the island, not yet part of your economy | no | no |
+| Opening | Paid for, timer running (`IDLE_UNDER_CONSTRUCTION`) | yes | no |
+| Active | Open and switched on | yes | yes, during its hours |
+| Deactivated | Switched off by you | yes | no |
+| Frozen | Its district's stake dropped below the minimum and the grace period ran out | yes | no |
+
+You manage every building from its card. Click it on the island.
+
+- **Open** pays the level-1 price and starts a short timer. It needs a free building slot and, for some buildings, a minimum City Level. A district's beacon also needs that district open.
+- **Upgrade** pays the next level's price and starts a new timer. The building doesn't work until the timer ends. Buildings go up to level 3. You can't upgrade a building that's deactivated, frozen or still opening.
+- **Deactivate** switches a building off. It keeps its level and its slot. The HUD asks you to confirm.
+- **Activate** switches it back on for free.
+- **City Hall** is open from the start. You can't upgrade or remove it, and it doesn't use a slot.
+
+Building slots come from your [City Level](#population-and-city-level). Opening and upgrading follow the same split as all Capital spending: 40% burned, 60% to Payroll ([Spending](economy.md#spending-capital)).
+
+</pre><h2 id="directory">Directory</h2><pre>
+Each building has a **home** role that works it at 100% and sometimes a **neighbour** role that works it at 60%. [Agents](agents.md#roles) covers roles in detail.
+
+**Base buildings** don't need a district.
+
+| Building | Output | Home | Neighbour | Hours | Notes |
+|---|---|---|---|---|---|
+| City Hall | — | Manager | — | office | Open from the start. A Manager here gives all Capital producers a link bonus. |
+| Workshop | Capital | Engineer | Logistician | always | Your first Capital producer |
+| Power Node | Energy | Engineer | Logistician | always | |
+| Agent Hub | — | — | Scientist | office | A Scientist here gives the Workshop and Robotics Lab a link bonus |
+| Bank | Withdrawal pricing | Trader | Manager | market | |
+| Exchange | Stock Token purchases | Trader | — | market | Needs City Level 2 |
+
+**District beacons** need their district open. Each is the only building that earns its district's [fragments](seasons.md#fragments-and-the-farm).
+
+| Building | District | Output | Home | Neighbour | Hours |
+|---|---|---|---|---|---|
+| AI Research Center | Compute (NVDA) | Compute | Scientist | Engineer | always |
+| Energy Plant | Energy (TSLA) | Energy | Engineer | Logistician | always |
+| Logistics Hub | Logistics (AMZN) | Logistics relief | Logistician | Engineer | always |
+| Flagship Store | Consumer (AAPL) | Capital from Population, housing | Trader | Logistician | retail |
+| Cloud Campus | Automation (MSFT) | Extra agent slots, offline hours | Manager | Scientist | office |
+| Finance Tower | Finance (COIN) | Bank level | Trader | Manager | office |
+
+**Synergy buildings** each belong to two districts. One stops working when either of its districts is frozen. `[NEEDS CONFIRMATION]` whether both districts must be open before you can open one.
+
+| Building | Districts | Output | Home | Neighbour | Hours |
+|---|---|---|---|---|---|
+| Robotics Lab | Compute + Energy | Capital | — | Engineer | always |
+| Data Center | Compute + Automation | Compute | Scientist | Engineer | always |
+| Drone Depot | Compute + Logistics | Logistics relief | Logistician | — | always |
+| Fleet Yard | Energy + Logistics | Logistics relief | Logistician | Engineer | always |
+| Retail Complex | Consumer + Logistics | Capital from Population, housing | Trader | Logistician | retail |
+| Clearing House | Automation + Finance | Payroll fund share | Manager | Trader | office |
+
+</pre><h2 id="costs-and-timers">Costs and timers</h2><pre>
+All prices are in Capital. The level-1 column is the opening price. Timers are in ticks (city hours): level 1 is the opening timer, and levels 2 and 3 are upgrade timers.
+
+| Building | Level 1 | Level 2 | Level 3 | Ticks L1 / L2 / L3 |
+|---|---:|---:|---:|---|
+| Workshop | 34,217,877 | 85,544,692 | 213,861,731 | 1 / 2 / 3 |
+| Power Node | 11,291,899 | 28,229,748 | 70,574,371 | 1 / 1 / 1 |
+| Agent Hub | 17,108,938 | 42,772,346 | 106,930,865 | 1 / 1 / 2 |
+| Bank | 51,326,815 | 128,317,038 | 320,792,596 | 2 / 3 / 4 |
+| Exchange | 41,061,452 | 102,653,631 | 256,634,077 | 2 / 2 / 4 |
+| Any district beacon | 85,544,692 | 213,861,731 | 534,654,328 | 3 / 4 / 7 |
+| Any synergy building | 136,871,508 | 342,178,770 | 855,446,925 | 4 / 7 / 11 |
+
+The Breadth node cuts opening and upgrade prices by 10%. The Lathe research and the Depth node each speed up upgrade timers by 10%. Neither shortens the opening timer.
+
+</pre><h2 id="output-per-tick">Output per tick</h2><pre>
+Base values at levels 1 / 2 / 3 for a fully effective seat, before agent level and modifiers. [How a seat earns](agents.md#how-a-seat-earns) turns these into a payment request.
+
+| Building | Produces | Draws |
+|---|---|---|
+| Workshop | 142,574 / 256,633 / 461,939 Capital | Energy 100 / 160 / 256 |
+| Robotics Lab | 570,297 / 1,026,534 / 1,847,762 Capital | Energy and Compute, 400 / 640 / 1,024 each |
+| Power Node | Energy 120 / 192 / 307 | — |
+| Energy Plant | Energy 1,818 / 2,908 / 4,654 | — |
+| AI Research Center | Compute 250 / 400 / 640 | Energy 250 / 400 / 640 |
+| Data Center | Compute 400 / 640 / 1,024 | Energy 400 / 640 / 1,024 |
+
+What each of the 18 buildings gives your city:
+
+| Gives | Buildings |
+|---|---|
+| Capital, fixed per level | Workshop, Robotics Lab |
+| Capital, scaled by Population ([retail output](agents.md#how-a-seat-earns)) | Flagship Store, Retail Complex |
+| Energy | Power Node, Energy Plant |
+| Compute | AI Research Center, Data Center |
+| Logistics relief, a lower Energy draw | Logistics Hub, Drone Depot, Fleet Yard |
+| Other effects: withdrawals, Stock Token purchases, Bank level, agent slots and offline hours, fund share | Bank, Exchange, Finance Tower, Cloud Campus, Clearing House |
+| Link bonuses only | City Hall, Agent Hub |
+
+Only the first four make Capital. Each of the other fourteen can also raise their output through a [building link](agents.md#building-links).
+
+</pre><h2 id="energy-and-compute">Energy and Compute</h2><pre>
+These are the only two resources that get used up.
+
+- **Energy** comes from Power Nodes and the Energy Plant. The Workshop, the Robotics Lab and both Compute buildings draw it.
+- **Compute** comes from the AI Research Center and the Data Center. The Robotics Lab draws it, and so does a Scientist on the Train or Research task (100 per tick).
+- **Only an Engineer makes Energy or Compute.** A Scientist in the AI Research Center or the Data Center works there for research and links but adds no Compute.
+- **Both are settled together.** A seat that has its Energy but not its Compute gets the Energy back and records `IDLE_NO_COMPUTE`. Without Energy it records `IDLE_NO_ENERGY`.
+- **Nights cost more.** Buildings on the `always` schedule draw 20% more Energy from 22:00 to 06:00. An agent with the Night Owl trait pays 8% extra instead.
+- **Logistics relief** lowers the Energy draw of production seats. A Logistician provides it. Until you run a Logistics Hub, Drone Depot or Fleet Yard, only a Logistician in a Workshop, Power Node or Energy Plant counts. One relief value applies to the whole city. More Logisticians don't stack.
+
+</pre><h2 id="city-time">City time</h2><pre>
+| Unit | Length |
+|---|---|
+| Tick | 1 city hour = 3,750 real seconds (62 min 30 s) |
+| City day | 24 ticks = 25 real hours |
+| City week | 7 city days, ending on Sunday |
+
+Because a city day lasts 25 real hours, city time drifts an hour against your local clock each day. The HUD always shows city time.
+
+| Schedule | Hours | Sunday | Buildings |
+|---|---|---|---|
+| always | 00:00–24:00 | open | Production, Energy, Compute, logistics |
+| market | 08:00–20:00 | closed | Bank, Exchange |
+| retail | 09:00–21:00 | open | Flagship Store, Retail Complex |
+| office | 08:00–20:00 | closed | City Hall, Agent Hub, Cloud Campus, Finance Tower, Clearing House |
+
+An agent in a building outside its hours records `IDLE_OUT_OF_HOURS`.
+
+Two moments in the day matter:
+
+- **00:00** closes the day for Payroll, GDP and Influence, and fixes the next day's Payroll budget.
+- **06:00** refreshes district efficiency and settles Farm windows, prize periods and seasons.
+
+All cities currently share one protocol clock, so everyone sees the same city time. `[NEEDS CONFIRMATION]` whether each city will get its own calendar starting at its first login.
+
+</pre><h2 id="population-and-city-level">Population and City Level</h2><pre>
+$$
+\text{Population} = J \times 50 + H
+$$
+
+- $J$: occupied jobs, meaning agents seated in buildings that aren't still opening or frozen.
+- $H$: housing. A Flagship Store gives 400 / 900 / 2,025 by level, a Retail Complex 600 / 1,350 / 3,037.
+
+Population sets your City Level, and **City Level never drops**, even when Population does.
+
+| City Level | Population | Agent slots | Building slots |
+|---:|---:|---:|---:|
+| 1 | 0 | 8 | 11 |
+| 2 | 400 | 10 | 13 |
+| 3 | 600 | 12 | 15 |
+| 4 | 900 | 14 | 17 |
+| 5 | 1,350 | 16 | 19 |
+| 6 | 2,025 | 18 | 21 |
+| 7 | 3,037 | 20 | 23 |
+
+A new city starts at level 1 with room for 8 agents and 11 open buildings. Eight seated agents make a Population of 400, enough for level 2. A level-1 Flagship Store adds another 400 on its own, as housing. City Level also gates the Exchange (level 2) and district tiers ([Tiers](industries.md#tiers-and-nodes)).
+
+**Happiness** averages four equally weighted terms: housing against jobs, parks, the Energy buffer and the Payroll ratio. The HUD shows it, but in the current rules it doesn't affect any payment.
+
+</pre><h2 id="while-youre-away">While you're away</h2><pre>
+Your city keeps running while you're offline, up to a cap.
+
+| Source | Offline hours |
+|---|---:|
+| Base window | 12 |
+| Automation district dividends, tiers 1 / 2 / 3 | +1 / +2 / +3 (up to +6 in total) |
+| A merge that includes Automation | +1 |
+| **Hard cap** | **18** |
+
+Hours past the cap are skipped with `IDLE_OFFLINE_CAP_REACHED`. They aren't paid later, and you can't buy them back. When you return, a summary shows the hours credited and any hours clipped.
+</pre></section><section id="chapter-agents"><h1>agents</h1><pre>---
+title: Agents and Production
+description: Roles, hiring, tasks, traits and levels, how a seat's payment request is calculated, and building links.
+sidebar_position: 3
+---
+
+</pre><h2 id="agents-and-production">Agents and Production</h2><pre>
+Agents are your workforce. Each one has a role, one or two traits, a task, a level and a seat. During its building's hours, a seated agent works every tick. The tick either records a payment request or names the reason there wasn't one.
+
+Agents follow fixed rules. There's no AI model behind them. Anything that looks random, such as a hire's role, its traits or the small per-tick variation in output, comes from a hash of the city, the tick and the agent. Replaying the same inputs always gives the same result.
+
+</pre><h2 id="roles">Roles</h2><pre>
+| Role | Home seats (100%) | Neighbour seats (60%) | What it's for |
+|---|---|---|---|
+| Engineer | Workshop, Power Node, Energy Plant | AI Research Center, Data Center, Logistics Hub, Fleet Yard, Robotics Lab | Makes Capital in the Workshop and Robotics Lab. The only role that makes Energy and Compute. |
+| Logistician | Logistics Hub, Drone Depot, Fleet Yard | Workshop, Power Node, Energy Plant, Flagship Store, Retail Complex | Lowers the Energy draw of production seats |
+| Trader | Bank, Exchange, Finance Tower, Flagship Store, Retail Complex | Clearing House | Makes Capital in the stores. Works the Bank and the Exchange. |
+| Scientist | AI Research Center, Data Center | Agent Hub, Cloud Campus | Runs research, trains other agents, adds link bonuses |
+| Manager | City Hall, Cloud Campus, Clearing House | Bank, Finance Tower | Boosts one kind of work, adds link bonuses |
+
+The home or neighbour percentage is the seat's **affinity**: how much of the building's output the agent gets. An agent in a building that lists neither role does no work and records `IDLE_WRONG_ROLE`.
+
+Two buildings have an **autonomous seat** that works at 60% with nobody in it: the Agent Hub and the Robotics Lab. The Robotics Lab is the only Capital producer that runs empty. The Flagship Store and Retail Complex pay only when an agent is seated.
+
+</pre><h2 id="hiring">Hiring</h2><pre>
+| | |
+|---|---|
+| Agent slots | 8 at City Level 1, plus 2 per level, up to 20. The Cloud Campus adds more. |
+| Random hire | Engineer 50%, Logistician 25%, Trader 25% |
+| Chosen hire | Any of the five roles, same price |
+| Traits | 1 or 2, rolled at hire |
+
+The price depends on how many agents you already have, not on the role.
+
+| Agent # | Capital | Agent # | Capital |
+|---:|---:|---:|---:|
+| 1 | 5,132,681 | 11 | 15,941,329 |
+| 2 | 5,748,603 | 12 | 17,854,289 |
+| 3 | 6,438,435 | 13 | 19,996,804 |
+| 4 | 7,211,048 | 14 | 22,396,420 |
+| 5 | 8,076,373 | 15 | 25,083,991 |
+| 6 | 9,045,538 | 16 | 28,094,069 |
+| 7 | 10,131,003 | 17 | 31,465,358 |
+| 8 | 11,346,723 | 18 | 35,241,201 |
+| 9 | 12,708,330 | 19 | 39,470,145 |
+| 10 | 14,233,330 | 20 | 44,206,563 |
+
+When every slot is taken, hiring refuses with `NO_FREE_AGENT_SLOT`. Moving an agent to another seat is instant: the next tick runs in the new building.
+
+</pre><h2 id="tasks">Tasks</h2><pre>
+Every role starts on its default task. You change it on the agent card.
+
+| Task | Role | Default | Effect |
+|---|---|:-:|---|
+| Produce | Engineer | ✓ | Normal work |
+| Overclock | Engineer | | Output +10%, Energy cost +45% |
+| Route | Logistician | ✓ | Logistics relief +10% |
+| Stockpile | Logistician | | Logistics relief +20%, output −5% |
+| Desk | Trader | ✓ | In the Bank: no effect on withdrawal prices in the current version. `[NEEDS CONFIRMATION]` Meant to lower the markup to its floor ([Bank](economy.md#the-bank)). |
+| Quote | Trader | | In the Exchange: no effect. Purchases carry no route haircut for it to remove. `[NEEDS CONFIRMATION]` whether Quote will get an Exchange effect. |
+| Train | Scientist | ✓ | Gives XP to a chosen agent. XP rate +10%, Compute cost +45%. Idle without a target (`IDLE_NO_TRAIN_TARGET`). |
+| Research | Scientist | | Advances the city's current research. Compute cost +45%. Idle without a topic (`IDLE_NO_RESEARCH_FOCUS`). |
+| Focus | Manager | ✓ | +5% output for one kind of work: production, logistics, research, finance, retail or admin |
+
+A Manager's focus also lifts the Energy and Compute buildings of that kind, and a logistics focus strengthens logistics relief.
+
+</pre><h2 id="traits">Traits</h2><pre>
+| Trait | Effect |
+|---|---|
+| Night Owl | Night Energy premium is 8% instead of 20% |
+| Frugal | Energy and Compute cost −20%, output −5% |
+| Specialist | Output +15% in a home seat, −15% anywhere else |
+| Steady | Per-tick variation narrows from ±5% to ±2.5% |
+
+</pre><h2 id="levels">Levels</h2><pre>
+An agent earns 1 XP for every tick it works and gets paid. A Scientist on Train adds more to its target. Idle or unpaid ticks give nothing.
+
+| Level | Total XP | Output |
+|---:|---:|---:|
+| 1 | 0 | ×1.00 |
+| 2 | 240 | ×1.15 |
+| 3 | 624 | ×1.30 |
+| 4 | 1,238 | ×1.45 |
+| 5 | 2,221 | ×1.60 |
+
+Level 5 is the top. XP bonuses such as Train and the Handbook research carry fractional XP forward, so none is lost to rounding.
+
+</pre><h2 id="how-a-seat-earns">How a seat earns</h2><pre>
+Each tick the game checks that the building has finished opening and isn't frozen, that the role fits, and that the tick is within the building's hours. Then it draws Energy, then Compute. A seat that passes every check files a **request**, the Capital it asks Payroll for:
+
+$$
+R = O \cdot \frac{A}{10^4} \cdot \frac{L}{10^4} \cdot \frac{E}{10^4} \cdot \frac{j}{10^4} \cdot \frac{F}{10^4} \cdot \frac{9500}{10^4}
+$$
+
+| Symbol | Meaning | Range |
+|---|---|---|
+| $R$ | Request for this seat and tick, in Capital | — |
+| $O$ | The building's output at its level ([Output per tick](city.md#output-per-tick)) | — |
+| $A$ | Affinity: home or neighbour | 10,000 or 6,000 |
+| $L$ | Agent level multiplier. An empty autonomous seat uses 10,000. | 10,000–16,000 |
+| $E$ | Efficiency. Currently 10,000 for every seat ([District efficiency](industries.md#district-efficiency)). | 10,000 |
+| $j$ | Per-tick variation, derived from the hash | 9,500–10,500 (Steady: 9,750–10,250) |
+| $F$ | All modifiers combined: tasks, traits, nodes, research, Manager focus, links | 802–124,591 ([caps](industries.md#how-modifiers-combine)) |
+| 9,500 | A fixed factor that cuts every request by 5% (10,000 − 500 bps) for the residual downtime the rules assume in any city. It applies to every working seat and is separate from the idle checks. | — |
+
+The game uses whole numbers and rounds down after each multiplication, in the order shown. A floating-point spreadsheet can be off by a few units.
+
+For the Flagship Store and Retail Complex, the building output is replaced by a Population term. The Consumer district's population conversion bonus then applies on top:
+
+$$
+O_{\text{retail}} = 142{,}574 \times \frac{\text{Population}}{400}
+$$
+
+The store's own level adds housing, not request size.
+
+**Example.** A level-2 Engineer in a level-1 Workshop, with no modifiers and neutral variation:
+
+$$
+142{,}574 \times 1.00 \times 1.15 \times 1.00 \times 1.00 \times 1.00 \times 0.95 = 155{,}762
+$$
+
+That's the request. The payment depends on that tick's Payroll ratio: 467,286 at a 300% ratio, or 77,881 at 50%. [Payroll](economy.md#payroll) works through both cases.
+
+</pre><h2 id="building-links">Building links</h2><pre>
+Fourteen buildings that make no Capital raise the output of the four that do: the Workshop, Robotics Lab, Flagship Store and Retail Complex. A link counts only when the emitting building is active, has finished opening, isn't frozen, is within its hours (the Bank only during Bank hours), and has the required role seated.
+
+| Emitter | Needs | Bonus | Raises | Exclusive with |
+|---|---|---:|---|---|
+| City Hall | Manager | +10% | All four producers | Cloud Campus |
+| Cloud Campus | Manager | +20% | Robotics Lab | City Hall |
+| Clearing House | Manager | +30% | Flagship Store, Retail Complex | Finance Tower |
+| Agent Hub | Scientist | +10% | Workshop, Robotics Lab | — |
+| AI Research Center | Scientist | +20% | Robotics Lab | Data Center |
+| Data Center | Scientist | +30% | Robotics Lab | AI Research Center |
+| Power Node | Engineer | +10% | Workshop, Robotics Lab | Energy Plant |
+| Energy Plant | Engineer | +30% | Workshop, Robotics Lab | Power Node |
+| Logistics Hub | Logistician | +20% | All four producers | — |
+| Drone Depot | Logistician | +30% | Workshop, Flagship Store, Retail Complex | Fleet Yard |
+| Fleet Yard | Logistician | +30% | All four producers | Drone Depot |
+| Bank | Trader | +10% | Flagship Store, Retail Complex | — |
+| Exchange | Trader | +10% | Flagship Store, Retail Complex | — |
+| Finance Tower | Trader | +30% | Flagship Store, Retail Complex | Clearing House |
+
+When both buildings of an exclusive pair are live, only the larger bonus counts. Links feed $F$ with every other modifier, so the same output cap limits them.
+
+Links raise the request, not the payment. Payroll is shared and finite: when every city asks for more, the pay ratio falls for everyone.
+</pre></section><section id="chapter-economy"><h1>economy</h1><pre>---
+title: Economy
+description: How $CORP, Capital and Payroll connect. Mint rate, deposits, spending, Payroll, the Bank, the Exchange and the round-trip cost.
+sidebar_position: 5
+---
+
+</pre><h2 id="economy">Economy</h2><pre>
+The economy has two sides. On-chain, `$CORP` sits in a vault. On the game server, Capital moves between cities and one shared Payroll fund. A single rule links the sides: no Capital can exist that the vault's `$CORP` doesn't back.
+
+</pre><h2 id="units">Units</h2><pre>
+| Unit | Kind | Created by | Removed by |
+|---|---|---|---|
+| `$CORP` | ERC-20 on Robinhood Chain | The token launch, fixed supply | — |
+| Capital | Internal chips. Not a token, not transferable. | Minting against `$CORP` deposited in the vault | The 40% spending burn and Bank withdrawals |
+| Fragments | Internal claim ledger, one per district | Work in district beacons | Each Farm settlement |
+| Influence | Prize-period score | Daily city results | Each prize settlement |
+| Stock Tokens | Third-party tokenised shares | Their issuers, not Corporator | — |
+
+</pre><h2 id="how-value-moves">How value moves</h2><pre>
+```mermaid
+flowchart TB
+    subgraph chain[&quot;On-chain&quot;]
+        W[&quot;Your wallet&lt;br/&gt;$CORP&quot;]
+        DEX[&quot;CORP/ETH pool&lt;br/&gt;2% creator tax + 1% curve fee&quot;]
+        V[&quot;Vault&lt;br/&gt;$CORP backing&quot;]
+        PT[&quot;Prize treasury&lt;br/&gt;Stock Tokens&quot;]
+    end
+    subgraph game[&quot;Game server&quot;]
+        CAP[&quot;City Capital&quot;]
+        F[&quot;Payroll fund&quot;]
+        R[&quot;Reserve&quot;]
+        BURN((&quot;Burn&quot;))
+    end
+    W -- &quot;trade&quot; --&gt; DEX
+    DEX -- &quot;1.0% of turnover,&lt;br/&gt;bought back as $CORP&quot; --&gt; V
+    DEX -- &quot;0.6% Farm + 0.2% Monthly,&lt;br/&gt;bought as Stock Tokens&quot; --&gt; PT
+    DEX -- &quot;0.2% of turnover, in ETH&quot; --&gt; ST[&quot;Studio&quot;]
+    W -- &quot;deposit&quot; --&gt; V
+    V -- &quot;mint&quot; --&gt; CAP
+    V -- &quot;mint from trading tax&quot; --&gt; F
+    CAP -- &quot;spend 60%&quot; --&gt; F
+    CAP -- &quot;spend 40%&quot; --&gt; BURN
+    F -- &quot;pay valid work&quot; --&gt; CAP
+    F -- &quot;over the 30-day cap&quot; --&gt; R
+    R -- &quot;up to 5% a week&quot; --&gt; F
+    CAP -- &quot;withdraw at the Bank:&lt;br/&gt;voucher issued&quot; --&gt; V
+    V -- &quot;present the voucher&quot; --&gt; W
+    PT -- &quot;Farm and Monthly claims&quot; --&gt; W
+```
+
+Two things bring value into the city side:
+
+1. **Deposits.** You move `$CORP` into the vault and receive Capital.
+2. **Trading tax.** Half of the 2% creator tax, 1% of turnover, is bought back as `$CORP`, deposited in the vault and minted into the Payroll fund.
+
+Two things take it out:
+
+1. **The spending burn.** 40% of every Capital spend is destroyed. The `$CORP` that backed it stays in the vault.
+2. **Bank withdrawals.** Capital converts back to `$CORP` at a markup, and the `$CORP` leaves the vault for your wallet.
+
+Everything else circulates. You spend, spending fills Payroll, Payroll pays cities, and cities spend again.
+
+</pre><h2 id="the-corp-token">The `$CORP` token</h2><pre>
+| | |
+|---|---|
+| Network | Robinhood Chain, chain ID `4663`, gas in ETH |
+| Launch | Through the pons launch factory: a bonding curve that graduates into one CORP/ETH pool |
+| Supply | 1,000,000,000 |
+| Graduation | 4.2 ETH |
+| Creator tax | 2% of each trade, in ETH |
+| Curve fee | 1% |
+| Total fee per trade | 3% |
+| Pools | One: CORP/ETH. There's no CORP/USDG pool and no pool against any Stock Token. |
+| Address | Not deployed. See the [deployment register](protocol.md#deployment-register). |
+
+The creator tax splits like this:
+
+| Destination | Share of turnover | Share of the tax |
+|---|---:|---:|
+| Payroll fund: bought back as `$CORP`, deposited, minted into the fund | 1.0% | 50% |
+| Farm pool: Stock Tokens for [fragment settlement](seasons.md#fragments-and-the-farm) | 0.6% | 30% |
+| Monthly pool: Stock Tokens for [leaderboard prizes](seasons.md#monthly-prizes) | 0.2% | 10% |
+| Studio | 0.2% | 10% |
+
+</pre><h2 id="the-mint-rate">The mint rate</h2><pre>
+The mint rate $r$ is how much Capital one whole `$CORP` buys. It follows the `$CORP` market price, with one Capital defined as \$0.000001:
+
+$$
+r_{\text{raw}} = \frac{P_{\text{CORP}}}{\$0.000001}
+$$
+
+$P_{\text{CORP}}$ is the `$CORP` price in dollars, taken from the CORP/ETH pool and the ETH/USD price. So 1,000,000 Capital is about \$1 of `$CORP` at the current rate. That's a unit convention, not a promise that you can redeem at that price.
+
+The rate you actually get is damped:
+
+| Rule | Value |
+|---|---|
+| Reference | Average of the daily 00:00 samples over the last 30 city days |
+| Band | Within ±15% of the reference |
+| Falling | Applies at once |
+| Rising | At most +2% per city day |
+| Hard ceiling | 2,000 Capital per `$CORP` |
+| Spike limit | 3× the reference (`MINT_RATE_CAPPED`) |
+| Stale price, over 6 city hours | Decays by 5% per city day |
+| No usable price | Nothing mints. Deposits refuse with `STALE_PRICE`. |
+
+At the start, before price samples move it, the rate is **51**. The examples below use that value.
+
+</pre><h2 id="the-backing-rule">The backing rule</h2><pre>
+$$
+\sum_{\text{cities}} \text{Capital} + \text{Payroll fund} \;\le\; \text{vault } \$\text{CORP} \times 2000
+$$
+
+This holds because every Capital mint goes through `$CORP` deposited in the vault, and the 2,000 ceiling is fixed arithmetic, not a price feed. The vault contract itself refuses to mint more than 2,000 Capital per `$CORP` deposited. The server checks the rule every tick and halts the tick rather than break it. Nothing mints Capital to cover a shortfall.
+
+</pre><h2 id="depositing">Depositing</h2><pre>
+$$
+C = \left\lfloor \frac{c \cdot r}{10^{18}} \right\rfloor \times \frac{9800}{10^4}
+$$
+
+- $c$: `$CORP` deposited, in wei (18 decimals).
+- $r$: the current mint rate.
+- 9,800: what's left after the 2% entry fee. The fee's `$CORP` stays in the vault as reserve backing and mints no Capital.
+
+**Example.** At a rate of 51, depositing 1,000,000 `$CORP` gives 51,000,000 Capital before the fee, and **49,980,000 Capital** after it. The 20,000 `$CORP` fee joins the reserve.
+
+```mermaid
+sequenceDiagram
+    participant You
+    participant HUD
+    participant Server as Game server
+    participant Wallet
+    participant Vault
+    You-&gt;&gt;HUD: Enter amount
+    HUD-&gt;&gt;You: Review: amount, 2% fee, Capital out
+    You-&gt;&gt;HUD: Confirm
+    HUD-&gt;&gt;Server: Prepare deposit
+    Server--&gt;&gt;HUD: Transactions to sign
+    HUD-&gt;&gt;Wallet: Approve, then deposit
+    Wallet-&gt;&gt;Vault: deposit(account, amount)
+    Vault--&gt;&gt;Vault: Credit the balance actually received
+    HUD-&gt;&gt;Server: Confirm with transaction hash
+    Server-&gt;&gt;Server: Read the transaction from the chain and match it
+    Server--&gt;&gt;HUD: Capital credited
+```
+
+The vault credits the `$CORP` it actually received, not the amount named in the call. Only the account being credited can make the deposit. Deposits don't depend on Bank hours.
+
+</pre><h2 id="spending-capital">Spending Capital</h2><pre>
+Every spend (opening and upgrading buildings, hiring, research, tiers, merges) splits the same way:
+
+| Share | Goes to |
+|---:|---|
+| 40% | Burned |
+| 60% | Payroll fund |
+
+Spending never buys Stock Tokens and never pays the studio.
+
+</pre><h2 id="payroll">Payroll</h2><pre>
+Payroll pays the requests that working seats file each tick ([How a seat earns](agents.md#how-a-seat-earns)). There's one fund for all cities.
+
+</pre><h2 id="the-daily-budget">The daily budget</h2><pre>
+At 00:00 city time the next day's budget is fixed:
+
+$$
+B_{\text{day}} = \max\!\left(\left\lfloor \frac{F}{14} \right\rfloor,\ \bar I_{3}\right), \qquad B_{\text{tick}} = \left\lfloor \frac{B_{\text{day}}}{24} \right\rfloor
+$$
+
+- $F$: the fund balance at 00:00. Dividing by 14 spreads it over a 14-day horizon.
+- $\bar I_{3}$: the average daily inflow into the fund over the last 3 city days.
+
+The budget holds for the whole day, even if more inflow arrives before the next midnight.
+
+</pre><h2 id="each-ticks-pool">Each tick's pool</h2><pre>
+$$
+P = \min\!\left(\left\lfloor \frac{b \cdot \sum_i R_i}{10^4} \right\rfloor,\ B_{\text{tick}},\ F\right), \qquad \rho = \frac{P \cdot 10^4}{\sum_i R_i}
+$$
+
+| Symbol | Meaning |
+|---|---|
+| $R_i$ | Each working seat's request, across every city |
+| $b$ | The boost: ×8 (80,000 bps) for the first 7 city days after launch, then ×3 (30,000 bps) |
+| $P$ | Capital paid out this tick |
+| $\rho$ | The pay ratio, which can exceed 100% |
+
+The pool is shared in proportion to requests, with each request weighted by its city's fund share $s$ (from the Finance dividend and the Clearing House, up to 3,500 bps): $R_i \times (10^4 + s) / 10^4$. Without fund share, a seat is paid $R_i \times \rho$, rounded down.
+
+Because the cut is proportional, nobody gets zero while the fund holds Capital. When $\rho$ drops below 100%, the HUD shows `PAYROLL_TRIMMED` and the ratio used. During the launch window, a chip shows the boost and the days left, and it disappears when the window closes.
+
+**Example.** Suppose the fund holds 336,000,000 Capital, so $B_{\text{day}}$ = 24,000,000 and $B_{\text{tick}}$ = 1,000,000. The boost is ×3 and no city has fund share. Take the 155,762 request from the [seat example](agents.md#how-a-seat-earns):
+
+| All requests $\sum R$ | Boosted | Pool $P$ | Ratio $\rho$ | The 155,762 request gets |
+|---:|---:|---:|---:|---:|
+| 200,000 | 600,000 | 600,000 | 300% | 467,286 |
+| 500,000 | 1,500,000 | 1,000,000 | 200% | 311,524 |
+| 2,000,000 | 6,000,000 | 1,000,000 | 50% | 77,881 |
+
+The same work earns six times more in a quiet tick than in a crowded one. These are sample inputs, not a forecast.
+
+</pre><h2 id="fund-limits">Fund limits</h2><pre>
+- **Cap.** The fund holds at most 30 days of its average spend. Anything above that goes to the reserve.
+- **Reserve.** It releases at most 5% of its balance per city week back into the fund. Entry fees land here too.
+- **Empty fund.** Seats still work and record it, but they're paid nothing. Nothing mints to fill the gap.
+
+A payment moves Capital from the fund to your city. Payroll never creates Capital.
+
+</pre><h2 id="the-bank">The Bank</h2><pre>
+The Bank turns Capital back into `$CORP`.
+
+$$
+c_{\text{out}} = \frac{K \cdot 10^{18} \cdot 10^4}{r \cdot (10^4 + m)}
+$$
+
+- $K$: Capital withdrawn.
+- $r$: the current mint rate.
+- $m$: the markup in bps. Every withdrawal in the current version uses 1,000 (10%).
+- $c_{\text{out}}$: `$CORP` out, in wei.
+
+**Example.** At a rate of 51, withdrawing 10,000,000 Capital at the 10% markup gives $10{,}000{,}000 / (51 \times 1.10)$ ≈ **178,253 `$CORP`**.
+
+At the 2,000 ceiling, the exit rate is 2,200 Capital per `$CORP`. Entry is 1,960 per `$CORP` after the fee. Entering is always cheaper than leaving, and the rules can't be set otherwise.
+
+`[NEEDS CONFIRMATION]` A Trader on the Desk task in your Bank is meant to lower the markup to its 650 bps (6.5%) floor. Withdrawals don't apply it yet. At the floor, the exit rate would be 2,130 Capital per `$CORP` and the round trip 11.64%.
+
+</pre><h2 id="hours-and-limits">Hours and limits</h2><pre>
+| Rule | Value |
+|---|---|
+| Hours | 08:00–20:00 city time (`BANK_CLOSED`) |
+| Sunday | Closed (`BANK_SUNDAY`) |
+| Global daily limit | 5% of the CORP/ETH pool's ETH depth, shared by all players |
+| Your daily limit | A share of the global limit, set by your Bank level |
+| Coverage | The vault must have free `$CORP` to pay you (`VAULT_EXIT_UNCOVERED`) |
+| Demo city | No withdrawals |
+
+Your **Bank level** is the level of your highest Finance Tower that is active: not deactivated, not frozen and not in a frozen district. Without one it's 1.
+
+| Bank level | Share of the global limit | Your limit if the pool holds 4.2 ETH |
+|---:|---:|---:|
+| 1 | 25% | 0.0525 ETH |
+| 2 | 43.75% | 0.091875 ETH |
+| 3 | 57.82% | 0.121422 ETH |
+
+With 4.2 ETH in the pool, the global limit is 0.21 ETH a day for everyone together. A request bigger than your remaining room is **partly filled**, scaled down to fit. With no room left you get `BANK_DAILY_LIMIT_REACHED`.
+
+Your deposit doesn't cap your withdrawal. Bank hours, the daily limits and the vault's free coverage do. The vault pays from your own backing first and then from the protocol's house backing.
+
+</pre><h2 id="vouchers">Vouchers</h2><pre>
+A withdrawal reaches your wallet in two steps:
+
+1. **Withdraw.** In the Bank, enter the Capital to withdraw and confirm the review. The Bank checks hours, limits and coverage, takes the Capital from your city and issues a **voucher** that reserves the `$CORP` for you in the vault. You don't sign anything at this step.
+2. **Present.** The voucher card shows the `$CORP` amount and when it expires. Press Present and approve the transaction in your wallet. The vault sends the `$CORP` straight to your wallet. You pay the gas in ETH.
+
+| Rule | Value |
+|---|---|
+| Lifetime | One city hour from the issue |
+| Open vouchers | One per city at a time (`VOUCHER_PENDING`) |
+| Not presented in time | After the chain read the voucher is expired and the Capital returns to your city (`VOUCHER_EXPIRED`). Until that read, the card waits. It doesn't use up your daily limit. |
+| Bank hours | Checked when the voucher is issued, not when you present it |
+
+A voucher is either paid out or returned as Capital, never both. While it is still being issued, Present stays blocked. It stays on the Bank screen after a page reload. If you approved Present but closed the tab, a later chain read completes the withdrawal. [Protocol](protocol.md#vault) shows the contract calls.
+
+</pre><h2 id="the-round-trip">The round trip</h2><pre>
+Buying `$CORP`, depositing, withdrawing and selling, at the 2,000 ceiling. Every row is valued in `$CORP` at an unchanged pool price:
+
+| Step | Kept, in `$CORP` |
+|---|---:|
+| Start: ETH worth 10,000 `$CORP` | 10,000 |
+| Buy on the DEX (2% creator tax) | 9,800 |
+| Deposit (2% entry fee), Capital valued at 2,000:1 | 9,604 |
+| Withdraw at 2,200:1 | 8,730 |
+| Sell on the DEX (2% creator tax) | 8,555 |
+| **Round-trip cost** | **14.45%** |
+
+This is fee arithmetic, not a market forecast. It leaves out the 1% curve fee on each trade, price impact, gas and any price move. The rules keep the fee cost between 14% and 16%, so no fee change can move it outside that band.
+
+</pre><h2 id="the-exchange">The Exchange</h2><pre>
+The Exchange buys Stock Tokens with `$CORP` along one route: **`$CORP` → ETH → USDG → Stock Token**.
+
+- It needs a live quote. Without one, the purchase refuses with `EXCHANGE_HOP_UNAVAILABLE`.
+- It pays with `$CORP` from your wallet (`NOT_ENOUGH_CORP` if short). Your wallet signs the route transactions, with an approval first if needed, and pays their gas.
+- The Stock Tokens go straight to your wallet with no route haircut. The game records the amount that actually arrived, not the quote.
+- The tokens aren't staked. Staking is a separate step, and a stake of at least $S_{\min}$ opens the district ([Where your Stock Tokens are](industries.md#where-your-stock-tokens-are)).
+
+Stock Tokens are issued by third parties. A ticker says nothing about the token's rights, transfer limits or redemption terms, and it doesn't mean the company is a partner. Check the issuer's terms.
+
+</pre><h2 id="what-the-economy-doesnt-do">What the economy doesn't do</h2><pre>
+- It doesn't pay you for opening a building. Buildings earn only through the seats that work in them.
+- It doesn't pass stock performance to you.
+- It doesn't mint Capital beyond what the vault's `$CORP` backs.
+- It doesn't promise every city ends up ahead. Payroll is finite and shared.
+</pre></section><section id="chapter-industries"><h1>industries</h1><pre>---
+title: Industries and Progression
+description: The six districts, staking Stock Tokens, efficiency, tiers and nodes, synergies, merges, research and modifier caps.
+sidebar_position: 4
+---
+
+</pre><h2 id="industries-and-progression">Industries and Progression</h2><pre>
+Beyond opening more buildings and hiring more agents, you grow along four tracks. All of them draw on the same Capital.
+
+| Track | What you get | What it takes |
+|---|---|---|
+| Districts | A beacon building, automatic dividends, a node choice at each tier | A Stock Token stake |
+| Synergies | Six buildings that combine two districts | Building slots and Capital |
+| Merges | A second copy of two districts' tier-1 dividends, for pairs without a synergy | Both districts at tier 2 |
+| Research | Five city-wide upgrades | Capital and a Scientist's time |
+
+</pre><h2 id="the-six-districts">The six districts</h2><pre>
+Each district is tied to one Stock Token. The district's role is fixed. The ticker behind it can change in a future rules version.
+
+| District | Ticker | Beacon | Dividend at tier 1 / 2 / 3 | Minimum stake $S_{\min}$ |
+|---|---|---|---|---:|
+| Compute | NVDA | AI Research Center | Compute cost −5% / −10% / −15% | 0.458389 NVDA |
+| Energy | TSLA | Energy Plant | Energy cost −5% / −10% / −15% | 0.287058 TSLA |
+| Logistics | AMZN | Logistics Hub | Logistics relief +5% / +10% / +15% | 0.375820 AMZN |
+| Consumer | AAPL | Flagship Store | Population conversion +5% / +10% / +15% | 0.312781 AAPL |
+| Automation | MSFT | Cloud Campus | Offline hours +1 / +2 / +3 | 0.194947 MSFT |
+| Finance | COIN | Finance Tower | Payroll fund share +5% / +10% / +15% | 0.562693 COIN |
+
+$S_{\min}$ is set in tokens, not dollars. Each value was worth about \$100 at a price snapshot taken on 2026-08-29 and was then frozen, so it doesn't follow the stock price. The table rounds to six decimals. The rules store the exact 18-decimal amounts.
+
+Finance matters for your exits and your income: the Finance Tower sets your [Bank level](economy.md#hours-and-limits), and the Finance dividend raises your share of Payroll.
+
+</pre><h2 id="staking">Staking</h2><pre>
+```mermaid
+stateDiagram-v2
+    [*] --&gt; Closed
+    Closed --&gt; Open: stake reaches S_min, opens at tier 1
+    Open --&gt; Open: stake more for higher tiers
+    Open --&gt; Grace: unstake below S_min
+    Grace --&gt; Open: restake within 24 city hours
+    Grace --&gt; Frozen: 24 city hours pass
+    Frozen --&gt; Open: restake to S_min or more
+```
+
+- **Open a district.** Stake at least $S_{\min}$ of its token from your wallet. The stake itself opens the district at tier 1 with its tier-1 dividend, with no separate step. Opening costs no Capital, and demo cities can't open districts.
+- **Stake more.** Each stake raises your total to the next whole multiple of $S_{\min}$. Higher tiers need 2× and 3×.
+- **Unstake.** You can request your tokens back at any time, with no one's approval, and the amount stops counting as stake at once. If what's left falls below $S_{\min}$, the district enters a **24-city-hour grace period** (`DISTRICT_FREEZING`) and then **freezes**. Its beacon and any synergy building that needs it stop with `IDLE_DISTRICT_FROZEN`, and its nodes stop counting. Nothing is demolished, and restaking lifts the freeze.
+- **Collect after 30 city days.** Unstaked tokens wait in the stake contract for a **30-city-day cooldown**, then you collect them to your wallet ([below](#unstaking-and-the-cooldown)).
+
+Stake above what your tier requires adds no output. `[NEEDS CONFIRMATION]` whether a bonus for extra stake will ship.
+
+</pre><h2 id="where-your-stock-tokens-are">Where your Stock Tokens are</h2><pre>
+Every Stock Token you hold for the game is in one of three places. None of them is a balance kept by the game server.
+
+| Place | How tokens get there | How they leave |
+|---|---|---|
+| Your wallet | From outside the game, [Exchange](economy.md#the-exchange) purchases, [Farm](seasons.md#fragments-and-the-farm) and [Monthly](seasons.md#monthly-prizes) claims, and collected unstakes | However you like. They're yours. |
+| Staked, in the stake contract | You stake from your wallet | An unstake request moves them into cooldown |
+| Cooling down, in the stake contract | An unstake request | After 30 city days you collect them to your wallet |
+
+Opening, tiers, the grace period and the freeze are game rules applied to what the stake contract reports.
+
+</pre><h2 id="unstaking-and-the-cooldown">Unstaking and the cooldown</h2><pre>
+You request an unstake from the district card and approve it in your wallet. The tokens then wait in the stake contract, and the card shows the amount and the date they're ready. On that date, press Collect and the tokens go to your wallet.
+
+| Rule | Value |
+|---|---|
+| Cooldown | 30 city days, which is 750 real hours (about 31 real days) |
+| Cancel | Not possible |
+| Per ticker | Each ticker has its own cooldown |
+| New request while tokens are still cooling | The amounts are added together and the cooldown **restarts for the whole amount**. The HUD warns you before you sign. |
+| New request after the earlier tokens are ready | The ready tokens go to your wallet, and a new cooldown starts for the new amount |
+| Collecting early | Refused with the ready date (`UNSTAKE_COOLING`) |
+| Gas | You pay ETH for the request and for the collection |
+
+Tokens in cooldown don't count as stake, don't open a district, don't qualify you for prizes and can't be moved. The district and the tokens run on separate clocks: the district freezes after 24 city hours, and the tokens return after 30 city days.
+
+</pre><h2 id="district-efficiency">District efficiency</h2><pre>
+Each district has an efficiency value that compares the stock's short-term average price with its longer baseline:
+
+$$
+E = \operatorname{clamp}\!\left(10{,}000 + 25{,}000 \times \left(\frac{\bar p_{24\text{h}}}{\bar p_{30\text{d}}} - 1\right),\ 8{,}500,\ 11{,}500\right)
+$$
+
+- $\bar p_{24\text{h}}$ and $\bar p_{30\text{d}}$ are the 24-hour and 30-day average oracle prices.
+- It's recalculated at 06:00 city time and bounded to 85–115%.
+- If the price is more than 6 city hours old, the value holds and the district shows `ORACLE_STALE`. Past 48 city hours it drifts back toward 100% by 500 bps per city day (`ORACLE_DECAYING`). A silent feed never raises efficiency.
+
+Efficiency never passes a stock's gain to you: a 20% rise in NVDA adds 20% to nothing you own. Today it feeds [Influence](seasons.md#influence) and shows on the district card. Seat requests use a neutral 100%. `[NEEDS CONFIRMATION]` whether efficiency will scale seat requests at launch.
+
+</pre><h2 id="tiers-and-nodes">Tiers and nodes</h2><pre>
+| Tier | Unlock cost (Capital) | City Level | Stake |
+|---:|---:|---:|---|
+| 1 | 0, included with opening | 1 | $1 \times S_{\min}$ |
+| 2 | 51,326,815 | 3 | $2 \times S_{\min}$ |
+| 3 | 192,475,558 | 5 | $3 \times S_{\min}$ |
+
+Tiers unlock in order, and each requirement is checked on its own: `CITY_LEVEL_TOO_LOW`, `STAKE_MULT_SHORT` or `NOT_ENOUGH_CAPITAL`. Each tier grants its dividend automatically and offers **one of two** nodes. Picking one locks the other side for good (`NODE_SIDE_LOCKED`). There's no respec.
+
+| Tier | Side A | Side B |
+|---:|---|---|
+| 1 | Scale: output +5% | Thrift: Energy cost −5% (Compute cost −5% in the Compute district) |
+| 2 | Depth: upgrade speed +10% | Breadth: opening and upgrade prices −10% |
+| 3 | Capital: output +15% | Paper: fragment rate +15% |
+
+Nodes and dividends apply to the district's own buildings. City-wide effects, such as offline hours and fund share, apply to the whole city.
+
+</pre><h2 id="synergies-and-merges">Synergies and merges</h2><pre>
+Six districts make fifteen possible pairs. Six of those pairs have a **synergy building** ([Directory](city.md#directory)):
+
+| Synergy | Districts |
+|---|---|
+| Robotics Lab | Compute + Energy |
+| Data Center | Compute + Automation |
+| Drone Depot | Compute + Logistics |
+| Fleet Yard | Energy + Logistics |
+| Retail Complex | Consumer + Logistics |
+| Clearing House | Automation + Finance |
+
+The other nine pairs have a **merge** instead: Automation + Consumer, Automation + Energy, Automation + Logistics, Compute + Consumer, Compute + Finance, Consumer + Energy, Consumer + Finance, Energy + Finance, Finance + Logistics. A merge gives each of its two districts its tier-1 dividend a second time, for example another −5% Energy cost for Energy.
+
+| Merge rule | Value |
+|---|---|
+| Cost | 64,158,519 Capital |
+| Requirement | Both districts at tier 2 or higher |
+| Active at once | Up to 3 |
+| Per district | One merge only (`MERGE_MATCHING_BLOCKED`) |
+| Undo | Not possible |
+
+</pre><h2 id="research">Research</h2><pre>
+Research is city-wide, one topic at a time. A topic advances on each tick where a Scientist works on the Research task, and it completes once it has enough research ticks. Completed research stays.
+
+| Topic | Effect | Cost (Capital) | Research ticks |
+|---|---|---:|---:|
+| Grid | Energy cost −15% | 15,398,044 | 36 |
+| Tools | Output +10% | 10,265,363 | 24 |
+| Handbook | XP rate +10% | 10,265,363 | 24 |
+| Circuits | Compute cost −10% | 10,265,363 | 24 |
+| Lathe | Upgrade speed +10% | 10,265,363 | 24 |
+
+</pre><h2 id="how-modifiers-combine">How modifiers combine</h2><pre>
+Tasks, traits, dividends, nodes, merges, research, Manager focus and building links all feed one combined multiplier per effect. Each effect has a floor and a ceiling. When a ceiling applies, the HUD shows `MODIFIER_CAP_CLAMPED`.
+
+| Effect | Floor | Ceiling |
+|---|---:|---:|
+| Output | 802 | 124,591 |
+| Energy cost, Compute cost | 6,250 | 16,000 |
+| Opening and upgrade prices | 4,000 | 25,000 |
+| Upgrade speed, XP rate | 6,250 | 16,000 |
+| Fragment rate, Population conversion | 5,555 | 18,000 |
+| Logistics relief | 0 | 9,500 |
+| Fund share | 0 | 3,500 |
+| Offline hours | 0 | +6 |
+| Extra agent slots | 0 | +12 |
+
+Values are multipliers in bps (10,000 = no change). Offline hours and agent slots are added instead. The output ceiling of 124,591 bps, about ×12.5, is the strongest combination the rules allow.
+</pre></section><section id="chapter-seasons"><h1>seasons</h1><pre>---
+title: Seasons and Rewards
+description: Influence, the public ranking, prize qualification, Monthly prize shares, fragments and the Farm, and how claims work.
+sidebar_position: 6
+---
+
+</pre><h2 id="seasons-and-rewards">Seasons and Rewards</h2><pre>
+There are two reward systems. Both pay in Stock Tokens that the `$CORP` trading tax bought. Neither pays Capital or `$CORP`, and neither is funded by Capital spending.
+
+| | Farm | Monthly prizes |
+|---|---|---|
+| Pool | One per district ticker | One leaderboard basket |
+| Funded by | 0.6% of DEX turnover | 0.2% of DEX turnover |
+| You earn a share with | Fragments from work in district beacons | Your Influence rank among qualified wallets |
+| Settles | Every 7 city days | Every 30 city days |
+
+</pre><h2 id="the-calendar">The calendar</h2><pre>
+Rewards run on one global calendar that's the same for everyone. A city that joins mid-period enters the current period and gets no credit for earlier days.
+
+| Period | City days | Real time | Settles at |
+|---|---:|---:|---|
+| Farm window | 7 | 175 hours | 06:00 on the first day of the next window |
+| Prize period | 30 | 750 hours | 06:00 on the first day of the next period |
+| Season | 90, three prize periods | 2,250 hours | 06:00 on the first day of the next season |
+
+`[NEEDS CONFIRMATION]` The date of the first period is set at launch.
+
+</pre><h2 id="influence">Influence</h2><pre>
+Influence measures how well your city runs for what you've put into it. Size alone doesn't win. It builds up day by day through a prize period and resets to zero at each prize settlement.
+
+At 00:00 each city day your city adds:
+
+$$
+\Delta I = \frac{G \cdot 10^4}{X} \cdot \frac{S}{10^4} \cdot \frac{\bar E}{10^4} \cdot \frac{V}{10^4}
+$$
+
+| Symbol | Meaning |
+|---|---|
+| $G$ | The day's GDP: all Payroll your city received that day, in Capital |
+| $X$ | Your city's total Capital spend so far, at least 1 |
+| $S$ | Stability: the share of the day's 24 ticks that were valid, in bps |
+| $\bar E$ | Average [efficiency](industries.md#district-efficiency) of your open districts, or 10,000 with none |
+| $V$ | Coverage: open districts that produced that day ÷ open districts, or 10,000 with none |
+
+The first term, $G / X$, is your **intensity**: what your city earns per unit of Capital it has spent. A city that spent 100 million and earned 5 million today scores the same intensity as one that spent 1 billion and earned 50 million.
+
+A day with $G &gt; 0$ is a **positive day**.
+
+</pre><h2 id="ranking-and-prize-rank">Ranking and prize rank</h2><pre>
+The season plaque opens three tabs: Ranking, Season and Claims.
+
+**The ranking** is public and lists every wallet city. Demo cities can watch but don't appear.
+
+1. Sorted by Influence, highest first.
+2. Ties go to the higher GDP that day, then the lower city ID.
+3. Several cities under one wallet share one row: the one with more Influence. Scores aren't added together.
+
+**Prize rank** is stricter. At settlement a city qualifies only with:
+
+- at least **6 positive days** in the 30-day period, and
+- a **live stake** in a district.
+
+Qualified cities are ranked by Influence, with one slot per wallet, taken by the wallet's best qualified city. Ties go to the lower city ID. An unqualified city can't take a slot, whatever its Influence, so your place on the public ranking can differ from your prize rank. The Claims tab tells you why you don't qualify (`PRIZE_NOT_QUALIFIED`, `PRIZE_STAKE_REQUIRED`).
+
+</pre><h2 id="monthly-prizes">Monthly prizes</h2><pre>
+The top 10 qualified wallets split the Monthly pool. The curve is 80% harmonic and 20% equal:
+
+$$
+w_k = \frac{8000 \cdot \lfloor 10^4 / k \rfloor + 2000 \cdot \lfloor 10^4 / n \rfloor}{10^4}, \qquad \text{payout}_k = \left\lfloor \text{pool} \cdot \frac{w_k}{\sum_j w_j} \right\rfloor
+$$
+
+- $k$: prize rank, from 1 to $n$.
+- $n$: the number of qualified wallets, at most 10.
+
+| Rank | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Weight | 8,200 | 4,200 | 2,866 | 2,200 | 1,800 | 1,532 | 1,342 | 1,200 | 1,088 | 1,000 |
+| Share | 32.25% | 16.52% | 11.27% | 8.65% | 7.08% | 6.02% | 5.28% | 4.72% | 4.28% | 3.93% |
+
+The table assumes 10 qualified wallets. With fewer, the curve is recalculated over the wallets that qualified, so each share is larger. Rounding dust stays in the pool. If nobody qualifies, nothing is paid and the result is `PRIZE_NO_ELIGIBLE`.
+
+</pre><h2 id="fragments-and-the-farm">Fragments and the Farm</h2><pre>
+Fragments are a claim ledger, one per district ticker. They aren't tokens, and you can't trade or transfer them.
+
+Each tick an agent does valid work in a **district beacon**, that beacon adds fragments to its district's ledger:
+
+$$
+\Delta f = b_{\ell} \times \frac{M_{\text{frag}}}{10^4}
+$$
+
+- $b_{\ell}$: the base per worked tick at beacon level $\ell$: 356,436 / 641,584 / 1,154,851 for levels 1 / 2 / 3. It's the same for all six beacons.
+- $M_{\text{frag}}$: the combined fragment-rate modifier. The Paper node adds 15%. The ceiling is 18,000 bps.
+
+Base and synergy buildings earn no fragments. Neither does a beacon that's idle, still opening, deactivated or frozen. Fragments count before Payroll, so a low pay ratio doesn't shrink them.
+
+At the end of each 7-day window, each ticker's Farm pool is split across the cities holding that ticker's fragments:
+
+$$
+\text{payout}_i = \min\!\left(\left\lfloor \frac{f_i \cdot \text{pool}}{\sum_j f_j} \right\rfloor,\ \text{cap}\right)
+$$
+
+The cap is 50% of the pool when at least two cities claim, so one city can't take a whole pool while others worked for it. Then every ledger resets to zero, and any unpaid remainder carries into the next window. `FRAGMENT_CITY_CAPPED` marks a city that hit the cap. `FRAGMENT_NO_CLAIMS` and `FRAGMENT_POOL_EMPTY` mark windows with nothing to split.
+
+</pre><h2 id="claims">Claims</h2><pre>
+Rewards are paid only when you claim them. A rank, a table row or a number in the HUD isn't a transfer. Demo cities can't claim.
+
+Both rewards are paid from the prize treasury contract straight to your wallet. After settlement, each wallet's amount is recorded in the contract. You press Claim, approve the transaction in your wallet and pay the gas.
+
+- **Farm.** Claim from the district card. If a payout is settled but not yet recorded, the card shows `FRAGMENT_SLICE_PENDING` and the amount waits for you.
+- **Monthly prizes.** Claim from the Claims tab. With nothing owed you get `PRIZE_NOTHING_OWED`.
+
+In the pre-launch version, Farm claims already work. Monthly claims stay closed until the production contracts are deployed: until then the Claims tab shows amounts and qualification but won't send a claim. The two pools never mix, and a claim pays only the wallet that makes it. Tokens you claim land in your wallet, where you can stake them ([Where your Stock Tokens are](industries.md#where-your-stock-tokens-are)).
+
+If the Farm pool holds less than a window's calculated payouts, the window waits until the pool covers it. Nobody's share is cut to make it fit.
+
+Prize tokens that were never assigned to a wallet can be returned to the depositor. They never flow into the vault or the Payroll fund. [Protocol](protocol.md#prizetreasury) covers the contract.
+</pre></section><section id="chapter-protocol"><h1>protocol</h1><pre>---
+title: Protocol and Contracts
+description: What runs on-chain and what runs on the game server, how signing works, how to verify results, each contract, roles, the deployment register and risks.
+sidebar_position: 7
+---
+
+</pre><h2 id="protocol-and-contracts">Protocol and Contracts</h2><pre>
+Corporator is split between four small contracts and a game server. The contracts hold assets and enforce a few hard limits. The server runs the city simulation. This page shows which side enforces what, so you know what you're trusting.
+
+</pre><h2 id="architecture">Architecture</h2><pre>
+```mermaid
+flowchart LR
+    subgraph browser[&quot;Browser&quot;]
+        HUD[&quot;HUD and 3D island&quot;]
+        WAL[&quot;Your wallet&quot;]
+    end
+    subgraph server[&quot;Game server&quot;]
+        API[&quot;API: sessions, commands,&lt;br/&gt;transaction checks&quot;]
+        ENG[&quot;Engine: deterministic tick&quot;]
+        SMP[&quot;Sampler: prices, DEX turnover&quot;]
+        ATT[&quot;Attestor: Merkle roots, IPFS&quot;]
+    end
+    subgraph chain[&quot;Robinhood Chain&quot;]
+        V[&quot;Vault&quot;]
+        PT[&quot;PrizeTreasury&quot;]
+        SR[&quot;StakeRegistry&quot;]
+        MR[&quot;MerkleRoots&quot;]
+        DEX[&quot;CORP/ETH pool&quot;]
+    end
+    HUD &lt;--&gt; API
+    WAL --&gt; V
+    WAL --&gt; SR
+    WAL --&gt; PT
+    WAL --&gt; DEX
+    API --&gt; ENG
+    SMP --&gt; ENG
+    ENG --&gt; ATT
+    ATT --&gt; MR
+    API --&gt; V
+    API --&gt; PT
+```
+
+| Component | Does | Doesn't |
+|---|---|---|
+| Browser | Draws the island and HUD, shows city state, asks your wallet to sign | Calculate payments or create Capital |
+| API | Runs sessions and commands, prepares transactions for you to sign, checks them once signed | Trust a transaction hash from the browser. It reads the transaction from the chain and compares sender, target and data byte for byte. |
+| Engine | Runs each tick as a pure function of recorded inputs, in whole-number arithmetic | Read the network, the clock or any random source during a tick |
+| Sampler | Records `$CORP`, ETH and stock prices and DEX turnover as tick inputs | Make up a price when a source goes quiet. Stale inputs are marked stale. |
+| Attestor | Publishes each city day's records as a Merkle root and an IPFS object | Change a payment. It runs after payment, and if it fails, payments continue. |
+| Contracts | Hold `$CORP`, prize tokens, stakes and cooling unstakes. Cap minting. Pay withdrawals within coverage. Enforce the 30-city-day unstake cooldown. | Run schedules, Payroll, efficiency or any other game rule |
+
+</pre><h2 id="on-chain-and-off-chain">On-chain and off-chain</h2><pre>
+| Action | Where it happens | Wallet signature | Who enforces the limits |
+|---|---|:-:|---|
+| Sign in | Off-chain session | Message only | Server |
+| Deposit `$CORP` | `Vault.deposit` on-chain, then Capital on the server | Yes | Vault: amount received, mint ceiling. Server: mint rate. |
+| Open and upgrade buildings, hire, research, tiers, merges | Server | No | Server |
+| Payroll | Server, fund to city | No, automatic each tick | Server |
+| Withdraw | Server takes the Capital and issues a voucher in the vault | No | Server: hours, limits. Vault: coverage. |
+| Present a voucher | `Vault.presentVoucher`, `$CORP` to your wallet | Yes | Vault: matching fields, expiry, single use, coverage |
+| Stake | `StakeRegistry.stake` from your wallet | Yes | Contract: custody. Server: opening, tiers. |
+| Request an unstake | `StakeRegistry.requestUnstake`; tokens enter a 30-city-day cooldown | Yes | Contract: amount, cooldown. Server: grace period, freeze. |
+| Collect an unstake | `StakeRegistry.claimUnstaked`, tokens to your wallet | Yes | Contract: the cooldown has ended |
+| Buy a Stock Token | DEX route on-chain, tokens to your wallet | Yes | DEX. Server: quote freshness, that the tokens reached your wallet. |
+| Claim Farm rewards | `PrizeTreasury.claimPrize` on the Farm pool, tokens to your wallet | Yes | Contract: amount owed. Server and prize signer: who is owed. |
+| Claim a Monthly prize | `PrizeTreasury.claimPrize` on the Monthly pool, tokens to your wallet | Yes | Contract: amount owed. Server and prize signer: who is owed. |
+| Publish records | IPFS and `MerkleRoots` on-chain | No | Attestor |
+
+</pre><h2 id="prepare-sign-confirm">Prepare, sign, confirm</h2><pre>
+Every command where your wallet moves an asset on-chain follows the same three steps: deposit, stake, unstake request, unstake collection, voucher presentation, Stock Token purchase, Farm claim and Monthly prize claim.
+
+1. **Prepare.** The server returns the exact transactions to sign.
+2. **Sign.** Your wallet sends them and pays the gas. Check the network, the contract address and the amounts before you approve.
+3. **Confirm.** The server reads the transactions from the chain and compares them byte for byte with what it prepared. Only then does your city change.
+
+If you signed but closed the tab, the server reads the outcome from the chain and brings your city up to date. Deadlines such as voucher expiry and the unstake cooldown follow block time, not the server's clock.
+
+You don't sign the withdrawal itself: the server issues the voucher, and you sign only its presentation. See [Vouchers](economy.md#vouchers), [Unstaking](industries.md#unstaking-and-the-cooldown) and [Claims](seasons.md#claims).
+
+The game server keeps no balance of your `$CORP` or Stock Tokens. They're either in your wallet or in one of the contracts below.
+
+</pre><h2 id="determinism-and-verification">Determinism and verification</h2><pre>
+A tick is a pure function of its recorded inputs: prices, turnover, player commands and the rules pack. Randomness comes only from `hash(city_id, tick_index, agent_id)`. Time comes only from city time. Nothing inside a tick calls the network, reads a wall clock or asks an AI model.
+
+Within a tick, the engine works in this order:
+
+1. Check the rules pack hash, and that entry is still cheaper than exit.
+2. Update the mint rate from the recorded price.
+3. Record DEX turnover and the trading-tax inflow.
+4. At 00:00, close the Influence day.
+5. At 06:00, refresh district efficiency and settle Farm windows and prize periods.
+6. At 00:00, fix the next Payroll day budget.
+7. Collect every seat's request, then pay.
+8. Advance research, award XP, update City Level.
+9. Apply spending, withdrawals, buybacks, the reserve release and the fund cap.
+
+Each seat's result becomes a **decision record**: its inputs, efficiency, request, payment and idle reason. The record never includes your wallet address. It's serialised in one canonical, byte-exact form, and it's written after the payment.
+
+| Check | What it proves | What you need |
+|---|---|---|
+| Replay | The calculation was right | The recorded inputs and the rules pack with the matching hash ([Versions](reference.md#versions)) |
+| Merkle proof | A record belongs to the committed set | The record, its proof and the root |
+| Chain lookup | The root was published | The `MerkleRoots` transaction you rely on |
+
+Each check proves something different, and none replaces the others. The Journal marks a day **Verified** only when both its root and its IPFS object exist. The attestor can overwrite a day's root, so for a historical check, cite the publication transaction, not only the current value. A valid proof doesn't show that external prices were accurate or that the contracts are bug-free.
+
+</pre><h2 id="for-integrators">For integrators</h2><pre>
+- **Reading state.** Vault and StakeRegistry emit events for vouchers and unstakes. PrizeTreasury and MerkleRoots emit none. Read everything else through the public view functions.
+- **Records.** Each `(city_id, city_day)` has one Merkle root in `MerkleRoots` and one IPFS object with the records.
+- **Rules.** Every result belongs to one rules pack, identified by version and hash.
+- `[NEEDS CONFIRMATION]` A public game API for third parties isn't documented yet.
+
+</pre><h2 id="contracts">Contracts</h2><pre>
+All four game contracts are written in Solidity 0.8.28. None has a pause function. None is deployed yet: addresses will appear in the [deployment register](#deployment-register).
+
+</pre><h2 id="vault">Vault</h2><pre>
+| | |
+|---|---|
+| Purpose | Holds all the `$CORP` that backs Capital. Records deposits, backing, withdrawal vouchers and refunds. |
+| Network | Robinhood Chain (`4663`) |
+| Address | Not deployed |
+| Events | `VoucherIssued(nonce, account, corpAmount, issuedAtS)`, `VoucherPresented(nonce, account, corpAmount)`, `VoucherReleased(nonce)` |
+| Controls | Deposit accounting, the 2,000 Capital-per-`$CORP` mint ceiling, voucher reservations and payouts, bounded refunds |
+| Doesn't control | The mint rate, Bank hours, daily limits, Payroll |
+
+| Function | Who can call | What it does |
+|---|---|---|
+| `deposit(account, corpAmount)` | `account` only | Pulls `$CORP` and credits the balance actually received as pending |
+| `mintCapital(account, capitalAmount)` | Minter | Turns pending into backing. Refuses more than pending × 2,000. |
+| `issueVoucher(nonce, account, corpAmount, issuedAtS)` | Voucher signer | Reserves `corpAmount` if the vault has free coverage. Each nonce works once. |
+| `presentVoucher(nonce, account, corpAmount, issuedAtS)` | Anyone | Pays `account` if the fields match a live voucher. Draws on the account's backing first, then house backing. |
+| `releaseExpiredVoucher(nonce)` | Anyone | Frees the reservation of an expired, unused voucher |
+| `outcomeOf(nonce)` | View | `0` still open or unknown, `1` presented, `2` released after expiry |
+| `refundPlayer`, `batchRefundPlayers` | Signer | Returns `$CORP` up to a player's unreserved backing |
+| `setRefundRoot(root)` | Guardian | Sets a Merkle root for claimable refunds |
+| `claimRefund(amount, proof)` | Claimant | One refund per address against the root, within available backing |
+| `proposeSigner(next)`, `acceptSigner()` | Guardian, then the new signer | Two-step signer rotation |
+| `recoverWrongToken(token)` | Guardian | Sends any token other than `$CORP` sent by mistake to the guardian |
+| `voucherRoom`, `availableOf`, `backingOf`, `capitalOf` | View | Coverage and per-account balances |
+
+Rules:
+
+- The mint ceiling (2,000), voucher lifetime (3,750 s), minter, voucher signer, guardian and house address are fixed at deployment and can't change.
+- Coverage can't be spent twice. An issued voucher reserves its amount, refunds can't touch reserved backing, presenting consumes the reservation, and expiry releases it.
+- A voucher ends exactly one way, presented or released, and `outcomeOf` records which. The game returns Capital only for a released voucher.
+- A refund is limited to recorded backing. It isn't insurance against market losses and doesn't return Capital you spent.
+
+Example of a withdrawal by voucher:
+
+```text
+server → Vault.issueVoucher(&quot;n-123&quot;, player, 178253e18, t0)    // reserves coverage
+player → Vault.presentVoucher(&quot;n-123&quot;, player, 178253e18, t0)  // before t0 + 3750 s
+       ← 178,253 $CORP to player, outcomeOf(&quot;n-123&quot;) = 1
+if unused after t0 + 3750 s:
+anyone → Vault.releaseExpiredVoucher(&quot;n-123&quot;)                  // reservation freed, outcomeOf = 2
+                                                               // the game returns the Capital
+```
+
+</pre><h2 id="prizetreasury">PrizeTreasury</h2><pre>
+| | |
+|---|---|
+| Purpose | Holds the Stock Tokens bought for rewards in two separate pools, Farm and Monthly. Functions pick the pool with the `kettle` argument: `0` Farm, `1` Monthly. |
+| Network | Robinhood Chain (`4663`) |
+| Address | Not deployed |
+| Events | None |
+| Controls | Funding, per-wallet entitlements, claims |
+| Doesn't control | Who qualifies or how much each wallet earns. The server calculates that, and the prize signer records it. |
+
+| Function | Who can call | What it does |
+|---|---|---|
+| `deposit(token, kettle, amount)` | Depositor | Adds the amount received to that pool's unassigned balance |
+| `slice(batchId, token, kettle, players, amounts)` | Prize signer | Assigns unassigned balance to wallets. Can't assign more than the pool holds. Each `batchId` works once. |
+| `owed(kettle, token, account)`, `unsliced(kettle, token)` | View | A wallet's entitlement, a pool's unassigned balance |
+| `claimPrize(token, kettle)` | Any wallet | Pays the caller its own entitlement and zeroes it |
+| `returnUnsettled(token, kettle)` | Depositor | Takes back the unassigned remainder. Assigned entitlements stay. |
+| `proposeSigner`, `acceptSigner` | Guardian, then the new signer | Signer rotation |
+| `recoverWrongToken(token)` | Guardian | Recovers a token that isn't one of the six prize stocks |
+
+Only the six configured prize stocks are accepted. The two pools never mix, and a claim pays only the caller.
+
+</pre><h2 id="stakeregistry">StakeRegistry</h2><pre>
+| | |
+|---|---|
+| Purpose | Holds staked Stock Tokens and tokens in the unstake cooldown, and reports both |
+| Network | Robinhood Chain (`4663`) |
+| Address | Not deployed |
+| Events | `UnstakeRequested(account, ticker, amount, readyAtS)`, `UnstakeClaimed(account, ticker, amount)` |
+| Controls | Custody of staked and cooling tokens, the unstake cooldown |
+| Doesn't control | District opening, tiers, the grace period or the freeze. The server applies those from the snapshot. |
+
+| Function | Who can call | What it does |
+|---|---|---|
+| `stake(account, ticker, amount)` | `account` only | Pulls tokens and credits the amount received |
+| `requestUnstake(ticker, amount)` | The stake holder | Moves the amount from stake into the caller's cooldown for that ticker. Pays out an already-ready cooldown first. A still-cooling one is added to and restarts. |
+| `claimUnstaked(ticker)` | The stake holder | Once the cooldown has ended, sends the cooling tokens to the caller |
+| `snapshot(account)` | View | Lists tickers and active stake. Cooling tokens aren't included. |
+| `coolingSnapshot(account)` | View | Lists tickers, cooling amounts and ready times |
+| `unstakeCooldownS()` | View | The cooldown in seconds: 2,700,000, which is 30 city days |
+| `setToken(ticker, token)` | Owner | Maps a ticker to its token address |
+
+Rules:
+
+- There's no instant unstake and no cancel. Every token leaves through the cooldown.
+- The cooldown length is fixed at deployment and can't change.
+- Only the account that staked can request, and collection pays only that account.
+- The owner can change which token a ticker points to at any time.
+
+</pre><h2 id="merkleroots">MerkleRoots</h2><pre>
+| | |
+|---|---|
+| Purpose | Publishes one Merkle root of decision records per `(city_id, city_day)` |
+| Network | Robinhood Chain (`4663`) |
+| Address | Not deployed |
+| Events | None |
+
+| Function | Who can call | What it does |
+|---|---|---|
+| `putRoot(cityId, cityDay, root)` | Attestor | Stores the root, or overwrites an existing one |
+| `getRoot(cityId, cityDay)` | View | Returns the root. Reverts if there's none. |
+
+</pre><h2 id="corp">`$CORP`</h2><pre>
+`$CORP` launches through the pons V2 launch factory on Robinhood Chain, against ETH. It isn't one of the four contracts above.
+
+| Fact | Value |
+|---|---|
+| pons V2 factory | `0x7ed598bcef8bd9edd8c97a195c6d13f40801ec7e` |
+| Supply | 1,000,000,000 |
+| Graduation | 4.2 ETH |
+| Creator tax | 2% per trade |
+| Snipe tax | Up to 99% on buys in the first 3 seconds after launch. The factory's owner can change this setting. |
+| Token, curve and pool addresses | Not deployed |
+
+`[NEEDS CONFIRMATION]` that the creator tax can't be changed after launch. We treat it as permanent, and that will be checked against the deployed token.
+
+</pre><h2 id="roles-and-permissions">Roles and permissions</h2><pre>
+| Role | Contract | Can | Can't |
+|---|---|---|---|
+| Minter | Vault | Mint Capital against pending deposits, up to ×2,000 | Mint without a deposit, or move `$CORP` |
+| Voucher signer | Vault | Issue withdrawal vouchers within free coverage | Pay a voucher itself, or reuse a nonce |
+| Signer | Vault | Refund players up to their unreserved backing | Touch reserved backing |
+| Guardian | Vault, PrizeTreasury | Rotate the signer, set the refund root, recover stray tokens | Take `$CORP` from the vault or prize stocks from the treasury |
+| House | Vault | Hold protocol backing that can cover vouchers | — |
+| Prize depositor | PrizeTreasury | Fund both pools and take back unassigned balance | Take assigned entitlements |
+| Prize signer | PrizeTreasury | Assign entitlements from funded balance | Assign more than is funded |
+| Owner | StakeRegistry | Map tickers to tokens | Move staked or cooling tokens, or change the cooldown |
+| Attestor | MerkleRoots | Publish and overwrite roots | — |
+
+A role's name doesn't tell you whether one key, a multisig or a contract holds it. `[NEEDS CONFIRMATION]` The holder of each role will be published at deployment.
+
+</pre><h2 id="deployment-register">Deployment register</h2><pre>
+This table is filled from real deployment records only. An empty field means the item doesn't exist yet.
+
+| Item | Value |
+|---|---|
+| Network | Robinhood Chain |
+| Chain ID | `4663` |
+| Public RPC | `https://rpc.mainnet.chain.robinhood.com` |
+| Block explorer | `[NEEDS CONFIRMATION]` |
+| USDG | `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` |
+| `$CORP` token, curve and pool | Not deployed |
+| Vault, PrizeTreasury, StakeRegistry, MerkleRoots | Not deployed |
+| Stock Token address per ticker | `[NEEDS CONFIRMATION]` at deployment |
+| Role holders | `[NEEDS CONFIRMATION]` at deployment |
+| First period date | `[NEEDS CONFIRMATION]` at deployment |
+| Source code and audit reports | `[NEEDS CONFIRMATION]` |
+| Rules pack | See [Versions](reference.md#versions) |
+
+</pre><h2 id="risks">Risks</h2><pre>
+- **Market risk.** `$CORP` and Stock Tokens can lose value. Backing in `$CORP` isn't a fixed dollar amount.
+- **Payment risk.** Payroll is finite and shared. Valid work can be paid less than it asked for, or nothing if the fund is empty.
+- **Exit limits.** Bank hours, daily limits, the mint rate and vault coverage all restrict withdrawals. A Capital balance isn't a promise of full, immediate redemption.
+- **Unstake cooldown.** Unstaked tokens are locked for 30 city days with no cancel, and you carry the token's price risk during that time.
+- **Gas.** Presenting vouchers, staking, unstaking, collecting, buying and claiming are your own transactions, paid in ETH.
+- **Exchange route.** Stock Token purchases run through an external route service. The game can't recover `$CORP` spent on a route that didn't deliver.
+- **Custody and code.** Deposits, stakes and prizes sit in contracts. A bug, a compromised role or unusual token behaviour can affect them.
+- **No pause.** The contracts can't be frozen, which removes one admin lever and also one way to respond to an incident.
+- **Admin powers.** The roles above keep their permissions. The StakeRegistry owner can remap a ticker's token. The attestor can overwrite a root.
+- **Third-party assets.** Stock Tokens and USDG are issued by others, under their own terms.
+- **Launch.** Buying in the first seconds after launch can cost up to 99% in snipe tax.
+
+Before you sign anything:
+
+- Check the chain ID (`4663`) and the contract address against the deployment register.
+- Use the game's deposit and stake flows. A plain token transfer to the vault or the registry doesn't credit your account.
+- Before you request an unstake, check the ready date the HUD shows. If a cooldown is already running on that ticker, the HUD tells you it will restart.
+- An approval only grants permission to spend. It doesn't prove a deposit happened, so check the spender and the amount.
+- &quot;Tested&quot;, &quot;source verified&quot; and &quot;audited&quot; mean different things, and none of them means a system can't fail.
+</pre></section><section id="chapter-reference"><h1>reference</h1><pre>---
+title: Reference
+description: Glossary, formula sheet, HUD codes, FAQ, what the current version does, and rules versions.
+sidebar_position: 8
+---
+
+</pre><h2 id="reference">Reference</h2><pre>
+</pre><h2 id="glossary">Glossary</h2><pre>
+| Term | Meaning |
+|---|---|
+| **Affinity** | How much of a building's output a seat gets: 100% for the home role, 60% for a neighbour |
+| **Autonomous seat** | A seat that works at 60% with nobody in it: Agent Hub and Robotics Lab |
+| **Backing** | `$CORP` the vault records against an account's Capital |
+| **Bank level** | The level of your highest active Finance Tower (not deactivated, not frozen), or 1 without one. Sets your share of the daily withdrawal limit. |
+| **Beacon** | A district's own building, and the only kind that earns fragments |
+| **bps** | Basis points. 10,000 bps = 100%. |
+| **Building link** | A +10% to +30% output bonus that a non-producing building gives Capital producers when the right role works there |
+| **Capital** | The chips you spend in your city. Not a token, not transferable, backed by `$CORP` in the vault. |
+| **City day** | 24 ticks, 25 real hours |
+| **Cooldown** | The 30 city days (750 real hours) unstaked tokens wait in the stake contract before you can collect them to your wallet |
+| **City Level** | 1–7, set by Population. Never drops. |
+| **`$CORP`** | Corporator's ERC-20 token on Robinhood Chain, traded in one CORP/ETH pool |
+| **Coverage** | In Influence: the share of your open districts that produced that day. At the Bank: the vault's free `$CORP` for a withdrawal. |
+| **Creator tax** | 2% of each `$CORP` trade, paid in ETH and split between Payroll, prizes and the studio |
+| **Decision record** | The canonical record of one seat in one tick: inputs, request, payment, idle reason |
+| **Demo city** | A no-wallet city for learning. No withdrawals or claims, and progress doesn't carry over. |
+| **District** | One of six industries, opened by staking its Stock Token |
+| **Dividend** | A district's automatic effect at each tier |
+| **Efficiency** | A district's short-term vs long-term stock price ratio, bounded to 85–115%. Feeds Influence. |
+| **Farm** | The Stock Token pools split by fragments every 7 city days |
+| **Fragments** | A per-district claim ledger earned in beacons, reset every Farm window |
+| **Freeze** | A district below $S_{\min}$ after the 24-hour grace period. Its buildings stop. |
+| **Fund share** | A Finance-side weight that raises a city's cut of each Payroll pool |
+| **GDP** | All Payroll your city received in one city day |
+| **Grace period** | The 24 city hours between an unstake below $S_{\min}$ and the freeze |
+| **Idle** | A seat that didn't work this tick, with a reason code |
+| **Influence** | The prize-period score, built from daily intensity × stability × efficiency × coverage |
+| **Intensity** | A day's GDP divided by your total Capital spend |
+| **Merge** | A permanent pairing of two districts without a synergy that repeats each side's tier-1 dividend |
+| **Mint rate** | Capital per whole `$CORP`. Follows the market, never above 2,000. |
+| **Node** | One of two exclusive choices at each district tier |
+| **Opening** | Paying a building's level-1 price to add it to your economy. Every building already stands on the island; opening takes 1–4 ticks. |
+| **Pay ratio** ($\rho$) | Payroll paid ÷ requested in a tick. Can exceed 100%. |
+| **Payroll** | The shared fund that pays working seats |
+| **Population** | Occupied jobs × 50 + housing |
+| **Prize treasury** | The contract that holds the Stock Tokens for the Farm and Monthly pools, kept separately |
+| **Positive day** | A city day with GDP above zero. You need 6 per prize period to qualify. |
+| **Request** | The Capital a working seat asks Payroll for in one tick |
+| **Reserve** | Backing held outside the fund: entry fees and fund overflow. Releases up to 5% a week. |
+| **Round trip** | Buy, deposit, withdraw, sell. Costs 14.45% at the mint-rate ceiling. |
+| **Rules pack** | The versioned, hashed rule set every result is calculated with |
+| **$S_{\min}$** | The minimum stake that opens a district, fixed in tokens |
+| **Stability** | The share of a city day's 24 ticks that were valid |
+| **Stock Token** | A third-party tokenised share: NVDA, TSLA, AMZN, AAPL, MSFT or COIN |
+| **Synergy building** | One of six buildings that belong to two districts |
+| **Tick** | One city hour, 3,750 real seconds. The unit of work and pay. |
+| **Tier** | A district step from 1 to 3, gated by City Level, stake and Capital |
+| **USDG** | Robinhood Chain's dollar stablecoin, used on the Stock Token route |
+| **Vault** | The contract that holds all `$CORP` backing |
+| **Voucher** | A withdrawal record in the vault that reserves your `$CORP`. You present it from your wallet within one city hour, or the Capital returns to your city. |
+
+</pre><h2 id="formula-sheet">Formula sheet</h2><pre>
+All arithmetic uses whole numbers and rounds down after each step. Each linked section defines the symbols.
+
+| Quantity | Formula | Defined in |
+|---|---|---|
+| Population | $J \times 50 + H$ | [Your City](city.md#population-and-city-level) |
+| Seat request | $O \cdot A \cdot L \cdot E \cdot j \cdot F \cdot 9500$, each factor ÷ $10^4$ | [Agents](agents.md#how-a-seat-earns) |
+| Retail output | $142{,}574 \times \text{Population} / 400$ | [Agents](agents.md#how-a-seat-earns) |
+| Efficiency | $\operatorname{clamp}(10^4 + 25{,}000\,(\bar p_{24h}/\bar p_{30d} - 1),\ 8{,}500,\ 11{,}500)$ | [Industries](industries.md#district-efficiency) |
+| Mint rate | $P_{\text{CORP}} / \$0.000001$, damped, at most 2,000 | [Economy](economy.md#the-mint-rate) |
+| Backing rule | $\sum \text{Capital} + \text{fund} \le \text{vault } \$\text{CORP} \times 2000$ | [Economy](economy.md#the-backing-rule) |
+| Deposit | $\lfloor c \cdot r / 10^{18} \rfloor \times 9800 / 10^4$ | [Economy](economy.md#depositing) |
+| Day budget | $\max(\lfloor F/14 \rfloor, \bar I_3)$, then ÷ 24 per tick | [Economy](economy.md#the-daily-budget) |
+| Payroll pool | $\min(b \cdot \sum R / 10^4,\ B_{\text{tick}},\ F)$ | [Economy](economy.md#each-ticks-pool) |
+| Withdrawal | $K \cdot 10^{18} \cdot 10^4 / (r \cdot (10^4 + m))$ | [Economy](economy.md#the-bank) |
+| Influence per day | $(G \cdot 10^4 / X) \cdot S \cdot \bar E \cdot V$, each factor after the first ÷ $10^4$ | [Seasons](seasons.md#influence) |
+| Prize weight | $(8000 \lfloor 10^4/k \rfloor + 2000 \lfloor 10^4/n \rfloor) / 10^4$ | [Seasons](seasons.md#monthly-prizes) |
+| Fragments per tick | $b_\ell \times M_{\text{frag}} / 10^4$ | [Seasons](seasons.md#fragments-and-the-farm) |
+| Farm payout | $\min(\lfloor f_i \cdot \text{pool} / \sum f \rfloor,\ \text{cap})$ | [Seasons](seasons.md#fragments-and-the-farm) |
+
+</pre><h2 id="codes">Codes</h2><pre>
+The HUD shows a code with a line of text. A **refusal** blocks an action you tried. An **idle** code explains why a seat didn't work. A **notice** reports a condition.
+
+</pre><h2 id="refusals">Refusals</h2><pre>
+| Code | Cause | What to do |
+|---|---|---|
+| `NOT_ENOUGH_CAPITAL` | The action costs more Capital than you have | Wait for Payroll or deposit |
+| `NOT_ENOUGH_CORP` | Not enough `$CORP` in your wallet | Buy less, or withdraw and present a voucher first |
+| `NO_FREE_AGENT_SLOT` | Every agent slot is taken | Raise City Level or run a Cloud Campus |
+| `NO_FREE_BUILD_SLOT` | Every building slot is taken | Raise City Level. Deactivating doesn't free a slot. |
+| `CITY_LEVEL_TOO_LOW` | The building or tier needs a higher City Level | Grow Population |
+| `DISTRICT_LOCKED` | The district isn't open | Stake at least $S_{\min}$ of its token |
+| `STAKE_BELOW_THRESHOLD` | Stake is below $S_{\min}$ | Stake more |
+| `STAKE_MULT_SHORT` | Stake is below the multiple the tier or top-up needs | Stake to the next multiple |
+| `TIER_NOT_UNLOCKED` | The previous tier is missing, or you're at the top | Unlock tiers in order |
+| `NODE_SIDE_LOCKED` | The other node of this tier is already picked | Final. There's no respec. |
+| `MERGE_MATCHING_BLOCKED` | A district is already in a merge | Pick another pair |
+| `BANK_CLOSED` | Outside 08:00–20:00 city time | Come back during Bank hours |
+| `BANK_SUNDAY` | It's city Sunday | Come back on Monday |
+| `BANK_DAILY_LIMIT_REACHED` | No personal or global room left today | Wait for the next day |
+| `VOUCHER_PENDING` | Your city already has an unfinished voucher | Present it, or wait for it to expire |
+| `VOUCHER_PENDING_SIGN` | The voucher is still being issued | Wait a moment, then present |
+| `VOUCHER_EXPIRED` | The voucher passed its one-hour lifetime | Nothing. The Capital returns to your city. |
+| `VOUCHER_EXPIRE_LIMIT` | Too many of your vouchers expired today | Withdraw tomorrow, and present in time |
+| `UNSTAKE_COOLING` | The cooldown hasn't ended | Collect on the ready date shown |
+| `EXCHANGE_HOP_UNAVAILABLE` | No live quote for the Stock Token route | Try again later |
+| `EXCHANGE_DELIVERY_UNVERIFIED` | The tokens didn't reach your wallet | Check the transaction in the explorer |
+| `PRIZE_NOTHING_OWED` | Nothing is owed to your wallet | — |
+| `PRIZE_NOT_QUALIFIED` | Fewer than 6 positive days | Keep the city producing |
+| `PRIZE_STAKE_REQUIRED` | No live stake at settlement | Keep a district staked |
+| `WALLET_NOT_CONNECTED` | The action needs a wallet city | Connect a wallet |
+| `WALLET_WRONG_CHAIN` | The wallet isn't on Robinhood Chain | Switch to chain ID `4663` |
+| `DEMO_NO_WITHDRAW`, `DEMO_NO_CLAIM`, `DEMO_NO_PRIZE` | Not available in a demo city | Use a wallet city |
+| `FEATURE_NOT_IN_V1` | Not in this version | — |
+
+</pre><h2 id="idle-reasons">Idle reasons</h2><pre>
+| Code | Cause |
+|---|---|
+| `IDLE_NO_ENERGY` | Not enough Energy for this seat |
+| `IDLE_NO_COMPUTE` | Not enough Compute. The seat's Energy is refunded. |
+| `IDLE_WRONG_ROLE` | This role can't work in this building |
+| `IDLE_OUT_OF_HOURS` | Outside the building's schedule |
+| `IDLE_BANK_CLOSED` | The Bank is closed |
+| `IDLE_UNDER_CONSTRUCTION` | The building is still opening or upgrading. The timer is still running. |
+| `IDLE_DISTRICT_FROZEN` | The district, or one of a synergy's two districts, is frozen |
+| `IDLE_NO_AGENT` | The seat is empty and the building needs an agent |
+| `IDLE_NO_TRAIN_TARGET` | A Scientist on Train has no target |
+| `IDLE_NO_RESEARCH_FOCUS` | A Scientist on Research has no topic started |
+| `IDLE_OFFLINE_CAP_REACHED` | An offline hour past the cap, skipped |
+
+</pre><h2 id="notices">Notices</h2><pre>
+| Code | Meaning |
+|---|---|
+| `PAYROLL_TRIMMED` | The pay ratio is below 100%. Every request is scaled by the same ratio. |
+| `MINT_RATE_CAPPED` | The mint rate hit a ceiling |
+| `STALE_PRICE` | The `$CORP` price is stale. The rate can fall but not rise. |
+| `ORACLE_STALE`, `ORACLE_DECAYING` | A stock price is stale. Efficiency holds, then drifts back to 100%. |
+| `DISTRICT_FREEZING`, `DISTRICT_FROZEN` | The grace countdown, then the freeze |
+| `MODIFIER_CAP_CLAMPED` | An effect hit its ceiling |
+| `VAULT_EXIT_UNCOVERED` | The vault can't cover the requested withdrawal |
+| `VOUCHER_REJECTED` | The voucher couldn't be issued. The Capital is back in your city. |
+| `FRAGMENT_SLICE_PENDING` | Your Farm payout is settled and waiting to be recorded for claiming |
+| `BANK_LIMIT_FROM_DEPTH` | The daily limit fell because the pool's ETH depth fell |
+| `FRAGMENT_*`, `PRIZE_*`, `SEASON_SETTLED` | Settlement results ([Seasons](seasons.md)) |
+| `SERVICE_DEGRADED` | Price sampling or record publishing is lagging. Payments continue. |
+| `RENDER_NO_GPU` | No WebGL. You get a still image of the island, and the HUD still works. |
+
+Connection and request errors: `API_UNAUTHORIZED` (no session, or a bad signature), `API_MALFORMED`, `API_PACK_STALE` (reload to get the current rules), `API_RATE_LIMITED`, `API_INTENT_REPLAY` (a repeated command returns its first result), `CHAIN_TX_UNCONFIRMED`, `WALLET_TX_REJECTED`.
+
+</pre><h2 id="faq">FAQ</h2><pre>
+**Do I get paid for owning a building?**
+No. Only seats that work file requests, and Payroll decides what they're paid.
+
+**Why was I paid less than I requested?**
+The tick's pay ratio was below 100%: many requests, a small fund, or the day's budget ran short. The HUD shows the ratio it used. See [Payroll](economy.md#payroll).
+
+**Why was I paid more than I requested?**
+Payroll multiplies requests by the boost (×8 in the first 7 city days, ×3 after) whenever the fund's budget allows it.
+
+**Can I withdraw more than I deposited?**
+Yes. Your deposit isn't the limit. Bank hours, the daily limits and vault coverage are. See [The Bank](economy.md#the-bank).
+
+**Does a stock's rise pay me?**
+No. A stock's price moves its district's efficiency within 85–115%, which feeds Influence. It never passes the stock's gain to you.
+
+**Does deactivating a building free its slot?**
+No. It keeps its slot and level, and you can switch it back on for free.
+
+**Does unstaking need anyone's approval?**
+No. You request it from your wallet. The district gets 24 city hours before it freezes, and the tokens return to your wallet after a 30-city-day cooldown.
+
+**Can I cancel an unstake?**
+No. Tokens in cooldown can only be collected once the 30 city days are up. A new request on a ticker that's still cooling restarts the cooldown for the whole amount.
+
+**Where does withdrawn `$CORP` go?**
+To your wallet. The Bank issues a voucher, and you present it from your wallet within one city hour. See [Vouchers](economy.md#vouchers).
+
+**What if I don't present my voucher in time?**
+It expires, and the Capital returns to your city. Nothing is lost, but nothing reaches your wallet either.
+
+**Where are my Stock Tokens?**
+In your wallet, staked, or cooling down after an unstake. The game server doesn't hold any. See [Where your Stock Tokens are](industries.md#where-your-stock-tokens-are).
+
+**Can I undo a node or a merge?**
+No.
+
+**Is my place on the ranking my prize rank?**
+Not always. Prize rank counts only qualified cities, gives each wallet one slot, and breaks ties by city ID. See [Ranking and prize rank](seasons.md#ranking-and-prize-rank).
+
+**Can the contracts be paused?**
+No. None of them has a pause function. See [Risks](protocol.md#risks).
+
+**Is a profit guaranteed?**
+No.
+
+</pre><h2 id="current-version">Current version</h2><pre>
+Corporator hasn't launched, and nothing below is live on mainnet. &quot;Works&quot; means the pre-launch version of the game does it.
+
+| Area | In the current version |
+|---|---|
+| Island, HUD, building, agent and district cards | Works |
+| Open, upgrade, activate, deactivate buildings | Works |
+| Hiring, seats, tasks, traits, levels | Works. The Trader's Desk task doesn't change withdrawal prices yet. |
+| Districts: stake, unstake, open, tiers, nodes, merges | Works |
+| Research, Payroll with the launch and standing boost, building links | Works |
+| Deposits signed in your wallet | Works |
+| Withdrawals | Works. A voucher is issued, and you present it from your wallet to receive `$CORP`. |
+| Stock Token purchases | Only with a live quote. Tokens go to your wallet. |
+| Unstaking | Works. Tokens return to your wallet after the 30-city-day cooldown. |
+| Ranking, season labels | Works |
+| Farm claims | Work. Tokens go to your wallet. |
+| Monthly prize claims | Open once the production contracts are deployed |
+| `$CORP` and production contracts | Not deployed |
+| Missions, settings screen, units on the island | Not in this version |
+
+</pre><h2 id="versions">Versions</h2><pre>
+Every result belongs to the rules pack it was calculated with. A published pack never changes: a rule change ships as a new pack with a new hash.
+
+| Rules | Pack | Hash |
+|---|---|---|
+| `0.24.0` | `187` | `34d65cca65bcd975461587939a8654f8334613e24965e22c57b31ae9de150bec` |
+
+To check a result, you need the rules version, the pack version and hash, the recorded inputs, and the period and tick it belongs to.
+</pre></section></main><script>try{const u=localStorage.getItem("corporator-book-page");if(u)document.querySelector("[data-book-return]").href="../"+u}catch{}</script></body></html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Corporator · Quick guide · First shift</title>
+<style>
+@font-face{font-family:Caveat;src:url("./fonts/caveat.woff2") format("woff2");font-style:normal;font-weight:400 700;font-display:block}
+@font-face{font-family:Roboto;src:url("./fonts/roboto.woff2") format("woff2");font-style:normal;font-weight:100 900;font-display:block}
+:root{--navy:#0b1236;--blue:#0a5cf8;--pale-blue:#a9d1ff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:Roboto,Arial,sans-serif;color:var(--navy);background:#e1f0ff}
+button,a{-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:5px}
+.viewport{position:fixed;inset:0;display:grid;place-items:center}
+.stage{position:absolute;left:50%;top:50%;margin-left:-836px;margin-top:-470.5px;width:1672px;height:941px;transform:scale(var(--stage-scale,1));transform-origin:center;overflow:hidden}
+.backdrop{position:absolute;inset:-8px;background:url("./hud-background.png") center/cover no-repeat;filter:blur(5px)}
+.backdrop::after{content:"";position:absolute;inset:0;background:rgba(207,232,255,.20)}
+.guide-panel{position:absolute;left:135px;top:64px;width:1400px;height:860px;background:#fff;border:2px solid #b7dcff;border-radius:24px;box-shadow:0 0 0 3px rgba(255,255,255,.86),0 14px 38px rgba(44,129,220,.24);overflow:hidden;isolation:isolate}
+.guide-art{position:absolute;left:145px;top:105px;width:1100px;height:auto;display:block;pointer-events:none;user-select:none;z-index:0}
+.guide-header{position:absolute;left:38px;right:36px;top:25px;height:36px;display:flex;align-items:center;justify-content:space-between;z-index:2}
+.brand{display:flex;align-items:center;gap:13px;font-size:26px;font-weight:750;letter-spacing:-1px;line-height:1}
+.brand img{width:34px;height:36px;object-fit:contain}
+.guide-header-actions{display:flex;align-items:center;gap:34px}
+.skip,.close{border:0;padding:0;background:transparent;color:var(--blue)}
+.skip{font-size:22px;line-height:1.2}
+.close{width:29px;height:29px;display:grid;place-items:center}
+.close svg{width:27px;height:27px;stroke:currentColor;stroke-width:2;fill:none}
+.guide-eyebrow{position:absolute;left:40px;top:78px;margin:0;font-family:Caveat,cursive;font-size:29px;font-weight:500;line-height:1.12;z-index:1}
+.guide-title{position:absolute;left:38px;top:101px;margin:0;font-family:Caveat,cursive;font-size:76px;font-weight:700;line-height:1.03;letter-spacing:-1.7px;white-space:nowrap;z-index:1}
+.guide-intro{position:absolute;left:40px;top:211px;width:600px;margin:0;font-size:20px;font-weight:450;line-height:1.31;z-index:1}
+.guide-footnote{position:absolute;left:40px;right:40px;top:732px;margin:0;text-align:center;font-size:17px;font-weight:400;line-height:1.25;z-index:1}
+.guide-footer{position:absolute;left:38px;right:38px;top:755px;bottom:18px;border-top:1.5px solid #a9d1ff;display:flex;align-items:center;justify-content:space-between;z-index:2}
+.nav-arrow{width:72px;height:66px;display:grid;place-items:center;border:1.5px solid #86b5ff;border-radius:12px;background:#fff;color:var(--blue);text-decoration:none}
+.nav-arrow svg{width:35px;height:35px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:square;stroke-linejoin:miter}
+.nav-next{display:flex;align-items:center;gap:17px;color:var(--blue);font-size:25px;text-decoration:none}
+.nav-next .nav-arrow{width:75px;border-color:var(--blue);background:var(--blue);color:#fff}
+.pagination{position:absolute;left:50%;top:28px;transform:translateX(-50%);display:grid;justify-items:center;gap:8px}
+.dots{display:flex;gap:9px}
+.dot{display:block;width:19px;height:19px;border:0;border-radius:50%;background:#a7d1ff;padding:0;box-shadow:inset 0 1px 2px rgba(255,255,255,.45)}
+.dot[aria-current="page"]{background:#123cff}
+.page-counter{color:var(--blue);font-size:20px;line-height:1.1}
+.closed .guide-panel{display:none}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="viewport">
+<div class="stage" id="guide-stage">
+<div class="backdrop" aria-hidden="true"></div>
+<section class="guide-panel" role="dialog" aria-modal="true" aria-labelledby="guide-title" aria-describedby="guide-intro">
+<img class="guide-art" id="first-shift-art" src="./first-shift-art.png" width="1671" height="941" alt="City time advances by one hour; an Engineer works inside Workshop with graphite Corporator coins above the roof; Journal shows Workshop paid, Power Node working and a no-energy reason. Steps: watch the clock, open the Journal.">
+<header class="guide-header">
+<div class="brand"><img src="./brand-mark.png" alt=""><span>CORPORATOR</span></div>
+<div class="guide-header-actions"><button class="skip" type="button" data-close>Skip guide</button><button class="close" type="button" data-close aria-label="Close guide"><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M5 5 23 23M23 5 5 23"/></svg></button></div>
+</header>
+<p class="guide-eyebrow">06 — THE FIRST SHIFT</p>
+<h1 class="guide-title" id="guide-title">Now wait for the hour</h1>
+<p class="guide-intro" id="guide-intro">Once every city hour, your people work a shift and the city pays them in Capital. The clock at the top shows city time — an hour there is about an hour here.</p>
+<p class="guide-footnote">Leave the game and your city keeps working for up to <span data-token="offline_hours">12</span> hours.</p>
+<footer class="guide-footer">
+<button class="nav-arrow" type="button" data-page="5" aria-label="Previous page: To work"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M29 18H7M17 8 7 18l10 10"/></svg></button>
+<nav class="pagination" aria-label="Quick guide pages">
+<div class="dots">
+<button type="button" class="dot" data-page="1" aria-label="Page 1: Welcome"></button>
+<button type="button" class="dot" data-page="2" aria-label="Page 2: Bank"></button>
+<button type="button" class="dot" data-page="3" aria-label="Page 3: First buildings"></button>
+<button type="button" class="dot" data-page="4" aria-label="Page 4: People"></button>
+<button type="button" class="dot" data-page="5" aria-label="Page 5: To work"></button>
+<button type="button" class="dot" data-page="6" aria-label="Page 6: First shift" aria-current="page"></button>
+<button type="button" class="dot" data-page="7" aria-label="Page 7: The screen"></button>
+<button type="button" class="dot" data-page="8" aria-label="Page 8: What's next"></button>
+</div>
+<span class="page-counter">6 / 8</span>
+</nav>
+<button class="nav-next" type="button" data-page="7" aria-label="Next page: The screen" style="border:0;background:transparent;padding:0"><span class="nav-arrow"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M7 18h22M19 8l10 10-10 10"/></svg></span><span>Next</span></button>
+</footer>
+</section>
+</div>
+</div>
+<script>
+const stage=document.getElementById("guide-stage");
+function fitStage(){stage.style.setProperty("--stage-scale",Math.min(innerWidth/1672,innerHeight/941));}
+fitStage();
+addEventListener("resize",fitStage);
+function closeGuide(){stage.classList.add("closed");dispatchEvent(new CustomEvent("corporator-guide:close"));}
+document.querySelectorAll("[data-close]").forEach(button=>button.addEventListener("click",closeGuide));
+addEventListener("keydown",event=>{
+ if(event.key==="Escape")closeGuide();
+ if(event.key==="ArrowLeft")dispatchEvent(new CustomEvent("corporator-guide:navigate",{detail:{page:5}}));
+ if(event.key==="ArrowRight")dispatchEvent(new CustomEvent("corporator-guide:navigate",{detail:{page:7}}));
+});
+document.querySelectorAll("[data-page]").forEach(button=>button.addEventListener("click",()=>{
+ const page=Number(button.dataset.page);
+ dispatchEvent(new CustomEvent("corporator-guide:navigate",{detail:{page}}));
+}));
+</script>
+</body>
+</html>

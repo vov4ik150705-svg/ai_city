@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
+import { waterfallTimeSec } from "../src/islandEnv/waterFlow.ts"
 import { isBackgroundUnit, vehiclePose, walkerSpriteId, worldPrng } from "../src/motion.ts"
 import { popupPose } from "../src/fx.ts"
 import { isRoadCell } from "../src/ground.ts"
@@ -60,7 +61,9 @@ describe("v7", () => {
     ).trim()
     expect(worldPrng(seed, "vehicle", 0n, bytes).toString()).toBe(py)
     const map = pack.generated?.placement?.scene?.map ?? []
-    const row = pack.generated?.placement?.vehicles?.[0]
+    const vehicles = pack.generated?.placement?.vehicles ?? []
+    const row = vehicles.find((cand) => isRoadCell(map, asBig(cand.x), asBig(cand.y)))
+    expect(row).toBeDefined()
     const start = { x: asBig(row?.x), y: asBig(row?.y) }
     const speed = asBig(pack.sections?.render?.params?.vehicle_tiles_per_city_minute?.v)
     const stride = asBig(pack.sections?.render?.params?.vehicle_prng_stride?.v)
@@ -101,6 +104,12 @@ describe("v7", () => {
     }
     const ghost = "return Math.random()"
     expect(clock.test(ghost)).toBe(true)
+    const restored = "tickWaterFlow(globalThis.performance.now())"
+    expect(clock.test(restored)).toBe(true)
+    const a = waterfallTimeSec(12n, 1n)
+    const b = waterfallTimeSec(12n, 1n)
+    expect(a).toBe(b)
+    expect(waterfallTimeSec(13n, 1n)).not.toBe(a)
   })
 
   it("background_units_hold_no_lot", () => {

@@ -64,6 +64,7 @@ import type { IslandCaptureMeta } from "./islandCapture.js"
 import { occupiedForMode, type OccupancyMode } from "./islandOccupancy.js"
 import { meshoptDecoderReady } from "./islandZoom.js"
 import { currentPhase, hourOfDay } from "./light.js"
+import { clampLookPoint, lookSlideWeight, shownLook, type LookFrame, type LookPoint } from "./lookPan.js"
 import { clampOrbit, orbitEye } from "./orbit.js"
 import { signGainBps, sunDir, sunPose, windowGainBps, type SunPhase } from "./sun.js"
 import type { TileHit } from "./camera.js"
@@ -71,7 +72,7 @@ import {
   tickEnvironment,
   disposeEnvironment,
 } from "./islandEnv/index.js"
-import { tickWaterFlow } from "./islandEnv/waterFlow.js"
+import { tickWaterFlow, waterfallTimeSec } from "./islandEnv/waterFlow.js"
 import type { IslandLook } from "./islandLook.js"
 import { hideWfAttachmentVisuals } from "./islandLookPlant.js"
 import { mountAcceptedLook } from "./islandLookMount.js"
@@ -135,6 +136,7 @@ export type IslandSunOpts = {
   readonly emissiveBps: bigint
   readonly gradeBps: bigint
   readonly sunDistance: bigint
+  readonly waterStepsPerTick: bigint
 }
 
 export type Island3Opts = {
@@ -147,6 +149,7 @@ export type Island3Opts = {
   readonly tiltMaxBps: bigint
   readonly distanceMin: bigint
   readonly distanceMax: bigint
+  readonly lookOrbitMaxMul: bigint
   readonly fovDeg: bigint
   readonly spanBps: bigint
   readonly targetY: bigint
@@ -275,6 +278,13 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
   let tx = 0
   let ty = SHARED_ISLAND_RUNTIME ? 0 : Number(opts.targetY)
   let tz = 0
+  let homeX = tx
+  let homeY = ty
+  let homeZ = tz
+  let homeDist = Number(dist)
+  let wantX = tx
+  let wantZ = tz
+  let lookBound: Aabb | undefined
   let widthFill = 0
   let loadError = ""
   let meshopt = false
@@ -288,11 +298,11 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
 
   const look = opts.look
   const ambient = new AmbientLight()
-  const hemi = new HemisphereLight(fillSky, fillGround)
+  const fill = new HemisphereLight(fillSky, fillGround)
   const fillDir = new DirectionalLight()
   const sun = new DirectionalLight()
   scene.add(ambient)
-  scene.add(hemi)
+  scene.add(fill)
   scene.add(fillDir)
   scene.add(fillDir.target)
   scene.add(sun)
@@ -302,7 +312,6 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
   let lookDistMin = opts.distanceMin
   let lookDistMax = opts.distanceMax
   const glowBase: number[] = []
-  const t0 = globalThis.performance.now()
 
   try {
     await meshoptDecoderReady(MeshoptDecoder)
@@ -331,7 +340,7 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
           scene,
           renderer,
           sun,
-          hemi,
+          hemi: fill,
           fillDir,
           ambient,
           parseGlb: (buf) => parseGlb(loader, buf),
@@ -341,6 +350,7 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
           pickMeshes,
           joinLoadError,
           spanBps: opts.spanBps,
+          lookOrbitMaxMul: opts.lookOrbitMaxMul,
         })
         skyRoot = planted.skyRoot
         loadError = planted.loadError
@@ -352,9 +362,15 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
           az = planted.azimuthBps
           tilt = planted.tiltBps
           dist = planted.distance
-          tx = planted.tx
-          ty = planted.ty
-          tz = planted.tz
+          homeX = planted.tx
+          homeY = planted.ty
+          homeZ = planted.tz
+          homeDist = Number(planted.distance)
+          wantX = homeX
+          wantZ = homeZ
+          tx = homeX
+          ty = homeY
+          tz = homeZ
           orbitMoved = true
         }
         if (loadError.length > 0) showHostError(opts.host, loadError)
@@ -437,11 +453,18 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
       const box = cityAabb(scene)
       if (box !== undefined) {
         const fit = fitHeroCamera(box, cam.aspect)
+        lookBound = box
         if (!resizeKeepsOrbitDistance(orbitMoved)) {
-          tx = fit.target.x
-          ty = fit.target.y
-          tz = fit.target.z
+          homeX = fit.target.x
+          homeY = fit.target.y
+          homeZ = fit.target.z
+          wantX = homeX
+          wantZ = homeZ
+          tx = homeX
+          ty = homeY
+          tz = homeZ
           dist = clampOrbit(BigInt(Math.round(fit.distance)), lookDistMin, lookDistMax)
+          homeDist = Number(dist)
           cam.fov = fit.fovDeg
           cam.near = fit.near
           cam.far = fit.far
@@ -454,7 +477,57 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
     cam.updateProjectionMatrix()
   }
 
+  const frameOf = (): LookFrame | undefined => {
+    if (lookBound === undefined) return undefined
+    return {
+      minX: Math.min(lookBound.min.x, homeX),
+      maxX: Math.max(lookBound.max.x, homeX),
+      minZ: Math.min(lookBound.min.z, homeZ),
+      maxZ: Math.max(lookBound.max.z, homeZ),
+      homeX,
+      homeZ,
+    }
+  }
+
+  const applyShownLook = (): void => {
+    const frame = frameOf()
+    const wanted = frame === undefined ? { x: wantX, z: wantZ } : clampLookPoint({ x: wantX, z: wantZ }, frame)
+    const shown = shownLook(
+      homeX,
+      homeZ,
+      wanted.x,
+      wanted.z,
+      Number(dist),
+      homeDist,
+      Number(lookDistMax),
+    )
+    tx = shown.x
+    tz = shown.z
+    ty = homeY
+  }
+
+  const groundOnPlane = (sx: number, sy: number): LookPoint | undefined => {
+    const w = canvas.clientWidth
+    const h = canvas.clientHeight
+    if (!(w > 0) || !(h > 0)) return undefined
+    if (!Number.isFinite(sx) || !Number.isFinite(sy)) return undefined
+    const two = 1 + 1
+    ndc.x = (sx / w) * two - 1
+    ndc.y = -((sy / h) * two - 1)
+    cam.updateMatrixWorld(true)
+    ray.setFromCamera(ndc, cam)
+    const dirY = ray.ray.direction.y
+    if (!(dirY < 0)) return undefined
+    const t = (homeY - ray.ray.origin.y) / dirY
+    if (!(t > 0)) return undefined
+    return {
+      x: ray.ray.origin.x + ray.ray.direction.x * t,
+      z: ray.ray.origin.z + ray.ray.direction.z * t,
+    }
+  }
+
   const applyCamera = (): void => {
+    applyShownLook()
     applyEye(
       cam,
       az,
@@ -493,7 +566,7 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
     sun.target.position.set(tx, ty, tz)
     sun.intensity = Number(pose.intensityBps) / Number(span)
     ambient.intensity = Number(pose.ambientBps) / Number(span)
-    hemi.intensity = Number(pose.ambientBps) / Number(span)
+    fill.intensity = Number(pose.ambientBps) / Number(span)
     const win = windowGainBps(lights, opts.sun.emissiveBps)
     const sign = signGainBps(name, opts.sun.lanternsOn, lights, opts.sun.emissiveBps)
     const gainW = Number(win) / Number(span)
@@ -513,7 +586,7 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
     applyCamera()
     applySun(lastTime)
     if (look !== undefined) {
-      tickWaterFlow((globalThis.performance.now() - t0) / 1000)
+      tickWaterFlow(waterfallTimeSec(lastTime, opts.sun.waterStepsPerTick))
       tickEnvironment(skyRoot, cam)
     }
     if (useMsaa) {
@@ -659,6 +732,35 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
       const w = canvas.clientWidth
       const h = canvas.clientHeight
       return projectBuilding(root, cam, w, h)
+    },
+    setLookAt(x: number, z: number): void {
+      if (!Number.isFinite(x) || !Number.isFinite(z)) return
+      const frame = frameOf()
+      const next = frame === undefined ? { x, z } : clampLookPoint({ x, z }, frame)
+      if (next.x !== homeX || next.z !== homeZ) orbitMoved = true
+      wantX = next.x
+      wantZ = next.z
+      applyCamera()
+      schedulePaint()
+    },
+    lookFrame(): LookFrame | undefined {
+      return frameOf()
+    },
+    objectGround(objectId: string) {
+      const root = findBuildingRoot(pickMeshes, objectId)
+      if (root === undefined) return undefined
+      const box = new Box3().setFromObject(root)
+      if (box.isEmpty()) return undefined
+      const two = 1 + 1
+      return { x: (box.min.x + box.max.x) / two, z: (box.min.z + box.max.z) / two }
+    },
+    slideGround(fromX: number, fromY: number, toX: number, toY: number) {
+      const before = groundOnPlane(fromX, fromY)
+      const after = groundOnPlane(toX, toY)
+      if (before === undefined || after === undefined) return undefined
+      const w = lookSlideWeight(Number(dist), homeDist, Number(lookDistMax))
+      if (!(w > 0)) return { x: 0, z: 0 }
+      return { x: (after.x - before.x) / w, z: (after.z - before.z) / w }
     },
     captureMeta(): IslandCaptureMeta {
       return metaOf()

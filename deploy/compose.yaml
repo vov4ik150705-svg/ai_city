@@ -1,4 +1,4 @@
-# GENERATED from pack dc58998f9a46f00a8cddcb575abcbde9ed17061717e9f500357bab8dda30efc4; do not edit
+# GENERATED from pack 8f0dc753eeee37c59e38184159db4b118eebe107f24af48a996695dafaad01a1; do not edit
 services:
   postgres:
     profiles:
@@ -73,25 +73,6 @@ services:
       CORPORATOR_LISTEN_PORT: "7462"
     ports:
       - "7462:7462"
-    depends_on:
-      postgres:
-        condition: service_healthy
-  llm:
-    profiles:
-      - dev
-      - staging
-    image: node:24-bookworm-slim
-    working_dir: /app
-    volumes:
-      - ..:/app
-    command: ["node", "--experimental-strip-types", "services/llm/src/main.ts"]
-    environment:
-      PACK_HASH: ${PACK_HASH}
-      PACK_PATH: /app/content/out/pack.json
-      CORPORATOR_LISTEN_BIND: "0.0.0.0"
-      CORPORATOR_LISTEN_PORT: "7464"
-    ports:
-      - "7464:7464"
     depends_on:
       postgres:
         condition: service_healthy

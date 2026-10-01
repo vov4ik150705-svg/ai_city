@@ -1,0 +1,289 @@
+{
+  "hero": {
+    "az0": 2.376,
+    "el0": 27.846000000000004,
+    "d0": 228
+  },
+  "shots": [
+    {
+      "file": "01_hero.png",
+      "why": "accepted postcard",
+      "azimuth": 2.4,
+      "elevation": 27.8,
+      "distance": 228
+    },
+    {
+      "file": "02_hero_wide.png",
+      "why": "establishing: more sky and cliff",
+      "azimuth": 358.4,
+      "elevation": 25.8,
+      "distance": 324
+    },
+    {
+      "file": "03_hero_tight.png",
+      "why": "civic core fills the frame",
+      "azimuth": 5.4,
+      "elevation": 31.8,
+      "distance": 160
+    },
+    {
+      "file": "04_hero_walk_left.png",
+      "why": "hero variant, step left",
+      "azimuth": 344.4,
+      "elevation": 28.8,
+      "distance": 237
+    },
+    {
+      "file": "05_hero_walk_right.png",
+      "why": "hero variant, step right",
+      "azimuth": 20.4,
+      "elevation": 28.8,
+      "distance": 237
+    },
+    {
+      "file": "06_threequarter_left.png",
+      "why": "readable 3/4 left",
+      "azimuth": 316.4,
+      "elevation": 28.8,
+      "distance": 246
+    },
+    {
+      "file": "07_threequarter_right.png",
+      "why": "readable 3/4 right",
+      "azimuth": 52.4,
+      "elevation": 28.8,
+      "distance": 246
+    },
+    {
+      "file": "08_beauty_left_high.png",
+      "why": "rooflines, 3/4 high left",
+      "azimuth": 322.4,
+      "elevation": 35.8,
+      "distance": 255
+    },
+    {
+      "file": "09_beauty_right_low.png",
+      "why": "mass + city, 3/4 low right",
+      "azimuth": 44.4,
+      "elevation": 19.8,
+      "distance": 278
+    },
+    {
+      "file": "10_opposite.png",
+      "why": "second establishing face",
+      "azimuth": 180.4,
+      "elevation": 30.8,
+      "distance": 255
+    },
+    {
+      "file": "11_opposite_wide.png",
+      "why": "reverse poster",
+      "azimuth": 170.4,
+      "elevation": 26.8,
+      "distance": 315
+    },
+    {
+      "file": "12_high_aerial.png",
+      "why": "city plan, not map-top",
+      "azimuth": 12.4,
+      "elevation": 51.8,
+      "distance": 301
+    },
+    {
+      "file": "13_drone_high.png",
+      "why": "architectural drone",
+      "azimuth": 10.4,
+      "elevation": 41.8,
+      "distance": 262
+    },
+    {
+      "file": "14_low_cliff.png",
+      "why": "floating mass vs sky",
+      "azimuth": 354.4,
+      "elevation": 11.8,
+      "distance": 310
+    },
+    {
+      "file": "15_poster_sky.png",
+      "why": "sky room for type",
+      "azimuth": 356.4,
+      "elevation": 17.8,
+      "distance": 360
+    },
+    {
+      "file": "16_profile_east.png",
+      "why": "silhouette",
+      "azimuth": 94.4,
+      "elevation": 24.8,
+      "distance": 274
+    },
+    {
+      "file": "17_profile_west.png",
+      "why": "silhouette reverse",
+      "azimuth": 284.4,
+      "elevation": 25.8,
+      "distance": 239
+    },
+    {
+      "file": "18_rim_waterfall.png",
+      "why": "waterfall rim in foreground",
+      "azimuth": 134.4,
+      "elevation": 21.8,
+      "distance": 269
+    },
+    {
+      "file": "19_civic_approach.png",
+      "why": "approach to City Hall",
+      "azimuth": 8.4,
+      "elevation": 34.8,
+      "distance": 192
+    },
+    {
+      "file": "20_intimate_square.png",
+      "why": "close civic square",
+      "azimuth": 4.4,
+      "elevation": 32.8,
+      "distance": 132
+    },
+    {
+      "file": "21_southwest_3q.png",
+      "why": "SW three-quarter",
+      "azimuth": 227.4,
+      "elevation": 29.8,
+      "distance": 260
+    },
+    {
+      "file": "22_southeast_3q.png",
+      "why": "SE three-quarter",
+      "azimuth": 137.4,
+      "elevation": 29.8,
+      "distance": 260
+    },
+    {
+      "file": "23_cliff_threequarter.png",
+      "why": "cliff in frame, city beyond",
+      "azimuth": 334.4,
+      "elevation": 15.8,
+      "distance": 292
+    },
+    {
+      "file": "24_north_establishing.png",
+      "why": "north establishing",
+      "azimuth": 162.4,
+      "elevation": 33.8,
+      "distance": 274
+    },
+    {
+      "file": "25_walkleft_close_fill.png",
+      "why": "walk-left, buildings fill",
+      "azimuth": 344.4,
+      "elevation": 30.8,
+      "distance": 105
+    },
+    {
+      "file": "26_walkleft_close.png",
+      "why": "walk-left, close civic",
+      "azimuth": 344.4,
+      "elevation": 29.8,
+      "distance": 132
+    },
+    {
+      "file": "27_walkleft_near.png",
+      "why": "walk-left, near",
+      "azimuth": 344.4,
+      "elevation": 28.8,
+      "distance": 164
+    },
+    {
+      "file": "28_walkleft_medium.png",
+      "why": "walk-left, medium",
+      "azimuth": 344.4,
+      "elevation": 28.8,
+      "distance": 201
+    },
+    {
+      "file": "29_walkleft_pull.png",
+      "why": "walk-left, pull back",
+      "azimuth": 344.4,
+      "elevation": 27.8,
+      "distance": 278
+    },
+    {
+      "file": "30_walkleft_wide.png",
+      "why": "walk-left, establishing",
+      "azimuth": 344.4,
+      "elevation": 26.8,
+      "distance": 324
+    },
+    {
+      "file": "31_walkleft_poster.png",
+      "why": "walk-left, poster sky",
+      "azimuth": 344.4,
+      "elevation": 24.8,
+      "distance": 383
+    },
+    {
+      "file": "32_walkleft_jewel.png",
+      "why": "walk-left, floating jewel",
+      "azimuth": 344.4,
+      "elevation": 23.8,
+      "distance": 445
+    },
+    {
+      "file": "33_walkleft_low_close.png",
+      "why": "walk-left, cliff FG close",
+      "azimuth": 344.4,
+      "elevation": 17.8,
+      "distance": 178
+    },
+    {
+      "file": "34_walkleft_low_wide.png",
+      "why": "walk-left, low cliff wide",
+      "azimuth": 344.4,
+      "elevation": 13.8,
+      "distance": 301
+    },
+    {
+      "file": "35_walkleft_drone.png",
+      "why": "walk-left, architectural drone",
+      "azimuth": 344.4,
+      "elevation": 39.8,
+      "distance": 210
+    },
+    {
+      "file": "36_walkleft_high_wide.png",
+      "why": "walk-left, high establishing",
+      "azimuth": 344.4,
+      "elevation": 45.8,
+      "distance": 315
+    },
+    {
+      "file": "37_walkleft_yaw_in.png",
+      "why": "walk-left +8°, close",
+      "azimuth": 352.4,
+      "elevation": 29.8,
+      "distance": 137
+    },
+    {
+      "file": "38_walkleft_yaw_out.png",
+      "why": "walk-left -8°, wide",
+      "azimuth": 336.4,
+      "elevation": 27.8,
+      "distance": 342
+    },
+    {
+      "file": "39_walkleft_yaw_low.png",
+      "why": "walk-left yaw, low mass",
+      "azimuth": 338.4,
+      "elevation": 15.8,
+      "distance": 264
+    },
+    {
+      "file": "40_walkleft_intimate.png",
+      "why": "walk-left, intimate square",
+      "azimuth": 346.4,
+      "elevation": 32.8,
+      "distance": 114
+    }
+  ]
+}

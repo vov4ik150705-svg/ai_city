@@ -43,7 +43,7 @@ export const EventRow = memo(function EventRow(props: EventRowProps): ReactEleme
           <span data-key={props.kicker.key} className="hud-event__title">
             {props.kicker.text}
           </span>
-          {row.badgeText.length > 0 && (variant === "detail" || hasProof) ? (
+          {row.badgeText.length > 0 ? (
             <button
               type="button"
               data-attest={row.badgeKey}

@@ -1,4 +1,5 @@
 import type { TileHit } from "./camera.js"
+import type { LookFrame, LookPoint } from "./lookPan.js"
 import {
   HERO_AZIMUTH_DEG,
   HERO_ELEVATION_DEG,
@@ -11,10 +12,13 @@ import {
 import type { IslandCaptureMeta } from "./islandCapture.js"
 import type { OccupancyMode } from "./islandOccupancy.js"
 
-/** Canvas-space projection of an authored building. Coordinates are CSS pixels on the host canvas. */
+/** Canvas-space projection of an authored building. Coordinates are CSS pixels on the host canvas.
+ * `x`/`y` are the mesh center; `width`/`height` are the projected AABB so HUD chrome can sit beside it. */
 export type IslandObjectProjection = {
   readonly x: number
   readonly y: number
+  readonly width: number
+  readonly height: number
   readonly visible: boolean
 }
 
@@ -24,6 +28,12 @@ export type IslandHandle = {
   setCityTime(cityTime: bigint): void
   setCamera(tileX: bigint, tileY: bigint, zoomNum: bigint, zoomDen: bigint): void
   setOrbit(azimuthBps: bigint, tiltBps: bigint, distance: bigint): void
+  /** Slide the orbit look point on the ground. Height stays at the home point. */
+  setLookAt(x: number, z: number): void
+  lookFrame(): LookFrame | undefined
+  objectGround(objectId: string): LookPoint | undefined
+  /** View follows the drag across the look plane. Returns the look-point delta. */
+  slideGround(fromX: number, fromY: number, toX: number, toY: number): LookPoint | undefined
   hitAt(sx: bigint, sy: bigint): TileHit
   selectObject(objectId: string): void
   projectObject(objectId: string): IslandObjectProjection | undefined
@@ -81,6 +91,24 @@ export function emptyHandle(code: string): IslandHandle {
       void azimuthBps
       void tiltBps
       void distance
+    },
+    setLookAt(x: number, z: number): void {
+      void x
+      void z
+    },
+    lookFrame(): LookFrame | undefined {
+      return undefined
+    },
+    objectGround(objectId: string): LookPoint | undefined {
+      void objectId
+      return undefined
+    },
+    slideGround(fromX: number, fromY: number, toX: number, toY: number): LookPoint | undefined {
+      void fromX
+      void fromY
+      void toX
+      void toY
+      return undefined
     },
     hitAt(sx: bigint, sy: bigint): TileHit {
       void sx

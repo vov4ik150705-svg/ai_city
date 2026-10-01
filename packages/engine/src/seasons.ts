@@ -5,13 +5,55 @@ function seasonParam(data: Dict, name: string): bigint {
   return asBig(asDict(asDict(asDict(data["seasons"])["params"])[name])["v"])
 }
 
+function isHexCharCode(c: number): boolean {
+  return (c >= 48 && c <= 57) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)
+}
+
+function stripSpace(s: string): string {
+  let out = ""
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    if (ch === undefined || ch.trim() === "") continue
+    out += ch
+  }
+  return out
+}
+
+export function faceWallet(raw: unknown): string {
+  const trimmed = asStr(raw).trim()
+  if (trimmed.length === 0) return ""
+  const compact = stripSpace(trimmed)
+  let body = compact
+  if (body.length >= 2 && body[0] === "0" && (body[1] === "x" || body[1] === "X")) {
+    body = body.slice(2)
+  }
+  if (body.length === 40) {
+    for (let i = 0; i < 40; i++) {
+      const ch = body[i]
+      if (ch === undefined || !isHexCharCode(ch.charCodeAt(0))) return trimmed
+    }
+    return "0x" + body.toLowerCase()
+  }
+  return trimmed
+}
+
+function slotKeyOf(face: string, cityId: string, cityScope: boolean): string {
+  if (cityScope) return cityId
+  if (face.length === 0) return "c:" + cityId
+  return "w:" + face
+}
+
 function flagOn(value: unknown): boolean {
   if (value === true) return true
   if (value === false || value === undefined || value === null) return false
   return asBig(value) !== 0n
 }
 
-function bpsOf(data: Dict): bigint {
+function unitBps(data: Dict): bigint {
+  return seasonParam(data, "influence_intensity_exp_bps")
+}
+
+function curveAlpha(data: Dict): bigint {
   return seasonParam(data, "prize_curve_alpha_bps")
 }
 
@@ -20,11 +62,31 @@ export function shareFloor(pool: bigint, weight: bigint, total: bigint): bigint 
   return (weight * pool) / total
 }
 
-export function zipfWeights(n: bigint, bps: bigint): bigint[] {
+export function zipfWeights(n: bigint, bps: bigint, alpha: bigint = bps): bigint[] {
   const out: bigint[] = []
+  if (n <= 0n) return out
+  if (alpha >= bps) {
+    let k = 1n
+    while (k <= n) {
+      out.push(bps / k)
+      k += 1n
+    }
+    return out
+  }
+  if (alpha <= 0n) {
+    const uniform = bps / n
+    let k = 1n
+    while (k <= n) {
+      out.push(uniform)
+      k += 1n
+    }
+    return out
+  }
+  const uniform = bps / n
   let k = 1n
   while (k <= n) {
-    out.push(bps / k)
+    const harm = bps / k
+    out.push((alpha * harm + (bps - alpha) * uniform) / bps)
     k += 1n
   }
   return out
@@ -37,11 +99,11 @@ export type ZipfPayout = {
   readonly dust: bigint
 }
 
-export function zipfPayout(pool: bigint, n: bigint, bps: bigint): ZipfPayout {
+export function zipfPayout(pool: bigint, n: bigint, bps: bigint, alpha: bigint = bps): ZipfPayout {
   if (n <= 0n) {
     return { payouts: [], weights: [], sumPayout: 0n, dust: pool > 0n ? pool : 0n }
   }
-  const weights = zipfWeights(n, bps)
+  const weights = zipfWeights(n, bps, alpha)
   let total = 0n
   for (const w of weights) total += w
   const payouts: bigint[] = []
@@ -143,7 +205,7 @@ function shareCapBps(data: Dict, bps: bigint): bigint {
   }
   if (deps.length === 0) return 0n
   const pairN = 1n + 1n
-  const rankRow = zipfPayout(bps, pairN, bps)
+  const rankRow = zipfPayout(bps, pairN, bps, curveAlpha(data))
   const rank1 = rankRow.payouts.length > 0 ? (rankRow.payouts[0] ?? 0n) : 0n
   let k = 1n
   for (const dep of deps) {
@@ -189,7 +251,7 @@ function shareCapMax(
   return (pool * contrib * kBps) / (totalContrib * bps)
 }
 
-function qualifyDays(data: Dict, bps: bigint): bigint {
+export function qualifyDays(data: Dict, bps: bigint): bigint {
   const season = asBig(asDict(asDict(asDict(data["balance"])["params"])["season_city_days"])["v"])
   const periods = seasonParam(data, "prize_periods_per_season")
   if (periods <= 0n) return 0n
@@ -305,7 +367,8 @@ export function seasonSettle(
   cityDay = -1n,
   hour = -1n,
 ): SeasonSettle {
-  const bps = bpsOf(data)
+  const bps = unitBps(data)
+  const alpha = curveAlpha(data)
   const need = qualifyDays(data, bps)
   const requireStake = flagOn(seasonParam(data, "prize_require_live_stake"))
   const livePay = flagOn(seasonParam(data, "season_prizes_live"))
@@ -319,12 +382,13 @@ export function seasonSettle(
   const kBps = shareCapBps(data, bps)
   const forceCapN1 = flagOn(asDict(data["seasons"])["force_share_cap_n1"])
 
-  const isDemo = (row: Dict): boolean => flagOn(row["demo"]) || demoReal
+  const isDemo = (row: Dict): boolean =>
+    flagOn(row["demo"]) || demoReal || asStr(row["account_kind"]) === "demo"
 
   const bySlot = new Map<string, Slot>()
   const ingest = (row: Dict, skipDemo: boolean): void => {
     const cityId = asStr(row["city_id"])
-    const wallet = asStr(row["wallet"], cityId)
+    const wallet = faceWallet(row["wallet"])
     const influence = asBig(row["influence"])
     const pos = asBig(row["positive_days"])
     const stake = flagOn(row["live_stake"])
@@ -341,7 +405,7 @@ export function seasonSettle(
       codes.push("PRIZE_STAKE_REQUIRED")
       return
     }
-    const slotKey = cityScope ? cityId : wallet
+    const slotKey = slotKeyOf(wallet, cityId, cityScope)
     const cur = bySlot.get(slotKey)
     if (cur === undefined) {
       bySlot.set(slotKey, { wallet, cityId, influence, positiveDays: pos, spend })
@@ -421,7 +485,7 @@ export function seasonSettle(
       fill += 1
     }
     for (const a of assets) {
-      const zipf = zipfPayout(pools[a] ?? 0n, nPay, bps)
+      const zipf = zipfPayout(pools[a] ?? 0n, nPay, bps, alpha)
       let assetPaid = 0n
       const assetRows: AssetRankRow[] = []
       let i = 0

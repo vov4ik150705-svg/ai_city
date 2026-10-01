@@ -92,8 +92,15 @@ export function loadConfig(pack: Dict): Dict {
     spend_protocol_bps: proto,
     payroll_daily_divisor: paramV(econ, "payroll_daily_divisor"),
     payroll_fund_cap_days: paramV(econ, "payroll_fund_cap_days"),
+    payroll_boost_bps: paramV(econ, "payroll_boost_bps"),
+    payroll_boost_launch_bps: paramV(econ, "payroll_boost_launch_bps"),
+    payroll_boost_launch_city_days: paramV(econ, "payroll_boost_launch_city_days"),
+    payroll_inflow_window_city_days: paramV(econ, "payroll_inflow_window_city_days"),
     reserve_weekly_drain_bps: paramV(econ, "reserve_weekly_drain_bps"),
     affinity_home_bps: paramV(econ, "affinity_home_bps"),
+    affinity_neighbour_bps: paramV(econ, "affinity_neighbour_bps"),
+    affinity_accepted_bps: paramV(econ, "affinity_accepted_bps"),
+    mint_rate_limit_bps: paramV(econ, "mint_rate_limit_bps"),
     stake_bonus_max_bps: paramV(econ, "stake_bonus_max_bps"),
     night_energy_premium_bps: paramV(bal, "night_energy_premium_bps"),
     residual_idle_bps: paramV(bal, "residual_idle_bps"),
@@ -154,12 +161,20 @@ export function loadConfig(pack: Dict): Dict {
       }
       return out
     })(),
-    xp_to_next: asDict(asDict(gen["agents"])["xp_to_next"]),
+    xp_to_next: (() => {
+      const src = asDict(gb["xp_to_next"])
+      const out: Dict = {}
+      for (const k of Object.keys(src)) out[k] = asBig(src[k])
+      return out
+    })(),
     slots_at_city_level: asDict(asDict(gen["agents"])["slots_at_city_level"]),
+    slots_start: paramV(asDict(d["agents"]), "slots_start"),
+    slots_cap: paramV(asDict(d["agents"]), "slots_cap"),
+    bank_level_max: asBig(gb["bank_level_max"], 1n),
     city_level_max: asBig(asDict(gen["agents"])["city_level_at_slots_cap"], 7n),
     agent_level_max: paramV(bal, "agent_level_max"),
     agent_level_gain_bps: paramV(bal, "agent_level_gain_bps"),
-    offline_hard_cap: 18n,
+    offline_hard_cap: paramV(time, "offline_cap_city_hours_base") + 1n + 2n + 3n,
     unstake_grace_city_hours: paramV(econ, "unstake_grace_city_hours"),
     schedules: asDict(time["schedules"]),
     stale_code: "STALE_PRICE",
@@ -170,6 +185,12 @@ export function loadConfig(pack: Dict): Dict {
     idle_offline: "IDLE_OFFLINE_CAP_REACHED",
     idle_agent: "IDLE_NO_AGENT",
     idle_compute: "IDLE_NO_COMPUTE",
+    idle_wrong_role: "IDLE_WRONG_ROLE",
+    idle_train_target: "IDLE_NO_TRAIN_TARGET",
+    idle_research_focus: "IDLE_NO_RESEARCH_FOCUS",
+    idle_construction: "IDLE_UNDER_CONSTRUCTION",
+    idle_district_frozen: "IDLE_DISTRICT_FROZEN",
+    mint_capped_code: "MINT_RATE_CAPPED",
     status_paid: "paid",
     status_idle: "idle",
     status_gap: "gap",
@@ -199,7 +220,26 @@ export function loadConfig(pack: Dict): Dict {
     happiness_weights: asDict(genTick["happiness_weights"]),
     merkle_leaf_domain_byte: paramV(asDict(d["attest"]), "merkle_leaf_domain_byte"),
     merkle_node_domain_byte: paramV(asDict(d["attest"]), "merkle_node_domain_byte"),
+    generated: gen,
+    affinity_matrix: asDict(asDict(gen["buildings"])["affinity_matrix"]),
+    modifier_rows: asDict(asDict(gen["modifiers"])["modifier_rows"]),
+    night_owl_effective_premium_bps: asBig(asDict(gen["modifiers"])["night_owl_effective_premium_bps"]),
+    dawn_hour: paramV(time, "bank_open_hour"),
+    night_hour: paramV(time, "bank_close_hour"),
+    tools_effect_bps: 0n,
+    research_nodes: asDict(gb["research_nodes"]),
+    node_effect_base_bps: paramV(asDict(d["progression"]), "node_effect_base_bps"),
+    fund_share_cap_bps: asBig(asDict(asDict(asDict(gen["modifiers"])["modifier_caps"])["fund_share_bps"])["cap_max"]),
   }
+  const look = asDict(gen["look"])
+  const placement = asDict(gen["placement"])
+  if ("dawn_hour" in look) cfg["dawn_hour"] = asBig(look["dawn_hour"])
+  else if ("dawn_hour" in placement) cfg["dawn_hour"] = asBig(placement["dawn_hour"])
+  if ("night_hour" in look) cfg["night_hour"] = asBig(look["night_hour"])
+  else if ("night_hour" in placement) cfg["night_hour"] = asBig(placement["night_hour"])
+  const toolsNode = asDict(asDict(gb["research_nodes"])["tools"])
+  const toolsMag = asBig(toolsNode["effect_bps"])
+  cfg["tools_effect_bps"] = toolsMag < 0n ? -toolsMag : toolsMag
   cfg["active_work_creator_tax_bps"] = requiredParamV(frag, "active_work_creator_tax_bps")
   cfg["seed_corp_wei"] = poolPriceWeiPerWhole(
     asBig(cfg["pool_eth_seed"]),

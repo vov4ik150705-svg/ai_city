@@ -13,6 +13,7 @@ import {
   UniformsUtils,
   Vector3,
 } from "three"
+import { FOUR, SIXTEEN, THREE } from "../literals.js"
 
 export const WATERFALL_FX_NAME = "waterfall_fx"
 
@@ -227,10 +228,10 @@ export function attachWaterfallFx(
   const fx = new Group()
   fx.name = WATERFALL_FX_NAME
   if (mistIntensity > 0) {
-    const n = 4
+    const n = FOUR
     const mist = new InstancedMesh(FX_QUAD, mats.mist, n)
     mist.name = "waterfall_mist"
-    mist.renderOrder = 3
+    mist.renderOrder = THREE
     fillInstances(mist, n, (i, dummy) => {
       const u = unit(i + 2.17)
       const v = unit(i + 5.91)
@@ -243,11 +244,11 @@ export function attachWaterfallFx(
     })
     fx.add(mist)
   }
-  const drops = Math.max(0, Math.min(16, Math.round(dropletDensity * 16)))
+  const drops = Math.max(0, Math.min(SIXTEEN, Math.round(dropletDensity * SIXTEEN)))
   if (drops > 0) {
     const drip = new InstancedMesh(FX_QUAD, mats.drop, drops)
     drip.name = "waterfall_droplets"
-    drip.renderOrder = 4
+    drip.renderOrder = FOUR
     fillInstances(drip, drops, (i, dummy) => {
       const u = unit(i + 11.3)
       const v = unit(i + 23.8)

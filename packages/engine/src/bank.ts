@@ -14,6 +14,13 @@ export function bankShareBps(levels: Dict, level: bigint): bigint {
   return 0n
 }
 
+export function cityBankShareBps(cfg: Dict, city: Dict): bigint {
+  let share = bankShareBps(asDict(cfg["bank_levels"]), asBig(city["bank_level"]))
+  if (share <= 0n && asBig(city["bank_level"]) > 0n) share = asBig(cfg["bank_l1_share_bps"])
+  share += asBig(city["bank_share_bonus_bps"])
+  return share
+}
+
 export function globalCapWei(depthWei: bigint, poolShareBps: bigint, bps: bigint): bigint {
   if (depthWei <= 0n || poolShareBps <= 0n) return 0n
   return (depthWei * poolShareBps) / bps
@@ -93,7 +100,7 @@ export function present(state: Dict, city: Dict, vid: string): Dict | undefined 
     if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
     const row = asDict(raw)
     if (asStr(row["id"]) !== vid) continue
-    if (asStr(row["status"]) !== STATUS_OPEN) return row
+    if (asStr(row["status"]) !== STATUS_OPEN) continue
     const eth = asBig(row["eth"])
     row["status"] = STATUS_SETTLED
     if (row["day"] === state["bank_day"]) {
@@ -163,10 +170,10 @@ export function unstake(city: Dict, ticker: string, amount: bigint, cityTime: bi
   const tokens = asDict(city["tokens_held"] ?? {})
   tokens[ticker] = asBig(tokens[ticker]) + amount
   city["tokens_held"] = tokens
-  const pending = asList(city["unstake_pending"])
-  pending.push({ ticker, amount, ready_at: cityTime + graceHours })
-  city["unstake_pending"] = pending
   if (asBig(settled[ticker]) < sMin) {
+    const pending = asList(city["unstake_pending"])
+    pending.push({ ticker, amount, ready_at: cityTime + graceHours })
+    city["unstake_pending"] = pending
     const freeze = asDict(city["district_freeze_until"] ?? {})
     freeze[ticker] = cityTime + graceHours
     city["district_freeze_until"] = freeze

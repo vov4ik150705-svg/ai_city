@@ -20,7 +20,7 @@ alwaysApply: true
 
 ## Где канон
 
-Точка входа — `docs/CANON.md`. `DESIGN.md` — единственный источник правды по механикам. Визуальный и интеракционный дизайн HUD — `docs/reports/HUD_DESIGN_SYSTEM.md`; `docs/SCREENS.md` — контракт экранов и отказов. Канон вида — `docs/WORLD.md` часть A (живой остров; часть B — экономическая сетка пака и архив кадра, не ТЗ острова).
+Точка входа — `docs/CANON.md`. `DESIGN.md` — единственный источник правды по механикам. Вид HUD — `hud/design-reference/` и `.cursor/rules/hud-visual.mdc`; `docs/SCREENS.md` — контракт экранов и отказов. `docs/reports/HUD_DESIGN_SYSTEM.md` — errata (нет Settings, нет bottom nav), не lock вида. Канон вида острова — `docs/WORLD.md` часть A (живой остров; экономическая сетка пака и архив кадра — `docs/archive/WORLD_PACK_GRID.md`, не ТЗ острова).
 
 Меняешь механику — правь `DESIGN.md` в том же заходе. Расходится код с документом — сначала спроси, что канон.
 

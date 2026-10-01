@@ -1,5 +1,5 @@
 /**
- * Local city-hour extrapolation only. HUD.md §8.
+ * Local city-hour extrapolation only. docs/SCREENS.md (client_clock).
  * SI conversion 60 s × 60 min × 1000 ms is wall time, not a pack rate.
  * Date.now is legal only here (D-L-4).
  */
@@ -11,15 +11,37 @@ export function wallNowMs(): bigint {
 
 export function cityTimeFromWall(args: {
   readonly anchorCityTime: bigint
-  readonly firstLoginMs: bigint
+  readonly anchorMs: bigint
   readonly nowMs: bigint
   readonly rateBps: bigint
   readonly bps: bigint
 }): bigint {
-  if (args.nowMs < args.firstLoginMs) return args.anchorCityTime
+  if (args.nowMs < args.anchorMs) return args.anchorCityTime
   if (args.bps <= 0n) return args.anchorCityTime
-  const deltaMs = args.nowMs - args.firstLoginMs
+  const deltaMs = args.nowMs - args.anchorMs
   return args.anchorCityTime + (deltaMs * args.rateBps) / (args.bps * MS_PER_HOUR)
+}
+
+/** Wall wait for `resyncTicks` city ticks. Zero rate stays quiet. */
+export function resyncWaitMs(args: {
+  readonly resyncTicks: bigint
+  readonly tickHours: bigint
+  readonly rateBps: bigint
+  readonly bps: bigint
+}): bigint {
+  if (args.resyncTicks <= 0n || args.rateBps <= 0n || args.bps <= 0n) return 0n
+  return (args.resyncTicks * args.tickHours * args.bps * MS_PER_HOUR) / args.rateBps
+}
+
+/** True when the socket has been silent for a full resync wait. */
+export function resyncDue(args: {
+  readonly lastEventMs: bigint
+  readonly nowMs: bigint
+  readonly waitMs: bigint
+}): boolean {
+  if (args.waitMs <= 0n) return false
+  if (args.nowMs < args.lastEventMs) return false
+  return args.nowMs - args.lastEventMs >= args.waitMs
 }
 
 export function cityClockParts(args: {

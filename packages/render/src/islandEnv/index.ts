@@ -18,6 +18,7 @@ import { DEFAULT_SKY_ENV, ENV_LOOK_REV, type SkyEnvironmentConfig, type WorldClo
 import { buildCloudLayer, disposeClouds } from "./clouds.js"
 import { buildContactOcclusion, disposeContactOcclusion } from "./contact.js"
 import { SKY_DOME_RADIUS, makeSkyDome } from "./skyDome.js"
+import { FORTY, TEN, TWENTY_FOUR, TWO, TWO_THOUSAND } from "../literals.js"
 
 const _sunTarget = new Vector3()
 
@@ -30,7 +31,7 @@ export function bakeOutdoorEnvironment(renderer: WebGLRenderer, cfg: SkyEnvironm
   envScene.add(dome)
   const pmrem = new PMREMGenerator(renderer)
   try {
-    const target = pmrem.fromScene(envScene, 0.02, 1, 2000)
+    const target = pmrem.fromScene(envScene, 0.02, 1, TWO_THOUSAND)
     return target.texture
   } catch {
     return null
@@ -101,8 +102,8 @@ export function applyEnvironmentLook(
   scene.background = horizon
   if (cfg.atmosphere > 0) {
     const t = Math.min(1, Math.max(0, cfg.atmosphere))
-    const near = Math.max(10, span * cfg.fogNearSpan)
-    const far = Math.max(near + 24, span * (cfg.fogFarSpan - t * 0.9))
+    const near = Math.max(TEN, span * cfg.fogNearSpan)
+    const far = Math.max(near + TWENTY_FOUR, span * (cfg.fogFarSpan - t * 0.9))
     scene.fog = new Fog(cfg.fogColor, near, far)
   } else {
     scene.fog = null
@@ -139,13 +140,13 @@ export function applyEnvironmentLook(
   sun.shadow.bias = cfg.shadowBias
   sun.shadow.normalBias = cfg.shadowNormalBias
   sun.shadow.radius = cfg.shadowRadius
-  const half = Math.max(24, span * 0.82)
+  const half = Math.max(TWENTY_FOUR, span * 0.82)
   const cam = sun.shadow.camera
   cam.left = 0 - half
   cam.right = half
   cam.top = half
   cam.bottom = 0 - half
-  cam.near = Math.max(2, span * 0.08)
+  cam.near = Math.max(TWO, span * 0.08)
   cam.far = span * 3.6
   cam.updateProjectionMatrix()
 }
@@ -174,7 +175,7 @@ export function tickEnvironment(root: Group | null, camera: PerspectiveCamera): 
   const dome = root.getObjectByName("sky_dome")
   if (dome === undefined) return
   dome.position.copy(camera.position)
-  const cover = Math.max(40, camera.far * 0.92)
+  const cover = Math.max(FORTY, camera.far * 0.92)
   const scale = cover / SKY_DOME_RADIUS
   dome.scale.setScalar(scale)
 }

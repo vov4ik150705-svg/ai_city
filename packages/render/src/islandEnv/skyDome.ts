@@ -8,20 +8,30 @@ import {
   SRGBColorSpace,
   SphereGeometry,
 } from "three"
+import {
+  NINE_HUNDRED,
+  NEG_HUNDRED,
+  ONE_TWENTY_EIGHT,
+  SIX,
+  SIXTEEN,
+  TWELVE,
+  TWENTY_FOUR,
+  TWO_FIFTY_SIX,
+} from "../literals.js"
 
-export const SKY_DOME_RADIUS = 900
+export const SKY_DOME_RADIUS = NINE_HUNDRED
 
 function skipRaycast(): void {
   return
 }
 
 function hex(n: number): string {
-  return "#" + n.toString(16).padStart(6, "0")
+  return "#" + n.toString(SIXTEEN).padStart(SIX, "0")
 }
 
 function paintSky(zenith: number, horizon: number, nadir: number): CanvasTexture {
-  const w = 256
-  const h = 128
+  const w = TWO_FIFTY_SIX
+  const h = ONE_TWENTY_EIGHT
   const canvas = document.createElement("canvas")
   canvas.width = w
   canvas.height = h
@@ -41,7 +51,7 @@ function paintSky(zenith: number, horizon: number, nadir: number): CanvasTexture
 
 export function makeSkyDome(zenith: number, horizon: number, nadir: number): Mesh {
   const map = paintSky(zenith, horizon, nadir)
-  const geo = new SphereGeometry(SKY_DOME_RADIUS, 24, 12)
+  const geo = new SphereGeometry(SKY_DOME_RADIUS, TWENTY_FOUR, TWELVE)
   const mat = new MeshBasicMaterial({
     map,
     side: BackSide,
@@ -53,7 +63,7 @@ export function makeSkyDome(zenith: number, horizon: number, nadir: number): Mes
   const mesh = new Mesh(geo, mat)
   mesh.name = "sky_dome"
   mesh.frustumCulled = false
-  mesh.renderOrder = -100
+  mesh.renderOrder = NEG_HUNDRED
   mesh.userData.skyDome = true
   mesh.raycast = skipRaycast
   return mesh

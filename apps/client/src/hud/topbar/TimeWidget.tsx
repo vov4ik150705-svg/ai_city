@@ -23,13 +23,11 @@ export function TimeWidget(props: {
   return (
     <div data-key={props.valueKey} data-id="clock" className="hud-clock" title={props.value}>
       <div className="hud-clock__pair">
-        <span className="hud-clock__day">
-          {props.showDaySun === true ? <HudIcon glyph="sun" className="hud-clock__day-sun" size="sm" /> : null}
-          {props.dayLine}
-        </span>
+        <span className="hud-clock__day">{props.dayLine}</span>
         <time className="hud-clock__v" dateTime={props.hourFace}>
           {props.hourFace}
         </time>
+        {props.showDaySun === true ? <HudIcon glyph="sun" className="hud-clock__day-sun" size="sm" /> : null}
       </div>
       <span className="hud-clock__bound hud-clock__bound--start">{props.progressStart}</span>
       <span

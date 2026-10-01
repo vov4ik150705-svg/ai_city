@@ -1,0 +1,51 @@
+{
+  "hero": {
+    "az0": 2.376,
+    "el0": 27.846000000000004,
+    "d0": 228
+  },
+  "shots": [
+    {
+      "file": "01_low.png",
+      "why": "walk-right, 3° lower",
+      "azimuth": 20.4,
+      "elevation": 25.8,
+      "distance": 237
+    },
+    {
+      "file": "02_lower.png",
+      "why": "walk-right, 5° lower",
+      "azimuth": 20.4,
+      "elevation": 23.8,
+      "distance": 237
+    },
+    {
+      "file": "03_lowest.png",
+      "why": "walk-right, 7° lower",
+      "azimuth": 20.4,
+      "elevation": 21.8,
+      "distance": 237
+    },
+    {
+      "file": "04_lowest_near.png",
+      "why": "03_lowest closer",
+      "azimuth": 20.4,
+      "elevation": 21.8,
+      "distance": 196
+    },
+    {
+      "file": "05_lowest_closer.png",
+      "why": "03_lowest, banner fill",
+      "azimuth": 20.4,
+      "elevation": 21.8,
+      "distance": 169
+    },
+    {
+      "file": "06_lowest_fill.png",
+      "why": "03_lowest, tight fill",
+      "azimuth": 20.4,
+      "elevation": 21.8,
+      "distance": 146
+    }
+  ]
+}

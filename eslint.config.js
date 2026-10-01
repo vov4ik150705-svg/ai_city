@@ -15,6 +15,7 @@ export default tseslint.config(
       "**/dist-web/**",
       "deploy/**",
       "scripts/**",
+      "apps/www/**",
     ],
   },
   {
@@ -193,32 +194,6 @@ export default tseslint.config(
               name: "@corporator/engine",
               importNames: ["tick", "catchUp"],
               message: "attestor is fail-open and does not run the tick; docs/TICK.md §9, DESIGN.md §6.4",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["services/llm/src/**/*.ts"],
-    rules: {
-      "no-restricted-globals": [
-        "error",
-        { name: "Date", message: "llm complete takes injected flags; Date is banned on the llm path; DESIGN.md §5.4" },
-        { name: "Math", message: "integer arithmetic only; Math is banned on the llm path" },
-      ],
-      "no-restricted-properties": [
-        "error",
-        { object: "Date", property: "now" },
-        { object: "Math", property: "random" },
-      ],
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: [
-            {
-              name: "@corporator/engine",
-              message: "llm is fail-open and does not run the tick; DESIGN.md §5.4",
             },
           ],
         },

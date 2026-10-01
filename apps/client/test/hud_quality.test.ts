@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 import { loadPack, parseJson, type Json } from "@corporator/contentpack"
 import { buildHud, emptySnapshot, loadClientPack, loadHudFixture, loadStringTable } from "../src/index.ts"
-import { hudFocusRelocate, isHudFocusShell, resolveHudFocusReturn } from "../src/hud/keys.ts"
+import { hudFocusRelocate, hudEscapeTarget, isHudFocusShell, resolveHudFocusReturn } from "../src/hud/keys.ts"
 import { FunctionStrip } from "../src/hud/center/FunctionStrip.tsx"
 import { EventLog, eventKickers } from "../src/hud/parts/EventLog.tsx"
 import { EmptyState, ErrorState, StaleState, UnavailableState } from "../src/hud/parts/Empty.tsx"
@@ -119,6 +119,8 @@ describe("HUD quality contract", () => {
     expect(mobile.includes("max-height: var(--hud-recent-activity-height)")).toBe(true)
     expect(css.includes("max-width: 7.5rem")).toBe(false)
     expect(css.includes("overflow: clip")).toBe(true)
+    expect(css.includes("grid-template-rows: auto minmax(0, 1fr) auto")).toBe(true)
+    expect(css.includes("\"functions scene-safe-center activity\"")).toBe(true)
     const listAt = css.indexOf(".hud-functions__list {")
     expect(listAt >= 0).toBe(true)
     const listBlock = css.slice(listAt, css.indexOf(".hud-functions__item {", listAt))
@@ -299,7 +301,7 @@ describe("HUD quality contract", () => {
         onViewAll: () => {},
       }),
     )
-    expect(activity.includes("Recent events")).toBe(true)
+    expect(activity.includes("Recent Activity")).toBe(true)
     expect(activity.includes("View All")).toBe(true)
     expect(activity.includes("BottomNav")).toBe(false)
   })
@@ -388,19 +390,20 @@ describe("HUD quality contract", () => {
     expect(icon.includes("aria-label=\"Notifications\"")).toBe(true)
     expect(icon.includes("title=\"Notifications\"")).toBe(true)
     expect(icon.includes("type=\"button\"")).toBe(true)
-    expect(css.includes("#245A9A")).toBe(true)
-    expect(css.includes("#1D4B86")).toBe(true)
-    expect(css.includes("#2E68AA")).toBe(true)
-    expect(css.includes("#2C67AA")).toBe(true)
-    expect(css.includes("#1E4F8C")).toBe(true)
-    expect(css.includes("#F4F7FA")).toBe(true)
-    expect(css.includes("#C7D5E3")).toBe(true)
-    expect(css.includes("#8FA8C0")).toBe(true)
-    expect(css.includes("#45C7F4")).toBe(true)
-    expect(css.includes("#FFB64A")).toBe(true)
-    expect(css.includes("#63D68A")).toBe(true)
-    expect(css.includes("#F0B85B")).toBe(true)
-    expect(css.includes("#E97878")).toBe(true)
+    // Light mockup scheme (hud/design-reference/DESIGN_SCHEME.md §1).
+    expect(css.includes("#E4F0FD")).toBe(true)
+    expect(css.includes("#D6EAFD")).toBe(true)
+    expect(css.includes("#F2F7FE")).toBe(true)
+    expect(css.includes("#D3E2F4")).toBe(true)
+    expect(css.includes("#0F1E4A")).toBe(true)
+    expect(css.includes("#3F4E70")).toBe(true)
+    expect(css.includes("#6F7D9C")).toBe(true)
+    expect(css.includes("#0A5CF8")).toBe(true)
+    expect(css.includes("#0E9F5A")).toBe(true)
+    expect(css.includes("#F5A40A")).toBe(true)
+    expect(css.includes("#E5383B")).toBe(true)
+    expect(css.includes("#245A9A")).toBe(false)
+    expect(css.includes("#45C7F4")).toBe(false)
     expect(css.includes("#071522")).toBe(false)
     expect(css.includes("IBM Plex Sans")).toBe(true)
     expect(css.includes("Source Serif 4")).toBe(false)
@@ -577,9 +580,17 @@ describe("HUD quality contract", () => {
     expect(manageFn.includes("rememberFocus(manage)")).toBe(true)
     expect(manageFn.includes("UI_MANAGE")).toBe(true)
     const escapeFn = app.slice(app.indexOf('if (e.key === "Escape")'), app.indexOf("window.addEventListener"))
-    expect(escapeFn.indexOf('target === "hold"') < escapeFn.indexOf('target === "workspace"')).toBe(true)
+    expect(escapeFn.indexOf('target === "hold"') < escapeFn.indexOf('target === "review"')).toBe(true)
+    expect(escapeFn.indexOf('target === "review"') < escapeFn.indexOf('target === "workspace"')).toBe(true)
     expect(escapeFn.includes("closeWorkspace()")).toBe(true)
     expect(escapeFn.includes("setTxnHold(true)")).toBe(true)
+    expect(escapeFn.includes("setMoneyTxn(undefined)")).toBe(true)
+    expect(
+      hudEscapeTarget({ txnInFlight: false, reviewOpen: true, workspaceOpen: true, selected: true }),
+    ).toBe("review")
+    expect(
+      hudEscapeTarget({ txnInFlight: true, reviewOpen: true, workspaceOpen: true, selected: true }),
+    ).toBe("hold")
     const workspace = readFileSync(join(client, "src/hud/parts/Workspace.tsx"), "utf8")
     expect(workspace.includes("document.contains(previous)")).toBe(true)
     expect(workspace.includes("isHudFocusShell")).toBe(true)
@@ -589,6 +600,8 @@ describe("HUD quality contract", () => {
     expect(app.includes("openRoute(\"overview\", \"summary\")")).toBe(true)
     expect(app.includes("openRoute(\"overview\", \"functions\")")).toBe(true)
     expect(app.includes("openRoute(\"journal\")")).toBe(true)
+    expect(app.includes("[data-surface='selection']")).toBe(true)
+    expect(app.includes("[data-stub-building], canvas, [data-function] button")).toBe(true)
     expect(app.includes("onNavigate={go}")).toBe(true)
     expect(app.includes("onManage={manageSelected}")).toBe(true)
   })

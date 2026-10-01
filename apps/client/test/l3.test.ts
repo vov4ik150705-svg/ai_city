@@ -54,8 +54,10 @@ function hasCommandRoute(effect: string | undefined): boolean {
   return false
 }
 
-async function fetchBytes(url: string): Promise<Uint8Array> {
-  const res = await fetch(url)
+async function fetchBytes(url: string, sessionId = ""): Promise<Uint8Array> {
+  const headers: { [name: string]: string } = {}
+  if (sessionId.length > 0) headers["authorization"] = "Bearer " + sessionId
+  const res = await fetch(url, { headers })
   if (!res.ok) throw new Error(codes.API_PACK_STALE)
   return new Uint8Array(await res.arrayBuffer())
 }
@@ -100,11 +102,14 @@ describe("l3 client on host", () => {
     expect(noTime.ok).toBe(false)
     if (!noTime.ok) expect(noTime.code).toBe(codes.API_PACK_STALE)
 
+    const session = await openDemoSession(base, post)
+    expect(session !== undefined).toBe(true)
+    if (session === undefined) return
     const ok = await bootFromHost({
       origin: base,
       packHash,
-      cityId: "a",
-      fetchBytes,
+      cityId: session.cityId,
+      fetchBytes: (url) => fetchBytes(url, session.sessionId),
     })
     expect(ok.ok).toBe(true)
     if (!ok.ok) return
@@ -113,7 +118,26 @@ describe("l3 client on host", () => {
   })
 
   it("command_posts_intent", async () => {
-    expect([...LIVE_MUTATION_EFFECTS]).toEqual(["build", "hire", "set_objective"])
+    expect([...LIVE_MUTATION_EFFECTS]).toEqual([
+      "build",
+      "hire",
+      "assign",
+      "set_objective",
+      "research_start",
+      "open_district",
+      "stake",
+      "unlock_tier",
+      "pick_node",
+      "merge",
+      "upgrade",
+      "claim_fragment",
+      "deposit",
+      "withdraw",
+      "present_voucher",
+      "buy_stock",
+      "unstake",
+      "claim_unstaked",
+    ])
     for (const row of HUD_ACTION_MAP) {
       if (row.support === "live") {
         expect(liveEffect(row.effect)).toBe(true)
@@ -125,19 +149,51 @@ describe("l3 client on host", () => {
       }
       if (row.support === "unsupported") {
         expect(row.effect).toBeUndefined()
-        expect(hasCommandRoute(row.intent)).toBe(false)
       }
     }
     for (const path of commandRoutes) {
       const effect = path.slice("/command/".length)
-      expect(HUD_ACTION_MAP.some((row) => row.effect === effect)).toBe(true)
+      expect(HUD_ACTION_MAP.some((row) => row.effect === effect || row.intent === effect)).toBe(true)
     }
     const hireMap = HUD_ACTION_MAP.find((row) => row.intent === "hire")
     expect(hireMap?.effect).toBe("hire")
     expect(hireMap?.support).toBe("live")
     const researchMap = HUD_ACTION_MAP.find((row) => row.intent === "research_start")
-    expect(researchMap?.support).toBe("unsupported")
-    expect(researchMap?.effect).toBeUndefined()
+    expect(researchMap?.effect).toBe("research_start")
+    expect(researchMap?.support).toBe("live")
+    const openMap = HUD_ACTION_MAP.find((row) => row.intent === "open_district")
+    expect(openMap?.effect).toBe("open_district")
+    expect(openMap?.support).toBe("live")
+    const stakeMap = HUD_ACTION_MAP.find((row) => row.intent === "stake")
+    expect(stakeMap?.effect).toBe("stake")
+    expect(stakeMap?.support).toBe("live")
+    const unlockMap = HUD_ACTION_MAP.find((row) => row.intent === "unlock_tier")
+    expect(unlockMap?.effect).toBe("unlock_tier")
+    expect(unlockMap?.support).toBe("live")
+    const pickMap = HUD_ACTION_MAP.find((row) => row.intent === "pick_node")
+    expect(pickMap?.effect).toBe("pick_node")
+    expect(pickMap?.support).toBe("live")
+    const mergeMap = HUD_ACTION_MAP.find((row) => row.intent === "merge")
+    expect(mergeMap?.effect).toBe("merge")
+    expect(mergeMap?.support).toBe("live")
+    const upgradeMap = HUD_ACTION_MAP.find((row) => row.intent === "upgrade")
+    expect(upgradeMap?.effect).toBe("upgrade")
+    expect(upgradeMap?.support).toBe("live")
+    const fragmentMap = HUD_ACTION_MAP.find((row) => row.intent === "claim_fragment")
+    expect(fragmentMap?.effect).toBe("claim_fragment")
+    expect(fragmentMap?.support).toBe("live")
+    const depositMap = HUD_ACTION_MAP.find((row) => row.intent === "deposit")
+    expect(depositMap?.effect).toBe("deposit")
+    expect(depositMap?.support).toBe("live")
+    const withdrawMap = HUD_ACTION_MAP.find((row) => row.intent === "withdraw")
+    expect(withdrawMap?.effect).toBe("withdraw")
+    expect(withdrawMap?.support).toBe("live")
+    const buyMap = HUD_ACTION_MAP.find((row) => row.intent === "buy_stock")
+    expect(buyMap?.effect).toBe("buy_stock")
+    expect(buyMap?.support).toBe("live")
+    const prizeMap = HUD_ACTION_MAP.find((row) => row.intent === "claim_prize")
+    expect(prizeMap?.effect).toBe("claim_prize")
+    expect(prizeMap?.support).toBe("refusal-only")
 
     const originBase = "http://adapter.test"
     const silentPost = async () => {
@@ -165,19 +221,14 @@ describe("l3 client on host", () => {
         return { status: 200, body: canonical({ city_time: 7n }) }
       },
     })
-    const blocked = await adapter.dispatch({ kind: "research_start", axisId: "grid" })
-    expect(blocked.kind).toBe("unavailable")
-    if (blocked.kind === "unavailable") {
-      expect(blocked.reason).toBe("no-live-route")
-      expect(blocked.code).toBe(codes.FEATURE_NOT_IN_V1)
-    }
-    expect(postCalls).toBe(0)
-    expect(fetchCalls).toBe(0)
-    expect((await adapter.dispatch({ kind: "present_voucher" })).kind).toBe("unavailable")
-    expect((await adapter.dispatch({ kind: "assign" })).kind).toBe("unavailable")
-    expect((await adapter.dispatch({ kind: "unstake" })).kind).toBe("unavailable")
+    const presented = await adapter.dispatch({ kind: "present_voucher" }, { voucher_id: "v1" })
+    expect(presented.kind).toBe("applied")
+    if (presented.kind === "applied") expect(presented.effect).toBe("present_voucher")
+    expect(postCalls).toBe(1)
+    expect(fetchCalls).toBe(1)
+    expect((await adapter.dispatch({ kind: "present_voucher" }, { voucher_id: "v1" })).kind).toBe("applied")
     expect((await adapter.dispatch({ kind: "navigate", target: "bank" })).kind).toBe("local")
-    expect(postCalls).toBe(0)
+    expect(postCalls).toBe(2)
 
     const sent: {
       readonly effect: string
@@ -218,6 +269,24 @@ describe("l3 client on host", () => {
     expect(sent[0]?.expectedCityTime).toBe(7n)
     if (hired.kind === "applied") expect(hired.snapshot.capital).toBe(40n)
     expect(capital).toBe(40n)
+
+    const scientist = await live.dispatch({ kind: "hire", role: "scientist" })
+    expect(scientist.kind).toBe("applied")
+    expect(sent.length).toBe(2)
+    expect(sent[1]?.effect).toBe("hire")
+    expect(sent[1]?.extra).toEqual({ role: "scientist" })
+
+    const assigned = await live.dispatch({ kind: "assign", agentId: "h1", buildingId: "workshop" })
+    expect(assigned.kind).toBe("applied")
+    expect(sent.length).toBe(3)
+    expect(sent[2]?.effect).toBe("assign")
+    expect(sent[2]?.extra).toEqual({ agent_id: "h1", building_id: "workshop" })
+
+    const researched = await live.dispatch({ kind: "research_start", axisId: "grid" })
+    expect(researched.kind).toBe("applied")
+    expect(sent.length).toBe(4)
+    expect(sent[3]?.effect).toBe("research_start")
+    expect(sent[3]?.extra).toEqual({ axis_id: "grid" })
 
     fetchCalls = 0
     const held = capital
@@ -282,7 +351,12 @@ describe("l3 client on host", () => {
     const session = await openDemoSession(base, post)
     expect(session).toBeDefined()
     if (session === undefined) return
-    const boot = await bootFromHost({ origin: base, packHash, cityId: session.cityId, fetchBytes })
+    const boot = await bootFromHost({
+      origin: base,
+      packHash,
+      cityId: session.cityId,
+      fetchBytes: (url) => fetchBytes(url, session.sessionId),
+    })
     expect(boot.ok).toBe(true)
     if (!boot.ok) return
     expect(boot.snapshot.capital).toBe(capBefore)
@@ -311,9 +385,16 @@ describe("l3 client on host", () => {
     const hireJson = asObj(parseJson(fromUtf8(hire.body)))
     expect("code" in hireJson && hireJson["code"] === codes.API_MALFORMED).toBe(false)
     const afterHire = snapshotFromEnvelope(
-      parseJson(fromUtf8(await fetchBytes(base + applyPath(stateTemplate, "city_id", session.cityId)))),
+      parseJson(fromUtf8(await fetchBytes(base + applyPath(stateTemplate, "city_id", session.cityId), session.sessionId))),
     )
     expect(afterHire.capital < capBefore).toBe(true)
+    const hiredAgent = afterHire.agents?.[0]
+    expect(hiredAgent !== undefined).toBe(true)
+    if (hiredAgent !== undefined) {
+      expect(hiredAgent.role === "scientist" || hiredAgent.role === "manager").toBe(false)
+      const traitN = hiredAgent.traits?.length ?? 0
+      expect(traitN === 1 || traitN === 2).toBe(true)
+    }
     const built = await postCommand({
       origin: base,
       effect: "build",
@@ -329,7 +410,7 @@ describe("l3 client on host", () => {
     expect("code" in buildJson && buildJson["code"] === codes.API_MALFORMED).toBe(false)
     expect(buildJson["effect"]).toBe("build")
     const afterBuild = snapshotFromEnvelope(
-      parseJson(fromUtf8(await fetchBytes(base + applyPath(stateTemplate, "city_id", session.cityId)))),
+      parseJson(fromUtf8(await fetchBytes(base + applyPath(stateTemplate, "city_id", session.cityId), session.sessionId))),
     )
     expect(afterBuild.capital < afterHire.capital).toBe(true)
   })

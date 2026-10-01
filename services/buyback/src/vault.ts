@@ -23,15 +23,17 @@ export async function depositThenMint(
 ): Promise<VaultStep> {
   if (port.buybackExecutorService !== pack.executorService) return refuse(stamps)
   if (pack.executorService === pack.voucherService) return refuse(stamps)
+  const house = process.env.CORPORATOR_VAULT_HOUSE
+  if (house === undefined || house.length === 0 || account !== house) return refuse(stamps)
   if (capitalAmount > corpAmount * pack.capitalAnchor) return refuse(stamps)
   if (mintTime <= depositTime) return refuse(stamps)
   const previewDep = applyStamp(pack, stamps, "deposit_confirmed", depositTime)
   if (previewDep === undefined) return refuse(stamps)
   const previewMint = applyStamp(pack, previewDep, "mint", mintTime)
   if (previewMint === undefined) return refuse(stamps)
-  const deposited = await port.vault.deposit(account, corpAmount)
+  const deposited = await port.vault.deposit(house, corpAmount)
   if (deposited.ok === false) return { ok: false, code: deposited.code, stamps }
-  const minted = await port.vault.mintCapital(account, capitalAmount)
+  const minted = await port.vault.mintCapital(house, corpAmount, capitalAmount)
   if (minted.ok === false) return { ok: false, code: minted.code, stamps: previewDep }
   return { ok: true, stamps: previewMint }
 }

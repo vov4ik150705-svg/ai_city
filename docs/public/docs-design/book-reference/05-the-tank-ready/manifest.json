@@ -1,0 +1,59 @@
+{
+  "n": 5,
+  "anchor": "the-tank",
+  "dir": "05-the-tank-ready",
+  "title": "Everyone is paid from one tank",
+  "eyebrow": "05 — MONEY",
+  "intro": "Every city's people are paid from one shared fund, Payroll. Each hour it pours out a budget and splits it by what each seat asked for. A quiet hour means more for everyone, a busy one less.",
+  "note": "Early on the tank pours extra: up to ×8 for the first 7 city days, then up to ×3. Only while it holds enough.",
+  "linkLabel": "More in the handbook → Payroll",
+  "ref": "economy.md#payroll",
+  "alt": "A water tower labelled Payroll feeds three islands; in a quiet hour three cups overflow, in a busy hour nine cups are equally half full.",
+  "w": 1672,
+  "h": 941,
+  "hash": "A425093013C8D8A9C324608A28FD3DB9EC43761F02F33F864E114FA26AFCF9AB",
+  "geometry": {
+    "left": 90,
+    "top": 0,
+    "width": 1200,
+    "introTop": 270,
+    "titleHtml": "Everyone is paid<br>from one tank"
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 5: Everyone is paid from one tank",
+      "artBottom": 741.34375,
+      "noteTop": 756,
+      "handbookAnchor": "#payroll"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

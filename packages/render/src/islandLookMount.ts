@@ -36,6 +36,7 @@ export type LookMountArgs = {
   readonly pickMeshes: object[]
   readonly joinLoadError: (prev: string, next: string) => string
   readonly spanBps: bigint
+  readonly lookOrbitMaxMul: bigint
 }
 
 export type LookMountResult = {
@@ -116,7 +117,7 @@ export async function mountAcceptedLook(args: LookMountArgs): Promise<LookMountR
   }
   if (args.look.cam !== null) {
     const frozen = lookCamOrbit(args.look.cam, args.spanBps)
-    const lim = lookOrbitLimits(frozen.distance)
+    const lim = lookOrbitLimits(frozen.distance, args.lookOrbitMaxMul)
     return {
       skyRoot,
       loadError: loadBag.current,
@@ -132,7 +133,9 @@ export async function mountAcceptedLook(args: LookMountArgs): Promise<LookMountR
     }
   }
   const spanMin = BigInt(Math.max(1, Math.round(fitted.span * 0.4)))
-  const spanMax = BigInt(Math.max(Number(spanMin) + 1, Math.round(fitted.span * 8)))
+  const spanMax = BigInt(
+    Math.max(Number(spanMin) + 1, Math.round(fitted.span * Number(args.lookOrbitMaxMul))),
+  )
   return {
     skyRoot,
     loadError: loadBag.current,

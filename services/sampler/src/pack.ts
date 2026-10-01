@@ -10,6 +10,10 @@ export type SamplerPack = {
   readonly samplesPerTick: bigint
   readonly ageAlertCityHours: bigint
   readonly stalenessMaxCityHours: bigint
+  readonly seedEthUsd8dec: bigint
+  readonly seedCorpWei: bigint
+  readonly wei: bigint
+  readonly periodMs: bigint
   readonly ticksPerCityDay: bigint
   readonly inputFields: readonly string[]
   readonly priceDayPublished: bigint
@@ -41,6 +45,10 @@ export function loadSamplerPack(bytes: Uint8Array): SamplerPack {
     samplesPerTick: asBig(archGen["sampler_samples_per_tick"]),
     ageAlertCityHours: asBig(archGen["sampler_age_alert_city_hours"]),
     stalenessMaxCityHours: paramV(economy, "price_staleness_max_city_hours"),
+    seedEthUsd8dec: paramV(asObj(atPath(pack, ["sections", "launch"])), "eth_usd_8dec"),
+    seedCorpWei: seedCorpWei(pack),
+    wei: 10n ** paramV(asObj(atPath(pack, ["sections", "sim"])), "wei_decimals"),
+    periodMs: asBig(apiGen["sampler_period_ms"]),
     ticksPerCityDay: asBig(timeGen["ticks_per_city_day"]),
     inputFields: strList(arch["sampler_input_fields"]),
     priceDayPublished: asBig(archGen["price_day_published"]),
@@ -48,6 +56,18 @@ export function loadSamplerPack(bytes: Uint8Array): SamplerPack {
     failMode: asText(sampler["fail_mode"]),
     aggregation: asText(arch["aggregation"]),
   }
+}
+
+function seedCorpWei(pack: Json): bigint {
+  const sim = asObj(atPath(pack, ["sections", "sim"]))
+  const decimals = paramV(sim, "wei_decimals")
+  const wei = 10n ** decimals
+  const launch = asObj(atPath(pack, ["sections", "launch"]))
+  const poolEth = paramV(launch, "eth_graduation_threshold")
+  const gen = asObj(atPath(pack, ["generated", "launch"]))
+  const poolCorp = asBig(gen["pool_token_amount"])
+  if (poolCorp <= 0n || poolEth <= 0n || wei <= 0n) return 0n
+  return (poolEth * wei) / poolCorp
 }
 
 export function cityDayOf(pack: SamplerPack, cityTime: bigint): bigint {

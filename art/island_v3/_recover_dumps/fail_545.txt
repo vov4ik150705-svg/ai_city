@@ -1,0 +1,100 @@
+LINE 695
+OLD LEN 4363
+NEW LEN 5416
+OLD HEAD
+def _cell_key(p: tuple[float, float]) -> tuple[int, int]:
+    return (round(p[0] * 40.0), round(p[1] * 40.0))
+
+
+def _u01(kx: int, ky: int, salt: int) -> float:
+    n = (kx * 73856093) ^ (ky * 19349663) ^ (salt * 83492791)
+    n = (n * 1103515245 + 12345) & 0x7FFFFFFF
+    return float(n % 10007) / 10007.0
+
+
+def _taper_scale(t: float) -> float:
+    if t < 0.15:
+        return 1.0 - 0.05 * (t / 0.15)
+    if t < 0.45:
+        return 0.95 - 0.28 * ((t - 0.15) / 0.30)
+    if t < 0.78:
+        return 0.67 - 0.36 * ((t - 0.45) / 0.33)
+    return 0.31 - 0.16 * ((t - 0.78) / 0.22)
+
+
+_TIPS = (
+    (0.38, 0.22),
+    (-0.30, 0.34),
+    (0.28, -0.36),
+    (-0.34, -0.24),
+)
+
+
+def _loft_xy(
+    x: float,
+    y: float,
+    cx: float,
+    cy: float,
+    t: float,
+    kx: int,
+    ky: int,
+) -> tuple[float, 
+---NEW HEAD---
+def _perp_dist(
+    p: tuple[float, float],
+    a: tuple[float, float],
+    b: tuple[float, float],
+) -> float:
+    ax, ay = a
+    bx, by = b
+    px, py = p
+    dx, dy = bx - ax, by - ay
+    length = math.hypot(dx, dy)
+    if length < 1e-9:
+        return math.hypot(px - ax, py - ay)
+    return abs((px - ax) * dy - (py - ay) * dx) / length
+
+
+def _rdp(pts: list[tuple[float, float]], eps: float) -> list[tuple[float, float]]:
+    if len(pts) < 3:
+        return list(pts)
+    a, b = pts[0], pts[-1]
+    imax = 0
+    dmax = 0.0
+    for i in range(1, len(pts) - 1):
+        d = _perp_dist(pts[i], a, b)
+        if d > dmax:
+            imax = i
+            dmax = d
+    if dmax > eps:
+        left = _rdp(pts[: imax + 1], eps)
+        right = _rdp(pts[imax:], eps)
+        return left[:-1] + right
+    return [a, b]
+
+
+def _simplify_closed(pts: list[tuple[float, float]], eps: float) -> list[tuple[float, float]]:
+    if len(pts) < 8:
+        return list(pts)
+    loop = list(pts) + [pts[0]]
+    simp = _rdp(loop, eps)
+    if len(simp) >= 2 and simp[0] == simp[-1]:
+        simp = simp[:-1]
+    if len(simp) < 10:
+        step = max(1, len(pts) // 14)
+        return list(pts[::step])
+    return simp
+
+
+_BOT_RAD = (0.82, 0.64, 0.78, 0.58, 0.86, 0.66, 0.74)
+# Side chips: n·p <= offset keeps the torn-block interior.
+_CHIP_PLANES = (
+    (0.88, 0.12, 0.46, 310.0),
+    (-0.80, 0.42, 0.42, 295.0),
+    (0.18, -0.92, 0.35, 305.0),
+    (-0.48, -0.78, 0.40, 285.0),
+    (0.62, 0.68, 0.38, 300.0),
+    (-0.22, 0.90, 0.33, 318.0),
+    (0.15, 0.08, 1.00, -198.0),
+    (-0.12, -0.18, 1.00, -218.0),
+    (0.20, -

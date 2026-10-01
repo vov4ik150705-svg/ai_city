@@ -2,13 +2,24 @@ import { atPath } from "@corporator/contentpack"
 import type { Json } from "@corporator/contentpack"
 import { codes } from "@corporator/protocol"
 import type { OccupiedPlant } from "@corporator/render"
-import { asBig, asFlag, asList, asObj, asText, paramV } from "./values.js"
+import { asBig, asFlag, asList, asMaybeBig, asObj, asText, paramV } from "./values.js"
 import type { ActionRow, CapabilityRow } from "./demo.js"
 import type { HudFixture } from "./layout.js"
 
 export type CatalogBuilding = {
   readonly id: string
   readonly cost: bigint
+}
+
+export type BuildingMeta = {
+  readonly schedule: string
+  readonly output: string
+  readonly contour: string
+  readonly autonomous: boolean
+  readonly prebuilt: boolean
+  readonly district: string
+  readonly drawsEnergy: boolean
+  readonly cityLevelReq: bigint
 }
 
 export type DistrictRow = {
@@ -40,6 +51,7 @@ export type ClientLight = {
   readonly emissiveBps: bigint
   readonly gradeBps: bigint
   readonly sunDistance: bigint
+  readonly waterStepsPerTick: bigint
 }
 
 export type ScreenMeta = {
@@ -49,12 +61,6 @@ export type ScreenMeta = {
   readonly emptyKind: string
   readonly titleKey: string
   readonly v1: string
-}
-
-export type OnboardStep = {
-  readonly id: string
-  readonly step: bigint
-  readonly codes: readonly string[]
 }
 
 export type SettingRow = {
@@ -83,6 +89,7 @@ export type ClientOrbit = {
   readonly distanceMin: bigint
   readonly distanceMax: bigint
   readonly distanceDefault: bigint
+  readonly lookOrbitMaxMul: bigint
   readonly fovDeg: bigint
   readonly dragBpsPerPx: bigint
   readonly spanBps: bigint
@@ -213,8 +220,15 @@ export type ClientPack = {
   readonly menuIds: readonly string[]
   readonly districts: readonly DistrictRow[]
   readonly catalog: readonly CatalogBuilding[]
+  readonly levelCostById: { readonly [id: string]: readonly bigint[] }
+  readonly hireCostByN: { readonly [n: string]: bigint }
+  readonly mergeCost: bigint
+  readonly mergeActiveCap: bigint | undefined
+  readonly tierCostByTier: { readonly [tier: string]: bigint }
   readonly prizeAssets: readonly string[]
+  readonly sMinByTicker: { readonly [ticker: string]: bigint }
   readonly prizePeriodRealHours: bigint
+  readonly qualifyDays: bigint
   readonly happinessPenaltyThresholdBps: bigint
   readonly stabilityHintThresholdBps: bigint
   readonly light: ClientLight
@@ -223,17 +237,31 @@ export type ClientPack = {
   readonly siMin: bigint
   readonly siBase: bigint
   readonly clockIntervalMs: bigint
+  readonly resyncTicks: bigint
   readonly fontPixelFamily: string
   readonly fontLogFamily: string
   readonly fontPixelFile: string
   readonly fontLogFile: string
   readonly screens: { readonly [id: string]: ScreenMeta }
   readonly emptyKinds: { readonly [id: string]: string }
-  readonly onboardSteps: readonly OnboardStep[]
   readonly settingsRows: readonly SettingRow[]
   readonly refusalShowCount: bigint
   readonly mintRate: bigint
+  readonly capitalAnchor: bigint
+  readonly vaultFeeBps: bigint
+  readonly bankMarkupBps: bigint
+  readonly bankMarkupFloorBps: bigint
+  readonly bankLevelShareBps: { readonly [level: string]: bigint }
   readonly bankLimit: bigint
+  readonly weiDecimals: bigint
+  readonly corpQuickSmall: bigint
+  readonly corpQuickMid: bigint
+  readonly corpQuickLarge: bigint
+  readonly capitalQuickSmall: bigint
+  readonly capitalQuickMid: bigint
+  readonly capitalQuickLarge: bigint
+  readonly buildingMeta: { readonly [id: string]: BuildingMeta }
+  readonly hirePoolRoles: readonly string[]
   readonly quoteLo: bigint
   readonly quoteHi: bigint
   readonly islandOccupied: readonly OccupiedPlant[]
@@ -243,14 +271,53 @@ export type ClientPack = {
   readonly buildingIds: readonly string[]
   readonly researchAxes: readonly ClientResearchAxis[]
   readonly progressionAxes: readonly string[]
+  readonly progressionNodes: readonly ClientProgressionNode[]
+  readonly mergePairs: readonly ClientMergePair[]
   readonly mergePairIds: readonly string[]
   readonly populationThresholdByLevel: { readonly [level: string]: bigint }
+  readonly slotsAtCityLevel: { readonly [level: string]: bigint }
+  readonly buildSlotsByLevel: { readonly [level: string]: bigint }
+  readonly offlineCapBaseHours: bigint
+  readonly offlineTickLengthHours: bigint
+  readonly offlineReturnTicksCap: bigint
+  readonly offlineAutomationHours: readonly bigint[]
+  readonly offlineMergeHours: bigint
+  readonly agentRoles: readonly string[]
+  readonly agentCallsigns: { readonly [role: string]: readonly string[] }
+  readonly agentObjectives: readonly ClientAgentObjective[]
+  readonly agentContours: readonly string[]
+  readonly chainId: bigint
+  readonly chainRpc: string
+  readonly receiptPollMs: bigint
+  readonly receiptTimeoutMs: bigint
+  readonly voucherTtlS: bigint
+  readonly unstakeCooldownCityDays: bigint
+  readonly launchDeployed: boolean
+}
+
+export type ClientAgentObjective = {
+  readonly id: string
+  readonly role: string
+  readonly isDefault: boolean
 }
 
 export type ClientResearchAxis = {
   readonly id: string
   readonly cost: bigint | undefined
   readonly timeTicks: bigint | undefined
+}
+
+export type ClientProgressionNode = {
+  readonly id: string
+  readonly district: string
+  readonly axis: string
+  readonly tier: bigint
+  readonly exclusiveWith: string
+}
+
+export type ClientMergePair = {
+  readonly id: string
+  readonly districts: readonly string[]
 }
 
 function asJsonObj(value: Json | undefined): { readonly [key: string]: Json } {
@@ -309,6 +376,21 @@ export function loadClientPack(pack: Json): ClientPack {
     actions[id] = action
     if (action.screen === "bottom_menu") menuIds.push(id)
   }
+  const unlockIds = loadTexts(asJsonObj(generated["screens"])["research_unlock_ids"])
+  for (const id of unlockIds) {
+    if (id in actions) continue
+    if (!id.startsWith("research_unlock_")) continue
+    actions[id] = {
+      id,
+      screen: "research",
+      label: "UI_RESEARCH_UNLOCK",
+      effect: "commit:research_start",
+      spend: "capital",
+      demoBlocked: false,
+      v1: "live",
+      requires: ["city_level", "capital"],
+    }
+  }
   const capsIn = asObj(screens["capabilities"])
   const capabilities: { [id: string]: CapabilityRow } = {}
   for (const id of Object.keys(capsIn)) {
@@ -332,6 +414,7 @@ export function loadClientPack(pack: Json): ClientPack {
       beacon: asText(row["beacon"]),
     })
   }
+  const sMinByTicker = loadSMinByTicker(asObj(sections["districts"])["stake"])
   const genSeasons = asJsonObj(generated["seasons"])
   const prizeAssets: string[] = []
   const assetsRaw = genSeasons["prize_assets"]
@@ -346,24 +429,31 @@ export function loadClientPack(pack: Json): ClientPack {
   const quoteRow = asObj(genScreens["exchange_quote_capital_bps"])
   const screenMetas = loadScreenMetas(asObj(screens["screens"]), asObj(screens["panels"]))
   const emptyKinds = loadEmptyKinds(asObj(screens["empty_kinds"]))
-  const onboardSteps = loadOnboardSteps(asObj(asObj(screens["flows"])["onboarding_demo"]))
   const settingsRows = loadSettingsRows(asObj(screens["settings_rows"]))
   const catalog: CatalogBuilding[] = []
   const playable = asList(asObj(generated["buildings"])["buildings_playable_v1"])
   const bdefs = asObj(asObj(sections["buildings"])["buildings"])
   const costs = asObj(asObj(generated["balance"])["level_cost"])
+  const levelCostById = loadLevelCostMap(costs)
+  const hireCostByN = loadHireCostByN(asObj(generated["balance"])["hire_cost"])
   for (const item of playable) {
     if (typeof item !== "string") continue
     const raw = bdefs[item]
     if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
     const def = asObj(raw)
     if (def["prebuilt"] === true) continue
-    const rows = costs[item]
-    let cost = 0n
-    if (Array.isArray(rows) && rows.length > 0) cost = asBig(rows[0])
-    catalog.push({ id: item, cost })
+    const rows = levelCostById[item]
+    const first = rows === undefined ? undefined : rows[0]
+    catalog.push({ id: item, cost: first === undefined ? 0n : first })
   }
   const buildingIds = Object.keys(bdefs)
+  const buildingMeta = loadBuildingMeta(bdefs)
+  const agentRoleRows = asObj(asObj(sections["agents"])["roles"])
+  const agentRoles = loadAgentRoles(agentRoleRows)
+  const agentCallsigns = loadAgentCallsigns(agentRoleRows)
+  const hirePoolRoles = loadHirePoolRoles(asObj(asObj(sections["agents"])["params"]))
+  const agentObjectives = loadAgentObjectives(asObj(asObj(sections["agents"])["objectives"]))
+  const agentContours = Object.keys(asObj(asObj(sections["agents"])["contours"])).sort()
   const researchAxesIn = asObj(asObj(sections["research"])["axes"])
   const genBalance = asJsonObj(generated["balance"])
   const researchCost = loadBigById(genBalance["research_node_cost"])
@@ -374,9 +464,18 @@ export function loadClientPack(pack: Json): ClientPack {
     const timeTicks = researchTime[id]
     researchAxes.push({ id, cost, timeTicks })
   }
+  const genProg = asJsonObj(generated["progression"])
   const progressionAxes = Object.keys(asObj(asObj(sections["progression"])["axes"]))
-  const mergePairIds = loadTexts(asJsonObj(generated["progression"])["merge_pairs"])
+  const progressionNodes = loadProgressionNodes(genProg["progression_nodes"])
+  const mergePairs = loadMergePairs(genProg["progression_merges"])
+  const mergePairIds = loadTexts(genProg["merge_pairs"])
+  const mergeCost = asBig(genProg["merge_cost"])
+  const mergeActiveCap = asMaybeBig(genProg["merge_active_cap"])
+  const tierCostByTier = loadBigById(genProg["tier_cost"])
   const populationThresholdByLevel = loadBigById(genBalance["population_threshold"])
+  const slotsAtCityLevel = loadBigById(asJsonObj(generated["agents"])["slots_at_city_level"])
+  const buildSlotsByLevel = loadBigById(asJsonObj(generated["balance"])["build_slots"])
+  const offlineAdds = loadOfflineAdds(asJsonObj(generated["progression"]))
   return {
     hash,
     demoIsolated: asFlag(paramV(screens, "demo_isolated")),
@@ -402,8 +501,15 @@ export function loadClientPack(pack: Json): ClientPack {
     menuIds,
     districts,
     catalog,
+    levelCostById,
+    hireCostByN,
+    mergeCost,
+    mergeActiveCap,
+    tierCostByTier,
     prizeAssets,
+    sMinByTicker,
     prizePeriodRealHours: asBig(genSeasons["prize_period_real_hours"]),
+    qualifyDays: asBig(genSeasons["qualify_days"]),
     tileW: gridSize === 0n ? 0n : packIsoW / gridSize,
     scene: placement["scene"],
     chunkTiles: asBig(asJsonObj(generated["render"])["ground_chunk_tiles"]),
@@ -443,6 +549,7 @@ export function loadClientPack(pack: Json): ClientPack {
       emissiveBps: paramV(sections["render"], "emissive_gain_bps"),
       gradeBps: paramV(sections["render"], "grade_bps"),
       sunDistance: paramV(sections["render"], "island_sun_distance"),
+      waterStepsPerTick: paramV(sections["render"], "water_steps_per_tick"),
     },
     camera: {
       levels: loadZoomLevels(placement["zoom_levels"]),
@@ -464,6 +571,7 @@ export function loadClientPack(pack: Json): ClientPack {
         distanceMin: paramV(sections["render"], "island_orbit_distance_min"),
         distanceMax: paramV(sections["render"], "island_orbit_distance_max"),
         distanceDefault: paramV(sections["render"], "island_orbit_distance_default"),
+        lookOrbitMaxMul: paramV(sections["render"], "look_orbit_distance_max_mul"),
         fovDeg: paramV(sections["render"], "orbit_fov_deg"),
         dragBpsPerPx: paramV(sections["render"], "orbit_drag_bps_per_px"),
         spanBps: paramV(sections["render"], "grade_bps"),
@@ -501,17 +609,31 @@ export function loadClientPack(pack: Json): ClientPack {
     siMin: paramV(sections["render"], "hud_si_min"),
     siBase: paramV(sections["render"], "hud_si_base"),
     clockIntervalMs: paramV(sections["render"], "hud_clock_interval_ms"),
+    resyncTicks: paramV(sections["api"], "client_resync_ticks"),
     fontPixelFamily: asText(asJsonObj(generated["render"])["hud_font_pixel_family"]),
     fontLogFamily: asText(asJsonObj(generated["render"])["hud_font_log_family"]),
     fontPixelFile: asText(asJsonObj(generated["render"])["hud_font_pixel_file"]),
     fontLogFile: asText(asJsonObj(generated["render"])["hud_font_log_file"]),
     screens: screenMetas,
     emptyKinds,
-    onboardSteps,
     settingsRows,
     refusalShowCount: paramV(screens, "refusal_show_count"),
     mintRate: asBig(asJsonObj(generated["economy"])["anchor_mint_rate"]),
+    capitalAnchor: paramV(econ, "capital_anchor"),
+    vaultFeeBps: paramV(econ, "vault_fee_bps"),
+    bankMarkupBps: paramV(econ, "bank_markup_bps"),
+    bankMarkupFloorBps: paramV(econ, "bank_markup_floor_bps"),
+    bankLevelShareBps: loadBigById(genBalance["bank_level_share_bps"]),
     bankLimit: asBig(asObj(genScreens["bank_daily_limit_live"])["wei"]),
+    weiDecimals: paramV(sim, "wei_decimals"),
+    corpQuickSmall: paramV(sections["api"], "corp_quick_small"),
+    corpQuickMid: paramV(sections["api"], "corp_quick_mid"),
+    corpQuickLarge: paramV(sections["api"], "corp_quick_large"),
+    capitalQuickSmall: paramV(sections["api"], "capital_quick_small"),
+    capitalQuickMid: paramV(sections["api"], "capital_quick_mid"),
+    capitalQuickLarge: paramV(sections["api"], "capital_quick_large"),
+    buildingMeta,
+    hirePoolRoles,
     quoteLo: asBig(quoteRow["lo"]),
     quoteHi: asBig(quoteRow["hi"]),
     islandOccupied: loadIslandOccupied(asObj(asObj(sections["render"])["island_plants"])),
@@ -519,11 +641,230 @@ export function loadClientPack(pack: Json): ClientPack {
     bloomRadiusBps: paramV(sections["render"], "bloom_radius_bps"),
     bloomThresholdBps: paramV(sections["render"], "bloom_threshold_bps"),
     buildingIds,
+    agentRoles,
+    agentCallsigns,
+    agentObjectives,
+    agentContours,
     researchAxes,
     progressionAxes,
+    progressionNodes,
+    mergePairs,
     mergePairIds,
     populationThresholdByLevel,
+    slotsAtCityLevel,
+    buildSlotsByLevel,
+    offlineCapBaseHours: paramV(time, "offline_cap_city_hours_base"),
+    offlineTickLengthHours: paramV(time, "tick_length_city_hours"),
+    offlineReturnTicksCap: asBig(genScreens["offline_return_ticks_cap"]),
+    offlineAutomationHours: offlineAdds.automationHours,
+    offlineMergeHours: offlineAdds.mergeHours,
+    chainId: loadChainId(sections["districts"]),
+    chainRpc: loadChainRpc(sections["districts"]),
+    receiptPollMs: paramV(sections["api"], "chain_receipt_poll_ms"),
+    receiptTimeoutMs: paramV(sections["api"], "chain_receipt_timeout_ms"),
+    voucherTtlS: asBig(asJsonObj(generated["api"])["voucher_ttl_s"]),
+    unstakeCooldownCityDays: paramV(econ, "unstake_cooldown_city_days"),
+    launchDeployed: launchDeployedOf(sections["launch"]),
   }
+}
+
+function launchDeployedOf(raw: Json | undefined): boolean {
+  if (raw === undefined || raw === null || typeof raw !== "object" || Array.isArray(raw)) return false
+  const deployed = asObj(raw)["deployed"]
+  if (deployed === undefined || deployed === null || typeof deployed !== "object" || Array.isArray(deployed)) {
+    return false
+  }
+  const row = asObj(deployed)
+  for (const key of ["token", "curve", "pool", "hook", "tx"]) {
+    const val = row[key]
+    if (typeof val !== "string" || val.length === 0) return false
+  }
+  return true
+}
+
+function cityLevelReqOf(value: unknown): bigint {
+  if (typeof value === "bigint") return value
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) return BigInt(value)
+  return 1n
+}
+
+function loadBuildingMeta(raw: { readonly [key: string]: unknown }): { readonly [id: string]: BuildingMeta } {
+  const out: { [id: string]: BuildingMeta } = {}
+  for (const id of Object.keys(raw)) {
+    const spec = raw[id]
+    if (spec === null || typeof spec !== "object" || Array.isArray(spec)) continue
+    const def = asObj(spec)
+    const outputRaw = def["output"]
+    const energyRaw = def["energy_base_per_tick"]
+    out[id] = {
+      schedule: typeof def["schedule"] === "string" ? def["schedule"] : "",
+      output: typeof outputRaw === "string" ? outputRaw : "",
+      contour: typeof def["contour"] === "string" ? def["contour"] : "",
+      autonomous: def["autonomous"] === true,
+      prebuilt: def["prebuilt"] === true,
+      district: typeof def["district"] === "string" ? def["district"] : "",
+      drawsEnergy:
+        (typeof energyRaw === "bigint" && energyRaw > 0n) || (typeof energyRaw === "number" && energyRaw > 0),
+      cityLevelReq: cityLevelReqOf(def["city_level_req"]),
+    }
+  }
+  return out
+}
+
+function loadHirePoolRoles(raw: { readonly [key: string]: unknown }): readonly string[] {
+  const prefix = "hire_pool_"
+  const suffix = "_bps"
+  const out: string[] = []
+  for (const key of Object.keys(raw).sort()) {
+    if (!key.startsWith(prefix) || !key.endsWith(suffix)) continue
+    const role = key.slice(prefix.length, key.length - suffix.length)
+    if (role === "total") continue
+    const spec = raw[key]
+    if (spec === null || typeof spec !== "object" || Array.isArray(spec)) continue
+    const v = asObj(spec)["v"]
+    if (typeof v === "bigint" && v > 0n) out.push(role)
+  }
+  return out
+}
+
+function loadAgentCallsigns(raw: { readonly [key: string]: unknown }): { readonly [role: string]: readonly string[] } {
+  const out: { [role: string]: readonly string[] } = {}
+  for (const id of Object.keys(raw)) {
+    const spec = raw[id]
+    if (spec === null || typeof spec !== "object" || Array.isArray(spec)) continue
+    const row = asObj(spec)
+    if (row["v1"] === false) continue
+    const names = row["callsigns"]
+    if (!Array.isArray(names)) continue
+    const list: string[] = []
+    for (const item of names) {
+      if (typeof item === "string" && item.length > 0) list.push(item)
+    }
+    if (list.length > 0) out[id] = list
+  }
+  return out
+}
+
+function loadAgentRoles(raw: { readonly [key: string]: unknown }): readonly string[] {
+  const out: string[] = []
+  for (const id of Object.keys(raw)) {
+    const spec = raw[id]
+    if (spec === null || typeof spec !== "object" || Array.isArray(spec)) continue
+    const row = asObj(spec)
+    if (row["v1"] === false) continue
+    out.push(id)
+  }
+  out.sort()
+  return out
+}
+
+function loadAgentObjectives(raw: { readonly [key: string]: unknown }): readonly ClientAgentObjective[] {
+  const out: ClientAgentObjective[] = []
+  for (const id of Object.keys(raw)) {
+    const spec = raw[id]
+    if (spec === null || typeof spec !== "object" || Array.isArray(spec)) continue
+    const row = asObj(spec)
+    if (row["v1"] === false) continue
+    const role = asText(row["role"])
+    if (role.length === 0) continue
+    out.push({ id, role, isDefault: row["is_default"] === true })
+  }
+  out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  return out
+}
+
+function loadProgressionNodes(raw: Json | undefined): readonly ClientProgressionNode[] {
+  if (raw === undefined || raw === null || typeof raw !== "object" || Array.isArray(raw)) return []
+  const bag = asJsonObj(raw)
+  const out: ClientProgressionNode[] = []
+  for (const id of Object.keys(bag)) {
+    const row = bag[id]
+    if (row === null || typeof row !== "object" || Array.isArray(row)) continue
+    const n = asObj(row)
+    const district = asText(n["district"])
+    const axis = asText(n["axis"])
+    if (district.length === 0 || axis.length === 0) continue
+    out.push({
+      id: asText(n["id"]),
+      district,
+      axis,
+      tier: asBig(n["tier"]),
+      exclusiveWith: asText(n["exclusive_with"]),
+    })
+  }
+  out.sort((a, b) => {
+    if (a.district !== b.district) return a.district < b.district ? -1 : 1
+    if (a.tier !== b.tier) return a.tier < b.tier ? -1 : 1
+    if (a.axis !== b.axis) return a.axis < b.axis ? -1 : 1
+    return 0
+  })
+  return out
+}
+
+function loadOfflineAdds(progression: { readonly [key: string]: Json }): {
+  readonly automationHours: readonly bigint[]
+  readonly mergeHours: bigint
+} {
+  const dividends = asJsonObj(progression["progression_dividends"])
+  const rows: { readonly tier: bigint; readonly mag: bigint }[] = []
+  for (const id of Object.keys(dividends)) {
+    const row = asObj(dividends[id])
+    if (asText(row["key"]) !== "offline_cap_hours") continue
+    rows.push({ tier: asBig(row["tier"]), mag: asBig(row["magnitude"]) })
+  }
+  rows.sort((a, b) => {
+    if (a.tier < b.tier) return -1
+    if (a.tier > b.tier) return 1
+    return 0
+  })
+  const automationHours = rows.map((row) => row.mag)
+  const merges = asJsonObj(progression["progression_merges"])
+  let mergeHours = 0n
+  for (const id of Object.keys(merges)) {
+    const row = asObj(merges[id])
+    for (const item of asList(row["effects"])) {
+      if (item === null || typeof item !== "object" || Array.isArray(item)) continue
+      const effect = asObj(item)
+      if (asText(effect["key"]) !== "offline_cap_hours") continue
+      mergeHours = asBig(effect["magnitude"])
+      break
+    }
+    if (mergeHours > 0n) break
+  }
+  return { automationHours, mergeHours }
+}
+
+function loadChainId(districtsSection: unknown): bigint {
+  const snap = asObj(asObj(asObj(districtsSection)["stake"])["snapshot"])
+  return asBig(snap["chain_id"])
+}
+
+function loadChainRpc(districtsSection: unknown): string {
+  const snap = asObj(asObj(asObj(districtsSection)["stake"])["snapshot"])
+  return asText(snap["rpc"])
+}
+
+function loadMergePairs(raw: Json | undefined): readonly ClientMergePair[] {
+  if (raw === undefined || raw === null || typeof raw !== "object" || Array.isArray(raw)) return []
+  const bag = asJsonObj(raw)
+  const out: ClientMergePair[] = []
+  for (const id of Object.keys(bag)) {
+    const row = bag[id]
+    if (row === null || typeof row !== "object" || Array.isArray(row)) continue
+    const n = asObj(row)
+    const districts: string[] = []
+    const listed = n["districts"]
+    if (Array.isArray(listed)) {
+      for (const item of listed) {
+        if (typeof item === "string" && item.length > 0) districts.push(item)
+      }
+    }
+    if (districts.length === 0) continue
+    const mid = asText(n["id"])
+    out.push({ id: mid.length > 0 ? mid : id, districts })
+  }
+  out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  return out
 }
 
 function loadIslandOccupied(rows: { readonly [key: string]: unknown }): OccupiedPlant[] {
@@ -535,6 +876,75 @@ function loadIslandOccupied(rows: { readonly [key: string]: unknown }): Occupied
       anchor: asText(row["anchor"]),
       packId: asText(row["pack_id"]),
     })
+  }
+  return out
+}
+
+function loadLevelCostMap(raw: { readonly [key: string]: unknown }): { readonly [id: string]: readonly bigint[] } {
+  const out: { [id: string]: bigint[] } = {}
+  for (const id of Object.keys(raw)) {
+    const rows = raw[id]
+    if (!Array.isArray(rows)) continue
+    const costs: bigint[] = []
+    for (const item of rows) costs.push(asBig(item))
+    out[id] = costs
+  }
+  return out
+}
+
+function loadHireCostByN(raw: unknown): { readonly [n: string]: bigint } {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return {}
+  const bag = asObj(raw)
+  const out: { [n: string]: bigint } = {}
+  for (const n of Object.keys(bag)) {
+    const row = bag[n]
+    if (row === null || typeof row !== "object" || Array.isArray(row)) continue
+    out[n] = asBig(asObj(row)["cost"])
+  }
+  return out
+}
+
+export function nextHireCost(pack: ClientPack, agentCount: number): bigint | undefined {
+  return pack.hireCostByN[(agentCount + 1).toString()]
+}
+
+export function nextLevelCost(
+  pack: ClientPack,
+  buildingId: string,
+  currentLevel: bigint | undefined,
+): bigint | undefined {
+  const rows = pack.levelCostById[buildingId]
+  if (rows === undefined) return undefined
+  const idx = currentLevel === undefined ? 0 : Number(currentLevel)
+  if (!Number.isFinite(idx) || idx < 0 || idx >= rows.length) return undefined
+  const cost = rows[idx]
+  if (cost === undefined || cost === 0n) return undefined
+  return cost
+}
+
+export function nextTierCost(pack: ClientPack, currentTier: bigint | undefined): bigint | undefined {
+  const next = currentTier === undefined ? 1n : currentTier + 1n
+  return pack.tierCostByTier[next.toString()]
+}
+
+function loadSMinByTicker(value: unknown): { readonly [ticker: string]: bigint } {
+  if (value === undefined || value === null || typeof value !== "object" || Array.isArray(value)) {
+    return {}
+  }
+  const stake = value as { readonly [key: string]: unknown }
+  const raw = stake["s_min"]
+  if (raw === undefined || raw === null || typeof raw !== "object" || Array.isArray(raw)) return {}
+  const row = raw as { readonly [key: string]: unknown }
+  const out: { [ticker: string]: bigint } = {}
+  for (const ticker of Object.keys(row)) {
+    const item = row[ticker]
+    if (typeof item === "bigint") {
+      out[ticker] = item
+      continue
+    }
+    if (item === undefined || item === null || typeof item !== "object" || Array.isArray(item)) continue
+    const v = (item as { readonly [key: string]: unknown })["v"]
+    if (typeof v === "bigint") out[ticker] = v
   }
   return out
 }
@@ -594,27 +1004,6 @@ function loadEmptyKinds(rows: { readonly [key: string]: unknown }): { readonly [
     const row = asObj(rows[id])
     out[id] = asText(row["ui_key"])
   }
-  return out
-}
-
-function loadOnboardSteps(flow: { readonly [key: string]: unknown }): OnboardStep[] {
-  const stepsIn = asObj(flow["steps"])
-  const out: OnboardStep[] = []
-  for (const id of Object.keys(stepsIn)) {
-    const row = asObj(stepsIn[id])
-    const codes: string[] = []
-    for (const item of asList(row["blocked_codes"])) {
-      if (typeof item === "string") codes.push(item)
-    }
-    out.push({ id, step: asBig(row["step"]), codes })
-  }
-  out.sort((a, b) => {
-    if (a.step < b.step) return -1
-    if (a.step > b.step) return 1
-    if (a.id < b.id) return -1
-    if (a.id > b.id) return 1
-    return 0
-  })
   return out
 }
 

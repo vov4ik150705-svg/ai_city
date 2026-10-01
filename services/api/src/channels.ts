@@ -5,6 +5,7 @@ export type ChannelHandler = (payload: Uint8Array) => void
 export type ChannelHub = {
   subscribe(channel: string, handler: ChannelHandler): void
   publishSource(sourceId: string, payload: Uint8Array): void
+  publishChannel(channel: string, payload: Uint8Array): void
   hasChannel(name: string): boolean
   channelOf(sourceId: string): string | undefined
   sourceIds(): readonly string[]
@@ -21,9 +22,10 @@ export function createHub(): ChannelHub {
     publishSource(sourceId: string, payload: Uint8Array): void {
       const channel = channelOfSource(sourceId)
       if (channel === undefined) return
-      const handlers = subs[channel]
-      if (handlers === undefined) return
-      for (const h of handlers) h(payload)
+      emit(subs, channel, payload)
+    },
+    publishChannel(channel: string, payload: Uint8Array): void {
+      emit(subs, channel, payload)
     },
     hasChannel(name: string): boolean {
       return channelOfSource(name) !== undefined || channelNameExists(name)
@@ -35,6 +37,16 @@ export function createHub(): ChannelHub {
       return Object.keys(channelMap)
     },
   }
+}
+
+function emit(
+  subs: { readonly [channel: string]: ChannelHandler[] | undefined },
+  channel: string,
+  payload: Uint8Array,
+): void {
+  const handlers = subs[channel]
+  if (handlers === undefined) return
+  for (const h of handlers) h(payload)
 }
 
 function channelOfSource(sourceId: string): string | undefined {

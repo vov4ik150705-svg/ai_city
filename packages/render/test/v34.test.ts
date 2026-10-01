@@ -91,6 +91,8 @@ describe.sequential("V3-4 construction", () => {
     const selectSrc = readFileSync(join(repo, "packages/render/src/islandSelect.ts"), "utf8")
     expect(selectSrc.includes("mat.clone()")).toBe(true)
     expect(selectSrc.includes("mat.dispose()")).toBe(true)
+    expect(selectSrc.includes("ffb54a")).toBe(false)
+    expect(selectSrc.includes("EdgesGeometry")).toBe(true)
     const pixiSrc = readFileSync(join(repo, "packages/render/src/pixi.ts"), "utf8")
     expect(pixiSrc.includes("applyBuildingSelection")).toBe(false)
     const app = readFileSync(join(repo, "apps/client/src/hud/App.tsx"), "utf8")

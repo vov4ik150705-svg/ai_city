@@ -1,15 +1,16 @@
 import { existsSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { bytesEq, fromUtf8, parseJson } from "@corporator/contentpack"
-import { readyTemplate } from "@corporator/protocol"
+import { bytesEq, canonical, fromUtf8, parseJson } from "@corporator/contentpack"
+import { codes, readyTemplate } from "@corporator/protocol"
 import { describe, expect, it } from "vitest"
 import { listenApi } from "../src/listen.ts"
-import { replayStored } from "../src/tick_host.ts"
+import { replayStored, restoreLiveState } from "../src/tick_host.ts"
 import { tickIfWriter, tickOnce } from "../src/scheduler.ts"
 import { listBytes, putBytes } from "../src/store.ts"
 import { pgTickLock } from "../src/tick_lock.ts"
-import { asObj, asText, bootHost, bootHostOn, openPglite } from "./harness.ts"
+import { asEngineDict, asObj, asText, bootHost, bootHostOn, demoAuth, openPglite, seedPlayerCapital } from "./harness.ts"
+import { asBigint, walk } from "../src/values.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
@@ -84,6 +85,37 @@ describe.sequential("P4 construction", () => {
       }
       expect(bytesEq(a, b)).toBe(true)
     }
+    restored.state = await restoreLiveState(restored.ctx, store, restored.genesis)
+    expect(asBigint(restored.state["city_time"])).toBe(asBigint(originHost.state["city_time"]))
+    expect(asBigint(restored.state["tick_index"])).toBe(asBigint(originHost.state["tick_index"]))
+    const liveStore = await openPglite()
+    const first = await bootHostOn(liveStore)
+    await tickOnce(first)
+    await tickOnce(first)
+    const auth = await demoAuth(first)
+    const hireCost = asBigint(walk(first.ctx.pack, ["generated", "balance", "hire_cost", "1", "cost"]))
+    seedPlayerCapital(first, auth.cityId, hireCost + hireCost)
+    const hireAt = asBigint(first.state["city_time"])
+    const hired = await first.handle(
+      "POST",
+      "/command/hire",
+      canonical({ intent_id: "p4h", expected_city_time: hireAt, role: "engineer" }),
+      auth.headers,
+    )
+    expect(Number(hired.status)).toBe(Number(first.ctx.httpOk))
+    const hiredCity = asEngineDict(asEngineDict(first.state["cities"])[auth.cityId])
+    const hiredAgents = Array.isArray(hiredCity["agents"]) ? hiredCity["agents"].length : 0
+    expect(hiredAgents).toBe(1)
+    const hiredCapital = asBigint(hiredCity["capital"])
+    const restarted = await bootHostOn(liveStore)
+    expect(asBigint(restarted.state["city_time"])).toBe(asBigint(first.state["city_time"]))
+    expect(asBigint(restarted.state["tick_index"])).toBe(asBigint(first.state["tick_index"]))
+    expect(asBigint(asEngineDict(asEngineDict(restarted.state["cities"])["a"])["capital"])).toBe(
+      asBigint(asEngineDict(asEngineDict(first.state["cities"])["a"])["capital"]),
+    )
+    const restartedCity = asEngineDict(asEngineDict(restarted.state["cities"])[auth.cityId])
+    expect(Array.isArray(restartedCity["agents"]) ? restartedCity["agents"].length : 0).toBe(hiredAgents)
+    expect(asBigint(restartedCity["capital"])).toBe(hiredCapital)
   })
 
   it("two_replicas_tick_once", async () => {
@@ -110,5 +142,24 @@ describe.sequential("P4 construction", () => {
     expect(Number(ready.status)).toBe(200)
     const body = asObj(parseJson(fromUtf8(ready.body)))
     expect(asText(body["pack_hash"])).toBe(writer.ctx.hash)
+    writer.commandLock = lockA
+    replica.commandLock = lockB
+    const auth = await demoAuth(writer)
+    const t = asBigint(writer.state["city_time"])
+    const cmd = canonical({ intent_id: "p4c", expected_city_time: t })
+    const blocked = await replica.handle("POST", "/command/noop", cmd, auth.headers)
+    const blockedJson = parseJson(fromUtf8(blocked.body))
+    const blockedCode =
+      blockedJson !== null && typeof blockedJson === "object" && !Array.isArray(blockedJson)
+        ? asText(asObj(blockedJson)["code"])
+        : ""
+    expect(blockedCode).toBe(codes.SERVICE_DEGRADED)
+    const allowed = await writer.handle("POST", "/command/noop", cmd, auth.headers)
+    const allowedJson = parseJson(fromUtf8(allowed.body))
+    const allowedCode =
+      allowedJson !== null && typeof allowedJson === "object" && !Array.isArray(allowedJson)
+        ? asText(asObj(allowedJson)["code"])
+        : ""
+    expect(allowedCode).toBe(codes.FEATURE_NOT_IN_V1)
   })
 })

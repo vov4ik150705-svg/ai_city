@@ -15,11 +15,13 @@ export function FunctionStrip(props: {
   const strings = props.strings
   const used = new Set<string>()
   const unavailable = strings === undefined ? props.view.shell.functions.message : lookup(strings, "UI_UNAVAILABLE", used)
+  const idleCaption = strings === undefined ? "" : lookup(strings, "UI_IDLE", used)
   return (
     <ActiveFunctionsLook
       view={props.view}
       pack={props.pack}
       unavailable={unavailable}
+      idleCaption={idleCaption}
       {...(props.selectedId === undefined ? {} : { selectedId: props.selectedId })}
       {...(props.onViewAll === undefined ? {} : { onViewAll: props.onViewAll })}
       {...(props.onSelectBuilding === undefined ? {} : { onSelectBuilding: props.onSelectBuilding })}

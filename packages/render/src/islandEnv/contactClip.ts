@@ -1,7 +1,9 @@
 /** Predicate clip for contact discs. No Three.js — the mesh probe lives in contact.ts. */
 
-const RING = 48
-const SEARCH = 8
+import { EIGHT, FORTY_EIGHT, TWO } from "../literals.js"
+
+const RING = FORTY_EIGHT
+const SEARCH = EIGHT
 const MIN_R = 0.12
 const EDGE_INSET = 0.94
 
@@ -21,7 +23,7 @@ export function isDeckSample(hitY: number, normalY: number, deckY: number): bool
 function ringFits(inside: (x: number, z: number) => boolean, x: number, z: number, radius: number): boolean {
   let d = 0
   while (d < RING) {
-    const a = (d / RING) * Math.PI * 2
+    const a = (d / RING) * Math.PI * TWO
     if (!inside(x + Math.cos(a) * radius, z + Math.sin(a) * radius)) return false
     d += 1
   }

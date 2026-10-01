@@ -1,0 +1,58 @@
+{
+  "n": 11,
+  "anchor": "before",
+  "dir": "11-before-ready",
+  "title": "Before you go in",
+  "eyebrow": "11 — BEFORE YOU GO",
+  "intro": "Nobody here promises a profit. Prices move both ways, the tank is shared and finite, and the Bank keeps hours. Try the demo city first: no wallet, nothing at stake.",
+  "note": "Corporator hasn't launched yet. This book tells the rules as they stand today.",
+  "linkLabel": "More in the handbook → Risks",
+  "ref": "protocol.md#risks",
+  "alt": "The island at dusk with a signpost to Demo and Handbook; the engineer waves goodbye from the Workshop door.",
+  "w": 1602,
+  "h": 981,
+  "hash": "8D6C3B57778EA796F0D3B1AC8B89581103F72E5E8979EBD9A0BEF51E33D4363D",
+  "geometry": {
+    "left": 270,
+    "top": 0,
+    "width": 1100,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 11: Before you go in",
+      "artBottom": 739.59375,
+      "noteTop": 756,
+      "handbookAnchor": "#risks"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

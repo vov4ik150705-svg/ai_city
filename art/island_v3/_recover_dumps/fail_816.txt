@@ -1,0 +1,7 @@
+LINE 1329
+OLD LEN 51
+NEW LEN 81
+OLD HEAD
+    return (round(p[0] * 40.0), round(p[1] * 40.0))
+---NEW HEAD---
+    return (round(p[0] * 40.0 / ISLAND_SCALE), round(p[1] * 40.0 / ISLAND_SCALE))

@@ -173,6 +173,8 @@ describe.sequential("M0 construction", () => {
           "round_trip_after_tax_two_percent",
           "fund_tax_floor_holds",
           "dex_visible_fee_under_ceiling",
+          "creator tax split is 100/20/60/20 of tax atoms on turnover",
+          "spend amount 1 with protocol 0 does not take CORP from vault",
         ])
       } else if (id === "prize_period") {
         expect(stage.construction_tests ?? []).toEqual([

@@ -16,17 +16,24 @@ game system.
 ### Audit basis
 
 - Repository: `C:\Users\sk640\ai_city`
-- Audit date: 2026-09-13
-- Prior audit in this file: 2026-09-09/10/11
+- Audit date: 2026-09-20 (version facts re-verified against disk on this date)
+- Prior audit in this file: 2026-09-09/10/11/13
 - Current pack hash:
-  `9e4a5ca1132872e8856ad0764126f63ec0bc16b7a971f59108c9724495cb83ed`
+  `7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c`
 - Current vectors hash:
-  `db4d97d59d94ebabd2fd53e06c2726c42bb6b1085413f0fc8549da64e0a9fd4e`
+  `dcf5e9fa6428557230e17ac25724fedd809f658f92f864188fb2d10d4c407449`
 - Current `rules_version`: `0.24.0`
-- Current `pack_version`: `138`
+- Current `pack_version`: `176`
 - Current `layout_version`: `1`
-- Current canonical bytes: `676950` (`content/out/pack.json` size equals
+- Current canonical bytes: `672869` (`content/out/pack.json` size equals
   `content/build.py` “canonical bytes”)
+- Version facts agree across four places, all re-read on 2026-09-20:
+  `content/out/pack.json`, `content/out/pack.sha256`,
+  `content/params/meta.json` (`pack_version` 176), and
+  `packages/protocol/src/versions.ts` (`packVersion = 176n`).
+- Earlier revisions of this file quoted packs 138, 150, 162, 171, 172 and 173
+  as "current" in different chapters. Those are superseded. If you find a pack
+  id other than 176 anywhere below, it is stale text, not a second truth.
 - Primary current-canon index: `docs/CANON.md`
 - These are current local generator outputs. No mainnet publication, launch
   signature, or deployment was performed.
@@ -72,21 +79,23 @@ publication. It does **not** silently resolve C-20.
 **CANONICAL FACT — current local generated pack (not a mainnet publication):**
 
 - `content/out/pack.sha256` =
-  `9e4a5ca1132872e8856ad0764126f63ec0bc16b7a971f59108c9724495cb83ed`
+  `7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c`
 - `content/out/vectors.sha256` =
-  `db4d97d59d94ebabd2fd53e06c2726c42bb6b1085413f0fc8549da64e0a9fd4e`
+  `dcf5e9fa6428557230e17ac25724fedd809f658f92f864188fb2d10d4c407449`
 - `packages/protocol/src/versions.ts` banner matches that pack hash;
-  `rulesVersion = "0.24.0"`; `packVersion = 138n`; `layoutVersion = 1n`
-- `content/out/GENERATED.md` header: rules `0.24.0`, pack `138`, hash
-  `9e4a5ca1132872…`
+  `rulesVersion = "0.24.0"`; `packVersion = 176n`; `layoutVersion = 1n`
+- `content/out/GENERATED.md` header: rules `0.24.0`, pack `176`, hash
+  `7bbdc470c0b3d4d1…`
 
 **LATEST SUCCESSFUL IMPLEMENTATION EVIDENCE:**
 
-- `python content/codegen.py --check`: `23 artifacts match pack 9e4a5ca1132872`
-- `python content/build.py`: succeeded; fee split `100/30/50/20`, spend split `40/60/0`
+- `python content/codegen.py --check`: 23 artifacts match the generated pack
+  (the hash quoted in an earlier revision, `9e4a5ca1132872`, belonged to a
+  superseded pack; the current one is `7bbdc470…`)
+- `python content/build.py`: succeeded; fee split `100/20/60/20` (fund / leaderboard / farm / studio, in bps of DEX turnover), spend split `40/60/0`
 - `python content/builds.py`: completed in 1182 seconds; `131777` evaluated,
   `92622` justified, `uncovered=0`, `dominating=0`, `dead=0`, `mandatory=0`
-- `python content/lint.py`: 384 rules, `ERRORS: none`; L174 warning and 5 pending owner/T3 items remain
+- `python content/lint.py`: **386** rules, `ERRORS: none`; L174 warning and **4** pending owner/T3 items remain (re-run 2026-09-20)
 - `python content/attack.py --only L42,L63,L64,L65,L69,L313`: 14 targeted probes caught
 - Direct source mutations: `spend_protocol` does not change farm sizing; active-work `0` zeros it
 - `construction_island_stage_keys_exist`: held
@@ -101,12 +110,12 @@ publication. It does **not** silently resolve C-20.
 
 **DOCUMENTATION-PASS RECHECK:**
 
-- `python content/lint.py`: 384 rules, `ERRORS: none`; one L174 warning and
-  five explicit pending owner/T3 items.
-- `python content/build.py` was attempted, but Windows could not overwrite
-  the already mapped `content/out/pack.json`; this pass therefore claims no
-  new build result. The documented pack values are the existing local pack
-  `138` / hash above.
+- `python content/lint.py` (2026-09-20): **386** rules, `ERRORS: none`; one
+  L174 warning and **four** explicit pending owner/T3 items.
+- `python content/build.py` ran clean on 2026-09-20. The documented pack
+  values are pack **176** / hash `7bbdc470…` above. An earlier pass could not
+  overwrite a memory-mapped `content/out/pack.json` and therefore quoted pack
+  `138`; that blocker is gone and that number is superseded.
 
 **DOCUMENTATION STATUS — current local pack:**
 
@@ -114,19 +123,22 @@ publication. It does **not** silently resolve C-20.
   inside the authored `1200 ± 400` tolerance. It describes the archival
   placement grid, not the live authored island; the generator must not paint
   extra lots to force the target.
-- `PENDING` is explicit owner/T3 work, not a failed gate:
+- `PENDING` is explicit owner/T3 work, not a failed gate. Four items:
   `attest_testnet`, `bank_withdraw_rate_ceiling_only`,
-  `exit_uncovered_at_band_floor`, and
-  `island_studio_diorama`.
+  `exit_uncovered_at_band_floor`, and `island_studio_diorama`.
 - `attest_testnet` waits for real testnet deployment data. The bank item needs
-  a decision about deriving withdrawal from the working mint rate. The LLM
-  a current `409 bps` uncovered band and cannot be deleted without a matching
-  economic decision. The island item closes only on owner `ACCEPT LOOK-11`.
+  a decision about deriving withdrawal from the working mint rate.
+  `exit_uncovered_at_band_floor` records a `409 bps` uncovered band and cannot
+  be deleted without a matching economic decision.
+- `island_studio_diorama` is pack-versus-docs drift, not open work: the owner
+  accepted the island view on 2026-09-14 (`ACCEPT LOOK-11`, `docs/CANON.md`
+  `R-V-106`/`R-V-109`), but the entry still sits in
+  `content/params/pending.json`. Do not reopen a LOOK pass because of it.
 
 **IMPLEMENTATION from the official pack-publish close (not re-run in this
 follow-up; still the current published evidence):**
 
-- Serial attack: 384 rules covered + 307 construction held, including
+- Serial attack: 386 rules covered + 307 construction held, including
   day-15 06:00 (`тик на границе 06:00` / 14-day fragment settlement)
 - Engine C1 + economy_rules + M5: 26/26
 - Chainport: 16/16
@@ -157,21 +169,23 @@ follow-up; still the current published evidence):**
 full construction. Targeted `--only L268,L385` in this follow-up completed
 without that race.
 
-**Remaining genuine partiality (do not erase):**
+**Remaining genuine partiality (updated 2026-09-19 — do not restore the
+2026-09-13 “no deposit/stake/withdraw API” bullets; those commands are live):**
 
-- No API `unstake` command; `packages/protocol/src/routes.ts` has no
-  `/command/unstake`.
-- Production voucher host/chain presentation path is not wired through API
-  (`services/api` has no `issueVoucher`/`presentVoucher` command).
-- `AssetPort` now exposes PrizeTreasury deposit/slice/return/claim custody
-  methods. DEX quote/buy and stock-hop execution remain an external conveyor
-  boundary (`packages/chainport/src/port.ts`).
+- Production voucher host as a separate `issueVoucher`/`presentVoucher`
+  HTTP command is not in the protocol. Bank `withdraw` already runs
+  `authorize` → `present` inside `applyWithdraw`.
+- DEX quote/buy and stock-hop execution remain an external conveyor
+  boundary. `buy_stock` is a live handler that refuses
+  `EXCHANGE_HOP_UNAVAILABLE` while the quote is mock.
 - Engine tick `bankWithdraw` can still fill `withdraw_intent` immediately
   without the reservation voucher path (`packages/engine/src/economy.ts`).
-- Client `build.tsx` still posts `tile_x`/`tile_y`; the API ignores those
-  fields.
-- LOOK-11 owner acceptance is absent. LOOK-02 identity/pose is implemented.
-- No API `deposit` / `withdraw` / `stake` command routes.
+  Command withdraw does not call that tick path (C-22 preserved).
+- Pack `build_place` still describes lot-tile placement (C-01 copy). The
+  live HUD no longer posts `tile_x`/`tile_y`; API `build` is
+  activate/deactivate.
+- LOOK-11 was accepted 2026-09-14. Live mass is Terra
+  (`runtime_terra19/`). Production `launch.deployed` is still empty.
 
 ### Deployment-only data gaps
 
@@ -197,6 +211,106 @@ contained modified generated/configuration files, `dist-web` changes, deleted
 and added GLBs, and nested `node_modules` changes. This document describes the
 current files; it does not claim that the current working tree equals a clean
 commit.
+
+### Follow-up audit 2026-09-19
+
+This dated addendum records repository evidence after the 2026-09-13 audit.
+Pack `138` hashes in the 2026-09-13 verification block stay as that day’s
+build evidence. API command status, HUD wire-up, and LOOK-11 in later
+sections of this file are the 2026-09-19 state: `deposit`, `stake`,
+`withdraw`, `upgrade`, and the rest of `applyLive` are implemented.
+Unstake is live as holder `StakeRegistry.unstake` plus engine freeze.
+Do not quote the 2026-09-13 “no deposit/stake API” or “invent unstake”
+bullets as current.
+
+**Audit basis (2026-09-19):**
+
+- Repository: `C:\Users\sk640\ai_city`
+- Primary living plan: `docs/reports/PLAN_LAUNCH.md` (code queue empty)
+- Primary canon index: `docs/CANON.md`
+- These are current local generator outputs. No mainnet publication, launch
+  signature, or deployment was performed.
+
+**CANONICAL FACT — current local generated pack (not a mainnet publication):**
+
+- `content/out/pack.sha256` =
+  `7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c`
+- `packages/protocol/src/versions.ts`: `rulesVersion = "0.24.0"`;
+  `packVersion = 176n`; `layoutVersion` remains `1n`; banner hash matches
+  the pack file
+- `content/out/GENERATED.md` header: rules `0.24.0`, pack `176`, hash
+  `7bbdc470c0b3d4d1…`
+- `content/params/meta.json` `pack_version` **176** matches the generated pack.
+
+**IMPLEMENTATION — PLAN_LAUNCH closeout (2026-09-18…2026-09-19):**
+
+Closed in the living plan: F1–F7 (F4 owner-withdrawn), I1–I3 (I3: leave
+`island.blend`), H1–H9 (HUD wire-up through launch, gated on
+`launch.deployed` + env), M4–M8. M1–M3 were cancelled and replaced by H1–H5.
+D1–D5 closed 2026-09-21. Full ledger: §54.
+
+**CANONICAL FACT — island (supersedes 2026-09-13 LOOK-11 unknown):**
+
+Owner accepted the Terra look on 2026-09-14 (`ACCEPT LOOK-11`,
+`art/island_v3/maps/terra-look.json`, `ENV_LOOK_REV` 27). Live mass is
+`art/island_v3/runtime_terra19/` (`R-V-109`). I1 retargeted `view.html` /
+preview to Terra. I2 moved the rejected island out of the live index.
+Packed day-sign / L387 is not the accepted look. Units remain absent
+(`R-V-101`). Companion is removed from the live pack (`L388`). There is no
+host writer (`R-V-110`).
+
+**IMPLEMENTATION — HUD / API wire (H9 counts from code, 2026-09-19):**
+
+- State channels projected: 21 / 21. `wallet.chain` and
+  `wallet.corp_balance` are honestly `{}` while `launch.deployed` is empty.
+- API `applyLive` includes `claim_prize`; `noop` remains a stub.
+- Client live intents: 15 / 19. `claim_prize` is `live` only when all five
+  `launch.deployed` fields are filled; otherwise `refusal-only`.
+- Pack actions after `deployed`: 38 / 39 (`missions_start` stub;
+  `missions_live` remains 0).
+- Playable HUD objects: 29 / 34. Closed as not-work: `build`, `settings`,
+  `missions`, `bottom_menu`. `stock_bar` is numbers on Exchange/Industries,
+  not a permanent strip.
+- Snapshot fields: 38 / 40. `quoteAgeMs` / `quoteCorpEth` stay empty until
+  hop is executable.
+
+**IMPLEMENTATION — commands that exist now**
+(`packages/protocol/src/routes.ts`, generated banner pack `7bbdc470…` = 176):
+
+`/command/assign`, `/command/build`, `/command/buy_stock`,
+`/command/claim_fragment`, `/command/claim_prize`, `/command/deposit`,
+`/command/hire`, `/command/merge`, `/command/noop`,
+`/command/open_district`, `/command/pick_node`,
+`/command/research_start`, `/command/set_objective`, `/command/stake`,
+`/command/unlock_tier`, `/command/upgrade`, `/command/withdraw`.
+
+**IMPLEMENTATION — unstake is done:** `StakeRegistry.unstake(ticker, amount)`
+is holder-owned (`msg.sender`, no owner approval). Chainport mock and live
+RPC send the tx `from` the holder. Engine `unstake()`
+(`packages/engine/src/bank.ts`) returns settled tokens to `tokens_held`,
+queues `unstake_pending`, and freezes the district after 24 city hours if
+remaining settled < `S_min`. HUD has no city `commit:unstake` because the
+wallet transaction is the action.
+
+**IMPLEMENTATION — honest remaining gaps (2026-09-19):**
+
+- `content/params/launch.json` `deployed.*` still empty; no production
+  addresses.
+- Exchange hop: `buy_stock` is a live client intent; API refuses
+  `EXCHANGE_HOP_UNAVAILABLE` while the quote is mock (`quoteLive = false`).
+  `cpmmBuyCorp` / `cpmmSellCorp` are not called. Stocks are not minted.
+- Prize claim: API can call `PrizeTreasury.claimPrize` through
+  `selectApiPort` when env is complete; mock is not custodial
+  (`paid>0` without chain → `PRIZE_CLAIM_UNCOVERED`). Client claim stays
+  refusal-only until `launch.deployed` is filled.
+- C-20 (merge half vs full), C-01 (tile copy vs authored map; client no
+  longer posts `tile_x`/`tile_y` from the closed build screen), C-22
+  (engine `bankWithdraw` immediate fill vs voucher path) are preserved.
+- Production client hosting is still absent from `deploy/`.
+- Documentation tasks D1–D5 closed 2026-09-21; listed in §54.10. This
+  addendum does not rewrite older numbered sections.
+
+Detail for HUD, ranking, commands, attestation, and the agent tick: §50–§53. Full PLAN_LAUNCH ledger: §54.
 
 ---
 
@@ -243,19 +357,20 @@ onboard
   → participate in fragment windows / Influence seasons
 ```
 
-**IMPLEMENTATION:** The current runtime executes a synthetic city-hour payroll
-model plus the newer content-owned economy helpers. The TypeScript engine can
-calculate a generic city request, payroll, mint rate, bank reservations,
-unstake/freeze, XP, housing/city-level stickiness, fragment settlement and
-records. The API currently implements `hire`, `build` (logical function
-activate/deactivate), `claim_prize`, and `set_objective`
-(`services/api/src/commit.ts`). The client does not receive the complete live
-state. There is still no API `unstake`, `deposit`, `withdraw`, or voucher
-presentation host.
+**IMPLEMENTATION:** The TypeScript engine calculates request, payroll, mint
+rate, bank reservations, unstake/freeze, XP, housing/city-level stickiness,
+fragment settlement and per-slot agent records. `applyLive` in
+`services/api/src/commit.ts` (2026-09-19) handles `hire`, `assign`, `build`,
+`set_objective`, `research_start`, `open_district`, `stake`, `unlock_tier`,
+`pick_node`, `merge`, `upgrade`, `claim_fragment`, `deposit`, `withdraw`,
+`buy_stock`, and `claim_prize`. Unstake is the holder’s `StakeRegistry`
+call plus engine grace/freeze, not a city command. `buy_stock`
+refuses until a live hop quote exists. Prize custody and vault RPC run only
+when env/`launch.deployed` is complete.
 
-**INFERENCE:** The repository is currently a deterministic simulation and
-architecture prototype with a partial browser vertical slice, not a complete
-production game.
+**INFERENCE:** Local HUD and API commands are wired (2026-09-19). This is
+still not a production deployment: `launch.deployed` is empty, hop is mock,
+and there are no mainnet addresses.
 
 ### Most important handoff warning
 
@@ -293,8 +408,8 @@ runtime.
   `awardPaidTick`/`awardTrain`, `housingCapacityOf`, `stickyCityLevel`,
   `clipOfflineHours`, `fragmentGrossBase`, `settleCities`.
 - **IMPORTANT LIMITATION:** state is untyped `Dict`; the engine's city row is
-  not a full Agent/Building graph. Production still uses a synthetic
-  `agent_id="shift"` record.
+  not a full Agent/Building graph. Live cities tick per seated agent.
+  Synthetic `agent_id="shift"` remains only on T3 cities without `functions`.
 
 #### `packages/protocol`
 
@@ -352,12 +467,13 @@ runtime.
 - **SYSTEM:** HTTP API, sessions, command routing, in-memory host state,
   database writes, tick scheduling and attestation handoff.
 - **PURPOSE:** sole intended player-money writer.
-- **LIVE EFFECTS:** `hire`, `build` (activate/deactivate authored functions),
-  `claim_prize`, `set_objective`.
-- **IMPORTANT LIMITATION:** boot does not reconstruct live city state from the
-  database; runtime gameplay remains synthetic/partial. Genesis/session cities
-  get `functions: []` and `created_day`. There is no unstake/withdraw/deposit
-  command handler.
+- **LIVE EFFECTS:** `hire`, `assign`, `build`, `set_objective`,
+  `research_start`, `open_district`, `stake`, `unlock_tier`, `pick_node`,
+  `merge`, `upgrade`, `claim_fragment`, `deposit`, `withdraw`, `buy_stock`,
+  `claim_prize` (`services/api/src/commit.ts::applyLive`). Unstake is holder
+  `StakeRegistry.unstake` plus engine freeze, not a city command.
+- **IMPORTANT LIMITATION:** `restoreLiveState` rebuilds from last snapshot
+  plus `tick_inputs`. `buy_stock` refuses without a live hop. `claim_prize` chain custody needs env/`launch.deployed`.
 
 #### `services/sampler`
 
@@ -391,13 +507,26 @@ runtime.
   service can produce a `verified` badge in a mock environment; that badge
   does not prove an on-chain root was submitted.
 
-#### `services/llm`
+#### `services/llm` — REMOVED, DO NOT RECREATE
 
-- **FILE:** `services/llm/src/step.ts`, `pack.ts`
-- **SYSTEM:** queue capacity and provider-failure template arithmetic.
-- **PURPOSE:** keep LLM outside the economic tick.
-- **ABSENT:** provider adapter, daily summary execution,
-  and persistent generated agent personality.
+This service no longer exists. Decision `R-V-110` in `docs/CANON.md` removed
+external inference from the product entirely, and linter rule `L388` removed
+the Companion surface that consumed it.
+
+There are **four** live service processes, not five: `api`, `sampler`,
+`buyback`, `attestor` (`listenPorts` in `packages/protocol/src/listen.ts`).
+There is no `services/llm/**` on disk.
+
+Agents are a deterministic policy engine plus traits plus seeded jitter. A
+shift summary is assembled from the tick's own records. Nothing in the economy
+calls a provider, so there is no queue, no template fallback, and no boundary
+to police.
+
+Leftover in the engine, which is dead code and not a feature: `applyCompanion`
+in `packages/engine/src/tick.ts`, `companion_commands` on the tick input, and
+`companion_replan_on_login` in `config.ts`. The pack has no `companion`
+section (`generated.companion` is `{}`) and no `content/params/companion.json`.
+Do not resurrect either.
 
 #### `apps/client`
 
@@ -476,11 +605,13 @@ runtime.
   vector-tested.
 - **CONTRACT SAFETY DOUBLES:** implemented/tested locally.
 - **API/SESSION SCAFFOLD:** implemented.
-- **FULL PLAYER GAMEPLAY:** incomplete.
-- **FULL LIVE CHAIN:** absent.
-- **FULL PERSISTENT CITY STATE:** incomplete.
-- **CURRENT 3D RENDERER:** implemented as a static/runtime island path.
-- **FINAL VISUAL ACCEPTANCE:** incomplete; LOOK-11 acceptance absent.
+- **FULL PLAYER GAMEPLAY:** HUD/API loop is wired (H1–H9, M8). Missions,
+  physical placement, production hop, and filled `launch.deployed` are not.
+- **FULL LIVE CHAIN:** absent until production addresses exist.
+- **FULL PERSISTENT CITY STATE:** `restoreLiveState` + `catchUp` exist;
+  production hosting of the client is still absent from `deploy/`.
+- **CURRENT 3D RENDERER:** Terra runtime (`runtime_terra19/`).
+- **FINAL VISUAL ACCEPTANCE:** LOOK-11 accepted 2026-09-14.
 - **MARKETING/BRAND REFERENCES:** present as visual files; no integrated
   marketing pipeline.
 
@@ -751,9 +882,11 @@ Sources: `apps/client/src/session.ts`, `services/api/src/session.ts`,
 **CANONICAL FACT:** `$CORP` enters the Vault and mints Capital at the current
 backed rate, less the Vault fee.
 
-**IMPLEMENTATION:** Vault Solidity and chainport interfaces support the
-operation. API command `deposit` is listed in protocol but is not handled by
-`services/api/src/commit.ts`.
+**IMPLEMENTATION:** `applyDeposit` (`services/api/src/commit_bank.ts`) is
+live. It requires a wallet city, takes `amount` `$CORP`, optionally calls
+`port.vault.deposit` when custody is live, then mints Capital only through
+`mintFromBacking`. Bank hours do not gate deposits. Without live RPC it
+debits `corp_held`.
 
 **FAILURE:** `WALLET_NOT_CONNECTED`, `NOT_ENOUGH_CORP`, `STALE_PRICE` or
 transport failure.
@@ -772,8 +905,8 @@ mutation, anchor allocation, or construction state.
 prebuilt/autonomous ids, checks `buildings_playable_v1` and city-level
 requirement, and caps ordinary active functions at `agent_slots + 3`. Frozen
 or deactivated functions do not count. It does not create a runtime 3D mesh,
-construction timer, tile occupancy, or authored-anchor placement. Client
-`apps/client/src/hud/screens/build.tsx` still posts unused `tile_x`/`tile_y`.
+construction timer, tile occupancy, or authored-anchor placement. The live
+HUD no longer posts `tile_x`/`tile_y` (H5 closed `build` as a destination).
 
 **FAILURE:** `CITY_LEVEL_TOO_LOW`, `NO_FREE_BUILD_SLOT`,
 `NOT_ENOUGH_CAPITAL`, `API_MALFORMED`. Protocol still defines
@@ -791,8 +924,11 @@ lot-tile placement and `BUILD_TILE_ILLEGAL`. See C-01.
 
 **CANONICAL FACT:** Hiring costs Capital and consumes an agent slot.
 
-**IMPLEMENTATION:** API adds an engineer object only. It does not use the
-content hire pool, create traits, assign a seat, or update the client roster.
+**IMPLEMENTATION:** `applyHire` (`services/api/src/commit_agents.ts`) spends
+pack hire cost, rolls the starting pool (Engineer / Logistician / Trader)
+when `body.role` is omitted, accepts any live v1 role when asked, rolls 1–2
+traits, and writes default task. Scientist and Manager are hireable by
+explicit role, not the random pool.
 
 **FAILURE:** `NO_FREE_AGENT_SLOT`, `NOT_ENOUGH_CAPITAL`.
 
@@ -801,8 +937,10 @@ content hire pool, create traits, assign a seat, or update the client roster.
 **CANONICAL FACT:** The player should choose seat, role and task; agents
 execute the tick.
 
-**IMPLEMENTATION:** `services/api/src/commit.ts` has no live seat/objective
-implementation. Engine city rows do not contain a full seat graph.
+**IMPLEMENTATION:** `applyAssign` seats an agent on a city function;
+`applySetObjective` writes the agent’s task (Train target included). Live
+tick pays per slot with real `agent_id` (M8). Wrong role is idle with a
+code, not a crash.
 
 ### 6.6 Production
 
@@ -810,9 +948,9 @@ implementation. Engine city rows do not contain a full seat graph.
 window, schedule, energy, compute, then calculates request and pays it from
 the payroll budget.
 
-**IMPLEMENTATION:** This generic city-level production is implemented in
-`packages/engine/src/economy.ts`; it is not a complete building/agent
-simulation.
+**IMPLEMENTATION:** Live cities tick per seated agent (`packages/engine/src/economy.ts`,
+M8). Synthetic `agent_id: "shift"` remains only on T3 cities without
+`functions`.
 
 ### 6.7 Resource bottlenecks
 
@@ -833,8 +971,8 @@ holder-owned `unstake`. Engine `packages/engine/src/bank.ts::unstake` deducts
 settled tokens, returns them to `tokens_held`, queues `unstake_pending` with
 `ready_at = cityTime + graceHours`, and writes `DISTRICT_FREEZING` when
 settled amount falls below `S_min`. Grace is 24 city hours
-(`economy.params.unstake_grace_city_hours`). API district/unstake commands
-are not live. Freeze is server-side, not an on-chain delay.
+(`economy.params.unstake_grace_city_hours`). API `open_district` and
+`stake` are live. Unstake is holder-owned on-chain; freeze is server-side.
 
 ### 6.9 Progression
 
@@ -842,8 +980,8 @@ Progression nodes, tier gates, merge matching and research formulas are
 generated in content. Merge uses the **full** Tier-1 dividend of each side
 (`content/build.py` `magnitude = unit * sign`,
 `docs/PROGRESSION.md` §6). Automation merge may add +1 `offline_cap_hours`,
-clipped at 18 (`clipOfflineHours`). Runtime node selection and merge commands
-are not implemented in API.
+clipped at 18 (`clipOfflineHours`). API `unlock_tier`, `pick_node`, `merge`,
+and `research_start` are live. There is no respec.
 
 **CONFLICT:** `DESIGN.md` §4.8 still says merge is half of the Tier-1
 dividend. Current content/progression/generator is full Tier-1. See C-20.
@@ -868,7 +1006,8 @@ dividend. Current content/progression/generator is full Tier-1. See C-20.
    relative to the voucher reservation design.
 
 Vault has `issueVoucher`/`presentVoucher`/`releaseExpiredVoucher`. API
-withdraw command is not implemented.
+`withdraw` is live and uses `authorize` → `present`; it does not call tick
+`bankWithdraw`.
 
 ### 6.11 Seasons and fragments
 
@@ -880,11 +1019,14 @@ do not backfill days before `created_day`
 
 **IMPLEMENTATION:** Fragment `fragment_gross_base` is authored or derived in
 Capital-equivalent units; modifiers apply before Payroll; settlement is the
-global 14-day window (`payroll_daily_divisor`); city cap applies when
+global 7-day window (`fragment_window_city_days`); city cap applies when
 N≥2; ledger is cleared; owed is written
 (`content/fragments.py`, `packages/engine/src/fragments.ts`). DEX buy/hop
 remains outside the tick. Zipf uses actual eligible N capped by `prize_top_n`;
-dust remains. API claim reports local rows and does not complete custody.
+dust remains. API `claim_fragment` settles owed into `tokens_held`. API
+`claim_prize` can call PrizeTreasury when the port is live; without
+`launch.deployed` / RPC the client stays refusal-only and mock custody is
+not a wallet transfer.
 
 **PARTIAL:** Engine fragment accrual still keys off a synthetic
 `city.building` object, not the full `functions[]` roster.
@@ -968,9 +1110,11 @@ Sources: `DESIGN.md` §§2.2–2.4, `packages/engine/src/economy.ts`,
   reservation and backing), `releaseExpiredVoucher`, refunds, Merkle refund
   claim, wrong-token recovery, signer rotation.
 - **BANK HOURS:** server-side, not Solidity.
-- **PAUSE:** removed from Vault/PrizeTreasury. Engine
-  `packages/engine/src/treasury.ts::claimPrize` still has a leftover
-  `paused`/`honorPause` argument; API passes `paused: false`.
+- **PAUSE:** removed everywhere, including the engine. As of 2026-09-20
+  `packages/engine/src/treasury.ts::claimPrize` takes exactly
+  `{owed, poolIn, demo}`, and the string `paused` does not appear anywhere
+  under `packages/engine/src`. The earlier note about a leftover
+  `paused`/`honorPause` argument is closed.
 - **UNKNOWN:** production address, signer, guardian, voucherSigner, minter.
 
 #### Payroll
@@ -1010,8 +1154,9 @@ Sources: `packages/engine/src/aggregates.ts`, `packages/engine/src/seasons.ts`,
 `content/seasons.py`, `packages/engine/src/tick.ts`.
 
 **IMPLEMENTATION:** the engine stores `city.day_gdp` during `pay()` and
-closes it at hour 0 via `accumulateDay`. The TypeScript API state projection
-does not populate `aggregate.gdp`.
+closes it at hour 0 via `accumulateDay`. The API state projection **does**
+populate `aggregate.gdp`: `services/api/src/project.ts` sets it from
+`gdpDay(...)`. (An earlier revision said it did not; that was closed by H1.1.)
 
 #### Population
 
@@ -1032,7 +1177,11 @@ City Level is sticky: `stickyCityLevel` never downgrades. Attained level,
 slots, agents and functions remain.
 
 Current spawned cities lack housing/jobs state unless `functions[]` is
-present; client hardcodes population to zero in `snapshotFromEnvelope`.
+present. The client does **not** hardcode population to zero:
+`snapshotFromEnvelope` in `apps/client/src/boot.ts` reads
+`buildings.population` or `aggregate.population`, and an empty snapshot leaves
+it `undefined` rather than `0`. The `12n` figure some readers have seen is the
+preview fixture in `hudPreviewData.ts`, not live state.
 
 #### Productivity
 
@@ -1076,15 +1225,15 @@ Source: `content/seasons.py`, `docs/PRIZES.md`.
 
 **CANONICAL FACT:** Fragments are internal claim chips, not ERC-20. Gross
 base is authored or derived `fragment_gross_base` in Capital-equivalent
-units. Rate modifiers apply before Payroll. Settlement is a global 14-day
-window (`payroll_daily_divisor`) at hour 6. City cap applies when N≥2
+units. Rate modifiers apply before Payroll. Settlement is a global 7-day
+window (`fragment_window_city_days`) at hour 6. City cap applies when N≥2
 (`fragment_city_cap_bps = 5000`). Ledger is cleared; owed is written. Dust
 stays. DEX buy/hop is outside the tick.
 
 **IMPLEMENTATION:** `content/fragments.py`, `packages/engine/src/fragments.ts`,
 `packages/engine/src/tick.ts::hourSix`. Engine accrual still reads a
-synthetic `city.building`. `AssetPort` has no buy/hop. API has no
-`claim_fragment`.
+synthetic `city.building`. `AssetPort` has no buy/hop. API `claim_fragment`
+is live.
 
 **UNKNOWN:** production fragment pool buy/hop executor.
 
@@ -1104,8 +1253,9 @@ stake_bonus =
 **IMPLEMENTATION:** engine/content `unstake()` is present
 (`packages/engine/src/bank.ts`, `content/bank.py`). Chainport mock/RPC
 `stakeRegistry.unstake` is present. StakeRegistry Solidity is holder-owned
-and returns tokens immediately. The 24-hour grace/freeze is **server-side**
-only. API has no unstake command.
+and returns tokens immediately. The 24-hour grace/freeze is **server-side**.
+Unstake is implemented: holder calls the registry; the engine writes pending
+and freeze. There is no city `/command/unstake`.
 
 #### Trading fees
 
@@ -1118,8 +1268,8 @@ only. API has no unstake command.
   (`seasons.params.prize_creator_tax_share_bps = 5000`).
 - Of that prize leg, 20% is studio ETH
   (`economy.params.studio_eth_share_bps = 2000`); the remaining stock leg is
-  split into `0.3%` for the monthly leaderboard and `0.5%` for the active-work
-  farm. The generated split is fund 100 / leaderboard 30 / farm 50 / studio
+  split into `0.2%` for the monthly leaderboard and `0.6%` for the active-work
+  farm. The generated split is fund 100 / leaderboard 20 / farm 60 / studio
   20 bps of turnover.
 - Farm and leaderboard are separate DEX legs. Capital spending is
   `40%` burn / `60%` payroll / `0%` protocol, so it does not buy stocks.
@@ -1141,8 +1291,10 @@ Capital/accounting behavior.
 Deposit is intended `$CORP → Vault → Capital`. Withdrawal is intended
 Capital → server-authorized voucher → `$CORP`, subject to bank hours and
 depth. `Vault.sol` stores the voucher fields by nonce and reserves
-`reservedOf` at issue; it does not verify an ECDSA signature on-chain. Both
-arithmetic paths exist in engine/contracts, but API commands are not live.
+`reservedOf` at issue; it does not verify an ECDSA signature on-chain. API
+`deposit` and `withdraw` are live (`commit_bank.ts`). Production chain
+deposit still needs a live `AssetPort`; otherwise the command moves
+`corp_held`.
 
 ---
 
@@ -1355,6 +1507,47 @@ After a full 30-day payroll history window, excess fund is moved to
 API genesis arms a synthetic fund for tests/demo. No complete production
 pipeline connects actual player spend, buyback completion, city roster and
 persistent payroll history.
+
+### The fund can only cut, never raise — and this is being changed
+
+This is the single most consequential property of the current economy, so read
+it before you reason about player earnings.
+
+The pool paid out in a tick is `min(tick_budget, Σrequests)`
+(`packages/engine/src/economy.ts` line 571,
+`const paidPool = budget < total ? budget : total`), and `payroll_ratio_bps`
+is clamped to `BPS` on line 558. The upper half of that `min` is a ceiling:
+**however large the fund grows, the tick cannot pay more than the sum of
+requests.** Measured consequence at pack 176: daily trading turnover of $5M
+produces exactly the same per-player payout as $50k. The surplus accumulates
+and eventually spills into `reserve_cork` through `fundCap`.
+
+Combined with `normalization_payback_ticks = 240`, which pins every producing
+archetype to a 240-tick payback by construction, this is why a Workshop
+returns about `$3.42` per city day gross and why percentage return does not
+improve with depth of play. A fully built city measured at `$5,388` invested
+returns a **lower** percentage than a single-Workshop city at `$73.50` — a
+ratio of `×0.94`.
+
+On 2026-09-20 the owner accepted six changes, recorded as `R-E-01`…`R-E-06`
+in `docs/CANON.md`, with execution specified in
+`docs/reports/TZ_EARNINGS.md`:
+
+| id | change |
+|---|---|
+| `R-E-01` | daily budget becomes `max(fund / divisor, smoothed inflow)`; tick pool may rise to `Σrequests × boost`, still clipped by budget and by fund |
+| `R-E-02` | boost is `×8` for a seven-city-day launch window, `×3` afterward; the window is shown in the HUD with its end date |
+| `R-E-03` | the `output_bps` stack clip stops equalling `output_growth_bps` (`×1.80`) and rises to what the written content can actually stack, `35795` bps (`×3.58`) |
+| `R-E-04` | beacons and synergies begin to move output size, not only uptime and cost |
+| `R-E-05` | the "dormant player ends slightly negative" target is withdrawn; return bands in `meta.json` are recut |
+| `R-E-06` | `robotics_lab` double-counts `affinity_neighbour_bps` (pack weight plus runtime application) giving `0.36` and a 666-tick payback; this is a defect and is fixed |
+
+**None of the six has shipped.** The engine, the Python oracle and the pack
+all still implement the behaviour described above this box, and every number
+elsewhere in this document is calculated from the current behaviour. Do not
+report the new model as implemented, and do not implement it from this summary
+— use the TZ, which carries the exact call sites, the Python-twin mirror map
+and the lint rules each task disturbs.
 
 ---
 
@@ -1628,8 +1821,7 @@ Source: `content/params/economy.json`, `DESIGN.md` §4.5.
 - Chainport: mock and live RPC encode `unstake`
   (`packages/chainport/src/mock.ts`, `rpc/live.ts`, `rpc/abi.ts` selector
   `d37c92dc`). Live RPC sends the tx `from` the holder.
-- API: **absent**. `packages/protocol/src/routes.ts` has no unstake route.
-  Freeze is not applied by a live command.
+- **Done:** this is the unstake path. HUD does not POST a city command.
 
 ### Synergies
 
@@ -1645,8 +1837,8 @@ Source: `content/params/economy.json`, `DESIGN.md` §4.5.
 Source: `content/params/districts.json`.
 
 All six districts are `playable_v1=true`, so generated scope makes all six
-synergies playable by rule. This is content scope, not proof that API commands
-or 3D placement are implemented.
+synergies playable by rule. District/stake/tier/node/merge API commands are
+live. Unstake is holder-owned on-chain. No 3D placement.
 
 ---
 
@@ -1738,46 +1930,49 @@ City level is sticky on tick refresh (`refreshCityProgress` in
 
 ### Generated T2 building values
 
-The following are the current generated level values from
-`content/out/GENERATED.md` (T2: level curves). Each tuple is:
-`cost / output_per_tick / Energy / Compute / build_time_ticks`.
+The following are the current generated level values, re-read from
+`content/out/pack.json` `generated.balance.level_*` on 2026-09-20. Each tuple
+is: `cost / output_per_tick / Energy / Compute / build_time_ticks`.
 City Hall is prebuilt and has no cost/output/time curve.
 
-- `agent_hub`: L1 `11405959/0/0/0/1`; L2
-  `28514897/0/0/0/1`; L3 `71287243/0/0/0/2`.
-- `ai_research_center`: L1 `57029795/0/250/0/3`; L2
-  `142574487/0/400/0/4`; L3 `356436218/0/640/0/7`.
-- `bank`: L1 `34217877/0/0/0/2`; L2
-  `85544692/0/0/0/3`; L3 `213861731/0/0/0/4`.
-- `city_hall`: prebuilt; level follows city level.
-- `clearing_house`: L1 `91247672/0/0/0/4`; L2
-  `228119180/0/0/0/7`; L3 `570297950/0/0/0/11`.
-- `cloud_campus`: L1 `57029795/0/0/0/3`; L2
-  `142574487/0/0/0/4`; L3 `356436218/0/0/0/7`.
-- `data_center`: L1 `91247672/0/400/0/4`; L2
-  `228119180/0/640/0/7`; L3 `570297950/0/1024/0/11`.
-- `drone_depot`: L1 `91247672/0/0/0/4`; L2
-  `228119180/0/0/0/7`; L3 `570297950/0/0/0/11`.
-- `energy_plant`: L1 `57029795/0/1818/0/3`; L2
-  `142574487/0/2908/0/4`; L3 `356436218/0/4654/0/7`.
-- `exchange`: L1 `27374301/0/0/0/2`; L2
-  `68435754/0/0/0/2`; L3 `171089385/0/0/0/4`.
-- `finance_tower`: L1 `57029795/0/0/0/3`; L2
-  `142574487/0/0/0/4`; L3 `356436218/0/0/0/7`.
-- `flagship_store`: L1 `57029795/0/0/0/3`; L2
-  `142574487/0/0/0/4`; L3 `356436218/0/0/0/7`.
-- `fleet_yard`: L1 `91247672/0/0/0/4`; L2
-  `228119180/0/0/0/7`; L3 `570297950/0/0/0/11`.
-- `logistics_hub`: L1 `57029795/0/0/0/3`; L2
-  `142574487/0/0/0/4`; L3 `356436218/0/0/0/7`.
-- `power_node`: L1 `7527932/0/120/0/1`; L2
-  `18819832/0/192/0/1`; L3 `47049580/0/307/0/1`.
-- `retail_complex`: L1 `91247672/0/0/0/4`; L2
-  `228119180/0/0/0/7`; L3 `570297950/0/0/0/11`.
-- `robotics_lab`: L1 `91247672/228119/400/400/4`; L2
-  `228119180/410614/640/640/7`; L3 `570297950/739105/1024/1024/11`.
-- `workshop`: L1 `22811918/95049/100/0/1`; L2
-  `57029795/171088/160/0/2`; L3 `142574487/307958/256/0/3`.
+Two reading notes before the numbers:
+
+- The Compute column is **intake** for a building whose `output` is not
+  `compute`, and **output** for `ai_research_center` and `data_center`, whose
+  `output` is `compute`. Both are non-zero for `robotics_lab`, which draws
+  Compute and produces Capital.
+- An earlier revision of this file listed every tuple at exactly two thirds of
+  the values below. Those came from the `$100` door; the door is now `$150`
+  (`reference_deposit_usd_8dec = 15000000000`), and `workshop_cost_l1` is
+  `34217877`. If a number here is 1.5× what you remember, this table is the
+  current one.
+
+- `agent_hub`: L1 `17108938/0/0/0/1`; L2 `42772346/0/0/0/1`; L3 `106930865/0/0/0/2`.
+- `ai_research_center`: L1 `85544692/0/250/250/3`; L2 `213861731/0/400/400/4`; L3 `534654328/0/640/640/7`.
+- `bank`: L1 `51326815/0/0/0/2`; L2 `128317038/0/0/0/3`; L3 `320792596/0/0/0/4`.
+- `city_hall`: prebuilt; the only structure planted at city creation.
+- `clearing_house`: L1 `136871508/0/0/0/4`; L2 `342178770/0/0/0/7`; L3 `855446925/0/0/0/11`.
+- `cloud_campus`: L1 `85544692/0/0/0/3`; L2 `213861731/0/0/0/4`; L3 `534654328/0/0/0/7`.
+- `data_center`: L1 `136871508/0/400/400/4`; L2 `342178770/0/640/640/7`; L3 `855446925/0/1024/1024/11`.
+- `drone_depot`: L1 `136871508/0/0/0/4`; L2 `342178770/0/0/0/7`; L3 `855446925/0/0/0/11`.
+- `energy_plant`: L1 `85544692/0/1818/0/3`; L2 `213861731/0/2908/0/4`; L3 `534654328/0/4654/0/7`.
+- `exchange`: L1 `41061452/0/0/0/2`; L2 `102653631/0/0/0/2`; L3 `256634077/0/0/0/4`.
+- `finance_tower`: L1 `85544692/0/0/0/3`; L2 `213861731/0/0/0/4`; L3 `534654328/0/0/0/7`.
+- `flagship_store`: L1 `85544692/0/0/0/3`; L2 `213861731/0/0/0/4`; L3 `534654328/0/0/0/7`.
+- `fleet_yard`: L1 `136871508/0/0/0/4`; L2 `342178770/0/0/0/7`; L3 `855446925/0/0/0/11`.
+- `logistics_hub`: L1 `85544692/0/0/0/3`; L2 `213861731/0/0/0/4`; L3 `534654328/0/0/0/7`.
+- `power_node`: L1 `11291899/0/120/0/1`; L2 `28229748/0/192/0/1`; L3 `70574371/0/307/0/1`.
+- `retail_complex`: L1 `136871508/0/0/0/4`; L2 `342178770/0/0/0/7`; L3 `855446925/0/0/0/11`.
+- `robotics_lab`: L1 `136871508/342178/400/400/4`; L2 `342178770/615920/640/640/7`; L3 `855446925/1108656/1024/1024/11`.
+- `workshop`: L1 `34217877/142574/100/0/1`; L2 `85544692/256633/160/0/2`; L3 `213861731/461939/256/0/3`.
+
+In dollars at `capital_unit_usd = 100` (one Capital atom = `$0.000001`): a
+Workshop L1 costs `$34.22` and produces `$0.1426` per tick, `$3.42` per city
+day before `residual_idle_bps`. A Robotics Lab L1 costs `$136.87` and produces
+`$0.3422` per tick. **Only these two archetypes carry a non-zero
+`level_output`.** `flagship_store` and `retail_complex` also produce Capital,
+but through the population-conversion path rather than the level table; the
+remaining fourteen produce no Capital at all.
 
 **CANONICAL FACT:** These are generated pack values, not a second authored
 table. If source parameters change, regenerate and update the pack.
@@ -1809,8 +2004,13 @@ does not mean the current API persists a full building instance.
 - `workshop`: base; always; primary `work_production`, secondary
   `work_logistics`; Engineer home and Logistician neighbour; Capital output;
   Energy input; non-autonomous; active from start.
-- `agent_hub`: base; office; secondary `work_research`; autonomous/prebuilt;
-  agent-capacity function; no production output; required hire infrastructure.
+- `agent_hub`: base; office; secondary `work_research`; **autonomous but not
+  prebuilt** — `city_hall` is the only archetype with `prebuilt: true`, and
+  `plantPrebuilt` in `packages/engine/src/spawn.ts` plants only that one. The
+  Hub is bought as part of the paid starter set at `17108938`. Agent-capacity
+  function; no production output. Note that `applyHire` in
+  `services/api/src/commit_agents.ts` does **not** check for a Hub, so hiring
+  works without one today.
 - `power_node`: base; always; primary `work_production`, secondary
   `work_logistics`; Engineer home; Energy output; non-autonomous.
 - `bank`: base; market; primary `work_finance`, secondary `work_admin`;
@@ -1860,8 +2060,8 @@ Sources: `content/params/buildings.json`,
 
 - **Activation time:** generated `build_time_ticks` above; the current API
   does not create an under-construction timer.
-- **Upgrades:** levels 1–3 are the generated T2 curves; the API `upgrade`
-  command is absent.
+- **Upgrades:** levels 1–3 are the generated T2 curves; API `upgrade`
+  spends the next `level_cost` (`applyUpgrade`). City Hall is not upgraded.
 - **Tasks:** tasks belong to role/objective and building contour; no separate
   per-building task list is stored.
 - **Agent seats:** intended from contour affinity and slot limits; no runtime
@@ -1973,9 +2173,14 @@ These are contour-derived accepted affinities, not a runtime seat assignment.
 
 ### Actual engine/API
 
-Engine records use `agent_id="shift"`. API `hire` always creates
-`{role:"engineer"}`. No runtime role matrix, trait assignment, seat assignment
-or role-specific building execution is present.
+This paragraph described the state before M8 and is superseded. Current
+behaviour: `applyHire` in `services/api/src/commit_agents.ts` takes an
+explicit v1 role when one is given, otherwise rolls the hire pool — Engineer
+`5000` bps, Logistician `2500`, Trader `2500`. Scientist and Manager are
+live roles but are **not** in the random pool; they can only be requested
+explicitly. Seat assignment and role-specific execution run through
+`collectSlotRequests` in `packages/engine/src/slots.ts`, and records address a
+slot rather than the old synthetic `agent_id: "shift"`.
 
 ### Agent slots
 
@@ -2046,7 +2251,8 @@ contours, then checked cell-by-cell against
 - accepted foreign role: `2500` bps;
 - role not accepted: `IDLE_WRONG_ROLE`.
 
-No current engine city executes this matrix.
+No current isolated engine fixture without `functions[]` executes this
+matrix. Live cities with seated agents do (M8).
 
 ---
 
@@ -2072,7 +2278,7 @@ Narrows jitter; key `jitter_bps`, intended range `[9750,10250]`.
 Source: `content/params/agents.json`, `content/params/modifiers.json`,
 `DESIGN.md` §5.10.
 
-Traits are content-generated but no API hire path assigns them.
+Traits are rolled at hire (1–2 from the pack set) and stored on the agent.
 
 ### Trait stacking details
 
@@ -2132,77 +2338,58 @@ Source: `content/out/GENERATED.md` T5: modifier rows.
 
 The content registry declares:
 
-`build`, `buy_stock`, `claim_fragment`, `claim_prize`, `deposit`, `hire`,
-`merge`, `noop`, `open_district`, `pick_node`, `set_objective`, `stake`,
-`unlock_tier`, `upgrade`, `withdraw`.
+`assign`, `build`, `buy_stock`, `claim_fragment`, `claim_prize`, `deposit`,
+`hire`, `merge`, `noop`, `open_district`, `pick_node`, `research_start`,
+`set_objective`, `stake`, `unlock_tier`, `upgrade`, `withdraw`.
+
+Unstake is `StakeRegistry.unstake` (holder) plus engine freeze, not a city
+route.
 
 Sources: `content/params/screens.json`,
-`packages/protocol/src/routes.ts`.
+`packages/protocol/src/routes.ts` (generated from pack 176).
 
 ### API-live routes
 
-`services/api/src/commit.ts::applyLive` handles:
+`services/api/src/commit.ts::applyLive` (2026-09-19) handles:
 
-- `hire`;
-- `build`;
-- `claim_prize`;
-- `set_objective`.
+`hire`, `assign`, `build`, `set_objective`, `research_start`,
+`open_district`, `stake`, `unlock_tier`, `pick_node`, `merge`, `upgrade`,
+`claim_fragment`, `deposit`, `withdraw`, `buy_stock`, `claim_prize`.
 
-There is no `unstake` route in `packages/protocol/src/routes.ts`.
+`noop` is a stub. `buy_stock` is live and refuses `EXCHANGE_HOP_UNAVAILABLE`
+until the hop quote is live. `claim_prize` is live on the API; the client
+sends it only when `launch.deployed` is filled.
 
-### Intended but currently refused/stubbed
+### Implemented outside city commands
 
-- deposit;
-- withdraw;
-- stake / unstake;
-- open district;
-- buy stock;
-- upgrade;
-- research;
-- claim fragment;
-- tier unlock;
-- node pick;
-- merge.
-
-These routes are not necessarily marked `v1: stub` in the pack, which is a
-content/API status conflict.
+- `unstake` — holder calls `StakeRegistry.unstake`; engine grace/freeze.
+- `present_voucher` as a HUD intent — Bank `withdraw` already presents.
+- `missions_start` — `FEATURE_NOT_IN_V1`.
 
 ### Action matrix from `content/params/screens.json`
 
-- `agents_hire`: requires agent slot + Capital; spends Capital; API partially
-  live and always creates Engineer.
-- `build_place`: pack/screens still require city level + legal build tile +
-  build slot + Capital and mention `BUILD_TILE_ILLEGAL`; API live path is
-  logical function activate/deactivate and ignores `tile_x`/`tile_y`.
-- `districts_open`: requires wallet + stake threshold + `$CORP`; spends
-  `$CORP`; API absent.
-- `exchange_buy`: requires wallet + `$CORP` + priced hop; spends `$CORP`; API
-  absent.
-- `bank_deposit`: requires wallet + `$CORP`; spends `$CORP`; API absent.
-- `bank_withdraw`: requires non-demo + wallet + Capital + bank open + weekday +
-  bank limit; spends Capital; API absent.
-- `leaderboard_claim`: requires non-demo prize + wallet; no Capital spend;
-  API returns local claim arithmetic but does not perform custody.
-- `district_claim_fragment`: requires non-demo claim + wallet; API absent.
-- `district_unlock_tier`: requires tier gate; API absent.
-- `district_stake_more`: requires stake multiple; API absent.
-- `district_pick_node`: requires exclusive node-side gate; API absent.
-- `district_merge`: requires free merge matching; API absent.
-- `building_upgrade`: requires Capital; API absent.
-- `agent_set_objective`: requires building-hours warning; API
-  `set_objective` now writes `city.objective` and optional `train_target`
-  without the warning gate.
-- generated research unlock actions: require city level + Capital and use
-  `commit: research_start`, synthesized by
-  `content/screens.py::synthesize_research_actions` from
-  `content/params/research.json`; this is a generated screen action, not one
-  of the 15 authored `commandRoutes` in `packages/protocol/src/routes.ts`, and
-  no `research_start` API handler was found. `content/params/screens.json`
-  explicitly authors the research screen/navigation but not the generated
-  unlock ids.
-- `missions_start`: `commit:noop`, spend none, `FEATURE_NOT_IN_V1`.
-- wallet connect/confirm: external browser-wallet actions; current
-  `WalletConnectScreen` does not execute them.
+- `agents_hire`: API live; pool roll or explicit v1 role; traits 1–2.
+- `build_place`: pack copy still mentions tiles (C-01); API is
+  activate/deactivate; live HUD does not post `tile_x`/`tile_y`.
+- `districts_open`: API live; `corp_held` is not debited (hop is
+  `buy_stock`).
+- `exchange_buy`: API live refuse until hop-ready.
+- `bank_deposit`: API live (`mintFromBacking`).
+- `bank_withdraw`: API live (`authorize` → `present`).
+- `leaderboard_claim`: API live; chain custody only with live port;
+  client refusal-only until `launch.deployed`.
+- `district_claim_fragment`: API live; owed → `tokens_held`.
+- `district_unlock_tier` / `district_stake_more` / `district_pick_node` /
+  `district_merge` / `building_upgrade`: API live.
+- `agent_set_objective`: API live on the agent, not only city research
+  focus.
+- generated research unlock: `commit:research_start` is in
+  `commandRoutes` via `screens.effective_actions`; API live.
+- `missions_start`: `commit:noop`, `FEATURE_NOT_IN_V1`.
+- unstake: holder `StakeRegistry.unstake`; engine grace/freeze; HUD does
+  not POST a city command.
+- wallet connect/confirm: live `LoginRoot`; pack `wallet_connect` is not a
+  second login.
 
 Source: `content/params/screens.json`, generated
 `content/out/GENERATED.md`, `services/api/src/commit.ts`,
@@ -2225,8 +2412,8 @@ time; Bank hours are not encoded on-chain.
 
 ### Limits
 
-- global live-depth cap: 1% of pool quote depth
-  (`bank_daily_limit_pool_share_bps = 100`);
+- global live-depth cap: 5% of pool quote depth
+  (`bank_daily_limit_pool_share_bps = 500`, cap `500`);
 - personal Bank-level share from the generated ladder;
 - reservations immediately consume remaining capacity;
 - authorization stores `depth_snapshot` for that day;
@@ -2249,10 +2436,10 @@ Witness: `packages/engine/test/economy_rules.test.ts`
 The current generated content derives Bank-level shares:
 
 - L0: `0` bps, `0` wei at the seed;
-- L1: `2500` bps, `10500000000000000` wei at the seed;
-- L2: `4375` bps, `18375000000000000` wei at the seed;
-- L3: `5782` bps, `24284400000000000` wei at the seed;
-- L4: `6836` bps, `28711200000000000` wei at the seed.
+- L1: `2500` bps, `52500000000000000` wei at the seed;
+- L2: `4375` bps, `91875000000000000` wei at the seed;
+- L3: `5782` bps, `121422000000000000` wei at the seed;
+- L4: `6836` bps, `143556000000000000` wei at the seed.
 
 Source: `content/out/GENERATED.md` T2: Bank ladder,
 `content/params/balance.json`.
@@ -2260,7 +2447,7 @@ Source: `content/out/GENERATED.md` T2: Bank ladder,
 ### Formula
 
 ```
-global_eth_limit = live_pool_eth × 100 / 10000
+global_eth_limit = live_pool_eth × 500 / 10000
 corp_ask =
   Capital × wei × 10000
   / (mint_rate × (10000 + bank_markup))
@@ -2280,10 +2467,9 @@ Sources: `DESIGN.md` §10.1, `contracts/src/Vault.sol`,
 
 ### Current status
 
-Engine reservation arithmetic and the Bank ladder exist. API withdraw does
-not. The tick `withdraw_intent` path can still fill immediately. Client
-displays pack-derived values, not a live depth response. Closed days are not
-rewritten on expiry.
+Engine reservation arithmetic and the Bank ladder exist. API `withdraw` is
+live (`authorize` → `present`). The tick `withdraw_intent` path can still
+fill immediately (C-22). Closed days are not rewritten on expiry.
 
 ---
 
@@ -2296,8 +2482,9 @@ $CORP → ETH → USDG → Stock Token
 ```
 
 The pack computes a Capital haircut interval from Vault fee, creator tax and
-hop haircut. The client displays the interval. The API and AssetPort do not
-implement a live stock swap.
+hop haircut. The client displays the interval. API `buy_stock` is live and
+refuses `EXCHANGE_HOP_UNAVAILABLE` while `quoteLive` is false. It does not
+call `cpmmBuyCorp` / mint stocks on a mock quote.
 
 Sources: `content/screens.py`, `content/params/fragments.json`,
 `apps/client/src/hud/screens/exchange.tsx`,
@@ -2373,11 +2560,11 @@ Grid, Tools, Handbook, Circuits, Lathe.
 
 Current generated values from `content/out/GENERATED.md` T2: research:
 
-- `circuits`: `compute_cost_bps -1000`, `6843575` Capital, `24` ticks;
-- `grid`: `energy_cost_bps -1500`, `10265363` Capital, `36` ticks;
-- `handbook`: `xp_rate_bps +1000`, `6843575` Capital, `24` ticks;
-- `lathe`: `upgrade_speed_bps +1000`, `6843575` Capital, `24` ticks;
-- `tools`: `output_bps +1000`, `6843575` Capital, `24` ticks.
+- `circuits`: `compute_cost_bps -1000`, `10265363` Capital, `24` ticks;
+- `grid`: `energy_cost_bps -1500`, `15398044` Capital, `36` ticks;
+- `handbook`: `xp_rate_bps +1000`, `10265363` Capital, `24` ticks;
+- `lathe`: `upgrade_speed_bps +1000`, `10265363` Capital, `24` ticks;
+- `tools`: `output_bps +1000`, `10265363` Capital, `24` ticks.
 
 ### Analysis
 
@@ -2391,9 +2578,9 @@ runtime execution.
 Current T4 generated costs:
 
 - tier 1: `0` Capital;
-- tier 2: `34217877` Capital;
-- tier 3: `128317038` Capital;
-- merge: `42772346` Capital.
+- tier 2: `51326815` Capital;
+- tier 3: `192475558` Capital;
+- merge: `64158519` Capital.
 
 Tier gates are city levels 1/3/5 and stake multiples 1x/2x/3x `S_min`.
 These values are generated from `content/params/progression.json`,
@@ -2431,10 +2618,9 @@ prize assets.
 Pure settlement works, including city cap, ledger clear, owed claim, Zipf on
 actual N, and dust remainder
 (`packages/engine/src/fragments.ts`, `packages/engine/src/seasons.ts`).
-API claim reports local rows but does not complete custody/pool mutation;
-`claimEveryAsset` is called with `paused: false`. Live deployed prize
-addresses are missing. DEX fragment buy/hop is outside the tick and not in
-`AssetPort`.
+API `claim_fragment` and `claim_prize` handlers exist. Prize chain custody
+needs a live port; `launch.deployed` is empty. DEX fragment buy/hop is
+outside the tick. Live ranking projection is §51.
 
 ---
 
@@ -2459,22 +2645,20 @@ CSS Grid contract described by some visual documents.
 
 ### Main UI data gaps
 
-- no XP/level in the client snapshot (engine XP exists);
-- no Productivity row;
-- population fixed at zero;
-- stocks empty;
-- agents empty;
-- events empty;
-- research placeholder;
-- offline screen unused;
-- live error bodies ignored;
-- no WebSocket updates;
-- BUILD still posts `tile_x`/`tile_y` that the API ignores.
+Closed 2026-09-19: snapshot channels (H1), screen acceptance (H5), WebSocket
+(H6), onboarding/offline (H7), command errors via pack codes (H4). The live
+HUD no longer posts `tile_x`/`tile_y`.
+
+Still honest: `quoteAgeMs` / `quoteCorpEth` empty until hop-ready;
+`wallet.chain` / `wallet.corp_balance` empty without RPC; `build` /
+`missions` / `settings` / `bottom_menu` are not live destinations;
+`claim_prize` is refusal-only until `launch.deployed` is filled.
 
 ### UI errors
 
-Codes are pack/localization driven, but actual current feedback is incomplete:
-boot errors are mostly empty code-only elements and command errors are silent.
+Codes are pack/localization driven. Action buttons show the first blocking
+pack code. Journal is the surface with a live loading flag. Silent command
+swallow from 2026-09-13 is closed.
 
 ---
 
@@ -2512,8 +2696,10 @@ concept/reference assets; the client does not load root `visual/` directly.
 - `models/*.glb`: source building models named by `ISLAND_STUDIO.md`; these
   are source assets for the live island pipeline, but final runtime acceptance
   is still gated by LOOK review.
-- `art/island_v3/runtime/*.glb`: assets actually loaded by the current
-  Three.js client path.
+- `art/island_v3/runtime_terra19/*.glb`: assets actually loaded by the current
+  Three.js client path (`apps/client/src/islandLookAssets.ts`). The older
+  `art/island_v3/runtime/` directory held the **rejected** island and is empty
+  in git since I2; do not treat it as a live path (`R-V-109`).
 - `art/pipeline/assets.json` plus `assets/**`: canonical legacy V12 sprite
   registry/source for the pack/cell renderer, not the live Three island.
 - `decoration/*`: candidate local decoration library; files do not enter the
@@ -2533,13 +2719,9 @@ local origin is baked (`art/island_v3/bake_building_origin.py`): translation
 | first load (mass + 18 buildings) | `2916776` | `island_first_load_bytes_max` `12582912` |
 | authored tris (mass + 18 buildings) | `248494` | `island_tris_max` `250000` |
 
-**IMPLEMENTATION / CONFLICT:** LOOK-03 runtime captures are accepted for the
-shared renderer/pose, but the current visual plan still reports bright-day
-sign lighting/composition as unfinished. LOOK-11 owner acceptance is still
-absent. The render pack has a per-building GLB ceiling in
-`content/params/render.json`; review reports note that some all-18/runtime
-review exports exceed that ceiling. Do not treat the presence of GLBs as
-final visual acceptance.
+**IMPLEMENTATION / CONFLICT:** LOOK-11 owner acceptance is 2026-09-14 (Terra).
+Packed day-sign / L387 is not that accepted look. Do not treat extra GLBs as
+a second acceptance.
 
 ---
 
@@ -2624,10 +2806,13 @@ approved variant is **UNKNOWN**.
 
 The active runtime source is the authored island/runtime pipeline:
 
-- `art/island_v3/runtime/island_mass.glb`;
-- `art/island_v3/runtime/buildings/*.glb`;
+- `art/island_v3/runtime_terra19/island_mass.glb`;
+- `art/island_v3/runtime_terra19/buildings/*.glb`;
 - `content/params/render.json`;
 - `packages/render/src/three.ts`.
+
+The live mass is Terra (`R-V-109`). `art/island_v3/runtime/` is the rejected
+island, moved out in I2 and empty in git.
 
 The fat `art/island_v3/island.glb` is explicitly rejected as runtime in
 current island documentation.
@@ -2674,8 +2859,9 @@ LOOK-02 post-export identity/pose gate **passes** on
 `art/island_v3/runtime/*.glb` (report
 `art/island_v3/reviews/LOOK-02/tree_report.json`,
 `recorded_at_utc` `2026-09-11T23:38:37.890786+00:00`). LOOK-03 is
-owner-accepted for shared runtime/hero pose. LOOK-04 has candidate blockouts
-but no current owner GO was found. LOOK-11 acceptance is absent.
+owner-accepted for shared runtime/hero pose. LOOK-11 owner acceptance is
+2026-09-14 (Terra, `maps/terra-look.json`, `ENV_LOOK_REV` 27). LOOK-04
+blockouts on the 2026-09-06 snapshot are archive, not the live map.
 
 ### `island.blend` mismatch
 
@@ -3010,12 +3196,12 @@ allocation. Source: `packages/engine/src/economy.ts::collectRequests`.
   — `buildSlotsOf`.
 - XP: `grant = 1 + floor((remainder + bonus_bps) / 10000)`; Train +1 additive
   — `content/xp.py`, `packages/engine/src/xp.ts`.
-- Bank global cap: `depth * 100 / 10000`
+- Bank global cap: `depth * 500 / 10000`
   — `content/bank.py`, `packages/engine/src/bank.ts`.
 - Fragment settle: `raw = f * pool / total`; cap `pool * 5000 / 10000` if
   N≥2; dust = pool - paid
   — `content/fragments.py`, `packages/engine/src/fragments.ts`.
-- Fee split of DEX turnover: fund 100 bps, leaderboard 30 bps, farm 50 bps,
+- Fee split of DEX turnover: fund 100 bps, leaderboard 20 bps, farm 60 bps,
   studio 20 bps; round-trip 1445 bps
   — `content/out/pack.json` `generated.economy`.
 - Merge magnitude: full Tier-1 `unit * sign`
@@ -3028,11 +3214,8 @@ allocation. Source: `packages/engine/src/economy.ts::collectRequests`.
 
 ### Known missing formulas
 
-- no production formula for full per-agent/building affinity in TypeScript;
-- no API unstake command / voucher presentation host;
-- no full wallet prize custody formula path;
-- no client-side economic formula is allowed by design;
-- `mint_rate_limit_bps` is in content, not engine.
+- no production hop quote inside the tick (by design);
+- no client-side economic formula is allowed by design.
 
 ---
 
@@ -3049,27 +3232,28 @@ not create an under-construction timer or mutate tiles. Current API writes
 ### Agent
 
 Intended: hired → seated → working/idle/payroll-trimmed/offline → fired.
-Current API creates an engineer row; engine uses synthetic shift. XP/Train
-helpers exist when `agents[]` is present.
+Current API hires a pooled or explicit v1 role with traits; live tick uses
+the seated agent. XP/Train helpers apply when `agents[]` is present.
 
 ### District
 
 Intended: locked → stake threshold → open → freezing → frozen.
 Contracts accumulate/return stake. Engine `unstake` can write freeze-until.
-API does not open districts or call unstake.
+API `open_district` and `stake` are live. Unstake is holder `StakeRegistry`
+plus engine freeze.
 
 ### Bank
 
 Intended: open/closed/depth-limited/daily-limit-exhausted/uncovered;
 reservation open → settled / expired.
-Engine reservation + ladder exist; tick `withdraw_intent` may still fill
-immediately; command/API integration absent.
+Engine reservation + ladder exist; command `withdraw` uses `authorize` →
+`present`; tick `withdraw_intent` may still fill immediately (C-22).
 
 ### Stake
 
 Intended: below threshold/open/tier multiple/unstake grace/frozen.
-On-chain: stake/unstake/snapshot. Server freeze: engine `unstake`. API:
-absent.
+On-chain: stake/unstake/snapshot. Server freeze: engine `unstake`. API
+`stake` live. Unstake is the registry call, not a city command.
 
 ### Season
 
@@ -3148,30 +3332,30 @@ implemented.
 - StakeRegistry holder-owned unstake;
 - engine XP, housing, sticky city level, bank reservations, fragment
   settlement, unstake/freeze helpers;
-- API logical function activate/deactivate;
+- API logical function activate/deactivate, hire/assign, deposit/withdraw,
+  stake/open_district/tier/node/merge, research_start, upgrade,
+  claim_fragment, claim_prize (chain-gated);
 - LOOK-02 identity/pose gate on origin-baked runtime building GLBs;
+- LOOK-11 owner acceptance 2026-09-14; live mass `runtime_terra19/`;
 - contentpack I0 island-stage inventory aligned to `arch.json` + L268
-  (`island_form` + 10 LOOK `island_client` construction names).
+  (`island_form` + 10 LOOK `island_client` construction names);
+- HUD state projection 21/21, WS patch classes, `restoreLiveState` /
+  `catchUp`, per-slot agent tick.
 
 ---
 
 ## 41. Partial Features
 
-- full agents/traits/tasks/affinity;
-- actual buildings and building lifecycle (API functions exist; no
-  construction/tile/mesh);
-- district staking/open; API unstake command still missing;
-- research UI and commit;
-- fragment claim / DEX buy-hop / prize custody;
-- live sampler/buyback;
-- live Merkle submit;
-- persistent city restoration;
-- complete client snapshot;
-- WebSocket updates;
-- live 3D placement (map is immutable; client still posts tiles);
-- visual acceptance after LOOK-02 (LOOK-04 GO, LOOK-05–11, composition);
-- engine `bankWithdraw` immediate-fill vs reservation voucher path;
-- production voucher presentation host.
+- production DEX hop (API `buy_stock` refuses until live quote);
+- production prize custody (`launch.deployed` empty; client claim gated);
+- live sampler/buyback conveyor (fail-open mock);
+- live Merkle submit without env (M4 selects live RPC when env is complete);
+- production client hosting in `deploy/`;
+- pack `build_place` tile copy (C-01); live HUD does not post tiles;
+- visual LOOK-04 owner GO for the 2026-09-06 snapshot path is historical;
+  Terra look is accepted;
+- engine `bankWithdraw` immediate-fill vs reservation voucher path (C-22);
+- missions / settings / bottom dock as live HUD destinations.
 
 ---
 
@@ -3190,6 +3374,12 @@ As represented by `content/params/arch.json` roadmap and current reports:
 - mainnet launch;
 - first season.
 
+Accepted by the owner on 2026-09-20 and **not yet implemented** — the earnings
+rework `R-E-01`…`R-E-06`. Register: `docs/CANON.md`. Execution spec:
+`docs/reports/TZ_EARNINGS.md`. Summary and the current behaviour it replaces:
+§12 of this document. Execution order is `E6` and `E3` first, then `E1`, then
+`E2` and `E4`, and `E5` last.
+
 Exact phase ownership and gate commands are pack data, not to be reauthored
 in this document.
 
@@ -3197,40 +3387,32 @@ in this document.
 
 ## 43. Known Bugs
 
-1. API state is not fully restored from DB on restart.
-2. Scheduler does not use `catchUp`.
-3. API hire always creates Engineer.
-4. Agents/stocks/population are dropped or hardcoded in client snapshot.
-5. Most declared commands are refused despite `v1: live`.
-6. Claim prize does not complete external custody mutation.
-7. Fragment Python/TypeScript settlement is now ported (city cap, ledger
-   clear, owed). Accrual still depends on a synthetic `city.building`, not
-   the full function roster. Treat remaining gaps as partial, not “broken
-   cap”.
-8. Tools research effect is injected only by spawn/Python simulation
-   (`spawn.ts` reads `cfg.tools_effect_bps`, which `loadConfig` does not
-   populate).
-9. Night Energy premium is loaded but unused in engine.
-10. Mint daily rate limit is in content but not engine.
-11. Client has no WebSocket consumer.
-12. Client command errors are ignored.
-13. Empty ground does not open BUILD in current 3D picker.
-14. Three camera tile target setter is a no-op.
-15. Client always passes empty opened-district map to scene.
-16. Research screen is a placeholder.
-17. Offline return overlay is not automatically driven.
-18. Production client hosting is absent from Docker/deploy configuration.
-19. Root Vitest workspace omits render.
-20. Cached test results include failures and stale/missing vector/atlas inputs.
-21. `.gitignore` does not ignore common generated dependency/build trees.
-22. Active documents contain stale version statements.
-23. `DESIGN.md` §4.8 still says merge is half a Tier-1 dividend.
-24. `content/params/screens.json` `build_place` still describes lot-tile
-    placement.
-25. Engine `treasury.ts` still honors a `paused` flag that Vault/PrizeTreasury
-    no longer have.
-26. Tick `bankWithdraw` can fill immediately while the reservation/voucher
-    path is the intended Bank exit.
+Closed 2026-09-19 (do not re-open as current): restore/`catchUp` (M7);
+hire-only-Engineer (M8); empty snapshot (H1); refused live commands (H2);
+Tools / night premium / mint-rate cap (M8.6); no WebSocket (H6); silent
+command errors (H4); research placeholder (H2.1/H5); offline overlay (H7).
+
+Still current:
+
+1. Production client hosting is absent from Docker/deploy configuration.
+2. `DESIGN.md` §4.8 still says merge is half a Tier-1 dividend (C-20).
+3. `content/params/screens.json` `build_place` still describes lot-tile
+   placement (C-01 pack copy).
+4. `robotics_lab` counts `affinity_neighbour_bps` twice — once baked into
+   `output_weight_bps` by `content/build.py`, once applied at runtime by
+   `packages/engine/src/slots.ts` for an autonomous seat. Effective multiplier
+   `0.36` instead of `0.6`; payback 666 ticks against a 336-tick payroll
+   horizon. Accepted as a defect (`R-E-06`), fix specified in
+   `docs/reports/TZ_EARNINGS.md` §8.
+5. Tick `bankWithdraw` can fill immediately while command withdraw uses
+   the voucher path (C-22).
+6. Prize claim is not a wallet transfer until `launch.deployed` and live
+   custody exist.
+7. Exchange hop is mock; `buy_stock` refuses `EXCHANGE_HOP_UNAVAILABLE`.
+8. Empty ground does not open BUILD (intentional: no construction).
+9. Three camera tile target setter is a no-op (map is not a tile grid).
+10. Active documents besides this file may still name older pack versions
+    (PLAN_LAUNCH D1).
 
 ---
 
@@ -3245,11 +3427,10 @@ Each item below preserves both sources. No item is resolved here.
   authored map is immutable; `build` activates/deactivates logical functions;
   no tile mutation.
 - **SOURCE B:** `content/params/screens.json` `build_place` still describes
-  lot-tile placement and `BUILD_TILE_ILLEGAL`;
-  `apps/client/src/hud/screens/build.tsx` still posts `tile_x`/`tile_y`.
-- **CONFLICT:** current API/canon owner is A. B is stale pack/UI copy that
-  still talks as if construction/placement existed.
-- **POSSIBLE INTERPRETATION:** B is leftover grid-era HUD until screens are
+  lot-tile placement and `BUILD_TILE_ILLEGAL`. Live HUD no longer posts
+  `tile_x`/`tile_y` (H5).
+- **CONFLICT:** current API/canon owner is A. B is stale pack copy.
+- **POSSIBLE INTERPRETATION:** leftover grid-era HUD copy until screens are
   regenerated. Do not treat B as current command semantics.
 
 Historical note: a 2026-09-09/10 audit recorded `commit.ts` placing a building
@@ -3308,8 +3489,10 @@ on a generated grid tile. That implementation is no longer present.
 
 - **SOURCE A:** `docs/ROADMAP.md` and generated phase documents use live/root
   language.
-- **SOURCE B:** `services/attestor/src/live.ts` uses mock port/memory store,
-  `services/llm/src/main.ts` has no provider, `launch.deployed.*` is empty.
+- **SOURCE B:** `services/attestor/src/live.ts` uses mock port/memory store and
+  `launch.deployed.*` is empty. (An earlier revision also cited
+  `services/llm/src/main.ts` as a provider-less service; that whole service was
+  removed under `R-V-110` and is no longer part of this conflict.)
 - **CONFLICT:** roadmap status overstates deployed behavior.
 - **POSSIBLE INTERPRETATION:** “live” means pack/contract design live, not
   deployed production.
@@ -3317,12 +3500,13 @@ on a generated grid tile. That implementation is no longer present.
 ### C-08 — version drift
 
 - **SOURCE A:** `content/params/meta.json` and
-  `packages/protocol/src/versions.ts`: rules `0.24.0`, pack `138`.
+  `packages/protocol/src/versions.ts`: rules `0.24.0`, pack **176**.
 - **SOURCE B:** dated phase reports and archive snapshots retain their
   historical version labels.
 - **STATUS:** current economy, tick, prize, and public guide text is aligned
-  to pack `138`; dated reports retain history and are not current
-  instructions.
+  to pack **176**; dated reports retain history and are not current
+  instructions. This document's own chapters were realigned to 176 on
+  2026-09-20; earlier quotes of 138, 150, 162, 171, 172 and 173 are dead.
 
 ### C-09 — fragment/prize split
 
@@ -3339,41 +3523,43 @@ on a generated grid tile. That implementation is no longer present.
 
 - **SOURCE A:** `content/params/screens.json` declares deposit/withdraw/stake,
   research and district actions as live-capable.
-- **SOURCE B:** `services/api/src/commit.ts` applies hire/build/claim_prize/
-  set_objective. There is still no unstake/withdraw/deposit/stake command.
-- **CONFLICT:** generated UI/route registry is ahead of API execution.
-- **POSSIBLE INTERPRETATION:** pack marks target scope, not current server
-  availability.
+- **SOURCE B (2026-09-13):** `applyLive` only had hire/build/claim_prize/
+  set_objective.
+- **CURRENT (2026-09-19):** Source A and `applyLive` match for those
+  commands. Remaining edges: `buy_stock` refuses without live hop;
+  `claim_prize` client-gated on `launch.deployed`. Unstake is the holder
+  registry call, not a missing city command.
+- **STATUS:** the 2026-09-13 conflict is closed.
 
 ### C-11 — full agent model versus synthetic shift
 
 - **SOURCE A:** `DESIGN.md`, `content/params/agents.json`: role/trait/seat/task
   graph.
-- **SOURCE B:** `packages/engine/src/tick.ts` emits `agent_id="shift"` and
-  uses city-level production.
-- **CONFLICT:** authored model is not executed by current tick.
+- **SOURCE B (2026-09-13):** tick emitted `agent_id="shift"` and city-level
+  production.
+- **CURRENT (2026-09-19):** M8 closed this for live cities: tick is per slot,
+  `agent_id` is the agent. Synthetic `"shift"` remains only on T3 cities
+  without `functions`.
+- **STATUS:** closed for the live city; keep the T3 exception.
 
 ### C-12 — Python reference versus TypeScript port
 
 - **SOURCE A:** `content/tick.py` and `content/sim.py` include simulation-only
   injections.
-- **SOURCE B:** `packages/engine/src` now ports XP, housing, sticky level,
-  bank reservations, fragments (cap/ledger/owed), seasons, unstake, and
-  `clipOfflineHours`. `loadConfig` still omits `tools_effect_bps`.
-- **CONFLICT:** remaining parity gaps are narrower than the 2026-09-09/10
-  note that TypeScript omitted fragment cap/settlement. That older gap is
-  historical. Current remaining gap: tools effect, night premium, mint-rate
-  cap, synthetic `city.building` fragment accrual, and API command coverage.
-- **POSSIBLE INTERPRETATION:** content/design remains owner; engine is a
-  growing port, not a second ruleset.
+- **SOURCE B:** `packages/engine/src` ports XP, housing, sticky level,
+  bank reservations, fragments, seasons, unstake, `clipOfflineHours`, Tools
+  effect, night premium, and mint-rate cap (M8.6).
+- **STATUS:** 2026-09-13 parity gap list is closed. Remaining: simulation-only
+  injections in Python `sim.py` must not leak into the live tick.
 
 ### C-13 — declared state sources versus snapshot
 
-- **SOURCE A:** `content/params/screens.json`, `HUD.md`: GDP, stocks, agents,
+- **SOURCE A:** `content/params/screens.json`, HUD design: GDP, stocks, agents,
   stability, happiness and wallet/chain sources.
-- **SOURCE B:** `apps/client/src/hud/model.ts`,
-  `services/api/src/http.ts`: agents/stocks empty and population zero.
-- **CONFLICT:** UI contract exceeds transport projection.
+- **SOURCE B (2026-09-13):** agents/stocks empty and population zero.
+- **CURRENT (2026-09-19):** H1 projects 21/21 channels. `wallet.chain` /
+  `wallet.corp_balance` stay honestly empty without `launch.deployed`.
+- **STATUS:** closed except those two empty wallet channels.
 
 ### C-14 — engine versus contentpack null policy
 
@@ -3415,11 +3601,13 @@ on a generated grid tile. That implementation is no longer present.
 
 - **SOURCE A:** `docs/reports/PLAN_ISLAND.md` requires LOOK acceptance and
   runtime capture/budget checks.
-- **SOURCE B:** current GLBs/captures exist; LOOK-02 identity/pose gate
-  passes; LOOK-03 is accepted; LOOK-11 is absent and some runtime review
-  files exceed the render-size ceiling.
-- **CONFLICT:** assets exist before final product acceptance. Do not treat
-  LOOK-02 passing as LOOK-11 acceptance.
+- **SOURCE B (2026-09-13):** GLBs/captures exist; LOOK-02 identity/pose gate
+  passes; LOOK-03 is accepted; LOOK-11 was then unknown.
+- **CURRENT (2026-09-19):** owner accepted LOOK-11 on 2026-09-14
+  (`art/island_v3/maps/terra-look.json`, `ENV_LOOK_REV` 27). Live mass is
+  `runtime_terra19/`.
+- **STATUS:** visual acceptance conflict is closed for Terra. Packed
+  day-sign / L387 is not the accepted look.
 
 ### C-19 — observed pons tax versus Corporator launch content
 
@@ -3451,11 +3639,12 @@ conflicting sources and record the selected owner.
 
 - **SOURCE A:** `docs/AUDIT.md`, `contracts/src/Vault.sol`,
   `PrizeTreasury.sol`: production contracts do not hold `paused`.
-- **SOURCE B:** `packages/engine/src/treasury.ts::claimPrize` still has
-  `paused`/`honorPause`; `packages/engine/test/m5.test.ts` asserts paused
-  claims pay 0; API hardcodes `paused: false`.
-- **CONFLICT:** engine helper can still honor a pause the contracts no longer
-  implement.
+- **SOURCE B (superseded):** the engine once carried a `paused`/`honorPause`
+  argument on `claimPrize`.
+- **RESOLVED 2026-09-20, not silently:** the engine argument is gone.
+  `claimPrize` now takes `{owed, poolIn, demo}` and `paused` does not appear
+  anywhere under `packages/engine/src`. Contracts and engine agree. This entry
+  is kept as history so a reader who remembers the conflict knows it closed.
 - **POSSIBLE INTERPRETATION:** leftover test/API argument, not a live
   contract control.
 
@@ -3505,10 +3694,33 @@ conflicting sources and record the selected owner.
   sha256 `9ef06d651001f6832d1bf40ca12def903ba9a9ceef18ded85d224daf9f296f9c`,
   `210675347` bytes; pinned by `gate_look02.py` `SNAP_BLEND_SHA`.
 - **CONFLICT:** working blend and frozen snapshot are different files.
-- **CURRENT RUNTIME OWNER:** `art/island_v3/runtime/island_mass.glb` plus
-  `runtime/buildings/*.glb`. Do not re-export A to overwrite B or runtime
-  without a new owner export decision.
+- **CURRENT RUNTIME OWNER:** `art/island_v3/runtime_terra19/island_mass.glb`
+  plus `runtime_terra19/buildings/*.glb` (`R-V-109`). Do not re-export A to
+  overwrite B or runtime without a new owner export decision.
 - **DO NOT RESOLVE SILENTLY.**
+
+### C-27 — deactivation holding the function slot versus live count releasing it
+
+Found 2026-09-20 during the documentation audit. Not previously recorded.
+
+- **SOURCE A:** `DESIGN.md` and `PUBLIC_DOC.md` both state that deactivating
+  or freezing a function does **not** release its logical slot, so the cap is
+  not recoverable by switching a function off.
+- **SOURCE B:** `ordinaryActiveCount` in `packages/engine/src/aggregates.ts`
+  skips deactivated and frozen rows, and `services/api/src/commit.ts` counts
+  through it. A deactivated function therefore does not occupy
+  `build_slots_used`, and a fresh `commit:build` can reuse the cap.
+  `packages/engine/test/economy_rules.test.ts` asserts a deactivated bank
+  counts as zero.
+- **CONFLICT:** two documents agree with each other and disagree with the
+  implementation that both of them describe. This is the one case in this
+  audit where the code is the odd one out rather than the docs.
+- **WHY IT MATTERS:** if the code is right, a player can park capital in a
+  function, switch it off and rebuild elsewhere, which makes the slot cap a
+  soft limit rather than a real constraint on city shape.
+- **DO NOT RESOLVE SILENTLY.** Either the two documents are corrected to match
+  the engine, or `ordinaryActiveCount` stops skipping deactivated rows. That is
+  a balance decision, not an editorial one, and it belongs to the owner.
 
 ---
 
@@ -3533,7 +3745,7 @@ conflicting sources and record the selected owner.
 15. Should `dist`, `dist-web`, `node_modules` be ignored?
 16. What is `_h1.txt`?
 17. Which cached test failures are current?
-18. Which active documents must be refreshed to pack 138/rules 0.24.0,
+18. Which active documents must be refreshed to pack 176/rules 0.24.0,
     especially `DESIGN.md` §4.8 merge-half wording?
 19. When will `screens.json` `build_place` stop requiring `build_tile`?
 20. Should tick `bankWithdraw` be removed once voucher reservations are the
@@ -3634,14 +3846,16 @@ external narrative layer.
 2. **What the player owns:** Capital, functions, agents, stakes, fragments,
    Influence, bank/withdrawal history. Not the physical map.
 3. **What the player does:** deposit `$CORP`, activate/deactivate authored
-   functions, hire/assign agents, stake Stock Tokens, manage payroll, exit
-   through the Bank.
+   functions, hire/assign agents, stake Stock Tokens, unstake through
+   StakeRegistry, manage payroll, exit through the Bank.
 4. **What the city is:** already-built infrastructure. Player turns functions
    on and off. No construction, placement, mesh creation, or tile mutation.
 5. **What the economy is:** Vault-backed Capital, finite payroll fund, 2%
-   creator tax split into 1.0% fund, 0.3% leaderboard stocks, 0.5%
+   creator tax split into 1.0% fund, 0.2% leaderboard stocks, 0.6%
    active-work stocks and 0.2% studio; Capital spending is 40% burn / 60%
-   payroll / 0% protocol; round-trip 1445 bps.
+   payroll / 0% protocol; round-trip 1445 bps. Reference deposit $150;
+   district `S_min` ~$100. Bank daily pipe 5% of live CORP/ETH depth; L1
+   personal share 25% of that pipe. Zipf mix α=8000.
 6. **What agents are:** five roles executing shifts. XP +1/tick, Train +1 to
    a same-city target, max level 5.
 7. **What buildings are:** 18 authored archetypes. Ordinary active functions
@@ -3654,21 +3868,18 @@ external narrative layer.
     Global epoch closes GDP/Influence; new cities do not backfill.
 11. **How offline works:** base 12 hours, Automation 1+2+3, merge +1,
     hard cap 18.
-12. **How visuals work:** one authored island, runtime mass + building GLBs,
-    no live units, LOOK-11 not accepted.
-13. **What MUST NOT be changed:** published pack hash
-    `9e4a5ca1132872e8856ad0764126f63ec0bc16b7a971f59108c9724495cb83ed`
-    except by official generators; I1/I3/I11; integer-only tick; immutable
-    authored map; no Vault/PrizeTreasury pause; holder-owned unstake with
+12. **How visuals work:** one authored Terra island (`runtime_terra19/`),
+    no live units, LOOK-11 accepted 2026-09-14.
+13. **What MUST NOT be changed:** generated pack is currently 176 /
+    `7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c`
+    except by official generators; integer-only tick; immutable authored
+    map; no Vault/PrizeTreasury pause; holder-owned unstake with
     server-side freeze; content/design as owner over old engine behavior;
     `island.blend` / snapshot re-export without an owner decision;
     C-20 (`DESIGN.md` §4.8 half-dividend vs current full-dividend).
-14. **What is currently incomplete:** real production DEX quote/buy source
-    (the default conveyor source is fail-open mock); API-to-chain
-    PrizeTreasury claim transport (the current API path is a local projection);
-    API unstake/withdraw/deposit/stake; voucher presentation host;
-    full agent/building tick; production addresses and role owners; client
-    snapshot; LOOK-11.
+14. **What is currently incomplete:** production DEX hop (mock quote →
+    `EXCHANGE_HOP_UNAVAILABLE`); prize chain custody until `launch.deployed`;
+    production addresses and role owners; client static hosting.
 
 ### Operating rules for the next agent
 
@@ -3693,8 +3904,7 @@ external narrative layer.
 13. Do not use the fat `art/island_v3/island.glb` as runtime.
 14. Keep preview/client renderer parity.
 15. Do not reintroduce Vault/PrizeTreasury pause.
-16. Unstake on-chain is holder-owned; grace/freeze stays server-side. Do not
-    invent an API unstake command that is not there.
+16. Unstake is holder-owned on-chain; grace/freeze stays server-side.
 17. Before release, resolve production addresses, role owners, Stock Token
     mappings, deployed ABI, audit, voucher host, fragment buy/hop, client
     hosting, persistence, live commands, state projection, tests and visual
@@ -3702,20 +3912,21 @@ external narrative layer.
 
 ### Highest-priority engineering gaps
 
-1. Full persistent city/agent/building state.
-2. Command/API implementation parity (unstake, withdraw/voucher host,
-   deposit, stake, districts).
-3. State projection and live client updates; retire tile `build_place`.
-4. Full agent/building/district tick wiring.
-5. Sampler/buyback/chain execution.
-6. Fragment/season custody integration and DEX buy/hop host.
-7. Client deployment.
-8. Visual LOOK-11 acceptance and runtime budgets.
-9. Production token/contract/stake addresses and role owners.
+1. Production addresses, role owners, Stock Token → StakeRegistry, ABI.
+2. Live DEX hop (not a second `buy_stock` handler — the quote must be live).
+3. Prize custody on chain when `launch.deployed` is filled.
+4. Client static hosting in `deploy/`.
 
 ---
 
 ## 49. Machine-Readable Summary
+
+The YAML block is the **2026-09-13** snapshot (pack 138). Current commands and
+LOOK-11 are §0 follow-up and §53 — do not copy `look11: unknown`, missing
+deposit/stake, or `api_unstake_command` from this block. Do not copy
+`fee_split_turnover_bps` / kettle bps from this block either: live values are
+§53 (pack 171). Unstake is live as
+holder `StakeRegistry.unstake` plus engine freeze, not a city HTTP command.
 
 ```yaml
 project:
@@ -3723,17 +3934,17 @@ project:
   token: "$CORP"
   genre: browser 3D city-management economy
   platform: browser client plus Node services
-  pack_hash: 9e4a5ca1132872e8856ad0764126f63ec0bc16b7a971f59108c9724495cb83ed
-  vectors_sha256: db4d97d59d94ebabd2fd53e06c2726c42bb6b1085413f0fc8549da64e0a9fd4e
+  pack_hash: 7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c
+  vectors_sha256: dcf5e9fa6428557230e17ac25724fedd809f658f92f864188fb2d10d4c407449
   rules_version: "0.24.0"
-  pack_version: 138
+  pack_version: 176
   layout_version: 1
-  canonical_bytes: 676950
+  canonical_bytes: 672869
 
 world:
   map_model: one shared authored island
-  live_source: art/island_v3/runtime/island_mass.glb
-  building_source: art/island_v3/runtime/buildings/*.glb
+  live_source: art/island_v3/runtime_terra19/island_mass.glb
+  building_source: art/island_v3/runtime_terra19/buildings/*.glb
   per_player_geometry: false
   economic_grid_is_live_map: false
   live_units: false
@@ -3763,11 +3974,11 @@ economy:
   studio_eth_share_bps: 2000
   fee_split_turnover_bps:
     fund: 100
-    leaderboard: 30
-    farm: 50
+    leaderboard: 20
+    farm: 60
     studio: 20
-  month_kettle_turnover_bps: 30
-  farm_active_work_turnover_bps: 50
+  month_kettle_turnover_bps: 20
+  farm_active_work_turnover_bps: 60
   round_trip_cost_bps: 1445
   payroll_daily_divisor: 14
   payroll_fund_cap_days: 30
@@ -3807,9 +4018,9 @@ time:
   automation_merge_offline_add: 1
   unstake_grace_city_hours: 24
   season_city_days: 90
-  fragment_window_city_days: 14
+  fragment_window_city_days: 7
   bank_global_day_reset: true
-  bank_live_depth_share_bps: 100
+  bank_live_depth_share_bps: 500
 
 industries:
   - id: compute
@@ -3901,46 +4112,54 @@ ui:
   shell: CSS HUD over canvas
   screens_declared: 16
   panels_declared: 11
-  live_websocket_client: false
+  live_websocket_client: true
   actual_api_commands:
     - hire
     - build
     - claim_prize
     - set_objective
-  declared_stub_commands:
-    - noop
-  missing_api_commands:
-    - unstake
-    - deposit
-    - withdraw
-    - stake
-    - voucher_present
-  declared_screen_commit_without_command_route:
-    - research_start
-  placeholder_or_refused:
     - deposit
     - withdraw
     - stake
     - open_district
-    - buy_stock
     - upgrade
     - claim_fragment
     - unlock_tier
     - pick_node
     - merge
-  missing_screen_commit:
     - research_start
+    - buy_stock
+  declared_stub_commands:
+    - noop
+    - missions_start
+  missing_api_commands:
+    - unstake
+    - voucher_present
+  refusal_only_on_client:
+    - claim_prize
+  conditional:
+    - buy_stock
+  notes:
+    unstake: holder calls StakeRegistry directly; not a city command
+    voucher_present: contract-side presentation, not a HUD button
+    claim_prize: API live; client stays refusal-only until launch.deployed is filled
+    buy_stock: fills only when feed is live and the hop URL returns stock_out
+    superseded: >-
+      An earlier revision listed deposit, withdraw, stake, open_district,
+      upgrade, claim_fragment, unlock_tier, pick_node, merge and research_start
+      as missing or placeholder. H2 wired them in services/api/src/commit.ts
+      and H3 unblocked them in apps/client/src/hud/liveAdapter.ts.
 
 visual:
   live_renderer: Three.js
   archive_renderer: Pixi/cell path
-  live_mass: art/island_v3/runtime/island_mass.glb
-  live_buildings: art/island_v3/runtime/buildings/*.glb
+  live_mass: art/island_v3/runtime_terra19/island_mass.glb
+  live_buildings: art/island_v3/runtime_terra19/buildings/*.glb
   references: visual/
   palette: art/palette/corporator.hex
   fonts:
-    - Press Start 2P
     - IBM Plex Sans
+    - JetBrains Mono
   owner_acceptance:
     look02: gate_pass
     look03: true
@@ -3992,7 +4211,7 @@ technical:
   unstake_grace: server_side_24h
   voucher_reservation: issue_reserves_present_consumes_expiry_releases
   asset_port_has_unstake: true
-  asset_port_has_prize_treasury: false
+  asset_port_has_prize_treasury: true
   asset_port_has_dex_hop: false
   known_external_chain_facts: docs/LAUNCH.md
   project_deployed_addresses: unknown
@@ -4005,10 +4224,10 @@ technical:
   voucher_presentation_host: unknown
   client_hosting: unknown
   codegen_check: 23_of_23
-  lint_rules: 384
+  lint_rules: 386
   lint_errors: 0
   contentpack_i0: 61_of_61
-  attack_publish: 384_covered_plus_307_construction
+  attack_publish: 386_covered_plus_307_construction
   attack_followup_L268_L385: 12_probes_caught
   construction_island_stage_keys_exist: held
 
@@ -4032,23 +4251,40 @@ implemented:
   - look02_identity_pose_gate
   - city_hall_origin_identity
   - contentpack_i0_island_client_look_ct
-
-partial:
   - three_island_renderer
+  - client_live_state
+  - live_websocket_feed
+  - offline_catchup_host_wiring
   - agent_building_runtime
   - district_staking
   - research
+  - visual_acceptance
+
+partial:
   - fragment_accrual_on_synthetic_building
   - fragment_claim_and_dex_hop
   - season_claims_custody
-  - offline_catchup_host_wiring
   - sampler
   - buyback
-  - client_live_state
-  - visual_acceptance
   - bank_withdraw_intent_immediate_fill
   - api_unstake_command
   - voucher_presentation_host
+
+accepted_not_implemented:
+  register: docs/CANON.md
+  spec: docs/reports/TZ_EARNINGS.md
+  accepted_on: 2026-09-20
+  summary_section: 12
+  execution_order: [E6, E3, E1, E2, E4, E5]
+  items:
+    R-E-01: payroll tick pool may exceed the sum of requests up to a packed boost; daily budget becomes max(fund/divisor, smoothed inflow)
+    R-E-02: boost x8 for a 7 city-day announced launch window, x3 after
+    R-E-03: output_bps stack clip rises from output_growth_bps 18000 to reachable content 35795
+    R-E-04: beacons and synergies begin to move output size
+    R-E-05: dormant-player-negative target withdrawn; meta.json return bands recut
+    R-E-06: robotics_lab double affinity_neighbour_bps is a defect and is fixed
+  shipped: false
+  warning: engine, python oracle and pack all still implement the old behaviour
 
 planned:
   - full_player_identity_state
@@ -4104,3 +4340,670 @@ conflicts:
   - live_island_blend_vs_look02_snapshot
 ```
 
+---
+
+## 50. HUD playability (2026-09-19)
+
+This section is IMPLEMENTATION evidence for the living HUD. It does not
+delete §28’s 2026-09-13 UI-gap list.
+
+### Navigation
+
+Six primary destinations, keys `1`–`6`, from buildings rather than a dock
+(`apps/client/src/hud/navigation.ts`):
+
+| key | destination |
+|---|---|
+| 1 | Overview |
+| 2 | Agents |
+| 3 | Exchange |
+| 4 | Bank |
+| 5 | Industries |
+| 6 | Journal |
+
+`resolveHudRoute` returns empty for `build` and `missions`. Research is an
+Overview tab. District catalog lives inside Industries. Season plaque on
+the topbar opens `leaderboard`. Wallet / `$CORP` plaque opens Bank. Scene
+picks select a building; they do not open construction.
+
+Pack overlays: `leaderboard`, `wallet_connect`, `offline_return`,
+`onboarding_demo`, `agent_card`, `building_card`, `district_card`.
+`wallet_connect` is pack bijection (`L358`); live login is `LoginRoot`,
+not that screen.
+
+### Screens (H5 inventory, 34 pack objects)
+
+Playable: agents, districts/Industries, exchange, bank, research
+(Overview tab), leaderboard, building_card, agent_card, district_card,
+offline_return, onboarding_demo, wallet_connect (as login states),
+topbar, overview, districts_panel, city_card, agents_panel, log_panel,
+scene, and the eight onboard/return flows.
+
+Stub / not-work: `build`, `missions`, `settings` (pack live, HUD route
+unresolved), `bottom_menu`, `active_events` / `district_overview`
+(partial), `stock_bar` (not a permanent bar).
+
+### Gates and truth
+
+`evaluateActionGate` (`apps/client/src/hud/gates.ts`) walks pack
+`requires`. First failed blocking token is the refusal code. Missing
+snapshot field → `UI_UNAVAILABLE` (“no data”), not “cannot”. Warning
+`building_hours` does not disable. Demo `demo_blocked` still cuts
+withdraw and prizes. HUD must show causes, not silent zeroes.
+
+### Live updates (H6 / M7)
+
+Client subscribes to `WS /city/{city_id}/ws`
+(`apps/client/src/hud/wsFeed.ts`). Classes `tick` / `aggregate` /
+`price` / `log` / `efficiency` patch only their `state_source`. Heartbeat
+`{ pack_hash }` is liveness; socket `city_time` does not drive the clock.
+Disconnect → `data-link="stale"`. Full `GET /state` remains on mutations.
+API start restores from last snapshot plus `tick_inputs` tail
+(`restoreLiveState`). Scheduler calls `catchUp`; catch-up ≡ replay;
+offline clipped by pack hard cap 18 city hours.
+
+### Onboarding and offline (H7)
+
+Demo onboarding follows `pack.onboardSteps`, auto-starts on first demo
+entry, persisted in `sessionStorage` keyed by city. Demo and wallet
+progress do not cross.
+
+Offline return auto-overlay when `city_time` advanced since last visit.
+Window = base + Automation dividends + one merge extra; clip =
+`clipOfflineHours`. Excess → `IDLE_OFFLINE_CAP_REACHED`. Continue
+dismisses; no `commit`.
+
+### Agent tick (M8 / C-11)
+
+Live city tick is per slot. `agent_id` is the agent id. Synthetic
+`"shift"` remains only on T3 cities without `functions`. Hire covers five
+roles (starting random pool is three: Engineer, Logistician, Trader).
+`assign` is a live command. HUD cards show role, slot, task, XP, traits,
+and idle reason from API. Tools effect, night Energy premium, and mint
+daily rate limit are wired (M8.6). Do not return Companion. Do not spawn
+units on the island.
+
+### Render clock (F3)
+
+`packages/render/src/three.ts` uses `city_time` (water, sun, day phase).
+`performance.now()` is not the economic/visual clock source.
+
+---
+
+## 51. Live ranking and prize rank (2026-09-19)
+
+**CANONICAL FACT:** two different rankings share the season HUD. Mixing
+them is a trust defect.
+
+Sources: `docs/SCREENS.md` `leaderboard`;
+`content/params/screens.json` fields `leaderboard_live_board` /
+`leaderboard_rank`; `services/api/src/project_rank.ts`; engine
+`faceWallet` / `qualifyDays` (`packages/engine/src/seasons.ts`); HUD
+`apps/client/src/hud/screens/leaderboard.tsx`; probes in
+`services/api/test/h1.test.ts`.
+
+### HUD surface
+
+Season → screen `leaderboard`, four tabs:
+
+1. `UI_LIVE_BOARD` (“ranking”) — public table
+2. `UI_SEASON_PERIOD` — season/period labels and prize-basket tickers
+3. `UI_CLAIM_FRAGMENT` — Farm owed per ticker + `district_claim_fragment`
+4. `UI_CLAIM_PRIZE` — qualification empty `UI_EMPTY_NOT_QUALIFIED`, Monthly
+   owed, `leaderboard_claim`
+
+Empty of the **board** tab is `no_entities_yet` when no wallet rows exist.
+It is not “you are not qualified”. Qualification empty stays on the claim
+tab.
+
+Each live row: display rank, shortened wallet (`fields.ts` display-only;
+does not rank), optional `UI_YOU`, Influence, day GDP. `data-self`,
+`data-qualified` are attributes, not a second invented rank.
+
+### Live board (`board[]`)
+
+- Every non-demo city with a non-empty `wallet` face.
+- `account_kind=demo` is excluded even if the `demo` flag is cleared.
+- `demo=1` is excluded even if `account_kind` is `wallet`.
+- Empty / whitespace-only `wallet` does not occupy a slot and is not
+  replaced by `city_id`. Payout key for a faceless city remains
+  `c:<city_id>`.
+- One slot per wallet. Merge matches the engine: higher Influence; equal
+  Influence → lower `city_id`. Live merge does **not** require prize
+  qualification, so an unqualified high-Influence city of the same wallet
+  can be the displayed row (`qualified=0`).
+- `faceWallet`: trim; 40-hex with optional `0x` compacted to lowercase
+  `0x…`. Checksum case, inner spaces on hex, and leading/trailing space
+  collapse to one slot. Non-hex strings stay as trimmed text.
+- Sort of the **table**: Influence desc, then `day_gdp` desc, then
+  `city_id` asc.
+- **No** `prize_top_n` cap. **No** Zipf. Unqualified wallets remain listed.
+- A demo viewer can see the public board and is not listed on it.
+- `project_rank.ts` must not import `prize_top_n` or `zipf` for this
+  projection (H1 probe).
+
+### Prize rank (`rank` field)
+
+- Computed only for the viewer city when it is prize-qualified.
+- Qualification: `positive_days >= qualifyDays(pack.sections, alpha)` and
+  live playable stake if `prize_require_live_stake=1`. Threshold comes
+  from pack sections, not an empty `cfg.data`.
+- Prize merge keeps **qualified** cities of the wallet only. An
+  unqualified Influence leader of the same wallet must not steal the
+  prize slot.
+- Prize order: Influence desc, then `city_id` asc. **No GDP tie-break.**
+  A live-board GDP reorder must not change Zipf rank.
+- Demo cities have no invented rank 1: `qualified=0`, `rank` absent,
+  `board=[]` when no wallet cities exist.
+- Zipf / `PRIZE_*` codes / claim carrying `wallet` are unchanged. This
+  HUD table does not re-author prize math.
+
+### Claim
+
+`leaderboard_claim` / `claim_prize`: client `refusal-only` until
+`launch.deployed` is complete. API path exists; production custody is
+not implied by a visible rank.
+
+---
+
+## 52. Command and money path (2026-09-19)
+
+H2.1–H2.11 closed with H3 (one unlock per live intent). Summary:
+
+| effect | API | client | notes |
+|---|---|---|---|
+| `research_start` | live | live | spends research cost; tick closes the node |
+| `open_district` | live | live | needs `stake_settled ≥ S_min` and `corp_held > 0`; does not debit `corp_held` |
+| `stake` | live | live | `tokens_held` → `stake_settled` to next `stake_mult_step × S_min` |
+| `unlock_tier` | live | live | next tier only; tier 1 costs 0 |
+| `pick_node` | live | live | no respec; `UI_NO_RESPEC` before click |
+| `merge` | live | live | full Tier-1 dividend (C-20); no synergy pair |
+| `upgrade` | live | live | next `level_cost`; City Hall not upgraded |
+| `claim_fragment` | live | live | owed → `tokens_held`; not hop; not `claim_prize` |
+| `deposit` | live | live | `corp_held` → `mintFromBacking`; bank hours do not gate |
+| `withdraw` | live | live | `authorize` → `present`; not tick `bankWithdraw` (C-22 kept) |
+| `buy_stock` | live refuse | live | `EXCHANGE_HOP_UNAVAILABLE` until live quote |
+| `hire` / `assign` / `set_objective` / `build` | live | live | `build` is activate/deactivate, no tiles |
+| `claim_prize` | API live | env-gated | see §51 |
+| `unstake` | on-chain | wallet tx | `StakeRegistry.unstake` + engine grace/freeze; not `/command/unstake` |
+
+Attestor (M4): `selectAttestorPort` uses live RPC + transport when env
+and `readPlayerReady` addresses are complete; else mock. IPFS still
+`CORPORATOR_IPFS_PIN_URL`. Roots in `attest_roots` if `DATABASE_URL`,
+else memory. Fail-open: broken payload → `logged`; failed IPFS/RPC is
+not `verified`; payment is not rolled back. Badge `verified` only with
+root **and** CID (`L350`).
+
+Buyback (M6): conveyor source remains fail-open mock (`SERVICE_DEGRADED`).
+`returnUnsettled` is bot-only, before slice.
+
+---
+
+## 53. Machine-readable follow-up (2026-09-20)
+
+Does not replace §49. Later snapshot only.
+
+```yaml
+follow_up:
+  date: 2026-09-20
+  plan: docs/reports/PLAN_LAUNCH.md
+  plan_code_queue: empty
+  rules_version: "0.24.0"
+  generated_pack_version: 176
+  generated_pack_hash: 7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c
+  generated_vectors_sha256: dcf5e9fa6428557230e17ac25724fedd809f658f92f864188fb2d10d4c407449
+  generated_pack_bytes: 672869
+  authored_meta_pack_version: 176
+  layout_version: 1
+  look11: accepted_2026-09-14
+  live_island: art/island_v3/runtime_terra19/
+  companion: removed_L388
+  host_writer: removed_R-V-110
+  state_channels: 21/21
+  hud_live_intents: 15/19
+  claim_prize_client: live_iff_launch_deployed
+  exchange_hop: mock_refuse_EXCHANGE_HOP_UNAVAILABLE
+  unstake: holder_stake_registry_plus_engine_freeze
+  live_board: all_wallet_cities_influence_gdp_city_id
+  prize_rank: qualified_only_influence_city_id
+  c20_c01_c22: preserved
+  missions_live: 0
+  launch_deployed: empty
+  plan_launch_ledger: section_54
+  owner_balance_knobs_2026-09-20:
+    farm_turnover_bps: 60
+    leaderboard_turnover_bps: 20
+    studio_turnover_bps: 20
+    fund_turnover_bps: 100
+    prize_curve_alpha_bps: 8000
+    reference_deposit_usd: 150
+    fund_amplification_target_bps: 24175
+    return_minimalist_bps: [8271, 9100]
+    return_optimizer_bps: [16542, 18200]
+    bank_daily_limit_pool_share_bps: 500
+    bank_level_gain_bps: 2500
+```
+
+Owner balance knobs (2026-09-20, pack 173): farm 0.6% / month 0.2% of DEX turnover; Zipf mix alpha 8000; reference deposit $150; playing recoups 165% of the door ($248), sleeper 83% ($124 small minus), A=24175; bank pipe 5% of live CORP/ETH depth; personal L1 locked at 2500 bps by L389. Round-trip 1445 bps unchanged. Dump risk is the thin CORP/ETH pool, not the vault invariant.
+
+
+
+---
+
+## 54. PLAN_LAUNCH ledger (closed 2026-09-18…2026-09-19)
+
+Source: `docs/reports/PLAN_LAUNCH.md`. This section is the full task
+ledger for that living plan. It does not replace §50–§53 (HUD / ranking /
+commands) and does not rewrite the 2026-09-13 numbered chapters.
+
+**Code queue of the plan is empty.** Appendix B: F1–F7, I1–I3, H1–H9,
+M4–M8 closed. M1–M3 cancelled (replaced by H1–H5). D1–D5 closed
+2026-09-21. `launchToken` was not signed. No mainnet deploy.
+`missions_live` remains 0. C-20, C-01, C-22 preserved.
+
+Red lines that still bind: no `launchToken`; generated files only via
+`codegen.py`; numbers from pack; deterministic tick; free lint id **L390**
+(do not reuse holes 328, 364, 387); no units (`R-V-101`); no host writer
+(`R-V-110`); no map generation (`R-V-98`); no Companion (`L388`).
+
+Trash for island moves (I2): `C:\Users\sk640\corporator-trash-20260918`.
+Backup: `C:\Users\sk640\corporator-unversioned-backup-20260918`.
+Tag before cleanup: `pre-cleanup-2026-09-18`.
+
+---
+
+### 54.1 Part F — defects
+
+| id | closed | what landed |
+|---|---|---|
+| F1 | 2026-09-18, commit `bd8a3c2d` | Generated TypeScript had been stamped pack 143 (`b1cc21aa…`) while disk pack was 144 (`dc58998f…`). Runtime hash check failed. Cure: `python content/codegen.py --check` → `codegen.py` → `--check` until `23 artifacts match pack <hash>`. After any `content/params/*.json` change: `build.py` then `codegen.py`. |
+| F2 | 2026-09-18 | Companion removed from the live pack (`L388`). Host writer removed (`R-V-110`). Four live processes: api, sampler, buyback, attestor. No writer catalog under `services/`. Do not restore Companion, a fifth process, or an external summary writer. `arch.listen.ports` rejects an extra port. |
+| F3 | 2026-09-19 | `packages/render/src/three.ts`: water = `city_time × water_steps_per_tick`; sun and day phase via `setCityTime` → `sunPose`. `performance.now()` is not the island clock. Lint `L334` / `L335` / `L338` / `L376` left ERRORS. Studio `Clock` in `art/island_v3/map.ts` is not live render. Tests: `packages/render/test/v7.test.ts` `motion_is_pure_of_city_time`, `no_wall_clock_in_render`. |
+| F4 | 2026-09-18 crash fixed, then **owner-withdrawn** | Packed day-sign / L387 is not the accepted look. Do not add keys in F4 — that would change the accepted island, not fix a crash. |
+| F5 | 2026-09-19 | Literal `8` in `packages/render/src/islandLook.ts` replaced by pack `render.look_orbit_distance_max_mul = 8` (pack 146). Names `islandLook` / `look03_*` are historical camera ids, not an open LOOK pass. Lint `L340` left ERRORS. |
+| F6 | 2026-09-19 | `fill.intensity` is applied in `packages/render/src/three.ts` (HemisphereLight). Lint `L382` left ERRORS. |
+| F7 | 2026-09-19 | `packages/contentpack/test/m0.test.ts` aligned to pack: stage `fee_split` holds 5 `construction_tests` keys, `money_form` holds 2. Three red visual probes (`v3` `ground_matches_python_scene`, `v12` `visual_budgets_measured`, `v37` `visual3_budgets_measured`) moved to `docs/archive/tests/` by owner decision; live `it("…")` stubs remain (`L268`). Those three guarded isometric cell render, which is not the live path. Island GPU gate was not this task. |
+
+**F1 generated artifacts (23):** ten `packages/protocol/src/*.ts`;
+`services/api/migrations/001_from_pack.sql`; `.dependency-cruiser.cjs`;
+root `tsconfig.json`; six `deploy/*`; `scripts/ci.mjs`;
+`.github/workflows/ci.yml`; `contracts/foundry.toml`;
+`contracts/test/PackConstants.sol`.
+
+---
+
+### 54.2 Part I — one island (Terra)
+
+| id | closed | what landed |
+|---|---|---|
+| I1 | 2026-09-19 | `art/island_v3/view.html` and `preview.ts` read `runtime_terra19`. Rejected `./runtime/` is not the look-check path. `map.html` already loaded Terra. Client load remains `apps/client/src/islandLookAssets.ts` → `runtime_terra19/island_mass.glb` and `runtime_terra19/buildings/*.glb`. |
+| I2 | 2026-09-19 | Rejected island **moved** (not deleted) to `C:\Users\sk640\corporator-trash-20260918\rejected-island`. Git `art/island_v3/runtime/` is empty. Live `runtime_terra19/` (57 files) and `maps/terra-look.json` stay. Pack at close: 147. |
+| I3 | 2026-09-19 | Owner: leave Blender sources. `art/island_v3/island.blend` (**307.4 MB**) stays. No `*.blend1` autosaves in `island_v3/`. Not in git. HUD/client do not read it. Git history not rewritten for space. Plan’s 4.4 GB `*.blend` figure was stale; one `island.blend` remained. |
+
+**I2 moved (do not restore as live):**
+
+| path | what |
+|---|---|
+| `art/island_v3/runtime/` | rejected runtime (22 files, was in git) |
+| `art/island_v3/snapshots/` | 2026-09-06 mass snapshot |
+| `art/island_v3/island.glb` | fat GLB, not runtime |
+| `art/island_v3/island_grid_backup.glb` | duplicate of the fat GLB |
+| `art/island_v3/_rollback/` | LOOK rollbacks |
+| `art/island_v3/rollback/` | same |
+| `art/island_v3/reviews/` | closed LOOK-00…04 reviews |
+
+**I2 never touch:** `runtime_terra19/`; `maps/terra-look.json`;
+`decoration/*.glb`; `models/` (18 protected GLB plus Terra source);
+`visual/buildings orig/`, `visual/units/`, `assets/website/units/`.
+
+---
+
+### 54.3 Part H0 — diagnosis at plan start (2026-09-18)
+
+HUD was honest empty. Engine already computed almost the whole game. The
+work was wire, not new formulas.
+
+Then: API filled 9 of 21 state channels; `applyLive` ran 4 of 15 commands
+(`hire`, `claim_prize`, `build`, `set_objective`); client live intents were
+3 of 19. Recipe (still the rule): one channel = engine value →
+`projectState` section → snapshot field, never invent a number. One command
+= handler in `commit.ts` / `applyLive` **then** unlock in `liveAdapter.ts`.
+Unlock one button at a time.
+
+H red lines kept: no economy in the client; no `DecisionRecord` /
+`layout_version` / `creator_tax_bps` change; do not “fix” C-20 / C-01 /
+C-22; no missions; no `bottom_menu`; `claim_prize` only with real custody
+path (H2.11 + M6 + `launch.deployed`).
+
+Engine already had (do not rewrite): `mintFromBacking`, `authorize` /
+`present` / `expire`, `happinessOfCity`, `gdpDay`, `population`,
+`stickyCityLevel`, `advanceResearch`, `settleFromData`, `seasonSettle`,
+`zipfPayout`, `cpmmBuyCorp`, `clipOfflineHours`, `unstake`.
+
+---
+
+### 54.4 H1 — 21 state channels
+
+Closed 2026-09-19. `projectState` projects all 21 `StateSourceId` values
+in `packages/protocol/src/channels.ts`. Rank threshold is
+`qualifyDays(pack.sections)`, not empty `cfg.data`. Tests:
+`services/api/test/h1.test.ts`.
+
+| sub | channels | snapshot |
+|---|---|---|
+| H1.1 | `aggregate.gdp`, `aggregate.happiness`, `aggregate.stability` | `gdp`, `happiness`, `stability`, `productivity` from `gdpDay`, `happinessOfCity`, `stabilityBps`, `productivityBps`. Thresholds from pack (`happiness_penalty_threshold_bps`, `stability_hint_threshold_bps`). |
+| H1.2 | `tick.building_level`, `tick.agent_state` | `functions[]`, `agents[]`, `population`, `cityLevel`. Keys not display text. `idleKey` is a pack code. Population via `population` + `housingCapacityOf`. Level via `cityLevelFromPopulation` then `stickyCityLevel` (does not drop by itself). |
+| H1.3 | `wallet.corp_balance`, `wallet.chain`, `wallet.stake_tokens`, `oracle.stock_price`, `oracle.district_efficiency` | `corp`, `stocks[]`, `quoteLive`, `quoteAgeMs`. Efficiency is industry weather, not player PnL. `wallet.chain` / `corp_balance` stay `{}` without RPC and `launch.deployed`. `quoteAgeMs` from `city_time`. |
+| H1.4 | `seasons.influence_rank`, `fragments.city_ledger` | season/period keys, live board vs prize rank (see §51), fragment ledger from `settleCities`. One wallet slot: engine merge, not a second sort. |
+
+Also already filled before H1 and still filled: `tick.capital`,
+`tick.energy`, `tick.compute`, `aggregate.payroll_ratio`,
+`wallet.protocol_eth_in_flight`, `wallet.protocol_vault_corp`,
+`wallet.protocol_studio_eth`, `seasons.prize_basket`, `log.events`.
+
+Honest empty until deploy: `wallet.chain`, `wallet.corp_balance`.
+
+---
+
+### 54.5 H2 + H3 — commands (one unlock per effect)
+
+H2 writes the API handler. H3 then sets client `support: "live"`. Reverse
+order ships a button into a void. Closed 2026-09-19, one effect at a time.
+
+| id | effect | API | client body | notes |
+|---|---|---|---|---|
+| H2.1 + H3 | `research_start` | live | `axis_id` | Spends `generated.balance.research_node_cost`. Sets `research_focus`, `research_progress=0`, city `objective` = `cfg.research_objective`. Does **not** call `advanceResearch`; the tick closes the node. Synthetic commit from `research.json` axes via `screens.effective_actions` (`L161`). |
+| H2.2 + H3 | `open_district` | live | `district_id` | Needs `stake_settled[ticker] ≥ s_min` and `corp_held > 0`. Does **not** debit `corp_held` (hop is `buy_stock`). Demo: `WALLET_NOT_CONNECTED`. No `city_level` in action `requires`. |
+| H2.3 + H3 | `stake` | live | `district_id` | Moves `tokens_held` → `stake_settled` up to next `stake_mult_step × S_min`. District must already be open. Engine has no `stake()`; reverse is holder `unstake`, not a city command. |
+| H2.4 + H3 | `unlock_tier` | live | `district_id` | Next tier only (`body.tier` ignored). Tier 1 costs 0; 2–3 use `generated.progression.tier_cost`. Gates: `city_level_req`, `stake_mult × S_min`, `requires_prev`. Dividend into `city.nodes`. Demo does not need a wallet. |
+| H2.5 + H3 | `pick_node` | live | `node_id`, `district_id` | From `generated.progression.progression_nodes`. No respec. `spend=none`. Refusals: `NODE_SIDE_LOCKED`, `TIER_NOT_UNLOCKED`, `DISTRICT_LOCKED`. HUD warns `UI_NO_RESPEC` before click. |
+| H2.6 + H3 | `merge` | live | `merge_id`, `district_id` | Spends `merge_cost`. Full Tier-1 dividend (**C-20**, do not edit `DESIGN.md` §4.8). Writes both effects into `city.nodes` and `city.merges`. Refusals: `DISTRICT_LOCKED`, `TIER_NOT_UNLOCKED` below `merge_min_tier`, `MERGE_MATCHING_BLOCKED`, `NOT_ENOUGH_CAPITAL`. Synergy pair is not part of merge (`L59`). |
+| H2.7 + H3 | `upgrade` | live | `building_id` | Spends next `generated.balance.level_cost`. Writes `functions[].level`. `body.level` ignored. Refusals: `CITY_LEVEL_TOO_LOW` if missing/off/`city_hall`; `DISTRICT_FROZEN`; `TIER_NOT_UNLOCKED` at `building_level_max`; `NOT_ENOUGH_CAPITAL`. |
+| H2.8 + H3 | `claim_fragment` | live | empty extra | Demo: `DEMO_NO_CLAIM`. If window due: `windowSettleDue` + `settleCities` for all cities with ledger/pool (N≥2 cap not bypassed by settling one city). Then `fragment_owed` → `tokens_held`. Empty pool: `FRAGMENT_POOL_EMPTY` (ledger burns). Σ=0: `FRAGMENT_NO_CLAIMS`, pool untouched. Not ERC-20, not hop, not `claim_prize`. |
+| H2.9 + H3 | `deposit` | live | `amount` | Wallet required. Debits `corp_held`, mints Capital only via `mintFromBacking` (vault fee, dest = city, not fund). Bank hours do not gate. Bank review UI kept. |
+| H2.10 + H3 | `withdraw` | live | `amount` | Demo/wallet/hours/Sunday/daily limit, then `authorize` → `present`. Capital burned; `$CORP` from vault to `corp_held` at `bank_markup_bps`. Tick `bankWithdraw` is **not** called (**C-22** kept). Bank review UI kept. |
+| H2.11 + H3 | `buy_stock` | live refuse | `ticker`, `amount` | Wallet, district ticker, `corp_held`, then `EXCHANGE_HOP_UNAVAILABLE` while `quoteLive = false`. Does not call `cpmmBuyCorp` / `cpmmSellCorp`. Does not mint stocks. |
+| H2.11 / M6 / H9 | `claim_prize` | API live | — | Client `live` only when all five `launch.deployed` fields are filled; else `refusal-only`. Mock is not custodial (`paid>0` without chain → `PRIZE_CLAIM_UNCOVERED`). `hud_truth.test.ts` guards false custody. |
+
+`noop` remains a stub (`missions_start` → `FEATURE_NOT_IN_V1`).
+`assign` / `hire` / `set_objective` / `build` were already API-live;
+`assign` completed in M8.2. Protocol routes (pack 162) are listed in §0
+and §20. There is **no** `/command/unstake`.
+
+---
+
+### 54.6 H4 — `requires` gates
+
+Closed 2026-09-19. `evaluateActionGate` in `apps/client/src/hud/gates.ts`
+walks pack `requires`. First failed **blocking** token is the refusal
+code. Missing snapshot field → `UI_UNAVAILABLE` (“no data”, not “cannot”).
+`ActionButton` / build surface disable with that cause. Warning
+`building_hours` does not disable. `demo_blocked` still cuts withdraw and
+prizes. Demo barrier not weakened.
+
+---
+
+### 54.7 H5 — screen inventory (34 pack objects)
+
+Closed 2026-09-19. Probe: `apps/client/test/h5.test.ts` plus live
+`hud-preview.html`. Pixel PNGs were not committed. Dead files still on
+disk (entries moved, deletion is a later step): `Topbar.tsx`,
+`CapitalSlot.tsx`, `CityCard.tsx`, `BuildingDetailLook.tsx`,
+`IndustriesFromDistricts.tsx`, `primitives.ts`.
+
+Live entries without a bottom dock: keys `1`–`6`; season plaque →
+leaderboard; city status → Industries; district catalog inside
+Industries; research = Overview tab. `build` closed and no longer posts
+`tile_x`/`tile_y`. Settings not restored.
+
+Verdict table at close (claim client later env-gated by H9 — see H2.11
+row; H5 text still said refusal-only until M6):
+
+| id | reachable | data | actions | states | refusals | verdict |
+|---|---|---|---|---|---|---|
+| build | no (`resolveHudRoute` empty) | pack catalog | `build_place` closed with the screen | empty by catalog | H4 gate | stub |
+| agents | key 2 | roster / idle | hire live; `agents_open_card` | empty by `agentsKind` | pack codes | playable |
+| districts | Industries + `data-open-district` | six pack districts | open / card / exchange | empty by list | `DISTRICT_LOCKED` | playable |
+| exchange | key 3; `districts_to_exchange` | quote / hop | `buy_stock` live | stale quote | `EXCHANGE_HOP_*` | playable |
+| bank | key 4; manage funds | limit / rate | deposit / withdraw live | hours / limit | `BANK_*` | playable |
+| research | Overview tab | pack axes | `research_start` live | empty by axes | `CITY_LEVEL` / `CAPITAL` | playable |
+| missions | no | stub | `missions_start` blocked | empty | `FEATURE_NOT_IN_V1` | stub |
+| leaderboard | season click | rank / basket | claim env-gated | empty ≠ unqualified on board tab | `PRIZE_*` | playable |
+| building_card | manage building | clip / level | upgrade live | empty without object id | `TIER_NOT_UNLOCKED` | playable |
+| agent_card | `agents_open_card` | idle | `set_objective` / assign | empty without agents | warning idle | playable |
+| district_card | Industries look / open_card | tree / stake | stake / tier / node / merge / claim | empty without districts | `STAKE_*` / `TIER_*` | playable |
+| offline_return | auto overlay on return | window clip + `clipOfflineHours` | continue dismiss | cap code | `IDLE_OFFLINE_CAP_REACHED` | playable |
+| onboarding_demo | auto on demo entry | `pack.onboardSteps` | next / wallet offer | empty by steps | `DEMO_*` | playable |
+| wallet_connect | `LoginRoot`, not this screen | four login states | pack screen does not log in | empty | `WALLET_*` | playable |
+| settings | no (design) | pack rows | `data-settings-active=0` | n/a | `UI_UNAVAILABLE` | stub |
+| topbar | always | Capital / clock / plaques | season, notify, wallet→Bank | stale freeze | `WALLET_*` | playable |
+| overview | key 1; view all | GDP / payroll | workspace tabs | missing → Unavailable | `UI_UNAVAILABLE` | playable |
+| active_events | no separate panel | — | — | — | — | partial |
+| districts_panel | Industries | efficiency / market | open district | unavailable fields | `DISTRICT_LOCKED` | playable |
+| city_card | right rail | population / level | details + Industries | missing → Unavailable | `UI_UNAVAILABLE` | playable |
+| agents_panel | agents screen | roster | hire / card | empty / unavailable | `NO_FREE_AGENT_SLOT` | playable |
+| log_panel | Journal; notify | events / attest | view all | loading only journal | `UI_EVENTS_*` | playable |
+| district_overview | no schema | — | — | — | — | partial |
+| scene | always | Terra | select / manage | `RENDER_NO_GPU` | — | playable |
+| stock_bar | numbers on Exchange/Industries | dual numbers | buy on exchange | no permanent bar | — | partial |
+| bottom_menu | no dock; keys 1–6 | `menu_*` in pack | shortcuts | n/a | — | stub |
+| flow_onboard_clock | demo autoflow | pack step | next | — | — | playable |
+| flow_onboard_seat | demo autoflow | pack step | next | — | — | playable |
+| flow_onboard_payout | demo autoflow | pack step | next | — | — | playable |
+| flow_onboard_idle | demo autoflow | pack step | next | `IDLE_NO_ENERGY` | — | playable |
+| flow_onboard_bank | demo autoflow | pack step | next | — | `BANK_*` | playable |
+| flow_onboard_wallet | LoginRoot / offer | pack step | `DEMO_NO_WITHDRAW` | — | `DEMO_NO_WITHDRAW` | playable |
+| flow_return_summary | auto overlay | window clip | — | `IDLE_OFFLINE_CAP_REACHED` | — | playable |
+| flow_return_continue | dismiss overlay | — | navigate, no commit | — | — | playable |
+
+Counts: 29 / 34 playable. Closed as not-work: `build`, `settings`,
+`missions`, `bottom_menu`. Partial: `active_events`, `district_overview`,
+`stock_bar`.
+
+---
+
+### 54.8 H6 / H7 / H8 / H9
+
+**H6** closed 2026-09-19. Client subscribes to `WS /city/{city_id}/ws`
+(`apps/client/src/hud/wsFeed.ts`, `LiveRoot.tsx`). Classes `tick` /
+`aggregate` / `price` / `log` / `efficiency` patch only their
+`state_source`. Heartbeat `{ pack_hash }` is liveness; socket `city_time`
+does not drive the clock. Disconnect → `data-link="stale"` with age and
+wait until next heartbeat (`wsHeartbeatMs`). Full `GET /state` on
+mutations, not every socket frame.
+
+**H7** closed 2026-09-19. Eight `v1: live` flows. Demo onboarding follows
+`pack.onboardSteps`, auto-starts on first demo entry, `onboard_next` walks
+the pack. Progress in `sessionStorage` keyed by city: demo and wallet do
+not cross. Offline return auto-overlay when `city_time` advanced. Window =
+base + Automation dividends + one merge extra; clip = `clipOfflineHours`.
+Excess → `IDLE_OFFLINE_CAP_REACHED`. Continue dismisses; no `commit`. Live
+wallet entry is `LoginRoot` (no provider / wrong chain / spinner /
+session). Pack `wallet_connect` stays L358 bijection and does not log in.
+
+**H8** closed 2026-09-19. `apps/client/test/h8.test.ts`:
+
+- fixture loop: Capital / GDP / happiness / agent / building / district /
+  leaderboard / bank visible on screens, not only in the snapshot;
+- one `city_time` → same snapshot and same Overview frame;
+- `catchUp` ≡ stepwise `tick` (`DecisionRecord` bytes and `tick_index`);
+- no `Date.now` / unseeded `Math.random` on tick or `buildHud`;
+- pack `v1: live` + `commit:*` live on the client except
+  `leaderboard_claim` until `launch.deployed` (H9).
+
+**H9** closed 2026-09-19; HUD wire through launch finished the same day.
+Counts from code and pack (`apps/client/test/h9.test.ts`), not prose.
+Pack was not bumped for the report. `launchToken` not signed.
+
+| metric | 2026-09-18 | 2026-09-19 | target |
+|---|---|---|---|
+| state channels filled | 9 / 21 | 21 / 21 (`wallet.*` honestly `{}` without RPC) | 21 / 21 |
+| API commands executed | 4 / 15 | 16 `applyLive` including `claim_prize`; `noop` stub | 15 / 15 |
+| client live intents | 3 / 19 | 15 / 19; `claim_prize` live when `launch.deployed` filled | 15 / 19 (no `unstake`, `present_voucher`) |
+| pack actions working | 3 / 39 | 38 / 39 after `deployed` (`missions_start` stub) | 38 / 39 except `missions_start` |
+| screens playable | 9 / 15 (inventory 34 / 34, H5) | 29 / 34 (pack `v1` 33 / 34; build/settings/missions/bottom_menu not-work; `stock_bar` not a strip) | 33 / 34 |
+| snapshot fields arriving | ~10 / 30 | 38 / 40 (`quoteAgeMs` / `quoteCorpEth` only when hop-ready) | 30 / 30 |
+
+Honest holes until launch (code already present): `wallet.chain` /
+`wallet.corp_balance` empty without RPC and addresses; Exchange Confirm
+and `oracle.stock_price.live` need `feed_live` + RPC + `CORPORATOR_HOP_URL`;
+mock does not mint stocks; `claim_prize` client-live only with five
+non-empty `launch.deployed` fields; `missions` pack stub; `build` /
+`settings` / `bottom_menu` not-work by owner decision; snapshot quote
+fields empty until hop executes.
+
+HUD ready for launch = owner fills `launch.deployed` and env (RPC, hop
+URL), rebuilds pack. No second HUD coding pass.
+
+---
+
+### 54.9 Part M — mechanics
+
+**M1, M2, M3 cancelled.** Do not execute separately. State projection =
+H1. Leaderboard entry / keys 1–6 = H5 / H7 chrome. Leaderboard table =
+H1.4 + H5 + §51.
+
+**M4** closed 2026-09-19. `selectAttestorPort` in
+`services/attestor/src/live.ts`: live `createRpcPort` +
+`createLiveTransport` when `CORPORATOR_RPC_URL`, chain id, timeout, and
+full `readPlayerReady` addresses are set; else mock. IPFS still
+`CORPORATOR_IPFS_PIN_URL`. Roots: table `attest_roots` (same api
+migration) if `DATABASE_URL`, else memory. Fail-open: bad payload →
+`logged`; failed IPFS/RPC is not `verified`; payment is not rolled back.
+Addresses not hardcoded. Badge `verified` only with root **and** CID
+(`L350`). Existing pieces used, not rewritten: `tree.ts`, `cid.ts`,
+`publish.ts`, `badge.ts`, `submit.ts`, `store.ts`, `step.ts`, `sealed.ts`,
+`drain.ts`, `ready.ts`; `MerkleRoots.sol`; chainport mock + live RPC.
+
+**M5** closed 2026-09-19. `launch.deployed` empty → hop cannot be wired
+(variant A impossible). Bank and stake already live (H2.9 / H2.10 /
+H2.3): Confirm stays. Exchange is variant B: HUD does not draw
+Review/Confirm while `liveQuoteExecutable` is false; `EXCHANGE_HOP_UNAVAILABLE`
+even if a bank-review stack remains. `buy_stock` live in API and adapter;
+hop not executed. Server `unstake` command not invented. `claim_prize` not
+unlocked on the client. `cpmmBuyCorp` not called. Pack not bumped. C-22
+not “fixed”. Money invariants still from `build.py`: round-trip **1445**
+bps in `[1400, 1600]`; entry cheaper than exit (**200** vs **910** bps);
+fee split `100 / 20 / 60 / 20`; `creator_tax_bps = 200`; Capital mint only
+through `$CORP` vault deposit.
+
+**M6** closed 2026-09-19. Buyback: RPC port when env is complete
+(`createBuybackPort`); conveyor source is fail-open mock
+(`SERVICE_DEGRADED`); hop `hopOk=0` does not buy stocks. API →
+`PrizeTreasury.claimPrize` through `selectApiPort` (live RPC only with
+full env; mock not custodial). `returnUnsettled` bot-only, before slice.
+Vault and PrizeTreasury have no `pause` / `unpause`. `refundPlayer` not
+touched. Quote hop still mock (M5 B). Client `claim_prize` stays
+refusal-only until `launch.deployed` is filled. Invariants: `refundPlayer`
+only vault `$CORP` ≤ `backingOf`; buyback bot does not take player
+deposits or empty the vault; studio take 0.2% is ETH from the prize DEX
+leg, not payroll.
+
+**M7** closed 2026-09-19. Socket publishes `{ channel, sections }` by
+frequency class, not a full snapshot; pulse remains `{ pack_hash,
+city_time }`. On API start, city is restored from last snapshot plus
+`tick_inputs` tail (`restoreLiveState`). Scheduler calls `catchUp`:
+catch-up ≡ replay; offline clipped by pack hard cap 18 city hours.
+
+**M8** closed 2026-09-19. Closes C-11. Live-city tick is per slot.
+`agent_id` is the agent id. Synthetic `"shift"` remains only on T3 cities
+without `functions`. Do not restore Companion. Do not spawn units. Oracle
+`content/tick.py` and engine stay byte-parity. `layout_version` stays 1.
+No fire action (not in pack). No travel ticks.
+
+Agent object after hire: `id`, `role`, `level`, `xp`, `xp_remainder`,
+`level_mult_bps`, `traits[]`, `building_id`, `objective`, `train_target`,
+`focus`, `idle`, `request`, `payout`. `id` = `"h" + n`, stable across
+reseat. Role is one of five pack v1 ids. Level starts 1, xp 0. Traits
+rolled once at hire (`traits_per_agent_min` / `max`), never rerolled.
+One agent per building; no invented per-building slot count.
+`building_id = ""` if unseated. Role default objective from pack (`L19`).
+`train_target` only Scientist on `train`. `focus` only Manager on
+`focus` (contour from `agents.contours`). Name is pack strings, not tick
+input. Autonomous buildings (City Hall, Agent Hub, Robotics Lab) run
+without an agent. Non-autonomous empty → `IDLE_NO_AGENT`, record still
+emitted.
+
+| sub | closed | what landed |
+|---|---|---|
+| M8.1 | 2026-09-19 | Hire all five roles. Optional `role` in body; else pool weights `hire_pool_*_bps` via `seededPrng(..., "hire")` — Engineer / Logistician / Trader only (50/25/25). Scientist and Manager **only** by explicit choice (`DESIGN.md` §5.12). Traits 1–2, stream `"traits"`. Default objective. `building_id = ""`. Cost/slots unchanged (`NO_FREE_AGENT_SLOT`, `NOT_ENOUGH_CAPITAL`, `applySpend`). |
+| M8.2 | 2026-09-19 | `commit:assign` added in pack → `/command/assign`. `applyAssign`: `{ agent_id, building_id }`. Occupied building: previous agent unseated instantly. Matrix `none` does not refuse seat; tick emits `IDLE_WRONG_ROLE`. Client `assign` live; `l3.test.ts` no longer expects unavailable. |
+| M8.3 | 2026-09-19 | `set_objective` is per agent: `{ agent_id, objective, train_target?, focus? }`. Scientist `research` does not replace `research_start`. Task change from the **next** tick (`DESIGN.md` §5.9). City `objective` is not the agent task. |
+| M8.4 | 2026-09-19 | Tick per active function / slot. Output: building curve × role affinity × agent level × district E × task mods × jitter `hash(city_id, tick_index, agent_id)` × T5. `pay()` fed one row per slot; payroll still `fund/14` with one `payroll_ratio`. Record then after pay. Logistician request 0, idle reduction from pack. Trader desk markup not better than **2130:1**. Manager produces nothing; focus one contour. Robotics Lab empty slot still draws energy/compute. |
+| M8.5 | 2026-09-19 | Channel `tick.agent_state` additive: `{ id, idleKey, role, buildingId, objective, level, xp, traits }`. HUD cards show those fields and last-record idle reason. No client-side economy. |
+| M8.6 | 2026-09-19 | `tools_effect_bps` loaded (Workshop +10% from pack). `night_energy_premium_bps` used; `night_owl` cuts it. Daily mint cap `mint_rate_limit_bps` / `MINT_RATE_CAPPED` in existing `updateMintRate`. |
+
+---
+
+### 54.10 Appendix A — D1–D5
+
+Plan’s own verdict 2026-09-18: documentation checked fully, brought
+current **partially**. D1–D5 closed 2026-09-21.
+
+| id | status | what the plan asked |
+|---|---|---|
+| D1 | **closed 2026-09-21** | Pack number/hash. Current reference is **176** / `7bbdc470c0b3d4d1…`. `DESIGN.md`, `PUBLIC_DOC.md`, `docs/CONTENT.md`, `docs/LAUNCH.md`, `docs/SIMULATION.md` (current-reference lines), `docs/TICK.md` now stamp 176. `GATE_PERF.md` kept the pack-21 measurement hash and added 176 as current. `I0_diet_report.md` and `TZ_ISLAND_LOOK.md` have no pack id (I0's four "143" hits are triangle counts 143 982). Historical sim run pack 171 left as a run label. |
+| D2 | **closed 2026-09-21** | `HUD.md` stays deleted. Named live docs already pointed at `docs/reports/HUD_DESIGN_SYSTEM.md` / `docs/SCREENS.md`. Remaining live pointers retargeted: `content/README.md`, `clock.ts`, `preview.ts`, `badge.ts`. Archive and pack `src` strings left as historical justification. |
+| D3 | **closed 2026-09-21** | Part B (tile legend, diamonds, pixelize, LUT/snap) lives in `docs/archive/WORLD_PACK_GRID.md`. Live `docs/WORLD.md` is Part A plus the economic-bridge counters and a pointer. Date literals removed from the live file. `L194` still keys off a BRIEF coverage line in `WORLD.md`. |
+| D4 | **closed 2026-09-21** | `docs/archive/reports/hud_prompt.md` and `docs/archive/reports/TZ_HUD.md` (`R-V-102`). Live look lock is `hud/design-reference/`. `docs/reports/HUD_DESIGN_SYSTEM.md` is errata only (no Settings, no bottom nav, ≤3 activity; IBM Plex Sans + JetBrains Mono). Source Serif 4 is archive-only. `HUD.md` not restored. |
+| D5 | **closed 2026-09-21** | `docs/archive/reports/INDEX.md` lists **351** passports (plan snapshot was 346 / 1216 KB / 14 685 lines; now 1370.3 KiB / 18641 lines). History kept. `.cursorignore` excludes `docs/archive/reports/**` except INDEX. `docs/archive/plans/` and `WORLD_PACK_GRID.md` stay indexed. |
+
+Already done 2026-09-18 (not D1–D5): `code-phase.mdc` retargeted to HUD
+and site, lint id L389, Three.js live / Pixi archive; `docs/CANON.md`
+current-work rewrite; dead `island-look.mdc` links in archive LOOK
+plans; 27 PixiJS skill files removed from `.cursor/skills`.
+
+---
+
+### 54.11 Preserved conflicts (do not “fix”)
+
+- **C-20** merge dividend: `DESIGN.md` §4.8 half Tier-1; generator takes
+  full (`content/build.py`, `"magnitude_from": "merge tier-1 dividend"`).
+- **C-01** pack `build_place` still describes lot tiles; API activates by
+  `building_id`; live HUD no longer posts `tile_x`/`tile_y`.
+- **C-22** engine `bankWithdraw` fills `withdraw_intent` immediately;
+  command withdraw uses voucher `authorize` → `present`.
+
+---
+
+### 54.12 Still required before a launch conversation
+
+From PLAN_LAUNCH appendix B. Not claimed done by this ledger:
+
+- H9 wire is in place (21/21, 16 API handlers including `claim_prize`,
+  38/39 pack actions after `deployed`, 29/34 screens). Second HUD coding
+  pass is not required after `launch.deployed` + env.
+- production contract addresses, role owners, Stock Token →
+  StakeRegistry, deployed ABI;
+- real DEX quote source instead of fail-open mock;
+- client hosting (absent from `deploy/`);
+- external contract audit beyond internal `docs/AUDIT.md`;
+- zero failing tests / pack lint ERRORS / type errors as a release gate
+  (not re-measured in this documentation pass).
+
+`launchToken` is signed by none of these tasks.
+
+---
+
+### 54.13 Machine-readable ids
+
+```yaml
+plan_launch:
+  file: docs/reports/PLAN_LAUNCH.md
+  code_queue: empty
+  closed:
+    F: [F1, F2, F3, F5, F6, F7]
+    F4: owner_withdrawn
+    I: [I1, I2, I3]
+    H: [H1, H2.1, H2.2, H2.3, H2.4, H2.5, H2.6, H2.7, H2.8, H2.9, H2.10, H2.11, H3, H4, H5, H6, H7, H8, H9]
+    M: [M4, M5, M6, M7, M8]
+  cancelled_replaced_by_H: [M1, M2, M3]
+  open_docs: []
+  closed_docs: [D1, D2, D3, D4, D5]
+  unstake: holder_stake_registry_plus_engine_freeze
+  claim_prize_client: live_iff_launch_deployed
+  exchange_hop: mock_refuse_EXCHANGE_HOP_UNAVAILABLE
+  preserved: [C-20, C-01, C-22]
+  launch_deployed: empty
+  missions_live: 0
+```

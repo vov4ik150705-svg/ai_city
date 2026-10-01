@@ -66,5 +66,15 @@ describe.sequential("G3 construction", () => {
     const idleState: Dict = { cities: { d: idleCity } }
     advanceResearch(cfg, idleState)
     expect(asList(asDict(asDict(idleState["cities"])["d"])["research_unlocked"]).length).toBe(0)
+
+    const unpaid = liveCity(cfg, pack, "e")
+    unpaid["objective"] = "research"
+    unpaid["idle"] = ""
+    unpaid["research_progress"] = 0n
+    const unpaidState: Dict = { cities: { e: unpaid } }
+    advanceResearch(cfg, unpaidState)
+    const unpaidAfter = asDict(asDict(unpaidState["cities"])["e"])
+    expect(asList(unpaidAfter["research_unlocked"]).length).toBe(0)
+    expect(asStr(unpaidAfter["research_focus"])).toBe("")
   })
 })

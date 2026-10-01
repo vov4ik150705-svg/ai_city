@@ -38,24 +38,30 @@ export function rampHex(pal: Palette, ramp: string, index: bigint): string {
   return last ?? "000000"
 }
 
-/** Desktop HUD v1.1 chrome. District accents stay corporator.hex ramps. */
+/** Light HUD chrome from hud/design-reference/00-hud-full.png (DESIGN_SCHEME.md).
+ *  Compute, Energy and Logistics stay corporator.hex ramps.
+ *  Consumer, Automation and Finance match the industries bar
+ *  (`--site-ind-consumer` / `--site-ind-automation` / `--site-ind-finance`). */
 export const HUD_CHROME = {
-  blue: "#245A9A",
-  blueDark: "#1D4B86",
-  blueLight: "#2E68AA",
-  gradientTop: "#2C67AA",
-  gradientBottom: "#1E4F8C",
-  textPrimary: "#F4F7FA",
-  textSecondary: "#C7D5E3",
-  textMuted: "#8FA8C0",
-  interaction: "#45C7F4",
-  selected: "#FFB64A",
-  success: "#63D68A",
-  warning: "#F0B85B",
-  error: "#E97878",
+  blue: "#E4F0FD",
+  blueDark: "#D3E2F4",
+  blueLight: "#F2F7FE",
+  gradientTop: "#F2F7FE",
+  gradientBottom: "#F2F7FE",
+  textPrimary: "#0F1E4A",
+  textSecondary: "#3F4E70",
+  textMuted: "#6F7D9C",
+  interaction: "#0A5CF8",
+  selected: "#FFFFFF",
+  success: "#0E9F5A",
+  warning: "#F5A40A",
+  error: "#E5383B",
+  stockConsumer: "#6B01FD",
+  stockAutomation: "#00D3FE",
+  stockFinance: "#006FFE",
 } as const
 
-/** HUD chrome from Desktop HUD v1.1; district accents from the same ramps as sprites. */
+/** HUD chrome from the light mockups. Compute, Energy and Logistics stay sprite ramps. */
 export function hudCssVars(pal: Palette): { readonly [name: string]: string } {
   const hex = (ramp: string, index: bigint): string => `#${rampHex(pal, ramp, index)}`
   return {
@@ -67,9 +73,9 @@ export function hudCssVars(pal: Palette): { readonly [name: string]: string } {
     "--accent-ai": hex("green", 2n),
     "--accent-energy": hex("crimson", 3n),
     "--accent-logi": hex("amber", 3n),
-    "--accent-cons": hex("highlight", 0n),
-    "--accent-auto": hex("navy", 4n),
-    "--accent-fin": hex("blue", 3n),
+    "--accent-cons": HUD_CHROME.stockConsumer,
+    "--accent-auto": HUD_CHROME.stockAutomation,
+    "--accent-fin": HUD_CHROME.stockFinance,
     "--good": HUD_CHROME.success,
     "--bad": HUD_CHROME.error,
     "--warn": HUD_CHROME.warning,

@@ -7,6 +7,7 @@
 import { Mesh, MeshStandardMaterial } from "three"
 import type { Material, Object3D } from "three"
 import { attachWaterfallFx, isWaterfallFxNode } from "./waterfallFx.js"
+import { NEG_FORTY, TWO } from "../literals.js"
 
 export type WaterfallConfig = {
   flowSpeed: number
@@ -51,7 +52,7 @@ const SHARED = {
   uMistIntensity: { value: WATERFALL_CONFIG.mistIntensity } satisfies UniformF,
   uGlowIntensity: { value: WATERFALL_CONFIG.glowIntensity } satisfies UniformF,
   uFallTop: { value: 0 } satisfies UniformF,
-  uFallBottom: { value: -40 } satisfies UniformF,
+  uFallBottom: { value: NEG_FORTY } satisfies UniformF,
 }
 
 type WfShader = {
@@ -220,9 +221,17 @@ export function applyWaterFlow(root: Object3D): void {
       water = true
       patchWaterMaterial(material)
     }
-    if (water) node.renderOrder = 2
+    if (water) node.renderOrder = TWO
   })
   attachWaterfallFx(root, SHARED, WATERFALL_CONFIG.mistIntensity, WATERFALL_CONFIG.dropletDensity)
+}
+
+/**
+ * Shader uTime from city_time, not a frame delta (L334).
+ * Same product as atlas waterPhase: cityTime × water_steps_per_tick.
+ */
+export function waterfallTimeSec(cityTime: bigint, stepsPerTick: bigint): number {
+  return Number(cityTime * stepsPerTick)
 }
 
 export function tickWaterFlow(elapsedSec: number): void {

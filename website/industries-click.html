@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+    <title>Industries — building avatars</title>
+  <style>
+    :root {
+      --ink: #111318;
+      --line: #e6e8ec;
+      --sky: #eaf4fb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--sky);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+    .stage {
+      position: relative;
+      width: min(1180px, calc(100vw - 24px));
+      height: 640px;
+      margin: 8px auto 32px;
+    }
+    .cloud {
+      position: absolute;
+      z-index: 0;
+      left: 50%;
+      bottom: 0;
+      width: 108%;
+      height: auto;
+      transform: translateX(-50%);
+      pointer-events: none;
+      user-select: none;
+    }
+    .row {
+      position: absolute;
+      z-index: 1;
+      left: 0;
+      right: 0;
+      bottom: 112px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .row button {
+      position: relative;
+      flex: 0 0 auto;
+      height: var(--ch);
+      width: calc(var(--ch) * var(--cw) / var(--cpx));
+      margin: 0 -10px;
+      padding: 0;
+      border: 0;
+      outline: none;
+      background: none;
+      cursor: pointer;
+      line-height: 0;
+    }
+    .row button img {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--ch) * var(--bpad) / var(--cpx) * -1);
+      height: calc(var(--ch) * var(--canh) / var(--cpx));
+      width: auto;
+      transform: translateX(-50%);
+      pointer-events: none;
+      filter: drop-shadow(0 14px 10px rgba(30, 50, 80, 0.16));
+    }
+    .row button.is-on {
+      z-index: 2;
+    }
+    .row button.is-on img {
+      filter:
+        drop-shadow(0 0 1px #9fd0ff)
+        drop-shadow(0 0 2px #7eb6ff)
+        drop-shadow(0 0 5px rgba(90, 160, 255, 0.95))
+        drop-shadow(0 14px 10px rgba(30, 50, 80, 0.16));
+    }
+    .stem {
+      position: absolute;
+      z-index: 3;
+      width: 1px;
+      background: #b7c6d6;
+      pointer-events: none;
+    }
+    .panel {
+      position: absolute;
+      z-index: 4;
+      width: 240px;
+      padding: 12px 14px 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(11, 30, 80, 0.1);
+    }
+    .panel h2 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .panel p {
+      margin: 0;
+      color: #3c4454;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .chips span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #3c4454;
+      font-size: 12px;
+    }
+    .chips i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #3b82f6;
+    }
+    .chips span:nth-child(2) i { background: #a855f7; }
+    .chips span:nth-child(3) i { background: #14b8a6; }
+    .panel a {
+      display: inline-block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <img class="cloud" src="industries-cut/cloud.png?v=10" alt="" />
+    <div class="row" id="row"></div>
+    <div class="stem" id="stem" hidden></div>
+    <aside class="panel" id="panel" hidden></aside>
+  </div>
+  <script>
+    const items = [
+      { id: "compute", file: "industries-cut/avatars/AI Research Center.png?v=4", ch: 250, cpx: 582, canh: 700, bpad: 52, cw: 331, title: "Compute · NVDA", body: "Computing and research. AI Research Center turns Energy into Compute.", chips: ["Energy", "Logistics", "Automation"] },
+      { id: "energy", file: "industries-cut/avatars/Energy Plant.png?v=4", ch: 175, cpx: 520, canh: 700, bpad: 86, cw: 563, title: "Energy · TSLA", body: "The supply beneath everything else. Energy Plant adds Energy.", chips: ["Compute", "Logistics"] },
+      { id: "logistics", file: "industries-cut/avatars/Logistics Hub.png?v=4", ch: 128, cpx: 377, canh: 685, bpad: 138, cw: 664, title: "Logistics · AMZN", body: "Cuts idle time. It is not a resource you consume.", chips: ["Compute", "Energy", "Consumer"] },
+      { id: "consumer", file: "industries-cut/avatars/Flagship Store.png?v=4", ch: 155, cpx: 406, canh: 466, bpad: 17, cw: 566, title: "Consumer · AAPL", body: "Housing and population-linked retail activity.", chips: ["Logistics"] },
+      { id: "automation", file: "industries-cut/avatars/Cloud Campus.png?v=4", ch: 230, cpx: 622, canh: 700, bpad: 21, cw: 392, title: "Automation · MSFT", body: "Workforce capacity and offline time, up to 18 city hours.", chips: ["Compute", "Finance"] },
+      { id: "finance", file: "industries-cut/avatars/Finance Tower.png?v=4", ch: 250, cpx: 609, canh: 700, bpad: 44, cw: 387, title: "Finance · COIN", body: "Banking and fund-related capabilities.", chips: ["Automation"] }
+    ];
+    const stage = document.getElementById("stage");
+    const row = document.getElementById("row");
+    const panel = document.getElementById("panel");
+    const stem = document.getElementById("stem");
+
+    function show(item, button) {
+      for (const el of row.querySelectorAll("button")) el.classList.toggle("is-on", el === button);
+      panel.hidden = false;
+      panel.innerHTML = "<h2>" + item.title + "</h2><p>" + item.body + "</p><div class=\"chips\">" + item.chips.map((chip) => "<span><i></i>" + chip + "</span>").join("") + "</div><a href=\"#\">See what it opens</a>";
+      const stageBox = stage.getBoundingClientRect();
+      const box = button.getBoundingClientRect();
+      const left = box.left - stageBox.left + box.width / 2 - panel.offsetWidth / 2;
+      const buttonTop = box.top - stageBox.top;
+      panel.style.left = Math.max(8, Math.min(left, stageBox.width - panel.offsetWidth - 8)) + "px";
+      panel.style.top = Math.max(8, buttonTop - panel.offsetHeight - 18) + "px";
+      const panelBottom = panel.offsetTop + panel.offsetHeight;
+      const stemX = box.left - stageBox.left + box.width / 2;
+      stem.hidden = panelBottom >= buttonTop - 4;
+      stem.style.left = stemX + "px";
+      stem.style.top = panelBottom + "px";
+      stem.style.height = Math.max(0, buttonTop - panelBottom) + "px";
+    }
+
+    const buttons = [];
+    for (const item of items) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.id = item.id;
+      button.style.setProperty("--ch", item.ch + "px");
+      button.style.setProperty("--cpx", String(item.cpx));
+      button.style.setProperty("--canh", String(item.canh));
+      button.style.setProperty("--bpad", String(item.bpad));
+      button.style.setProperty("--cw", String(item.cw));
+      button.setAttribute("aria-label", item.title);
+      const img = document.createElement("img");
+      img.alt = "";
+      button.appendChild(img);
+      button.addEventListener("click", () => show(item, button));
+      button.addEventListener("pointerenter", () => show(item, button));
+      img.addEventListener("load", () => {
+        if (button.classList.contains("is-on")) show(item, button);
+      });
+      row.appendChild(button);
+      buttons.push({ item, button, img });
+    }
+
+    async function loadRow() {
+      for (const entry of buttons) {
+        for (let attempt = 0; attempt < 4; attempt++) {
+          const ok = await new Promise((resolve) => {
+            entry.img.onload = () => resolve(entry.img.naturalWidth > 0);
+            entry.img.onerror = () => resolve(false);
+            const extra = attempt === 0 ? "" : "&r=" + attempt;
+            entry.img.src = entry.item.file + extra;
+          });
+          if (ok) break;
+        }
+      }
+      show(items[1], row.querySelector("[data-id='energy']"));
+    }
+    loadRow();
+  </script>
+</body>
+</html>

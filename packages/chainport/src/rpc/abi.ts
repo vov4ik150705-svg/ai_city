@@ -4,18 +4,32 @@ export const selector = {
   vaultCorp: "79f73390",
   capitalOf: "4b0c8014",
   deposit: "47e7ef24",
-  mintCapital: "4cd07e71",
+  mintCapital: "ad477ff0",
   issueVoucher: "437b0a2b",
   presentVoucher: "d60a25e1",
   stake: "90b8436f",
-  unstake: "d37c92dc",
+  requestUnstake: "d36e4062",
+  claimUnstaked: "d1604a33",
+  coolingSnapshot: "eefdbcd1",
   snapshot: "26512160",
   putRoot: "434d4b00",
   getRoot: "335b6101",
   prizeDeposit: "e8484a0f",
-  prizeSlice: "30884ec2",
+  prizeSlice: "b4015a05",
   prizeReturnUnsettled: "aeb85586",
   prizeClaimPrize: "25cc976d",
+  allowance: "dd62ed3e",
+  approve: "095ea7b3",
+  pending: "5eebea20",
+  backingOf: "ef961d97",
+  reservedOf: "c9322adb",
+  issued: "a1cac0c0",
+  used: "74f38921",
+  outcomeOf: "bd5f33a9",
+  releaseExpiredVoucher: "ef69fe09",
+  owed: "2bbd77b6",
+  unsliced: "96e16baa",
+  prizeBatchUsed: "646022c3",
   // docs/LAUNCH.md §8: creatorTaxBps() on the live curve.
   creatorTaxBps: "c1bb8901",
 } as const
@@ -76,6 +90,39 @@ function concatSel(sel: string, data: string): string {
   return "0x" + sel + data
 }
 
+export function dataAllowance(owner: string, spender: string): string {
+  const a = encodeAddr(owner)
+  const b = encodeAddr(spender)
+  if (a.length === 0 || b.length === 0) return ""
+  return concatSel(selector.allowance, a + b)
+}
+
+export function dataPending(account: string): string {
+  const a = encodeAddr(account)
+  if (a.length === 0) return ""
+  return concatSel(selector.pending, a)
+}
+
+export function dataBackingOf(account: string): string {
+  const a = encodeAddr(account)
+  if (a.length === 0) return ""
+  return concatSel(selector.backingOf, a)
+}
+
+export function dataReservedOf(account: string): string {
+  const a = encodeAddr(account)
+  if (a.length === 0) return ""
+  return concatSel(selector.reservedOf, a)
+}
+
+export function dataIssued(nonce: string): string {
+  return concatSel(selector.issued, encodeUint(32n) + encodeString(nonce))
+}
+
+export function dataUsed(nonce: string): string {
+  return concatSel(selector.used, encodeUint(32n) + encodeString(nonce))
+}
+
 export function dataBalanceOf(account: string): string {
   const a = encodeAddr(account)
   if (a.length === 0) return ""
@@ -87,6 +134,13 @@ export function dataTransfer(to: string, amount: bigint): string {
   const n = encodeUint(amount)
   if (a.length === 0 || n.length === 0) return ""
   return concatSel(selector.transfer, a + n)
+}
+
+export function dataApprove(spender: string, amount: bigint): string {
+  const a = encodeAddr(spender)
+  const n = encodeUint(amount)
+  if (a.length === 0 || n.length === 0) return ""
+  return concatSel(selector.approve, a + n)
 }
 
 export function dataVaultCorp(): string {
@@ -106,11 +160,12 @@ export function dataDeposit(account: string, amount: bigint): string {
   return concatSel(selector.deposit, a + n)
 }
 
-export function dataMintCapital(account: string, amount: bigint): string {
+export function dataMintCapital(account: string, corpAmount: bigint, capitalAmount: bigint): string {
   const a = encodeAddr(account)
-  const n = encodeUint(amount)
-  if (a.length === 0 || n.length === 0) return ""
-  return concatSel(selector.mintCapital, a + n)
+  const corp = encodeUint(corpAmount)
+  const capital = encodeUint(capitalAmount)
+  if (a.length === 0 || corp.length === 0 || capital.length === 0) return ""
+  return concatSel(selector.mintCapital, a + corp + capital)
 }
 
 function dataStringThenStatics(sel: string, text: string, statics: string): string {
@@ -143,10 +198,51 @@ export function dataStake(account: string, ticker: string, amount: bigint): stri
   return concatSel(selector.stake, head + encodeString(ticker))
 }
 
-export function dataUnstake(ticker: string, amount: bigint): string {
+export function dataRequestUnstake(ticker: string, amount: bigint): string {
   const n = encodeUint(amount)
   if (n.length === 0) return ""
-  return concatSel(selector.unstake, encodeUint(64n) + n + encodeString(ticker))
+  return concatSel(selector.requestUnstake, encodeUint(64n) + n + encodeString(ticker))
+}
+
+export function dataClaimUnstaked(ticker: string): string {
+  return concatSel(selector.claimUnstaked, encodeUint(32n) + encodeString(ticker))
+}
+
+export function dataCoolingSnapshot(account: string): string {
+  const a = encodeAddr(account)
+  if (a.length === 0) return ""
+  return concatSel(selector.coolingSnapshot, a)
+}
+
+export function dataOutcomeOf(nonce: string): string {
+  return concatSel(selector.outcomeOf, encodeUint(32n) + encodeString(nonce))
+}
+
+export function dataReleaseExpiredVoucher(nonce: string): string {
+  return concatSel(selector.releaseExpiredVoucher, encodeUint(32n) + encodeString(nonce))
+}
+
+export function dataOwed(kettle: bigint, token: string, account: string): string {
+  if (kettle > 255n) return ""
+  const k = encodeUint(kettle)
+  const t = encodeAddr(token)
+  const a = encodeAddr(account)
+  if (k.length === 0 || t.length === 0 || a.length === 0) return ""
+  return concatSel(selector.owed, k + t + a)
+}
+
+export function dataUnsliced(kettle: bigint, token: string): string {
+  if (kettle > 255n) return ""
+  const k = encodeUint(kettle)
+  const t = encodeAddr(token)
+  if (k.length === 0 || t.length === 0) return ""
+  return concatSel(selector.unsliced, k + t)
+}
+
+export function dataBatchUsed(batchId: string): string {
+  const id = encodeBytes32(batchId)
+  if (id.length === 0) return ""
+  return concatSel(selector.prizeBatchUsed, id)
 }
 
 export function dataSnapshot(account: string): string {
@@ -198,15 +294,17 @@ export function dataPrizeClaim(token: string, kettle: bigint): string {
 }
 
 export function dataPrizeSlice(
+  batchId: string,
   token: string,
   kettle: bigint,
   players: readonly string[],
   amounts: readonly bigint[],
 ): string {
   if (kettle > 255n || players.length !== amounts.length) return ""
+  const b = encodeBytes32(batchId)
   const t = encodeAddr(token)
   const k = encodeUint(kettle)
-  if (t.length === 0 || k.length === 0) return ""
+  if (b.length === 0 || t.length === 0 || k.length === 0) return ""
   const addrs: string[] = []
   const qtys: string[] = []
   for (let i = 0; i < players.length; i += 1) {
@@ -220,12 +318,12 @@ export function dataPrizeSlice(
     qtys.push(n)
   }
   const n = BigInt(players.length)
-  const playersOff = encodeUint(128n)
-  const amountsOff = encodeUint(128n + 32n + 32n * n)
+  const playersOff = encodeUint(160n)
+  const amountsOff = encodeUint(160n + 32n + 32n * n)
   if (playersOff.length === 0 || amountsOff.length === 0) return ""
   const playersBody = encodeUint(n) + addrs.join("")
   const amountsBody = encodeUint(n) + qtys.join("")
-  return concatSel(selector.prizeSlice, t + k + playersOff + amountsOff + playersBody + amountsBody)
+  return concatSel(selector.prizeSlice, b + t + k + playersOff + amountsOff + playersBody + amountsBody)
 }
 
 export function decodeUint(hex: string): bigint | undefined {
@@ -296,6 +394,44 @@ export function decodeSnapshot(hex: string): { readonly ticker: string; readonly
     const ticker = decodeStringAt(raw, off0 + relOff)
     if (ticker === undefined) return undefined
     rows.push({ ticker, amount })
+  }
+  return rows
+}
+
+export function decodeCooling(
+  hex: string,
+): { readonly ticker: string; readonly amount: bigint; readonly readyAtS: bigint }[] | undefined {
+  const raw = hex.startsWith("0x") || hex.startsWith("0X") ? hex.slice(2) : hex
+  if (raw.length < 192) return undefined
+  const off0 = decodeUint("0x" + (wordAt(raw, 0n) ?? ""))
+  const off1 = decodeUint("0x" + (wordAt(raw, 1n) ?? ""))
+  const off2 = decodeUint("0x" + (wordAt(raw, 2n) ?? ""))
+  if (off0 === undefined || off1 === undefined || off2 === undefined) return undefined
+  const tIndex = off0 / 32n
+  const aIndex = off1 / 32n
+  const rIndex = off2 / 32n
+  const tLenWord = wordAt(raw, tIndex)
+  const aLenWord = wordAt(raw, aIndex)
+  const rLenWord = wordAt(raw, rIndex)
+  if (tLenWord === undefined || aLenWord === undefined || rLenWord === undefined) return undefined
+  const nTick = decodeUint("0x" + tLenWord)
+  const nAmt = decodeUint("0x" + aLenWord)
+  const nReady = decodeUint("0x" + rLenWord)
+  if (nTick === undefined || nAmt === undefined || nReady === undefined) return undefined
+  if (nTick !== nAmt || nTick !== nReady) return undefined
+  const rows: { ticker: string; amount: bigint; readyAtS: bigint }[] = []
+  for (let i = 0n; i < nTick; i += 1n) {
+    const rel = wordAt(raw, tIndex + 1n + i)
+    const amtWord = wordAt(raw, aIndex + 1n + i)
+    const readyWord = wordAt(raw, rIndex + 1n + i)
+    if (rel === undefined || amtWord === undefined || readyWord === undefined) return undefined
+    const relOff = decodeUint("0x" + rel)
+    const amount = decodeUint("0x" + amtWord)
+    const readyAtS = decodeUint("0x" + readyWord)
+    if (relOff === undefined || amount === undefined || readyAtS === undefined) return undefined
+    const ticker = decodeStringAt(raw, off0 + relOff)
+    if (ticker === undefined) return undefined
+    rows.push({ ticker, amount, readyAtS })
   }
   return rows
 }

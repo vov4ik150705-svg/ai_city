@@ -25,6 +25,78 @@
       "u": "count",
       "src": "D6, T12 TZ",
       "why": "A player-action refusal is a conflict with the current city. The client branches on code, not on a second HTTP per refusal"
+    },
+    "chain_receipt_poll_ms": {
+      "v": 2000,
+      "u": "ms",
+      "src": "docs/reports/TZ_PLAYABLE.md W18",
+      "why": "How often the client polls a chain receipt before the honest timeout"
+    },
+    "chain_receipt_timeout_ms": {
+      "v": 120000,
+      "u": "ms",
+      "src": "docs/reports/TZ_PLAYABLE.md W18",
+      "why": "How long the client waits for a receipt, then shows an honest refusal"
+    },
+    "server_gas_headroom_bps": {
+      "v": 2000,
+      "u": "bps",
+      "src": "docs/reports/TZ_PLAYABLE.md W6",
+      "why": "Server-signed gas limit is the estimate times BPS plus this headroom, over BPS"
+    },
+    "voucher_expired_per_city_day_max": {
+      "v": 3,
+      "u": "count",
+      "src": "docs/reports/TZ_WITHDRAW.md X2",
+      "why": "The server pays the release transaction. A city may miss the one-hour present window twice in a city day; the third expiry closes withdraw so release gas cannot be farmed without a bound"
+    },
+    "farm_slice_batch_max": {
+      "v": 200,
+      "u": "count",
+      "src": "docs/reports/TZ_WITHDRAW.md X2",
+      "why": "eth_estimateGas of slice on the fixture is 80346 for one player and 4878248 for 200. After server_gas_headroom_bps the signed limit is 5853897, within the highest gas limit requested on the 20 latest Robinhood blocks (5861908). The published block gasLimit is 2^50 and does not bind"
+    },
+    "client_resync_ticks": {
+      "v": 4,
+      "u": "count",
+      "src": "docs/reports/TZ_PLAYABLE.md W15",
+      "why": "Silent ticks before the client refetches the snapshot when the socket is quiet"
+    },
+    "corp_quick_small": {
+      "v": 5,
+      "u": "corp",
+      "src": "docs/reports/TZ_PLAYABLE.md W17",
+      "why": "Small preset for a deposit or a stock buy, in whole CORP rather than wei"
+    },
+    "corp_quick_mid": {
+      "v": 10,
+      "u": "corp",
+      "src": "docs/reports/TZ_PLAYABLE.md W17",
+      "why": "Middle preset for a deposit or a stock buy, in whole CORP rather than wei"
+    },
+    "corp_quick_large": {
+      "v": 50,
+      "u": "corp",
+      "src": "docs/reports/TZ_PLAYABLE.md W17",
+      "why": "Large preset for a deposit or a stock buy, in whole CORP rather than wei"
+    },
+    "capital_quick_small": {
+      "v": 10000,
+      "u": "capital",
+      "src": "docs/reports/TZ_PLAYABLE.md W17",
+      "why": "Small preset for a Capital withdrawal, in Capital units rather than wei"
+    },
+    "capital_quick_mid": {
+      "v": 25000,
+      "u": "capital",
+      "src": "docs/reports/TZ_PLAYABLE.md W17",
+      "why": "Middle preset for a Capital withdrawal, in Capital units rather than wei"
+    },
+    "capital_quick_large": {
+      "v": 50000,
+      "u": "capital",
+      "src": "docs/reports/TZ_PLAYABLE.md W17",
+      "why": "Large preset for a Capital withdrawal, in Capital units rather than wei"
     }
   },
   "path_rules": {
@@ -64,6 +136,15 @@
       "required_fields": [],
       "src": "D14, PLAN_LIVE L2",
       "why": "Readiness is pack_hash plus migration_version. A listening socket without a pin would price a foreign pack"
+    },
+    "rating": {
+      "method": "GET",
+      "template": "/rating",
+      "from": "seasons.influence_rank",
+      "prefix": "",
+      "required_fields": [],
+      "src": "docs/API.md §3",
+      "why": "Public scoreboard for the marketing site, which has no city session. Same rows as the live board: demo cities stay off it, there is no top-ten cut, and self stays 0"
     },
     "ws": {
       "method": "GET",
@@ -105,6 +186,7 @@
     "session_ttl_s": "ticks_per_city_day times tick_length_real_seconds; one city day in real seconds",
     "nonce_ttl_s": "tick_length_real_seconds; one city hour, the same window as a voucher",
     "voucher_ttl_s": "tick_length_real_seconds; one city hour, the window the daily limit still covers",
+    "unstake_cooldown_s": "unstake_cooldown_city_days times city_day_real_hours times SECONDS_PER_HOUR",
     "ws_heartbeat_ms": "ws_heartbeat_s times milliseconds in one second",
     "sampler_period_ms": "sampler_period_s times milliseconds in one second",
     "tick_length_real_ms": "tick_length_real_seconds times milliseconds in one second"

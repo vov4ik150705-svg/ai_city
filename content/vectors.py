@@ -22,7 +22,7 @@ import lint
 import record as record_mod
 import sim
 import tick as tick_mod
-from pack import OUT_DIR, canonical
+from pack import BPS, OUT_DIR, canonical
 
 VECTOR_DIR = OUT_DIR / "vectors"
 OVER_2_53 = 2**53 + 3
@@ -56,13 +56,28 @@ def _inp(cfg: dict, tick_index: int, extra: dict | None = None) -> dict:
     return out
 
 
-def _arm_fund(state: dict, cfg: dict) -> None:
+def _arm_fund(state: dict, cfg: dict, units: int = 2000) -> None:
     ticks = cfg["ticks_day"]
     div = cfg["payroll_daily_divisor"]
-    state["fund"] = 2000 * div * ticks
-    state["day_budget"] = state["fund"] // div
+    want = units * div * ticks
+    state["fund"] = want
+    state["day_budget"] = want // div if div else 0
     state["tick_budget"] = state["day_budget"] // ticks if ticks else 0
     state["day_budget_day"] = cfg["anchor_day"]
+    bags = want
+    for city in (state.get("cities") or {}).values():
+        if isinstance(city, dict):
+            bags += int(city.get("capital") or 0)
+    anchor = int(cfg["capital_anchor"])
+    need_vault = bags if anchor <= 0 else (bags + anchor - 1) // anchor
+    if int(state.get("vault_corp") or 0) < need_vault:
+        add = need_vault - int(state.get("vault_corp") or 0)
+        state["vault_corp"] = need_vault
+        state["corp_deposited_total"] = int(state.get("corp_deposited_total") or 0) + add
+    if int(state.get("capital_outstanding") or 0) < bags:
+        d = bags - int(state.get("capital_outstanding") or 0)
+        state["capital_outstanding"] = int(state.get("capital_outstanding") or 0) + d
+        state["capital_minted_total"] = int(state.get("capital_minted_total") or 0) + d
 
 
 def _live_city(cfg: dict, pack: dict, city_id: str = "a") -> dict:
@@ -169,17 +184,38 @@ def build_vectors(pack: dict) -> dict[str, dict]:
     a["output_base"] = 300
     b["output_base"] = 100
     pay_state = tick_mod.new_state(cfg, {"a": a, "b": b}, {})
-    ticks = cfg["ticks_day"]
-    div = cfg["payroll_daily_divisor"]
-    pay_state["fund"] = 200 * div * ticks
+    _arm_fund(pay_state, cfg, 200)
     pay_state["day_budget_day"] = None
     out["payroll_trim"] = _tick_vector(
         "payroll_trim", pack, cfg, pay_state, _inp(cfg, 0), spec_rec, spec_hdr, leaf_p, node_p
     )
 
+    slot_city = _live_city(cfg, pack)
+    slot_city["functions"] = [
+        {"id": "workshop", "level": 1},
+        {"id": "bank", "level": 1},
+        {"id": "logistics_hub", "level": 1},
+        {"id": "ai_research_center", "level": 1},
+        {"id": "city_hall", "level": 1},
+    ]
+    slot_mult = BPS
+    slot_city["agents"] = [
+        {"id": "e1", "role": "engineer", "building_id": "workshop", "objective": "produce", "level": 1, "xp": 0, "level_mult_bps": slot_mult, "traits": []},
+        {"id": "t1", "role": "trader", "building_id": "bank", "objective": "desk", "level": 1, "xp": 0, "level_mult_bps": slot_mult, "traits": []},
+        {"id": "l1", "role": "logistician", "building_id": "logistics_hub", "objective": "route", "level": 1, "xp": 0, "level_mult_bps": slot_mult, "traits": []},
+        {"id": "s1", "role": "scientist", "building_id": "ai_research_center", "objective": "train", "train_target": "e1", "level": 1, "xp": 0, "level_mult_bps": slot_mult, "traits": []},
+        {"id": "m1", "role": "manager", "building_id": "city_hall", "objective": "focus", "level": 1, "xp": 0, "level_mult_bps": slot_mult, "traits": []},
+    ]
+    slot_state = tick_mod.new_state(cfg, {"a": slot_city}, {})
+    _arm_fund(slot_state, cfg)
+    slot_state["day_budget_day"] = None
+    out["slotted_tick"] = _tick_vector(
+        "slotted_tick", pack, cfg, slot_state, _inp(cfg, 0), spec_rec, spec_hdr, leaf_p, node_p
+    )
+
     day_city = _live_city(cfg, pack)
     day_state = tick_mod.new_state(cfg, {"a": day_city}, {})
-    day_state["fund"] = 2000 * div * ticks
+    _arm_fund(day_state, cfg)
     day_state["day_budget_day"] = None
     idx0 = cfg["ticks_day"] - cfg["anchor_hour"]
     if idx0 <= 0:
@@ -198,7 +234,7 @@ def build_vectors(pack: dict) -> dict[str, dict]:
 
     dead_city = _live_city(cfg, pack)
     dead_state = tick_mod.new_state(cfg, {"a": dead_city}, {})
-    dead_state["fund"] = 2000 * div * ticks
+    _arm_fund(dead_state, cfg)
     out["feed_dead"] = _tick_vector(
         "feed_dead",
         pack,
@@ -214,7 +250,7 @@ def build_vectors(pack: dict) -> dict[str, dict]:
     stack_city = _live_city(cfg, pack)
     stack_city["nodes"] = [{"key": "output_bps", "magnitude": STACK_PROBE_BPS, "id": "c0_stack"}]
     stack_state = tick_mod.new_state(cfg, {"a": stack_city}, {})
-    stack_state["fund"] = 2000 * div * ticks
+    _arm_fund(stack_state, cfg)
     out["stack_nonempty"] = _tick_vector(
         "stack_nonempty", pack, cfg, stack_state, _inp(cfg, 0), spec_rec, spec_hdr, leaf_p, node_p
     )
@@ -223,7 +259,7 @@ def build_vectors(pack: dict) -> dict[str, dict]:
     cyr_city["objective"] = "смена"
     cyr_city["building_id"] = ""
     cyr_state = tick_mod.new_state(cfg, {"город-1": cyr_city}, {})
-    cyr_state["fund"] = 2000 * div * ticks
+    _arm_fund(cyr_state, cfg)
     out["cyrillic"] = _tick_vector(
         "cyrillic",
         pack,

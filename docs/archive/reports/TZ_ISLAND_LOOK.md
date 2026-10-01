@@ -1,11 +1,9 @@
 # TZ_ISLAND_LOOK — visual rescue авторского острова
 
-Главное ТЗ вида Corporator. Держать открытым на каждом LOOK. Как делать
-конкретный шаг — только в `docs/reports/TZ_ISLAND_LOOK_STEPS.md` (раздел
-этого LOOK). Системный протокол агента — `.cursor/rules/code-phase.mdc`
-(файла `island-look.mdc` в репозитории нет);
-paste для нового чата — `docs/reports/PROMPT_ISLAND.md`. Доказательства —
-в `docs/reports/AUDIT_ISLAND_VISUAL.md`.
+**Архив 2026-09-18. Не исполнять.** Вид принят (`ACCEPT LOOK-11`).
+Живой план — `docs/reports/PLAN_LAUNCH.md`. How-to шагов — рядом,
+`TZ_ISLAND_LOOK_STEPS.md`. Paste-блок — `PROMPT_ISLAND.md`. Доказательства
+отклонённого кадра — `docs/reports/AUDIT_ISLAND_VISUAL.md`.
 
 Предыдущие I0–I7 доказали провод и бюджеты, но **не доказали качество
 картинки**. Вид владельцем отклонён. Старые I0–I7 не повторять как задания и

@@ -13,56 +13,92 @@ export function AgentCard(props: {
   readonly taskLabel: string
   readonly variant?: "roster" | "detail"
   readonly roleId?: string
+  readonly buildingId?: string
+  readonly objective?: string
   readonly onManage?: () => void
 }): ReactElement {
   const variant = props.variant ?? "detail"
   const onManage = props.onManage
   const roleId = props.roleId
+  const buildingId = props.buildingId
+  const objective = props.objective
+  const roleMissing = roleId === undefined || roleId.length === 0
+  const taskMissing = objective === undefined || objective.length === 0
+  const idleLabel = props.idleText.length === 0 ? props.unavailable : props.idleText
+  const roleLabel = roleMissing ? props.unavailable : titleCase(roleId ?? "")
+  const taskLabel = taskMissing ? props.unavailable : titleCase(objective ?? "")
   return (
     <div className={variant === "roster" ? "hud-card hud-acard hud-acard--roster" : "hud-card hud-acard"} data-agent={props.agentId}>
       <AgentPortrait
         unavailable={props.unavailable}
         title={props.agentId}
-        variant={variant === "roster" ? "icon" : "portrait"}
-        fallbackIcon={variant === "roster"}
-        {...(roleId === undefined ? {} : { roleId })}
+        variant="portrait"
+        {...(roleId === undefined || roleId.length === 0 ? {} : { roleId })}
       />
       <div className="hud-acard__who">
         <span className="hud-agent__id">{props.agentId}</span>
         {variant === "roster" ? (
-          <span data-key={props.idleKey} className="hud-muted hud-acard__partial">
-            {props.unavailable}
-          </span>
+          <>
+            <span
+              data-agent-role={roleMissing ? "unavailable" : roleId}
+              data-state={roleMissing ? "unavailable" : "ready"}
+              className="hud-acard__role"
+            >
+              {roleLabel}
+            </span>
+            <span
+              data-agent-task={taskMissing ? "unavailable" : objective}
+              data-state={taskMissing ? "unavailable" : "ready"}
+              className="hud-acard__task"
+            >
+              {taskLabel}
+            </span>
+          </>
         ) : (
           <span data-key={props.idleKey} className="hud-muted">
-            {props.idleText}
+            {idleLabel}
           </span>
         )}
       </div>
       {variant === "detail" ? (
         <>
           <StatusChip
-            label={props.idleText}
+            label={idleLabel}
             labelKey={props.idleKey}
             kind={statusKindFromKey(props.idleKey)}
             surface="badge"
           />
           <Facts>
-            <FactLine label={props.workerLabel} labelKey="UI_BUILDING_WORKER" valueKey="UI_UNAVAILABLE" missing={true}>
-              <span data-agent-role="unavailable" data-state="unavailable">
-                {props.unavailable}
+            <FactLine
+              label={props.workerLabel}
+              labelKey="UI_BUILDING_WORKER"
+              valueKey={roleMissing ? "UI_UNAVAILABLE" : roleId}
+              missing={roleMissing}
+            >
+              <span data-agent-role={roleMissing ? "unavailable" : roleId} data-state={roleMissing ? "unavailable" : "ready"}>
+                {roleMissing ? props.unavailable : roleId}
               </span>
             </FactLine>
-            <FactLine label={props.taskLabel} labelKey="UI_BUILDING_TASK" valueKey="UI_UNAVAILABLE" missing={true}>
-              <span data-agent-task="unavailable" data-state="unavailable">
-                {props.unavailable}
+            <FactLine
+              label={props.taskLabel}
+              labelKey="UI_BUILDING_TASK"
+              valueKey={taskMissing ? "UI_UNAVAILABLE" : objective}
+              missing={taskMissing}
+            >
+              <span data-agent-task={taskMissing ? "unavailable" : objective} data-state={taskMissing ? "unavailable" : "ready"}>
+                {taskMissing ? props.unavailable : objective}
               </span>
             </FactLine>
+            {buildingId === undefined || buildingId.length === 0 ? null : (
+              <FactLine label={props.manageLabel} labelKey="UI_ASSIGNMENT" valueKey={buildingId} missing={false}>
+                <span data-agent-building={buildingId}>{buildingId}</span>
+              </FactLine>
+            )}
           </Facts>
         </>
       ) : (
         <StatusChip
-          label={props.idleText}
+          label={idleLabel}
           labelKey={props.idleKey}
           kind={statusKindFromKey(props.idleKey)}
           surface="badge"
@@ -75,4 +111,8 @@ export function AgentCard(props: {
       )}
     </div>
   )
+}
+
+function titleCase(id: string): string {
+  return id.replace(/_/g, " ").replace(/^\p{L}/u, (c) => c.toUpperCase())
 }

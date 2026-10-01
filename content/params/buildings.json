@@ -11,6 +11,12 @@
       "output": null,
       "autonomous": true,
       "prebuilt": true,
+      "output_link": {
+        "steps": 1,
+        "target": "any_pay",
+        "exclusive_with": ["cloud_campus"],
+        "require_role": "manager"
+      },
       "src": "DESIGN.md §7.1, §5.8",
       "why": "Стол основателя существует с первого захода. Кривой стоимости нет, уровень равен уровню города. Vault работает без агента"
     },
@@ -40,6 +46,11 @@
       "sprite": "agent_hub",
       "output": null,
       "autonomous": true,
+      "output_link": {
+        "steps": 1,
+        "target": "engineer_table",
+        "require_role": "scientist"
+      },
       "cost_weight_bps": {
         "v": 5000,
         "u": "bps",
@@ -57,6 +68,12 @@
       "sprite": "power_node",
       "output": "energy",
       "autonomous": false,
+      "output_link": {
+        "steps": 1,
+        "target": "contour_table",
+        "exclusive_with": ["energy_plant"],
+        "require_role": "engineer"
+      },
       "src": "DESIGN.md §7.1, §5.8",
       "why": "Слабый дорогой источник energy, чтобы базовая игра работала без Tesla"
     },
@@ -68,6 +85,11 @@
       "sprite": "bank",
       "output": "spread",
       "autonomous": false,
+      "output_link": {
+        "steps": 1,
+        "target": "population",
+        "require_role": "trader"
+      },
       "cost_weight_bps": {
         "v": 15000,
         "u": "bps",
@@ -85,6 +107,11 @@
       "sprite": "exchange",
       "output": "hop_quality",
       "autonomous": false,
+      "output_link": {
+        "steps": 1,
+        "target": "population",
+        "require_role": "trader"
+      },
       "city_level_req": 2,
       "cost_weight_bps": {
         "v": 12000,
@@ -104,8 +131,14 @@
       "sprite": "ai_research_center",
       "output": "compute",
       "autonomous": false,
+      "output_link": {
+        "steps": 2,
+        "target": "compute_table",
+        "exclusive_with": ["data_center"],
+        "require_role": "scientist"
+      },
       "src": "DESIGN.md §7.2, §5.8",
-      "why": "Появляется Compute. В v1 крутит Engineer как сосед: ресурс есть, учёного ещё нет"
+      "why": "Появляется Compute. Engineer сосед пишет в compute_stock; Scientist родной тратит и не печатает"
     },
     "energy_plant": {
       "tier": "beacon",
@@ -116,6 +149,12 @@
       "sprite": "energy_plant",
       "output": "energy",
       "autonomous": false,
+      "output_link": {
+        "steps": 3,
+        "target": "contour_table",
+        "exclusive_with": ["power_node"],
+        "require_role": "engineer"
+      },
       "src": "DESIGN.md §7.2, §5.8",
       "why": "Energy в масштабе и дешевле, чем Power Node"
     },
@@ -128,6 +167,11 @@
       "sprite": "logistics_hub",
       "output": "idle_reduction",
       "autonomous": false,
+      "output_link": {
+        "steps": 2,
+        "target": "contour_pay",
+        "require_role": "logistician"
+      },
       "src": "DESIGN.md §7.2, §5.8",
       "why": "Режет простой по всей цепочке"
     },
@@ -152,6 +196,12 @@
       "sprite": "cloud_campus",
       "output": "slots_and_offline",
       "autonomous": false,
+      "output_link": {
+        "steps": 2,
+        "target": "autonomous_table",
+        "exclusive_with": ["city_hall"],
+        "require_role": "manager"
+      },
       "src": "DESIGN.md §7.2, §5.8",
       "why": "Больше слотов агентов и длиннее оффлайн"
     },
@@ -164,6 +214,12 @@
       "sprite": "finance_tower",
       "output": "bank_level",
       "autonomous": false,
+      "output_link": {
+        "steps": 3,
+        "target": "population",
+        "exclusive_with": ["clearing_house"],
+        "require_role": "trader"
+      },
       "src": "DESIGN.md §7.2, §5.8",
       "why": "Банк выше первого уровня: дневной лимит, спред, доля в фонде"
     },
@@ -175,8 +231,14 @@
       "sprite": "robotics_lab",
       "output": "capital",
       "autonomous": true,
+      "output_weight_bps": {
+        "v": 10000,
+        "u": "bps",
+        "src": "docs/CANON.md R-E-06, DESIGN.md §7.3",
+        "why": "Та же точка нормировки, что у Workshop: табличный выход L1 отбивает цену за 240 тиков. Штраф affinity_neighbour применяется в рантайме один раз, не запекается в вес"
+      },
       "src": "DESIGN.md §7.3, §5.8, §4.4",
-      "why": "Слот работает без агента, поэтому родной роли нет. Забор compute выводится из веса стоимости тем же mulDiv, что energy; производители compute его не расходуют. output_weight не хранится — равен affinity_neighbour_bps"
+      "why": "Слот работает без агента, поэтому родной роли нет. Забор compute выводится из веса стоимости тем же mulDiv, что energy; производители compute его не расходуют"
     },
     "drone_depot": {
       "tier": "synergy",
@@ -186,6 +248,12 @@
       "sprite": "drone_depot",
       "output": "idle_reduction",
       "autonomous": false,
+      "output_link": {
+        "steps": 3,
+        "target": "contour_pay",
+        "exclusive_with": ["fleet_yard"],
+        "require_role": "logistician"
+      },
       "src": "DESIGN.md §7.3, §5.8",
       "why": "Простой цепочки почти в ноль. Инженер сюда не садится: узкая специализация"
     },
@@ -197,6 +265,12 @@
       "sprite": "data_center",
       "output": "compute",
       "autonomous": false,
+      "output_link": {
+        "steps": 3,
+        "target": "compute_table",
+        "exclusive_with": ["ai_research_center"],
+        "require_role": "scientist"
+      },
       "src": "DESIGN.md §7.3, §5.8",
       "why": "Compute масштабом и дешевле за юнит"
     },
@@ -208,6 +282,12 @@
       "sprite": "fleet_yard",
       "output": "idle_reduction",
       "autonomous": false,
+      "output_link": {
+        "steps": 3,
+        "target": "contour_pay",
+        "exclusive_with": ["drone_depot"],
+        "require_role": "logistician"
+      },
       "src": "DESIGN.md §7.3, §5.8",
       "why": "Логистика почти не жрёт energy"
     },
@@ -230,6 +310,12 @@
       "sprite": "clearing_house",
       "output": "fund_share",
       "autonomous": false,
+      "output_link": {
+        "steps": 3,
+        "target": "population",
+        "exclusive_with": ["finance_tower"],
+        "require_role": "manager"
+      },
       "src": "DESIGN.md §7.3, §5.8",
       "why": "Выше доля в фонде и дневной лимит вывода. Контуры обратны банку: родной — управленец, трейдер сосед"
     }
@@ -258,6 +344,8 @@
     "buildings_by_tier": "группировка по tier",
     "buildings_without_home_role": "здания с contour = null; каждое обязано иметь autonomous = true",
     "buildings_playable_v1": "base играбельно всегда; маяк — если playable_v1 его района; синергия — если играбельны все районы из requires. Ручного списка скоупа нет, он сверяется с фикстурой design_11_scope.json",
+    "output_links": "для каждого архетипа с output_link: key output_bps, magnitude = node_effect_base_bps times building_link_quantum_mult times steps, target, exclusive_with, require_role. Рантайм не умножает",
+    "building_link_quantum_bps": "node_effect_base_bps times modifiers.building_link_quantum_mult; baked into output_links magnitudes",
     "level_cost": "workshop_cost_l1 × cost_weight_bps(a) / 10000 × cost_growth_bps^(L−1) / 10000^(L−1); city_hall предпостроен, кривой нет",
     "level_output": "output(a,1) × output_growth_bps^(L−1), где output(a,1) = cost(a,1) × output_weight / 10000 / 240; считать от cost(a,1), не от cost(a,L)",
     "level_build_time": "ceil(cost_weight_bps(a) × build_time_growth_bps^(L−1) / 10000^L), минимум 1",

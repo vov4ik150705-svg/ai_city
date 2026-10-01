@@ -1,7 +1,9 @@
 import type { ReactElement } from "react"
+import { TickerMark } from "./TickerMark.js"
 
-export function CompanyBadge(props: { readonly ticker: string; readonly districtId?: string }): ReactElement {
+export function CompanyBadge(props: { readonly ticker: string; readonly districtId?: string; readonly mark?: boolean }): ReactElement {
   const districtId = props.districtId
+  const showMark = props.mark !== false
   return (
     <span
       data-ticker={props.ticker}
@@ -9,6 +11,7 @@ export function CompanyBadge(props: { readonly ticker: string; readonly district
       className="hud-co"
       title={props.ticker}
     >
+      {showMark ? <TickerMark ticker={props.ticker} /> : null}
       {props.ticker}
     </span>
   )

@@ -1,0 +1,1661 @@
+/* Quick guide, page 01. Every length is a pixel of the approved 1672 x 941 mockup;
+   .qg-canvas scales the whole composition by --qg-k, set from the window size. */
+
+@font-face {
+  font-family: "QG Caveat";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: block;
+  src: url("../../../../website/fonts/caveat/caveat-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "QG Caveat";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: block;
+  src: url("../../../../website/fonts/caveat/caveat-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "QG Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("../../../../website/fonts/roboto-variable/roboto-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "QG Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("../../../../website/fonts/roboto-variable/roboto-symbols-wght-normal.woff2") format("woff2");
+  unicode-range: U+2150-218F, U+2194-2199, U+2190, U+2192;
+}
+
+/* Bank page uses the kit faces, so page 01 keeps its own files and metrics. */
+@font-face {
+  font-family: "QG Bank Caveat";
+  src: url("../../../../hud/quick-guide-reference/bank-ready/fonts/caveat.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "QG Bank Roboto";
+  src: url("../../../../hud/quick-guide-reference/bank-ready/fonts/roboto.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+}
+
+:root {
+  --qg-k: 1;
+  --qg-hand: "QG Caveat", "Segoe Print", cursive;
+  --qg-sans: "QG Sans", "Segoe UI", system-ui, sans-serif;
+  --qg-ink: #0b1640;
+  --qg-text: #161b60;
+  --qg-brand: #0f1057;
+  --qg-quiet: #293a6c;
+  --qg-pen: #1626f4;
+  --qg-accent: #0a5cf8;
+  --qg-frame: #add7fe;
+  --qg-rule: #aed4fc;
+  --qg-dot: #a9cdfb;
+  --qg-off-fill: #e7eef9;
+  --qg-off-line: #a9c0e5;
+  --qg-off-ink: #8eaad6;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #d3e6fc;
+}
+
+.qg-body {
+  font-family: var(--qg-hand);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+.qg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.qg-head-actions {
+  display: contents;
+}
+
+.qg-brand__img,
+.qg-ico--bank,
+.qg-welcome-art,
+.qg-bank-art,
+.qg-workshop-art,
+.qg-people-art,
+.qg-work-art,
+.qg-shift-art,
+.qg-screen-art,
+.qg-next-art,
+.qg-handbook,
+.qg-footnote,
+.qg-ref-bg {
+  display: none;
+}
+
+/* Beats `.qg-close svg { display: block }` so page 01 keeps a single cross. */
+.qg-close .qg-close__bank {
+  display: none;
+}
+
+/* ---------- blurred HUD behind the guide ---------- */
+
+.qg-hud {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  filter: blur(5px) saturate(1.05);
+  transition: filter 0.35s ease;
+}
+
+html[data-guide="closed"] .qg-hud {
+  filter: none;
+}
+
+.qg-hud__sky {
+  position: absolute;
+  inset: -20px;
+  background:
+    radial-gradient(60% 40% at 50% 0%, #b5d6f8 0%, rgba(181, 214, 248, 0) 70%),
+    linear-gradient(180deg, #bcd9f8 0%, #cfe4fb 28%, #d9eafd 64%, #d2e6fc 100%);
+}
+
+.qg-cloud {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.55) 60%, rgba(255, 255, 255, 0));
+  opacity: 0.55;
+}
+
+.qg-cloud--a {
+  left: -8%;
+  top: 36%;
+  width: 22%;
+  height: 22%;
+}
+
+.qg-cloud--b {
+  right: -6%;
+  top: 50%;
+  width: 20%;
+  height: 16%;
+}
+
+.qg-cloud--c {
+  right: -4%;
+  bottom: -8%;
+  width: 26%;
+  height: 20%;
+}
+
+.qg-cloud--d {
+  left: 20%;
+  bottom: -12%;
+  width: 40%;
+  height: 16%;
+}
+
+.qg-hud__top,
+.qg-hud__left,
+.qg-hud__right {
+  position: absolute;
+  top: 0;
+  transform: scale(var(--qg-k));
+}
+
+.qg-hud__top {
+  left: 0;
+  width: calc(100% / var(--qg-k));
+  height: 64px;
+  transform-origin: 0 0;
+  color: #6d84b6;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+.qg-hud__top-left > *,
+.qg-hud__top-right > * {
+  position: absolute;
+}
+
+.qg-hud__top-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 58px;
+}
+
+.qg-hud__mark {
+  left: 21px;
+  top: 20px;
+  width: 36px;
+  height: 40px;
+  fill: #25306a;
+}
+
+.qg-hud__word {
+  left: 71px;
+  top: 25px;
+  font-size: 32px;
+  line-height: 32px;
+  font-weight: 800;
+  color: #202a60;
+}
+
+.qg-hud__meta {
+  top: 31px;
+}
+
+.qg-hud__meta--city {
+  left: 285px;
+}
+
+.qg-hud__meta--day {
+  left: 522px;
+  color: #4d63a0;
+}
+
+.qg-hud__ring {
+  left: 676px;
+  top: 29px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #97acd6;
+  border-radius: 50%;
+}
+
+.qg-hud__meta--safe {
+  left: 744px;
+}
+
+.qg-hud__slider {
+  left: 792px;
+  top: 37px;
+  width: 155px;
+  height: 4px;
+  border-radius: 2px;
+  background: #b3cdf2;
+}
+
+.qg-hud__slider i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 65px;
+  height: 4px;
+  border-radius: 2px;
+  background: #2f6df6;
+}
+
+.qg-hud__slider i::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: -5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2a62f2;
+}
+
+.qg-hud__meta--noon {
+  left: 960px;
+}
+
+.qg-hud__tab {
+  left: 1068px;
+  top: 31px;
+  padding-bottom: 12px;
+  color: #3e5aa8;
+  border-bottom: 3px solid #3a78f6;
+}
+
+.qg-hud__pill {
+  left: 1184px;
+  top: 25px;
+  width: 163px;
+  height: 28px;
+  box-sizing: border-box;
+  padding-top: 6px;
+  text-align: center;
+  font-size: 11px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(160, 190, 235, 0.8);
+}
+
+.qg-hud__bell {
+  right: 263px;
+  top: 27px;
+  width: 20px;
+  height: 22px;
+  border-radius: 10px 10px 4px 4px;
+  background: #9fb3d8;
+}
+
+.qg-hud__bell i {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #f0445a;
+}
+
+.qg-hud__live {
+  right: 162px;
+  top: 31px;
+  color: #3f7d57;
+}
+
+.qg-hud__live i,
+.qg-hud__corp i {
+  position: absolute;
+  left: -18px;
+  top: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #3fbf6a;
+}
+
+.qg-hud__corp {
+  right: 22px;
+  top: 31px;
+  color: #2d63f0;
+  font-weight: 600;
+}
+
+.qg-hud__corp i {
+  left: -22px;
+  top: 0;
+  width: 15px;
+  height: 15px;
+  background: #3a74f5;
+}
+
+.qg-hud__left {
+  left: 16px;
+  top: 68px;
+  width: 260px;
+  height: 860px;
+  transform-origin: -16px -68px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: #6f85b3;
+}
+
+.qg-hud__cap {
+  position: absolute;
+  left: 19px;
+  top: 64px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.qg-hud__cap--district {
+  top: 614px;
+}
+
+.qg-hud__row {
+  position: absolute;
+  left: 24px;
+  width: 220px;
+  height: 120px;
+}
+
+.qg-hud__row--1 {
+  top: 116px;
+}
+
+.qg-hud__row--2 {
+  top: 262px;
+}
+
+.qg-hud__row--3 {
+  top: 416px;
+}
+
+.qg-hud__row--4 {
+  top: 512px;
+}
+
+.qg-hud__ico {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #3b7cf5;
+}
+
+.qg-hud__ico--person {
+  border-radius: 50% 50% 6px 6px;
+  width: 24px;
+}
+
+.qg-hud__ico--gem {
+  transform: rotate(45deg) scale(0.8);
+  border-radius: 5px;
+}
+
+.qg-hud__row b,
+.qg-hud__row strong,
+.qg-hud__row em {
+  display: block;
+  margin-left: 55px;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.qg-hud__row b {
+  padding-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #7a8fbb;
+}
+
+.qg-hud__row strong {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #33406e;
+}
+
+.qg-hud__row em {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #8195c0;
+}
+
+.qg-hud__bar {
+  position: absolute;
+  left: 55px;
+  top: 46px;
+  width: 44px;
+  height: 6px;
+  border-radius: 3px;
+  background: #2f6df6;
+}
+
+.qg-hud__row--1 .qg-hud__bar {
+  top: 82px;
+}
+
+.qg-hud__row--2 .qg-hud__bar {
+  top: 98px;
+  width: 58px;
+}
+
+.qg-hud__bar--green {
+  background: #3dbb66;
+}
+
+.qg-hud__agent {
+  position: absolute;
+  left: 32px;
+  top: 658px;
+  width: 50px;
+  height: 90px;
+  border-radius: 24px 24px 8px 8px;
+  background: linear-gradient(180deg, #33437a, #1f2a58);
+  clip-path: polygon(22% 0, 78% 0, 100% 30%, 92% 100%, 64% 100%, 50% 58%, 36% 100%, 8% 100%, 0 30%);
+}
+
+.qg-hud__agent i {
+  position: absolute;
+  left: 32%;
+  top: 14%;
+  width: 36%;
+  height: 22%;
+  border-radius: 50%;
+  background: #6f82b6;
+}
+
+.qg-hud__agent-name {
+  position: absolute;
+  left: 24px;
+  top: 762px;
+  font-size: 12px;
+  color: #8195c0;
+}
+
+.qg-hud__more {
+  position: absolute;
+  left: 19px;
+  top: 830px;
+  font-size: 13px;
+  color: #3b6cf0;
+}
+
+.qg-hud__right {
+  right: 16px;
+  top: 68px;
+  width: 260px;
+  height: 860px;
+  transform-origin: calc(100% + 16px) -68px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #5f74a3;
+}
+
+.qg-hud__num {
+  position: absolute;
+  right: 26px;
+  top: calc(120px + var(--row) * 64px);
+  font-size: 17px;
+  font-weight: 600;
+  color: #4a5a88;
+}
+
+.qg-hud__feed {
+  position: absolute;
+  left: 20px;
+  right: 26px;
+  top: calc(658px + var(--row) * 54px);
+  height: 14px;
+}
+
+.qg-hud__feed b {
+  position: absolute;
+  left: 118px;
+  top: 8px;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 400;
+  color: #7f93bd;
+}
+
+.qg-hud__feed i {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.qg-hud__feed i.is-green {
+  background: #3fbf6a;
+}
+
+.qg-hud__feed i.is-amber {
+  background: #f2b33d;
+}
+
+/* ---------- canvas and panel ---------- */
+
+.qg-canvas {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 1672px;
+  height: 941px;
+  margin-left: -836px;
+  margin-top: -470.5px;
+  transform: scale(var(--qg-k));
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.qg-panel,
+.qg-reopen {
+  pointer-events: auto;
+}
+
+.qg-panel {
+  position: absolute;
+  left: 137px;
+  top: 64px;
+  width: 1398px;
+  height: 859px;
+  box-sizing: border-box;
+  border: 3px solid var(--qg-frame);
+  border-radius: 21px;
+  background: #fff;
+  overflow: hidden;
+  color: var(--qg-ink);
+  box-shadow:
+    0 0 0 1.5px rgba(255, 255, 255, 0.9),
+    0 0 0 3.5px rgba(118, 165, 228, 0.55),
+    0 12px 36px rgba(40, 92, 172, 0.12);
+}
+
+.qg-panel button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.qg-panel :focus-visible {
+  outline: 2px solid var(--qg-pen);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.qg-stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 752px;
+  overflow: hidden;
+}
+
+.qg-art,
+.qg-marks {
+  position: absolute;
+  left: var(--qg-art-left, 34px);
+  top: var(--qg-art-top, 12px);
+  width: calc(1672px * var(--qg-art-scale, 0.849));
+  height: calc(941px * var(--qg-art-scale, 0.849));
+  user-select: none;
+}
+
+.qg-art {
+  display: block;
+}
+
+.qg-marks {
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* ---------- header ---------- */
+
+.qg-brand__mark {
+  position: absolute;
+  left: 36px;
+  top: 24px;
+  width: 30px;
+  height: 33px;
+  fill: var(--qg-brand);
+}
+
+.qg-brand__word {
+  position: absolute;
+  left: 82px;
+  top: 26px;
+  font-size: 26px;
+  line-height: 26px;
+  font-weight: 800;
+  letter-spacing: -0.004em;
+  color: var(--qg-brand);
+}
+
+.qg-skip {
+  position: absolute;
+  right: 97px;
+  top: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 20px;
+  color: var(--qg-pen);
+}
+
+.qg-close {
+  position: absolute;
+  left: 1328px;
+  top: 22px;
+  width: 35px;
+  height: 35px;
+  margin: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 0;
+  background: none;
+}
+
+.qg-close svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: var(--qg-pen);
+  stroke-width: 2.3;
+  stroke-linecap: round;
+}
+
+.qg-skip:hover,
+.qg-close:hover svg {
+  opacity: 0.75;
+}
+
+/* ---------- copy ---------- */
+
+.qg-eyebrow,
+.qg-title,
+.qg-lede {
+  position: absolute;
+  margin: 0;
+}
+
+.qg-eyebrow {
+  left: 60px;
+  top: 78.5px;
+  font-family: var(--qg-hand);
+  font-size: 27px;
+  line-height: 27px;
+  font-weight: 500;
+  letter-spacing: 0.055em;
+  color: var(--qg-quiet);
+  transform: skewX(-8deg);
+  transform-origin: 0 100%;
+}
+
+/* Caveat is wider and more upright than the mockup's pen; slant and narrow it to the drawn title. */
+.qg-title {
+  left: 39px;
+  top: 98px;
+  font-family: var(--qg-hand);
+  font-size: 100px;
+  line-height: 100px;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  word-spacing: -6px;
+  color: var(--qg-ink);
+  -webkit-text-stroke: 1.3px var(--qg-ink);
+  white-space: nowrap;
+  transform: skewX(-7deg) scaleX(0.843);
+  transform-origin: 0 75%;
+}
+
+.qg-lede {
+  left: 46px;
+  top: 215px;
+  width: 520px;
+  font-size: 21.5px;
+  line-height: 29px;
+  font-weight: 400;
+  color: var(--qg-text);
+  white-space: pre-line;
+}
+
+/* ---------- navigation ---------- */
+
+.qg-nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 752px;
+  bottom: 0;
+}
+
+.qg-nav::before {
+  content: "";
+  position: absolute;
+  left: 36px;
+  top: 0;
+  width: 1320px;
+  height: 2px;
+  background: var(--qg-rule);
+}
+
+.qg-back {
+  position: absolute;
+  left: 35px;
+  top: 17px;
+  width: 72px;
+  height: 67px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--qg-pen);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.qg-back svg {
+  width: 28px;
+  height: 22px;
+  fill: none;
+  stroke: var(--qg-pen);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.qg-back:disabled {
+  cursor: default;
+  border-color: var(--qg-off-line);
+  background: var(--qg-off-fill);
+}
+
+.qg-back:disabled svg {
+  stroke: var(--qg-off-ink);
+}
+
+.qg-pager {
+  position: absolute;
+  left: 575px;
+  top: 30px;
+  width: 240px;
+  text-align: center;
+}
+
+.qg-dots {
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+  height: 20px;
+  align-items: center;
+}
+
+.qg-dot {
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--qg-dot);
+  transition: background 0.15s ease;
+}
+
+.qg-dot:hover {
+  background: #7fb3f8;
+}
+
+.qg-dot.is-active {
+  background: var(--qg-pen);
+}
+
+.qg-count {
+  margin: 13px 0 0;
+  font-size: 18px;
+  line-height: 18px;
+  color: var(--qg-pen);
+  letter-spacing: 0.02em;
+}
+
+.qg-next {
+  position: absolute;
+  right: 37px;
+  top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--qg-pen);
+}
+
+.qg-next__box {
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 65px;
+  border-radius: 11px;
+  background: var(--qg-accent);
+  transition: background 0.15s ease;
+}
+
+.qg-next:hover .qg-next__box {
+  background: #0a4fe0;
+}
+
+.qg-next__box svg {
+  width: 28px;
+  height: 22px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.qg-next__label {
+  font-size: 24px;
+  line-height: 24px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---------- marks over the art ---------- */
+
+.qg-pen {
+  fill: none;
+  stroke: var(--qg-pen);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.qg-halo .qg-pen {
+  stroke: #fff;
+  stroke-opacity: 0.85;
+}
+
+.qg-pen-fill {
+  fill: #fff;
+  fill-opacity: 0.94;
+}
+
+.qg-pen-dot {
+  fill: var(--qg-pen);
+}
+
+.qg-badge-num,
+.qg-label {
+  font-family: var(--qg-hand);
+  font-weight: 700;
+  fill: var(--qg-pen);
+  text-anchor: middle;
+}
+
+.qg-badge-num {
+  dominant-baseline: central;
+  stroke: var(--qg-pen);
+  stroke-width: 1.2px;
+}
+
+.qg-label {
+  stroke: var(--qg-pen);
+  stroke-linejoin: round;
+}
+
+.qg-label--halo {
+  fill: #fff;
+  stroke: #fff;
+  stroke-opacity: 0.85;
+}
+
+/* ---------- closed state ---------- */
+
+.qg-reopen {
+  position: absolute;
+  left: 50%;
+  top: 84px;
+  transform: translateX(-50%);
+  padding: 14px 26px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--qg-accent);
+  color: #fff;
+  font: 500 20px/1 var(--qg-hand);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(10, 92, 248, 0.3);
+}
+
+/* ---------- page 2: the Bank ---------- */
+/* Geometry matches hud/quick-guide-reference/bank-ready/index.html.
+   The plate is one unchanged PNG; chrome is real HTML. */
+
+html[data-guide="open"][data-guide-step="1"],
+html[data-guide="open"][data-guide-step="2"],
+html[data-guide="open"][data-guide-step="3"],
+html[data-guide="open"][data-guide-step="4"],
+html[data-guide="open"][data-guide-step="5"],
+html[data-guide="open"][data-guide-step="6"],
+html[data-guide="open"][data-guide-step="7"],
+html[data-guide="open"][data-guide-step="8"],
+html[data-guide="open"][data-guide-step="1"] body,
+html[data-guide="open"][data-guide-step="2"] body,
+html[data-guide="open"][data-guide-step="3"] body,
+html[data-guide="open"][data-guide-step="4"] body,
+html[data-guide="open"][data-guide-step="5"] body,
+html[data-guide="open"][data-guide-step="6"] body,
+html[data-guide="open"][data-guide-step="7"] body,
+html[data-guide="open"][data-guide-step="8"] body {
+  background: #e1f0ff;
+}
+
+html[data-guide="open"][data-guide-step="1"] .qg-hud,
+html[data-guide="open"][data-guide-step="2"] .qg-hud,
+html[data-guide="open"][data-guide-step="3"] .qg-hud,
+html[data-guide="open"][data-guide-step="4"] .qg-hud,
+html[data-guide="open"][data-guide-step="5"] .qg-hud,
+html[data-guide="open"][data-guide-step="6"] .qg-hud,
+html[data-guide="open"][data-guide-step="7"] .qg-hud,
+html[data-guide="open"][data-guide-step="8"] .qg-hud {
+  visibility: hidden;
+}
+
+html[data-guide="open"][data-guide-step="1"] .qg-canvas,
+html[data-guide="open"][data-guide-step="2"] .qg-canvas,
+html[data-guide="open"][data-guide-step="3"] .qg-canvas,
+html[data-guide="open"][data-guide-step="4"] .qg-canvas,
+html[data-guide="open"][data-guide-step="5"] .qg-canvas,
+html[data-guide="open"][data-guide-step="6"] .qg-canvas,
+html[data-guide="open"][data-guide-step="7"] .qg-canvas,
+html[data-guide="open"][data-guide-step="8"] .qg-canvas {
+  overflow: hidden;
+}
+
+html[data-guide="open"][data-guide-step="1"] .qg-ref-bg,
+html[data-guide="open"][data-guide-step="2"] .qg-ref-bg,
+html[data-guide="open"][data-guide-step="3"] .qg-ref-bg,
+html[data-guide="open"][data-guide-step="4"] .qg-ref-bg,
+html[data-guide="open"][data-guide-step="5"] .qg-ref-bg,
+html[data-guide="open"][data-guide-step="6"] .qg-ref-bg,
+html[data-guide="open"][data-guide-step="7"] .qg-ref-bg,
+html[data-guide="open"][data-guide-step="8"] .qg-ref-bg {
+  display: block;
+  position: absolute;
+  inset: -8px;
+  background: url("../../../../hud/quick-guide-reference/bank-ready/hud-background.png") center / cover no-repeat;
+  filter: blur(5px);
+  pointer-events: none;
+}
+
+html[data-guide="open"][data-guide-step="1"] .qg-ref-bg::after,
+html[data-guide="open"][data-guide-step="2"] .qg-ref-bg::after,
+html[data-guide="open"][data-guide-step="3"] .qg-ref-bg::after,
+html[data-guide="open"][data-guide-step="4"] .qg-ref-bg::after,
+html[data-guide="open"][data-guide-step="5"] .qg-ref-bg::after,
+html[data-guide="open"][data-guide-step="6"] .qg-ref-bg::after,
+html[data-guide="open"][data-guide-step="7"] .qg-ref-bg::after,
+html[data-guide="open"][data-guide-step="8"] .qg-ref-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(207, 232, 255, 0.2);
+}
+
+.qg-panel[data-plate] {
+  left: 135px;
+  top: 64px;
+  z-index: 1;
+  width: 1400px;
+  height: 860px;
+  border: 2px solid #b7dcff;
+  border-radius: 24px;
+  background: #fff;
+  color: #0b1236;
+  font-family: var(--qg-hand);
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.86),
+    0 14px 38px rgba(44, 129, 220, 0.24);
+  isolation: isolate;
+}
+
+.qg-panel[data-plate] button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.qg-panel[data-plate] .qg-stage {
+  display: none;
+}
+
+.qg-panel[data-plate="welcome"] .qg-welcome-art,
+.qg-panel[data-plate="bank"] .qg-bank-art,
+.qg-panel[data-plate="workshop"] .qg-workshop-art,
+.qg-panel[data-plate="people"] .qg-people-art,
+.qg-panel[data-plate="to-work"] .qg-work-art,
+.qg-panel[data-plate="first-shift"] .qg-shift-art,
+.qg-panel[data-plate="screen"] .qg-screen-art,
+.qg-panel[data-plate="whats-next"] .qg-next-art {
+  display: block;
+  position: absolute;
+  height: auto;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.qg-panel[data-plate="welcome"] .qg-welcome-art {
+  left: 65px;
+  top: 30px;
+  width: 1270px;
+}
+
+.qg-panel[data-plate="bank"] .qg-bank-art,
+.qg-panel[data-plate="workshop"] .qg-workshop-art {
+  left: 40px;
+  top: 0;
+  width: 1320px;
+}
+
+.qg-panel[data-plate="people"] .qg-people-art {
+  left: 75px;
+  top: 45px;
+  width: 1220px;
+}
+
+.qg-panel[data-plate="to-work"] .qg-work-art {
+  left: 105px;
+  top: 75px;
+  width: 1190px;
+}
+
+.qg-panel[data-plate="first-shift"] .qg-shift-art {
+  left: 145px;
+  top: 105px;
+  width: 1100px;
+}
+
+.qg-panel[data-plate="screen"] .qg-screen-art {
+  left: 210px;
+  top: 130px;
+  width: 1100px;
+}
+
+.qg-panel[data-plate="whats-next"] .qg-next-art {
+  left: 213px;
+  top: 180px;
+  width: 970px;
+}
+
+.qg-panel[data-plate] .qg-head {
+  position: absolute;
+  left: 38px;
+  right: 36px;
+  top: 25px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+}
+
+.qg-panel[data-plate] .qg-brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: #0b1236;
+}
+
+.qg-panel[data-plate] .qg-brand__mark {
+  display: none;
+}
+
+.qg-panel[data-plate] .qg-brand__img {
+  display: block;
+  width: 34px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.qg-panel[data-plate] .qg-brand__word {
+  position: static;
+  font-family: var(--qg-hand);
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 750;
+  letter-spacing: -1px;
+  color: #0b1236;
+}
+
+.qg-panel[data-plate] .qg-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+
+.qg-panel[data-plate] .qg-skip,
+.qg-panel[data-plate] .qg-close {
+  position: static;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0a5cf8;
+}
+
+.qg-panel[data-plate] .qg-skip {
+  font-family: var(--qg-hand);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: normal;
+}
+
+.qg-panel[data-plate] .qg-skip:hover,
+.qg-panel[data-plate] .qg-close:hover {
+  opacity: 1;
+}
+
+.qg-panel[data-plate] .qg-close {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+}
+
+.qg-panel[data-plate] .qg-close__page {
+  display: none;
+}
+
+.qg-panel[data-plate] .qg-close__bank {
+  display: block;
+  width: 27px;
+  height: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+
+.qg-panel[data-plate] .qg-eyebrow {
+  left: 40px;
+  top: 78px;
+  font-family: "QG Bank Caveat", cursive;
+  font-size: 29px;
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: normal;
+  color: #0b1236;
+  transform: none;
+  z-index: 1;
+}
+
+.qg-panel[data-plate] .qg-title {
+  left: 38px;
+  top: 101px;
+  font-family: "QG Bank Caveat", cursive;
+  font-size: 76px;
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -1.7px;
+  word-spacing: normal;
+  color: #0b1236;
+  white-space: nowrap;
+  -webkit-text-stroke: 0 transparent;
+  transform: none;
+  z-index: 1;
+}
+
+.qg-panel[data-step="1"] .qg-lede {
+  left: 40px;
+  top: 211px;
+  width: 450px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: pre-line;
+  z-index: 1;
+}
+
+.qg-panel[data-step="2"] .qg-lede {
+  left: 40px;
+  top: 211px;
+  width: 350px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: normal;
+  z-index: 1;
+}
+
+.qg-panel[data-step="2"] .qg-footnote {
+  display: block;
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 732px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--qg-hand);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  z-index: 1;
+}
+
+.qg-panel[data-plate] .qg-nav {
+  left: 38px;
+  right: 38px;
+  top: 755px;
+  bottom: 18px;
+  border-top: 1.5px solid #a9d1ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+}
+
+.qg-panel[data-plate] .qg-nav::before {
+  content: none;
+}
+
+.qg-panel[data-plate] .qg-back,
+.qg-panel[data-plate] .qg-next {
+  position: static;
+  flex: none;
+  margin: 0;
+}
+
+.qg-panel[data-plate] .qg-back {
+  width: 72px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1.5px solid #86b5ff;
+  border-radius: 12px;
+  background: #fff;
+  color: #0a5cf8;
+}
+
+.qg-panel[data-plate] .qg-back:disabled {
+  background: #edf3fa;
+  color: #8cadcf;
+  border-color: #a7c2e9;
+  cursor: default;
+}
+
+.qg-panel[data-plate] .qg-ico--page {
+  display: none;
+}
+
+.qg-panel[data-plate] .qg-ico--bank {
+  display: block;
+  width: 35px;
+  height: 35px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.qg-panel[data-plate] .qg-next {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0a5cf8;
+  font-family: var(--qg-hand);
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.qg-panel[data-plate] .qg-next__box {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 75px;
+  height: 66px;
+  border: 1.5px solid #0a5cf8;
+  border-radius: 12px;
+  background: #0a5cf8;
+  color: #fff;
+}
+
+.qg-panel[data-plate] .qg-next:hover .qg-next__box {
+  background: #0a5cf8;
+}
+
+.qg-panel[data-plate] .qg-next__box .qg-ico--bank {
+  stroke: #fff;
+}
+
+.qg-panel[data-plate] .qg-next__label {
+  font-family: var(--qg-hand);
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: normal;
+  color: #0a5cf8;
+}
+
+.qg-panel[data-plate] .qg-pager {
+  position: absolute;
+  left: 50%;
+  top: 28px;
+  width: auto;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.qg-panel[data-plate] .qg-dots {
+  display: flex;
+  gap: 9px;
+  height: auto;
+  align-items: center;
+}
+
+.qg-panel[data-plate] .qg-dot {
+  width: 19px;
+  height: 19px;
+  background: #a7d1ff;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.45);
+  transition: none;
+}
+
+.qg-panel[data-plate] .qg-dot.is-active,
+.qg-panel[data-plate] .qg-dot[aria-current="page"] {
+  background: #123cff;
+}
+
+.qg-panel[data-plate] .qg-count {
+  margin: 0;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: normal;
+  color: #0a5cf8;
+}
+
+.qg-panel[data-plate] :focus-visible {
+  outline: 3px solid #0a5cf8;
+  outline-offset: 5px;
+  border-radius: 0;
+}
+
+/* Workshop copy. Placement stays with the kit; face and ink match the Bank slide. */
+.qg-panel[data-step="3"] .qg-lede {
+  left: 40px;
+  top: 211px;
+  width: 560px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: pre-line;
+  z-index: 1;
+}
+
+.qg-panel[data-step="3"] .qg-footnote {
+  display: block;
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 732px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--qg-hand);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  z-index: 1;
+}
+
+/* People copy. Placement stays with the kit; face and ink match Bank and Workshop. */
+.qg-panel[data-step="4"] .qg-lede {
+  left: 40px;
+  top: 211px;
+  width: 520px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: normal;
+  z-index: 1;
+}
+
+.qg-panel[data-step="4"] .qg-footnote {
+  display: block;
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 732px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--qg-hand);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  z-index: 1;
+}
+
+/* To work copy. This page has no footnote. Face and ink match the earlier plates. */
+.qg-panel[data-step="5"] .qg-lede {
+  left: 40px;
+  top: 211px;
+  width: 520px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: pre-line;
+  z-index: 1;
+}
+
+/* First shift copy. Placement follows the kit. The hour count is filled from the pack. */
+.qg-panel[data-step="6"] .qg-lede {
+  left: 40px;
+  top: 211px;
+  width: 600px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: normal;
+  z-index: 1;
+}
+
+.qg-panel[data-step="6"] .qg-footnote {
+  display: block;
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 732px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--qg-hand);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  z-index: 1;
+}
+
+/* The screen copy. No footnote. The break after "middle." is in the text. */
+.qg-panel[data-step="7"] .qg-lede {
+  left: 40px;
+  top: 211px;
+  width: 285px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: pre-line;
+  z-index: 1;
+}
+
+/* What's next. The paragraph sits higher than on earlier plates. */
+.qg-panel[data-step="8"] .qg-lede {
+  left: 40px;
+  top: 184px;
+  width: 1050px;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.31;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  white-space: normal;
+  z-index: 1;
+}
+
+.qg-panel[data-step="8"] .qg-footnote {
+  display: block;
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: 732px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--qg-hand);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: normal;
+  color: var(--qg-ink);
+  z-index: 1;
+}
+
+.qg-panel[data-step="8"] .qg-handbook {
+  display: block;
+  position: absolute;
+  left: 108px;
+  top: 29px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #0a5cf8;
+  font-family: var(--qg-hand);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.qg-panel[data-step="8"] .qg-next {
+  justify-content: center;
+  gap: 0;
+  padding: 0 25px;
+  border: 0;
+  border-radius: 12px;
+  background: #0a5cf8;
+  color: #fff;
+  min-width: 185px;
+  height: 66px;
+  font-size: 24px;
+  line-height: normal;
+}
+
+.qg-panel[data-step="8"] .qg-next__box {
+  display: none;
+}
+
+.qg-panel[data-step="8"] .qg-next__label {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: normal;
+  color: #fff;
+}

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Agents</title>
+  <style>
+    :root {
+      --ink: #111318;
+      --muted: #6b7280;
+      --line: #e6e8ec;
+      --bg: #f5f7fa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse 900px 420px at 70% 28%, #fff 0%, transparent 70%),
+        var(--bg);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 18px 28px 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      font-size: 14px;
+    }
+    .brand img { width: 34px; height: 38px; object-fit: contain; }
+    nav { display: flex; gap: 26px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+    nav a { color: var(--ink); text-decoration: none; padding-bottom: 6px; }
+    nav a.on { border-bottom: 2px solid #22c55e; }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .contract {
+      border: 1px solid #d5dbe3;
+      background: #fff;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .play {
+      border: 0;
+      background: #111318;
+      color: #fff;
+      border-radius: 999px;
+      padding: 9px 16px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+    main { max-width: 1240px; margin: 0 auto; padding: 18px 28px 48px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 8px;
+      align-items: end;
+      min-height: 460px;
+    }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 12px;
+      color: #9aa3af;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+    }
+    .eyebrow::before { content: ""; width: 28px; height: 2px; background: #d5dbe3; }
+    h1 {
+      margin: 0 0 14px;
+      font-size: 52px;
+      line-height: 0.9;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+    }
+    .lead { margin: 0 0 18px; color: #4b5563; font-size: 15px; line-height: 1.45; }
+    .meta { margin: 0; color: #9aa3af; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; }
+    .cast {
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      position: relative;
+      min-height: 420px;
+      padding: 24px 4px 8px;
+    }
+    .cast::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      left: var(--glow, 62%);
+      bottom: -10px;
+      width: 640px;
+      height: 250px;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse 48% 42% at 50% 74%, rgba(255, 196, 72, 0.95) 0%, rgba(255, 176, 40, 0.62) 28%, rgba(255, 210, 130, 0.2) 52%, rgba(255, 210, 130, 0) 72%);
+      filter: blur(8px);
+      pointer-events: none;
+    }
+    .unit {
+      appearance: none;
+      position: relative;
+      z-index: 1;
+      border: 0;
+      background: transparent;
+      margin: 0;
+      padding: 0 10px 10px;
+      cursor: pointer;
+    }
+    .unit img {
+      display: block;
+      position: relative;
+      z-index: 1;
+      width: auto;
+      max-width: 168px;
+      height: 268px;
+      object-fit: contain;
+      object-position: bottom;
+    }
+    .unit:focus-visible { outline: 2px solid #111318; outline-offset: 4px; border-radius: 12px; }
+    .card {
+      width: 240px;
+      margin-top: 18px;
+      padding: 14px 14px 12px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(17, 19, 24, 0.06);
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+    }
+    .card h2::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--dot, #f59e0b);
+    }
+    .card .sub {
+      margin: 4px 0 10px 16px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .card h3 {
+      margin: 8px 0 4px;
+      color: #9aa3af;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+    }
+    .card ul { margin: 0; padding: 0 0 0 16px; font-size: 13px; line-height: 1.45; }
+    .fit { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+    .fit b { font-weight: 700; }
+    .seats { margin-top: 8px; }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .tabs button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: 8px 0 10px;
+      color: #9aa3af;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+    }
+    .tabs button.is-on { color: var(--ink); box-shadow: inset 0 -2px 0 var(--dot, #f59e0b); }
+    .tabs button:focus-visible { outline: 2px solid #111318; outline-offset: 2px; }
+    .rail {
+      height: 28px;
+      margin: 0 12% 0;
+      border-top: 1px solid #e3e6eb;
+      position: relative;
+    }
+    .rail::before {
+      content: "";
+      position: absolute;
+      left: var(--tick, 8%);
+      top: -1px;
+      width: 1px;
+      height: 10px;
+      background: var(--dot, #f59e0b);
+    }
+    .homes {
+      display: flex;
+      justify-content: center;
+      gap: 36px;
+      min-height: 210px;
+    }
+    .home { width: 180px; text-align: center; }
+    .home img {
+      display: block;
+      height: 150px;
+      width: 100%;
+      object-fit: contain;
+      object-position: bottom;
+      filter: drop-shadow(0 12px 10px rgba(17, 19, 24, 0.1));
+    }
+    .home strong, .home span {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+    .home strong { margin-top: 6px; }
+    .home span { margin-top: 3px; color: #16a34a; font-weight: 700; }
+    .facts {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 0.8fr;
+      gap: 28px;
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+    .facts h3 {
+      margin: 0 0 8px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+    }
+    .facts p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+    .levels { display: flex; justify-content: space-between; position: relative; padding-top: 14px; }
+    .levels::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #86efac, #22c55e 28%, #e5e7eb 28%);
+    }
+    .levels div { font-size: 12px; font-weight: 700; }
+    .levels small { display: block; color: var(--muted); font-weight: 600; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips span, .legend span {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+    .chips .on { background: #ecfdf3; border-color: #bbf7d0; }
+    .trait-line { margin-top: 8px; font-size: 13px; font-weight: 700; }
+    .legend { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+    .legend i {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand"><img src="industries-cut/mark.png?v=2" alt="" /> CORPORATOR</div>
+    <nav>
+      <a href="#game">GAME</a>
+      <a href="industries.html">INDUSTRIES</a>
+      <a href="#buildings">BUILDINGS</a>
+      <a class="on" href="agents.html">AGENTS</a>
+      <a href="#economy">ECONOMY</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="actions">
+      <span class="contract">$CORP · Contract TBA</span>
+      <button class="play" type="button">PLAY NOW</button>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">05 — AGENTS</p>
+        <h1>THE RIGHT AGENT.<br />THE RIGHT SEAT.</h1>
+        <p class="lead">Agents are workers. You choose where each one works and what task it does. Deterministic rules resolve the result.</p>
+        <p class="meta">5 ROLES · 1 WORKFORCE</p>
+        <article class="card" id="card"></article>
+      </div>
+      <div class="cast" id="cast"></div>
+    </section>
+    <section class="seats">
+      <ul class="tabs" id="tabs"></ul>
+      <div class="rail" id="rail"></div>
+      <div class="homes" id="homes"></div>
+    </section>
+    <section class="facts">
+      <div>
+        <h3>AGENT LEVEL</h3>
+        <p>Higher level increases performance.</p>
+        <div class="levels">
+          <div>1<small>1.00×</small></div>
+          <div>2<small>1.15×</small></div>
+          <div>3<small>1.30×</small></div>
+          <div>4<small>1.45×</small></div>
+          <div>5<small>1.60×</small></div>
+        </div>
+      </div>
+      <div>
+        <h3>TRAITS</h3>
+        <div class="chips">
+          <span>NIGHT OWL</span>
+          <span>FRUGAL</span>
+          <span class="on">SPECIALIST</span>
+          <span>STEADY</span>
+        </div>
+        <p class="trait-line">+15% at home · −15% away</p>
+      </div>
+      <div class="legend">
+        <span><i style="background:#22c55e"></i>HOME 100%</span>
+        <span><i style="background:#3b82f6"></i>NEIGHBOR 60%</span>
+        <span><i style="background:#ef4444"></i>INCOMPATIBLE</span>
+      </div>
+    </section>
+  </main>
+  <script>
+    const roles = [
+      {
+        id: "engineer",
+        name: "ENGINEER",
+        sub: "PRODUCTION",
+        dot: "#f59e0b",
+        tick: "8%",
+        homes: [
+          ["workshop", "WORKSHOP"],
+          ["power_node", "POWER NODE"],
+          ["energy_plant", "ENERGY PLANT"]
+        ],
+        tasks: ["Produce", "Overclock"]
+      },
+      {
+        id: "logistician",
+        name: "LOGISTICIAN",
+        sub: "LOGISTICS",
+        dot: "#3b82f6",
+        tick: "28%",
+        homes: [
+          ["logistics_hub", "LOGISTICS HUB"],
+          ["drone_depot", "DRONE DEPOT"],
+          ["fleet_yard", "FLEET YARD"]
+        ],
+        tasks: ["Route", "Stockpile"]
+      },
+      {
+        id: "scientist",
+        name: "SCIENTIST",
+        sub: "RESEARCH",
+        dot: "#14b8a6",
+        tick: "50%",
+        homes: [
+          ["ai_research_center", "AI RESEARCH CENTER"],
+          ["data_center", "DATA CENTER"]
+        ],
+        tasks: ["Train", "Research"]
+      },
+      {
+        id: "trader",
+        name: "TRADER",
+        sub: "FINANCE",
+        dot: "#a855f7",
+        tick: "72%",
+        homes: [
+          ["bank", "BANK"],
+          ["exchange", "EXCHANGE"],
+          ["finance_tower", "FINANCE TOWER"],
+          ["flagship_store", "FLAGSHIP STORE"],
+          ["retail_complex", "RETAIL COMPLEX"]
+        ],
+        tasks: ["Desk", "Quote"]
+      },
+      {
+        id: "manager",
+        name: "MANAGER",
+        sub: "ADMINISTRATION",
+        dot: "#111318",
+        tick: "90%",
+        homes: [
+          ["city_hall", "CITY HALL"],
+          ["cloud_campus", "CLOUD CAMPUS"],
+          ["clearing_house", "CLEARING HOUSE"]
+        ],
+        tasks: ["Focus"]
+      }
+    ];
+    const order = ["engineer", "trader", "scientist", "logistician", "manager"];
+    const byId = Object.fromEntries(roles.map((role) => [role.id, role]));
+    const cast = document.getElementById("cast");
+    const tabs = document.getElementById("tabs");
+    const homes = document.getElementById("homes");
+    const card = document.getElementById("card");
+    const rail = document.getElementById("rail");
+
+    order.forEach((id) => {
+      const role = byId[id];
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "unit";
+      button.dataset.id = id;
+      button.setAttribute("aria-label", role.name);
+      const img = document.createElement("img");
+      img.alt = "";
+      let tries = 0;
+      const load = () => { img.src = "agents-cut/units/" + id + ".png?v=7&r=" + tries; };
+      img.addEventListener("load", () => { if (img.naturalWidth === 0 && tries < 4) { tries += 1; load(); } });
+      img.addEventListener("error", () => { if (tries < 4) { tries += 1; load(); } });
+      load();
+      button.appendChild(img);
+      button.addEventListener("mouseenter", () => show(id));
+      button.addEventListener("focus", () => show(id));
+      cast.appendChild(button);
+    });
+
+    roles.forEach((role) => {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.id = role.id;
+      button.textContent = role.name;
+      button.addEventListener("mouseenter", () => show(role.id));
+      button.addEventListener("focus", () => show(role.id));
+      item.appendChild(button);
+      tabs.appendChild(item);
+    });
+
+    function show(id) {
+      const role = byId[id];
+      document.querySelectorAll(".unit, .tabs button").forEach((node) => {
+        node.classList.toggle("is-on", node.dataset.id === id);
+      });
+      card.style.setProperty("--dot", role.dot);
+      rail.style.setProperty("--dot", role.dot);
+      rail.style.setProperty("--tick", role.tick);
+      card.innerHTML =
+        "<h2>" + role.name + "</h2>" +
+        '<p class="sub">' + role.sub + "</p>" +
+        "<h3>HOME</h3><ul>" + role.homes.map((home) => "<li>" + home[1] + "</li>").join("") + "</ul>" +
+        "<h3>TASKS</h3><ul>" + role.tasks.map((task) => "<li>" + task + "</li>").join("") + "</ul>" +
+        "<h3>FIT</h3>" +
+        '<div class="fit"><span>Home</span><b>100%</b></div>' +
+        '<div class="fit"><span>Neighbor</span><b>60%</b></div>';
+      homes.replaceChildren();
+      role.homes.forEach((home) => {
+        const figure = document.createElement("figure");
+        figure.className = "home";
+        const img = document.createElement("img");
+        img.alt = "";
+        let tries = 0;
+        const load = () => { img.src = "agents-cut/buildings/" + home[0] + ".png?v=3&r=" + tries; };
+        img.addEventListener("load", () => { if (img.naturalWidth === 0 && tries < 4) { tries += 1; load(); } });
+        img.addEventListener("error", () => { if (tries < 4) { tries += 1; load(); } });
+        load();
+        const title = document.createElement("strong");
+        title.textContent = home[1];
+        const tag = document.createElement("span");
+        tag.textContent = "HOME · 100%";
+        figure.append(img, title, tag);
+        homes.appendChild(figure);
+      });
+    }
+
+    function placeGlow() {
+      const row = document.querySelector(".cast");
+      const scientist = document.querySelector(".unit[data-id='scientist']");
+      const rowBox = row.getBoundingClientRect();
+      const scientistBox = scientist.getBoundingClientRect();
+      const center = scientistBox.left + scientistBox.width / 2 - rowBox.left;
+      row.style.setProperty("--glow", center + "px");
+    }
+    document.querySelectorAll(".unit img").forEach((img) => img.addEventListener("load", placeGlow));
+    placeGlow();
+    window.addEventListener("resize", placeGlow);
+    show("engineer");
+  </script>
+</body>
+</html>

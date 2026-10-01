@@ -79,6 +79,11 @@ export function trainTargetOk(city: Dict, trainerId: string, targetId: string): 
   return false
 }
 
+export function trainTargetOf(trainer: Dict, city: Dict): string {
+  if ("train_target" in trainer) return asStr(trainer["train_target"])
+  return asStr(city["train_target"])
+}
+
 function magList(value: unknown): bigint[] {
   const out: bigint[] = []
   for (const m of asList(value)) out.push(asBig(m))
@@ -86,8 +91,11 @@ function magList(value: unknown): bigint[] {
 }
 
 export function awardPaidTick(city: Dict, curve: Dict, levelMax: bigint, gainBps: bigint, bps: bigint, cityXpMags?: readonly bigint[]): bigint {
-  if (asStr(city["idle"]) !== "") return 0n
-  if (asBig(city["payout"]) <= 0n && asBig(city["request"]) <= 0n) return 0n
+  const slotted = "functions" in city
+  if (!slotted) {
+    if (asStr(city["idle"]) !== "") return 0n
+    if (asBig(city["payout"]) <= 0n && asBig(city["request"]) <= 0n) return 0n
+  }
   const agents = asList(city["agents"])
   if (agents.length === 0) return 0n
   const cityBonus = bonusBpsFromMags(cityXpMags ?? magList(city["xp_rate_mags"]), bps)
@@ -96,6 +104,10 @@ export function awardPaidTick(city: Dict, curve: Dict, levelMax: bigint, gainBps
     if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
     const agent = asDict(raw)
     if (asStr(agent["idle"]) !== "") continue
+    if (slotted) {
+      if (asStr(agent["building_id"]).length === 0) continue
+      if (asBig(agent["payout"]) <= 0n && asBig(agent["request"]) <= 0n) continue
+    }
     const recip = bonusBpsFromMags(magList(agent["xp_rate_mags"]), bps)
     total += grantWithRemainder(agent, XP_BASE, cityBonus + recip, curve, levelMax, gainBps, bps)
   }
@@ -111,7 +123,7 @@ export function awardTrain(
   bps: bigint,
   cityXpMags?: readonly bigint[],
 ): bigint {
-  const targetId = asStr(trainer["train_target"], asStr(city["train_target"]))
+  const targetId = trainTargetOf(trainer, city)
   const trainerId = asStr(trainer["id"])
   if (!trainTargetOk(city, trainerId, targetId)) return 0n
   let target: Dict | undefined
@@ -125,6 +137,6 @@ export function awardTrain(
   }
   if (target === undefined) return 0n
   const cityBonus = bonusBpsFromMags(cityXpMags ?? magList(city["xp_rate_mags"]), bps)
-  const recip = bonusBpsFromMags(magList(target["xp_rate_mags"]), bps)
-  return grantWithRemainder(target, TRAIN_XP, cityBonus + recip, curve, levelMax, gainBps, bps)
+  const trainerBonus = bonusBpsFromMags(magList(trainer["xp_rate_mags"]), bps)
+  return grantWithRemainder(target, TRAIN_XP, cityBonus + trainerBonus, curve, levelMax, gainBps, bps)
 }

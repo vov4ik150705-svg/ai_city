@@ -1,0 +1,27 @@
+{
+  "canvas": {
+    "width": 3000,
+    "height": 1000
+  },
+  "islandSource": "media/island/island_04_hero_walk_left.png",
+  "sourceCrop": {
+    "left": 1080,
+    "top": 460,
+    "width": 1740,
+    "height": 1700
+  },
+  "islandScale": 0.55,
+  "islandPosition": {
+    "x": 1880,
+    "y": 40,
+    "width": 957,
+    "height": 935
+  },
+  "typography": {
+    "title": "CORPORATOR",
+    "tagline": "A city worth running.",
+    "titleFont": "Outfit Bold",
+    "taglineFont": "Outfit Regular"
+  },
+  "note": "Island architecture and signs copied from original game capture; generated pixels belong to sky/clouds only."
+}

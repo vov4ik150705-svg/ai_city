@@ -1,7 +1,7 @@
 {
   "section": "meta",
     "rules_version": "0.24.0",
-    "pack_version": 144,
+    "pack_version": 192,
   "note": "rules_version — версия генераторов и формул. pack_version растёт при любой публикации. Опубликованный пак не мутирует никогда: правка даёт новый хеш, а старые записи продолжают ссылаться на прежний.",
   "compat": {
     "minor": [
@@ -45,10 +45,10 @@
       "why": "Круг с максимальным Trader. Скидка за посадку агента разрешена и осознанна, но ограничена снизу: ниже 11% выход подходит к входу и потолок спреда 2130:1 перестаёт держать инвариант"
     },
     "bank_daily_limit_pool_share_cap_bps": {
-      "v": 100,
+      "v": 500,
       "u": "bps",
-      "src": "DESIGN.md §7.2, docs/LAUNCH.md §6",
-      "why": "Потолок доли глубины пула, которую можно отдать дневному выводу. Выше 1% якорь 2000 перестаёт держать курс"
+      "src": "DESIGN.md §7.2, docs/LAUNCH.md §6, owner 2026-09-20",
+      "why": "Ceiling on the daily bank drain as a share of live quote depth. Owner raised the pipe to 5%: L23 still fails above this cap. Dump risk is the CORP/ETH pool, not the vault invariant"
     },
     "buyback_slippage_safety_min": {
       "v": 3,
@@ -75,22 +75,22 @@
       "why": "Шаг храповика не больше пятой части полосы: иначе за один шаг берётся заметная доля окна и храповик декоративен. 200 × 5 = 1000 ≤ 1500; прежний L28 пропускал 1499"
     },
     "return_minimalist_floor_bps": {
-      "v": 3500,
+      "v": 10000,
       "u": "bps",
-      "src": "docs/BRIEF.md §6 T2",
-      "why": "Нижняя граница возврата минималиста за сезон. Ниже 35% закрытая система не кормит даже слабый аптайм при целевом A, и цель §6 T2 сорвана"
+      "src": "DESIGN.md §2.7, docs/CANON.md R-E-05",
+      "why": "Sleeper recoups the $150 door (100%). R-E-05 withdrew the designed small minus; half of optimizer because uptime is 2:1"
     },
     "return_minimalist_ceiling_bps": {
-      "v": 4500,
+      "v": 11000,
       "u": "bps",
-      "src": "docs/BRIEF.md §6 T2",
-      "why": "Верхняя граница возврата минималиста. Выше 45% полоса сливается с оптимизатором, и разница аптайма 2:1 перестаёт читаться в деньгах"
+      "src": "DESIGN.md §2.7, docs/CANON.md R-E-05",
+      "why": "Sleeper ceiling 110%. Same relative slack as the pre-E5 91/83 band, now above par"
     },
     "return_optimizer_floor_bps": {
-      "v": 7000,
+      "v": 20000,
       "u": "bps",
-      "src": "docs/BRIEF.md §6 T2",
-      "why": "Нижняя граница возврата оптимизатора за сезон. 70% — двойной минималистский пол, потому что отношение аптаймов канонно 2:1"
+      "src": "DESIGN.md §2.7, docs/CANON.md R-E-05",
+      "why": "Playing $300 of the $150 door is 20000 bps. Double the sleeper because uptime is 2:1"
     },
     "upgrade_roi_floor_bps": {
       "v": 4000,
@@ -123,10 +123,10 @@
       "why": "Потолок слива резерва за неделю города. 6% ломает «не выпить за плохой месяц»; фактическая ставка живёт в economy.json"
     },
     "return_optimizer_ceiling_bps": {
-      "v": 9000,
+      "v": 22000,
       "u": "bps",
-      "src": "docs/BRIEF.md §6 T2",
-      "why": "Верхняя граница возврата оптимизатора. 90% всё ещё ниже потолка замкнутой системы 42.8% × 2.34; 100% не обещаны никому"
+      "src": "DESIGN.md §2.7, docs/CANON.md R-E-05",
+      "why": "Playing ceiling 220%. Double the sleeper ceiling because uptime is 2:1"
     },
     "fund_effective_tax_floor_bps": {
       "v": 100,
@@ -138,7 +138,7 @@
       "v": 1,
       "u": "flag",
       "src": "D-G-11, PLAN_V11 G7, docs/BALANCE.md §6",
-      "why": "G7 closed v1.1 with all four levers together. The T2 envelope in this file is not retuned; computed returns must sit in it (L313). Fitting the band to a drifted A is A-G-11"
+      "why": "G7 closed v1.1 with all four levers together. R-E-05 recut the T2 envelope; computed returns must sit in it (L313). Fitting the band to a drifted A without an owner recut is A-G-11"
     }
   },
   "derived": {

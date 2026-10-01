@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en" data-guide="open">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Corporator — Quick guide</title>
+  </head>
+  <body class="qg-body">
+    <!-- Blurred HUD behind the guide: decorative, no live numbers. -->
+    <div class="qg-hud" aria-hidden="true">
+      <div class="qg-hud__sky">
+        <span class="qg-cloud qg-cloud--a"></span>
+        <span class="qg-cloud qg-cloud--b"></span>
+        <span class="qg-cloud qg-cloud--c"></span>
+        <span class="qg-cloud qg-cloud--d"></span>
+      </div>
+
+      <div class="qg-hud__top">
+        <div class="qg-hud__top-left">
+          <svg class="qg-hud__mark" viewBox="0 0 30 32"><use href="#qg-mark" /></svg>
+          <span class="qg-hud__word">CORPORATOR</span>
+          <span class="qg-hud__meta qg-hud__meta--city">CITY · LEVEL</span>
+          <span class="qg-hud__meta qg-hud__meta--day">DAY · CITY TIME</span>
+          <span class="qg-hud__ring"></span>
+          <span class="qg-hud__meta qg-hud__meta--safe">SAFE</span>
+          <span class="qg-hud__slider"><i></i></span>
+          <span class="qg-hud__meta qg-hud__meta--noon">NOON</span>
+          <span class="qg-hud__tab">OVERVIEW</span>
+          <span class="qg-hud__pill">DISTRICT · NVIDIA</span>
+        </div>
+        <div class="qg-hud__top-right">
+          <span class="qg-hud__bell"><i></i></span>
+          <span class="qg-hud__live"><i></i>Alive</span>
+          <span class="qg-hud__corp"><i></i>$CORP</span>
+        </div>
+      </div>
+
+      <div class="qg-hud__left">
+        <p class="qg-hud__cap">ECONOMY</p>
+        <div class="qg-hud__row qg-hud__row--1">
+          <i class="qg-hud__ico"></i><b>CAPITAL</b><strong>—</strong><s class="qg-hud__bar qg-hud__bar--green"></s>
+        </div>
+        <div class="qg-hud__row qg-hud__row--2">
+          <i class="qg-hud__ico qg-hud__ico--person"></i><b>PAYROLL</b><em>City pays</em><em>every hour</em><s class="qg-hud__bar"></s>
+        </div>
+        <div class="qg-hud__row qg-hud__row--3">
+          <i class="qg-hud__ico qg-hud__ico--gem"></i><b>ENERGY</b><s class="qg-hud__bar qg-hud__bar--green"></s>
+        </div>
+        <div class="qg-hud__row qg-hud__row--4">
+          <i class="qg-hud__ico"></i><b>COMPUTE</b><s class="qg-hud__bar"></s>
+        </div>
+        <p class="qg-hud__cap qg-hud__cap--district">DISTRICT SUMMARY</p>
+        <span class="qg-hud__agent"><i></i></span>
+        <span class="qg-hud__agent-name">Workshop</span>
+        <span class="qg-hud__more">View all →</span>
+      </div>
+
+      <div class="qg-hud__right">
+        <span class="qg-hud__num" style="--row: 0">Level</span>
+        <span class="qg-hud__num" style="--row: 1">Agents</span>
+        <span class="qg-hud__num" style="--row: 2">Energy</span>
+        <span class="qg-hud__num" style="--row: 3">Compute</span>
+        <span class="qg-hud__num" style="--row: 4">Mood</span>
+        <span class="qg-hud__feed" style="--row: 0"><b>Shift closed</b><i class="is-green"></i></span>
+        <span class="qg-hud__feed" style="--row: 1"><b>Power Node<br />needs energy</b><i class="is-amber"></i></span>
+        <span class="qg-hud__feed" style="--row: 2"><b>Agent hired</b><i class="is-green"></i></span>
+      </div>
+    </div>
+
+    <svg class="qg-defs" aria-hidden="true" focusable="false">
+      <symbol id="qg-mark" viewBox="0 0 30 32">
+        <path d="M15.65 0.38 L28.21 7.62 L23.53 10.33 L15.65 5.78Z" />
+        <path d="M28.86 8.75 L28.86 23.25 L24.18 20.55 L24.18 11.45Z" />
+        <path d="M28.21 24.38 L15.65 31.62 L15.65 26.23 L23.53 21.67Z" />
+        <path d="M14.35 31.62 L1.79 24.38 L6.47 21.67 L14.35 26.23Z" />
+        <path d="M1.14 23.25 L1.14 8.75 L5.82 11.45 L5.82 20.55Z" />
+        <path d="M1.79 7.62 L14.35 0.38 L14.35 5.78 L6.47 10.32Z" />
+      </symbol>
+    </svg>
+
+    <div class="qg-canvas">
+      <div class="qg-ref-bg" aria-hidden="true"></div>
+      <section class="qg-panel" role="dialog" aria-modal="true" aria-labelledby="qg-title" aria-describedby="qg-lede" data-step="1">
+        <img
+          class="qg-welcome-art"
+          width="1672"
+          height="941"
+          alt=""
+          decoding="async"
+        />
+        <img
+          class="qg-bank-art"
+          width="1672"
+          height="941"
+          alt="A hand-drawn Bank, a Corporator coin being deposited, Capital chips, the Deposit panel and the three steps: open the Bank, enter an amount, sign in your wallet."
+          decoding="async"
+        />
+        <img
+          class="qg-workshop-art"
+          width="1672"
+          height="941"
+          alt="Two hand-drawn Workshop scenes: a sleeping factory with Manage and Open cards, and an active factory connected to a Power Node. Three illustrated steps show where to click."
+          decoding="async"
+        />
+        <img
+          class="qg-people-art"
+          width="1672"
+          height="941"
+          alt="A hand-drawn team with Engineer in front, an Agents office with Hire and Engineer selected, and three steps: open Agents, choose Engineer, hire a second one."
+          decoding="async"
+        />
+        <img
+          class="qg-work-art"
+          width="1672"
+          height="941"
+          alt="An Engineer card with Workshop selected; two Engineers heading to the Workshop and Power Node; a Trader at the wrong building; and two steps: open the card, pick a building."
+          decoding="async"
+        />
+        <img
+          class="qg-shift-art"
+          width="1671"
+          height="941"
+          alt="City time advances by one hour; an Engineer works inside Workshop with graphite Corporator coins above the roof; Journal shows Workshop paid, Power Node working and a no-energy reason. Steps: watch the clock, open the Journal."
+          decoding="async"
+        />
+        <img
+          class="qg-screen-art"
+          width="1670"
+          height="941"
+          alt="A hand-drawn map of the current Corporator HUD, its detailed island, Economy, Level, City Status, Active Functions, Recent Activity and six clean keyboard shortcuts, with blue handwritten explanations."
+          decoding="async"
+        />
+        <img
+          class="qg-next-art"
+          width="1671"
+          height="941"
+          alt="Three illustrated roads from the Corporator island: Grow by staking an NVDA stock token, Compete in the season ranking, and Cash out through the Bank. Bank hours are 08:00–20:00 city time, closed on Sundays. Keyboard hints: 3 then 5 for Grow, 4 for Bank."
+          decoding="async"
+        />
+        <div class="qg-stage">
+          <img class="qg-art" alt="" decoding="async" />
+          <svg class="qg-marks" aria-hidden="true"></svg>
+        </div>
+
+        <header class="qg-head">
+          <div class="qg-brand">
+            <svg class="qg-brand__mark" viewBox="0 0 30 32" aria-hidden="true"><use href="#qg-mark" /></svg>
+            <img class="qg-brand__img" alt="" width="34" height="36" />
+            <span class="qg-brand__word">CORPORATOR</span>
+          </div>
+          <div class="qg-head-actions">
+            <button type="button" class="qg-skip" data-guide-close>Skip guide</button>
+            <button type="button" class="qg-close" data-guide-close aria-label="Close guide">
+              <svg class="qg-close__page" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 2 L18 18 M18 2 L2 18" /></svg>
+              <svg class="qg-close__bank" viewBox="0 0 28 28" aria-hidden="true"><path d="M5 5 23 23M23 5 5 23" /></svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="qg-copy">
+          <p class="qg-eyebrow">01 — WELCOME</p>
+          <h1 class="qg-title" id="qg-title">This island is yours</h1>
+          <p class="qg-lede" id="qg-lede">All the buildings are already here. You open them, hire people and keep the work going. Here's how your first hour goes.</p>
+        </div>
+
+        <p class="qg-footnote">Nothing leaves your wallet until you confirm. No $CORP yet? It's bought with ETH, outside the game.</p>
+
+        <footer class="qg-nav">
+          <button type="button" class="qg-back" aria-label="Previous step" disabled>
+            <svg class="qg-ico qg-ico--page" viewBox="0 0 28 22" aria-hidden="true"><path d="M26 11 H3 M11 2.5 L2.5 11 L11 19.5" /></svg>
+            <svg class="qg-ico qg-ico--bank" viewBox="0 0 36 36" aria-hidden="true"><path d="M29 18H7M17 8 7 18l10 10" /></svg>
+          </button>
+          <a class="qg-handbook" href="/docs">Open the handbook →</a>
+          <div class="qg-pager">
+            <div class="qg-dots" role="group" aria-label="Guide steps"></div>
+            <p class="qg-count" aria-live="polite">1 / 8</p>
+          </div>
+          <button type="button" class="qg-next" aria-label="Next step">
+            <span class="qg-next__box">
+              <svg class="qg-ico qg-ico--page" viewBox="0 0 28 22" aria-hidden="true"><path d="M2 11 H25 M17 2.5 L25.5 11 L17 19.5" /></svg>
+              <svg class="qg-ico qg-ico--bank" viewBox="0 0 36 36" aria-hidden="true"><path d="M7 18h22M19 8l10 10-10 10" /></svg>
+            </span>
+            <span class="qg-next__label">Next</span>
+          </button>
+        </footer>
+      </section>
+      <button type="button" class="qg-reopen" hidden>Open quick guide</button>
+    </div>
+
+    <script type="module" src="/src/quickGuide/main.ts"></script>
+  </body>
+</html>

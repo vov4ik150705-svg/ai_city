@@ -1,37 +1,37 @@
-import agentHubUrl from "../../../../../visual/buildings orig/Agent Hub.png?url"
-import researchUrl from "../../../../../visual/buildings orig/AI Research Center.png?url"
-import bankUrl from "../../../../../visual/buildings orig/Bank.png?url"
-import cityHallUrl from "../../../../../visual/buildings orig/City Hall.png?url"
-import clearingUrl from "../../../../../visual/buildings orig/Clearing House.png?url"
-import campusUrl from "../../../../../visual/buildings orig/Cloud Campus.png?url"
-import dataCenterUrl from "../../../../../visual/buildings orig/Data Center.png?url"
-import droneUrl from "../../../../../visual/buildings orig/Drone Depot.png?url"
-import energyUrl from "../../../../../visual/buildings orig/Energy Plant.png?url"
-import exchangeUrl from "../../../../../visual/buildings orig/Exchange.png?url"
-import financeUrl from "../../../../../visual/buildings orig/Finance Tower.png?url"
-import flagshipUrl from "../../../../../visual/buildings orig/Flagship Store.png?url"
-import fleetUrl from "../../../../../visual/buildings orig/Fleet Yard.png?url"
-import logisticsUrl from "../../../../../visual/buildings orig/Logistics Hub.png?url"
-import powerUrl from "../../../../../visual/buildings orig/Power Node.png?url"
-import retailUrl from "../../../../../visual/buildings orig/Retail Complex.png?url"
-import roboticsUrl from "../../../../../visual/buildings orig/Robotics Lab.png?url"
-import workshopUrl from "../../../../../visual/buildings orig/Workshop.png?url"
-import neonUrl from "../../../../../visual/buildings orig/Neon Residence.png?url"
-import engineerPortraitUrl from "../../../../../assets/website/units/Engineer_anfas.png?url"
-import engineerIconUrl from "../../../../../visual/units/Engineer_icon.png?url"
-import engineerFullUrl from "../../../../../visual/units/Engineer.png?url"
-import logisticianPortraitUrl from "../../../../../assets/website/units/Logistician_anfas.png?url"
-import logisticianIconUrl from "../../../../../visual/units/Logistician_icon.png?url"
-import logisticianFullUrl from "../../../../../visual/units/Logistician.png?url"
-import managerPortraitUrl from "../../../../../assets/website/units/manager_anfas.png?url"
-import managerIconUrl from "../../../../../visual/units/manager_icon.png?url"
-import managerFullUrl from "../../../../../visual/units/manager.png?url"
-import scientistPortraitUrl from "../../../../../assets/website/units/scientist_anfas.png?url"
-import scientistIconUrl from "../../../../../visual/units/scientist_icon.png?url"
-import scientistFullUrl from "../../../../../visual/units/scientist.png?url"
-import traderPortraitUrl from "../../../../../assets/website/units/trader_anfas.png?url"
-import traderIconUrl from "../../../../../visual/units/trader_icon.png?url"
-import traderFullUrl from "../../../../../visual/units/trader.png?url"
+/** Raster HUD art. Derived from hud/buildings_avatar, hud/units and hud/logo
+ * (alpha-keyed, 320px) into apps/client/assets/hud; sources stay untouched. */
+import agentHubUrl from "../../../assets/hud/buildings/agent_hub.png?url"
+import researchUrl from "../../../assets/hud/buildings/ai_research_center.png?url"
+import bankUrl from "../../../assets/hud/buildings/bank.png?url"
+import cityHallUrl from "../../../assets/hud/buildings/city_hall.png?url"
+import clearingUrl from "../../../assets/hud/buildings/clearing_house.png?url"
+import campusUrl from "../../../assets/hud/buildings/cloud_campus.png?url"
+import dataCenterUrl from "../../../assets/hud/buildings/data_center.png?url"
+import droneUrl from "../../../assets/hud/buildings/drone_depot.png?url"
+import energyUrl from "../../../assets/hud/buildings/energy_plant.png?url"
+import exchangeUrl from "../../../assets/hud/buildings/exchange.png?url"
+import financeUrl from "../../../assets/hud/buildings/finance_tower.png?url"
+import flagshipUrl from "../../../assets/hud/buildings/flagship_store.png?url"
+import fleetUrl from "../../../assets/hud/buildings/fleet_yard.png?url"
+import logisticsUrl from "../../../assets/hud/buildings/logistics_hub.png?url"
+import powerUrl from "../../../assets/hud/buildings/power_node.png?url"
+import retailUrl from "../../../assets/hud/buildings/retail_complex.png?url"
+import roboticsUrl from "../../../assets/hud/buildings/robotics_lab.png?url"
+import workshopUrl from "../../../assets/hud/buildings/workshop.png?url"
+import neonUrl from "../../../assets/hud/buildings/neon_residence.png?url"
+import engineerUrl from "../../../assets/hud/roles/engineer.png?url"
+import logisticianUrl from "../../../assets/hud/roles/logistician.png?url"
+import managerUrl from "../../../assets/hud/roles/manager.png?url"
+import scientistUrl from "../../../assets/hud/roles/scientist.png?url"
+import traderUrl from "../../../assets/hud/roles/trader.png?url"
+import brandMarkUrl from "../../../assets/hud/brand/mark.png?url"
+import brandTokenUrl from "../../../assets/hud/brand/token.png?url"
+import tickerAaplUrl from "../../../assets/hud/tickers/aapl.png?url"
+import tickerAmznUrl from "../../../assets/hud/tickers/amzn.png?url"
+import tickerCoinUrl from "../../../assets/hud/tickers/coin.png?url"
+import tickerMsftUrl from "../../../assets/hud/tickers/msft.png?url"
+import tickerNvdaUrl from "../../../assets/hud/tickers/nvda.png?url"
+import tickerTslaUrl from "../../../assets/hud/tickers/tsla.png?url"
 import type { AgentRoleId, FunctionalBuildingId, RoleArtVariant } from "./hudArt.js"
 
 export const BUILDING_ART_URLS: { readonly [K in FunctionalBuildingId]: string } = {
@@ -57,40 +57,38 @@ export const BUILDING_ART_URLS: { readonly [K in FunctionalBuildingId]: string }
 
 export const DECORATIVE_BUILDING_URL = neonUrl
 
+/** Brand mark (hex "C") and the $CORP token coin from hud/logo. */
+export const BRAND_MARK_URL = brandMarkUrl
+export const BRAND_TOKEN_URL = brandTokenUrl
+
+/** Company marks from hud/corp_logos, background keyed. Keyed by ticker. */
+export const TICKER_MARK_URLS: { readonly [ticker: string]: string } = {
+  AAPL: tickerAaplUrl,
+  AMZN: tickerAmznUrl,
+  COIN: tickerCoinUrl,
+  MSFT: tickerMsftUrl,
+  NVDA: tickerNvdaUrl,
+  TSLA: tickerTslaUrl,
+}
+
+export function tickerMarkUrl(ticker: string): string | undefined {
+  return TICKER_MARK_URLS[ticker]
+}
+
 const ROLE_PORTRAIT_URLS: { readonly [K in AgentRoleId]: string } = {
-  engineer: engineerPortraitUrl,
-  logistician: logisticianPortraitUrl,
-  manager: managerPortraitUrl,
-  scientist: scientistPortraitUrl,
-  trader: traderPortraitUrl,
-}
-
-const ROLE_ICON_URLS: { readonly [K in AgentRoleId]: string } = {
-  engineer: engineerIconUrl,
-  logistician: logisticianIconUrl,
-  manager: managerIconUrl,
-  scientist: scientistIconUrl,
-  trader: traderIconUrl,
-}
-
-const ROLE_FULL_URLS: { readonly [K in AgentRoleId]: string } = {
-  engineer: engineerFullUrl,
-  logistician: logisticianFullUrl,
-  manager: managerFullUrl,
-  scientist: scientistFullUrl,
-  trader: traderFullUrl,
+  engineer: engineerUrl,
+  logistician: logisticianUrl,
+  manager: managerUrl,
+  scientist: scientistUrl,
+  trader: traderUrl,
 }
 
 export function buildingArtUrl(id: FunctionalBuildingId): string {
   return BUILDING_ART_URLS[id]
 }
 
+/** One portrait per role; the icon variant reuses it (hud/units has no icon sheet). */
 export function roleArtUrl(roleId: AgentRoleId, variant: RoleArtVariant): string {
-  if (variant === "icon") {
-    const icon = ROLE_ICON_URLS[roleId]
-    if (icon.length > 0) return icon
-  }
-  const portrait = ROLE_PORTRAIT_URLS[roleId]
-  if (portrait.length > 0) return portrait
-  return ROLE_FULL_URLS[roleId]
+  void variant
+  return ROLE_PORTRAIT_URLS[roleId]
 }

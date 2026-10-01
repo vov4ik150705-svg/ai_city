@@ -492,6 +492,24 @@ export async function mountIsland(opts: IslandOpts): Promise<IslandHandle> {
       void tiltBps
       void distance
     },
+    setLookAt(x: number, z: number): void {
+      void x
+      void z
+    },
+    lookFrame() {
+      return undefined
+    },
+    objectGround(objectId: string) {
+      void objectId
+      return undefined
+    },
+    slideGround(fromX: number, fromY: number, toX: number, toY: number) {
+      void fromX
+      void fromY
+      void toX
+      void toY
+      return undefined
+    },
     hitAt(sx: bigint, sy: bigint): TileHit {
       const view = viewSize()
       const worldPt = screenToWorld(

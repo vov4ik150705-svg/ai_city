@@ -20,11 +20,12 @@ export {
   emptyBasketState,
   planFarmHops,
   splitCollected,
+  splitTurnover,
   stepBasket,
   stepLeaderboardBasket,
   uniformBudget,
 } from "./basket.js"
-export type { BasketHop, BasketState, BasketStepOut, FarmPlan } from "./basket.js"
+export type { BasketHop, BasketState, BasketStepOut, FarmPlan, FeeSplitWei } from "./basket.js"
 export { emptyConveyorState, runStockConveyor } from "./conveyor.js"
 export type {
   BasketStampField,
@@ -38,9 +39,14 @@ export type {
 } from "./conveyor.js"
 export { createCannedConveyorSource, createMockConveyorSource } from "./source.js"
 export type { ConveyorPull, ConveyorSource } from "./source.js"
-export { createBuybackPort, createConveyorSubmit, createDefaultConveyorSubmit } from "./worker.js"
+export { createCollectorSource, collectorDepsFromEnv, selectConveyorSource } from "./collect.js"
+export type { CollectorDeps, CollectorHop } from "./collect.js"
+export { createBuybackPort, createConveyorSubmit, createDefaultConveyorSubmit, liveRpcReady } from "./worker.js"
 export type { ConveyorHandler } from "./worker.js"
 export { batchJson, memoryBatchStore, publishBatch } from "./store.js"
 export type { BatchStore } from "./store.js"
 export { depositThenMint } from "./vault.js"
 export type { VaultStep } from "./vault.js"
+export { executorHopFill, posterFromEnv, readHopTx, transferStock } from "./hop.js"
+export { resetSwapInflight } from "./swap.js"
+export type { ExecutorHop, ExecutorSigner, HopLog, HopPoster, HopQuote, HopRequest, HopResponse, SwapTx } from "./hop.js"

@@ -182,8 +182,8 @@ describe("HUD typed view-model boundary", () => {
 
   it("keeps live adapter intent contracts without new routes", () => {
     expect(transportOf("hire")).toBe("live")
-    expect(transportOf("deposit")).toBe("refusal-only")
-    expect(transportOf("research_start")).toBe("unsupported")
+    expect(transportOf("deposit")).toBe("live")
+    expect(transportOf("research_start")).toBe("live")
     expect(transportOf("navigate")).toBe("local")
   })
 

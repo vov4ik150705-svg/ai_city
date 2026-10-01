@@ -161,6 +161,8 @@ export function newState(cfg: Dict, cities: Dict, flags: Dict = {}): Dict {
     week_gate: 0n,
     week_started: 0n,
     payroll_day_buf: [],
+    day_fund_in: 0n,
+    fund_in_day_buf: [],
     day_payroll: 0n,
     day_mon: emptyDayMon(),
     payroll_ratio_bps: bps,

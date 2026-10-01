@@ -4,10 +4,13 @@ import type { RpcOutcome, RpcTransport, Voucher } from "../values.js"
 import {
   encodeAmountResult,
   encodeChain,
+  encodeCooling,
   encodeErr,
+  encodeIssued,
   encodeResult,
   encodeRoot,
   encodeSnapshot,
+  encodeTxView,
   parseDec,
   parseDecList,
   parseStringList,
@@ -62,8 +65,19 @@ async function dispatch(
   args: readonly string[],
 ): Promise<string | undefined> {
   switch (method) {
-    case rpcMethod.balanceOf:
+    case rpcMethod.balanceOf: {
+      const token = arg(args, 1)
+      if (token.length > 0) return encodeAmountResult(await inner.corpToken.balanceOf(arg(args, 0), token))
       return encodeAmountResult(await inner.corpToken.balanceOf(arg(args, 0)))
+    }
+    case rpcMethod.allowance: {
+      const token = arg(args, 2)
+      const allowed =
+        token.length > 0
+          ? await inner.corpToken.allowance(arg(args, 0), arg(args, 1), token)
+          : await inner.corpToken.allowance(arg(args, 0), arg(args, 1))
+      return encodeAmountResult(allowed)
+    }
     case rpcMethod.transfer: {
       const amount = asBig(arg(args, 2))
       if (amount === undefined) return encodeErr(codes.API_MALFORMED)
@@ -78,10 +92,16 @@ async function dispatch(
       if (amount === undefined) return encodeErr(codes.API_MALFORMED)
       return encodeResult(await inner.vault.deposit(arg(args, 0), amount))
     }
-    case rpcMethod.mintCapital: {
-      const amount = asBig(arg(args, 1))
-      if (amount === undefined) return encodeErr(codes.API_MALFORMED)
-      return encodeResult(await inner.vault.mintCapital(arg(args, 0), amount))
+    case rpcMethod.mintCapital:
+    case rpcMethod.signMintCapital: {
+      const corpAmount = asBig(arg(args, 1))
+      const capitalAmount = asBig(arg(args, 2))
+      if (corpAmount === undefined || capitalAmount === undefined) return encodeErr(codes.API_MALFORMED)
+      const account = arg(args, 0)
+      if (method === rpcMethod.signMintCapital) {
+        return encodeResult(await inner.vault.signMintCapital(account, corpAmount, capitalAmount))
+      }
+      return encodeResult(await inner.vault.mintCapital(account, corpAmount, capitalAmount))
     }
     case rpcMethod.issueVoucher: {
       const voucher = voucherOf(args)
@@ -94,15 +114,31 @@ async function dispatch(
       if (voucher === undefined || nowS === undefined) return encodeErr(codes.API_MALFORMED)
       return encodeResult(await inner.vault.presentVoucher(voucher, nowS))
     }
+    case rpcMethod.vaultOutcome:
+      return encodeAmountResult(await inner.vault.outcomeOf(arg(args, 0)))
+    case rpcMethod.vaultIssued: {
+      const known = await inner.vault.issued(arg(args, 0))
+      if (!known.ok) return encodeErr(known.code)
+      return encodeIssued(known.account, known.corpAmount, known.issuedAtS)
+    }
+    case rpcMethod.releaseExpiredVoucher:
+      return encodeResult(await inner.vault.releaseExpiredVoucher(arg(args, 0)))
     case rpcMethod.stake: {
       const amount = asBig(arg(args, 2))
       if (amount === undefined) return encodeErr(codes.API_MALFORMED)
       return encodeResult(await inner.stakeRegistry.stake(arg(args, 0), arg(args, 1), amount))
     }
-    case rpcMethod.unstake: {
+    case rpcMethod.requestUnstake: {
       const amount = asBig(arg(args, 2))
       if (amount === undefined) return encodeErr(codes.API_MALFORMED)
-      return encodeResult(await inner.stakeRegistry.unstake(arg(args, 0), arg(args, 1), amount))
+      return encodeResult(await inner.stakeRegistry.requestUnstake(arg(args, 0), arg(args, 1), amount))
+    }
+    case rpcMethod.claimUnstaked:
+      return encodeResult(await inner.stakeRegistry.claimUnstaked(arg(args, 0), arg(args, 1)))
+    case rpcMethod.coolingSnapshot: {
+      const cool = await inner.stakeRegistry.coolingSnapshot(arg(args, 0))
+      if (!cool.ok) return encodeErr(cool.code)
+      return encodeCooling(cool.rows)
     }
     case rpcMethod.snapshot: {
       const snap = await inner.stakeRegistry.snapshot(arg(args, 0))
@@ -128,12 +164,26 @@ async function dispatch(
       return encodeResult(await inner.prizeTreasury.deposit(arg(args, 0), arg(args, 1), kettle, amount))
     }
     case rpcMethod.prizeSlice: {
-      const kettle = asBig(arg(args, 2))
-      const players = parseStringList(arg(args, 3))
-      const amounts = parseDecList(arg(args, 4))
+      const kettle = asBig(arg(args, 3))
+      const players = parseStringList(arg(args, 4))
+      const amounts = parseDecList(arg(args, 5))
       if (kettle === undefined || players === undefined || amounts === undefined) return encodeErr(codes.API_MALFORMED)
-      return encodeResult(await inner.prizeTreasury.slice(arg(args, 0), arg(args, 1), kettle, players, amounts))
+      return encodeResult(
+        await inner.prizeTreasury.slice(arg(args, 0), arg(args, 1), arg(args, 2), kettle, players, amounts),
+      )
     }
+    case rpcMethod.owed: {
+      const kettle = asBig(arg(args, 0))
+      if (kettle === undefined) return encodeErr(codes.API_MALFORMED)
+      return encodeAmountResult(await inner.prizeTreasury.owed(kettle, arg(args, 1), arg(args, 2)))
+    }
+    case rpcMethod.unsliced: {
+      const kettle = asBig(arg(args, 0))
+      if (kettle === undefined) return encodeErr(codes.API_MALFORMED)
+      return encodeAmountResult(await inner.prizeTreasury.unsliced(kettle, arg(args, 1)))
+    }
+    case rpcMethod.batchUsed:
+      return encodeAmountResult(await inner.prizeTreasury.batchUsed(arg(args, 0)))
     case rpcMethod.prizeReturnUnsettled: {
       const kettle = asBig(arg(args, 2))
       if (kettle === undefined) return encodeErr(codes.API_MALFORMED)
@@ -143,6 +193,23 @@ async function dispatch(
       const kettle = asBig(arg(args, 2))
       if (kettle === undefined) return encodeErr(codes.API_MALFORMED)
       return encodeResult(await inner.prizeTreasury.claimPrize(arg(args, 0), arg(args, 1), kettle))
+    }
+    case rpcMethod.latestBlockTime:
+      return encodeAmountResult(await inner.chain.latestBlockTime())
+    case rpcMethod.sendRaw: {
+      const send = inner.chain.sendRaw
+      if (send === undefined) return encodeErr(codes.SERVICE_DEGRADED)
+      return encodeResult(await send(arg(args, 0)))
+    }
+    case rpcMethod.txReceipt: {
+      const view = await inner.chain.transactionReceipt(arg(args, 0))
+      if (!view.ok) return encodeErr(view.code)
+      return encodeTxView(view)
+    }
+    case rpcMethod.txByHash: {
+      const view = await inner.chain.transactionByHash(arg(args, 0))
+      if (!view.ok) return encodeErr(view.code)
+      return encodeTxView(view)
     }
     case rpcMethod.chainId:
       return encodeChain(chain)

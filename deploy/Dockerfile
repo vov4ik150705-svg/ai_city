@@ -1,4 +1,4 @@
-# GENERATED from pack dc58998f9a46f00a8cddcb575abcbde9ed17061717e9f500357bab8dda30efc4; do not edit
+# GENERATED from pack 8f0dc753eeee37c59e38184159db4b118eebe107f24af48a996695dafaad01a1; do not edit
 ARG PACK_HASH
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
@@ -23,7 +23,6 @@ COPY --from=build --chown=node:node /app/pack.json /app/pack.json
 COPY --from=build --chown=node:node /app/services/api/dist ./services/api/dist
 COPY --from=build --chown=node:node /app/services/attestor/dist ./services/attestor/dist
 COPY --from=build --chown=node:node /app/services/buyback/dist ./services/buyback/dist
-COPY --from=build --chown=node:node /app/services/llm/dist ./services/llm/dist
 COPY --from=build --chown=node:node /app/services/sampler/dist ./services/sampler/dist
 COPY --from=build --chown=node:node /app/packages ./packages
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
@@ -32,6 +31,5 @@ USER node
 EXPOSE 7460
 EXPOSE 7463
 EXPOSE 7462
-EXPOSE 7464
 EXPOSE 7461
 CMD ["node", "services/api/dist/main.js"]

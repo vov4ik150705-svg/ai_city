@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import struct
+import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -471,9 +472,23 @@ def write_glb(
     out += blob
     blob = bytes(out)
     path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        if path.is_file() and path.read_bytes() == blob:
+            return blob
+    except OSError:
+        pass
     tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     tmp.write_bytes(blob)
-    os.replace(tmp, path)
+    last: PermissionError | None = None
+    for attempt in range(12):
+        try:
+            os.replace(tmp, path)
+            return blob
+        except PermissionError as exc:
+            last = exc
+            time.sleep(0.05 * (attempt + 1))
+    if last is not None:
+        raise last
     return blob
 
 

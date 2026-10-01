@@ -180,7 +180,7 @@ export function isLocalReview(state: UiState | undefined): boolean {
 
 export function isTxnInFlight(state: UiState | undefined): boolean {
   if (state === undefined) return false
-  return state.kind === "submitted" || state.kind === "pending"
+  return state.kind === "submitted" || state.kind === "pending" || state.kind === "awaiting_authorization"
 }
 
 export function isTxnPending(state: UiState | undefined): boolean {
@@ -201,6 +201,14 @@ export function isTxnPending(state: UiState | undefined): boolean {
 /** Local review only. Not a server-authorized state. */
 export function reviewTxn(): UiTxnState {
   return { kind: "review", messageKey: "UI_TXN_REVIEW" }
+}
+
+export function awaitingTxn(): UiTxnState {
+  return { kind: "awaiting_authorization", messageKey: "UI_TXN_AWAITING_AUTHORIZATION" }
+}
+
+export function waitingTxn(): UiTxnState {
+  return { kind: "submitted", messageKey: "UI_TXN_SUBMITTED" }
 }
 
 export function submitTxn(current: UiState | undefined): UiTxnState {

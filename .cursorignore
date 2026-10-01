@@ -1,0 +1,3 @@
+# D5: closed-phase passports lag the editor; keep the TOC readable.
+docs/archive/reports/**
+!docs/archive/reports/INDEX.md

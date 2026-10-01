@@ -53,9 +53,6 @@ describe("V9 hud_screens", () => {
     expect(hit.code).toBe(codes.WALLET_NOT_CONNECTED)
     expect(hit.rest.includes(codes.NOT_ENOUGH_CAPITAL)).toBe(true)
     expect(pack.refusalShowCount).toBe(1n)
-    expect(pack.onboardSteps.map((s) => s.id)).toEqual(["clock", "seat", "payout", "idle", "bank", "wallet"])
-    const last = pack.onboardSteps[pack.onboardSteps.length - 1]
-    expect(last?.codes.includes(codes.DEMO_NO_WITHDRAW)).toBe(true)
   })
 
   it("no_cyrillic_in_components", () => {

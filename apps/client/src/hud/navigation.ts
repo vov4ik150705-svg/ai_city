@@ -15,10 +15,10 @@ const HUD_PACK_OVERLAYS = [
   "leaderboard",
   "wallet_connect",
   "offline_return",
-  "onboarding_demo",
   "agent_card",
   "building_card",
   "district_card",
+  "city_level",
 ] as const
 
 export type HudDestination = (typeof HUD_NAVIGATION)[number]
@@ -54,19 +54,30 @@ export function resolveHudRoute(id: string, tab: OverviewTabId | undefined = und
 export function workspaceDrawerWide(route: string): boolean {
   return (
     route === "agents" ||
+    route === "bank" ||
+    route === "exchange" ||
     route === "industries" ||
     route === "leaderboard" ||
     route === "overview" ||
-    route === "district_card"
+    route === "journal" ||
+    route === "district_card" ||
+    route === "building_card" ||
+    route === "agent_card" ||
+    route === "city_level"
   )
 }
 
 export function packWorkspaceId(route: string): string | undefined {
-  if (route === "overview" || route === "industries" || route === "journal") return undefined
+  if (route === "overview" || route === "industries" || route === "journal" || route === "city_level") return undefined
   const dest = resolveHudRoute(route)
   if (dest === undefined) return undefined
-  if (dest.route === "overview" || dest.route === "industries" || dest.route === "journal") return undefined
+  if (dest.route === "overview" || dest.route === "industries" || dest.route === "journal" || dest.route === "city_level") return undefined
   return dest.route
+}
+
+/** Journal is the only surface with a live loading flag today. */
+export function workspaceLoading(route: string, logLoading: boolean | undefined): boolean {
+  return route === "journal" && logLoading === true
 }
 
 /** Scene picks select; they do not open construction or a workspace. */
@@ -92,4 +103,26 @@ export function hudDestinationByShortcut(key: string): HudDestination | undefine
     if (row.shortcut === key) return row
   }
   return undefined
+}
+
+export type HudPaneMotion = "in" | "forward" | "back"
+
+/** How the cabinet body should enter. Overlays that are not one of the six step forward. */
+export function hudPaneMotion(from: string, to: string, back: boolean): HudPaneMotion {
+  if (from.length === 0) return "in"
+  if (back) return "back"
+  const left = HUD_NAVIGATION.findIndex((row) => row.id === from)
+  const right = HUD_NAVIGATION.findIndex((row) => row.id === to)
+  if (left >= 0 && right >= 0 && right < left) return "back"
+  return "forward"
+}
+
+/** Next of the six cabinets. Undefined when the current route is an overlay. */
+export function hudDestinationStep(route: string, dir: -1 | 1): string | undefined {
+  const index = HUD_NAVIGATION.findIndex((row) => row.id === route)
+  if (index < 0) return undefined
+  const count = HUD_NAVIGATION.length
+  const next = (index + dir + count) % count
+  const row = HUD_NAVIGATION[next]
+  return row === undefined ? undefined : row.id
 }

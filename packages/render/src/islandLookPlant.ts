@@ -15,6 +15,7 @@ import type { OccupiedPlant } from "./islandPlant.js"
 import { tagBuilding } from "./islandPlant.js"
 import type { IslandLook, IslandLookObject } from "./islandLook.js"
 import { applyWaterFlow, setWaterfallWorldBand } from "./islandEnv/waterFlow.js"
+import { EIGHT, FOUR } from "./literals.js"
 
 const _box = new Box3()
 const _ray = new Raycaster()
@@ -76,14 +77,14 @@ export function fitTerraMass(
   island.position.set(0, 0, 0)
   island.updateMatrixWorld(true)
   const raw = worldBox(island).clone()
-  const nativeSpan = Math.max(raw.max.x - raw.min.x, raw.max.z - raw.min.z, 8)
+  const nativeSpan = Math.max(raw.max.x - raw.min.x, raw.max.z - raw.min.z, EIGHT)
   const deckX = 0.5 * (raw.min.x + raw.max.x)
   const deckZ = 0.5 * (raw.min.z + raw.max.z)
   let deckY0 = raw.max.y
-  _origin.set(deckX, raw.max.y + Math.max(raw.max.y - raw.min.y, nativeSpan, 8), deckZ)
+  _origin.set(deckX, raw.max.y + Math.max(raw.max.y - raw.min.y, nativeSpan, EIGHT), deckZ)
   _ray.set(_origin, _down)
   _ray.near = 0
-  _ray.far = nativeSpan * 4
+  _ray.far = nativeSpan * FOUR
   const hits = _ray.intersectObject(island, true)
   const hit = hits[0]
   if (hit !== undefined) deckY0 = hit.point.y
@@ -95,7 +96,7 @@ export function fitTerraMass(
   island.position.add(_anchor.sub(_after))
   island.updateMatrixWorld(true)
   const afterBox = worldBox(island)
-  const span = Math.max(afterBox.max.x - afterBox.min.x, afterBox.max.z - afterBox.min.z, 8)
+  const span = Math.max(afterBox.max.x - afterBox.min.x, afterBox.max.z - afterBox.min.z, EIGHT)
   setWaterfallWorldBand(
     afterBox.min.y,
     afterBox.min.y - Math.max(afterBox.max.y - afterBox.min.y, span * 0.4),

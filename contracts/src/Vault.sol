@@ -17,17 +17,26 @@ contract Vault {
     address public immutable guardian;
     address public signer;
     address public pendingSigner;
+    address public immutable house;
     uint256 public immutable capitalAnchor;
     uint256 public immutable voucherTtlS;
     bytes32 public refundRoot;
     uint256 public totalBacking;
+    uint256 public totalPending;
+    uint256 public totalReserved;
+    uint256 public totalUncovered;
 
     mapping(address => uint256) public capitalOf;
     mapping(address => uint256) public pending;
     mapping(address => uint256) public backingOf;
     mapping(address => uint256) public reservedOf;
+    mapping(address => uint256) public uncoveredOf;
+    uint8 public constant OUTCOME_PRESENTED = 1;
+    uint8 public constant OUTCOME_RELEASED = 2;
+
     mapping(string => Issued) public issued;
     mapping(string => bool) public used;
+    mapping(string => uint8) public outcomeOf;
     mapping(address => bool) public refundClaimed;
 
     bytes32 public immutable DOMAIN_SEPARATOR;
@@ -38,6 +47,10 @@ contract Vault {
         uint256 issuedAtS;
     }
 
+    event VoucherIssued(string nonce, address account, uint256 corpAmount, uint256 issuedAtS);
+    event VoucherPresented(string nonce, address account, uint256 corpAmount);
+    event VoucherReleased(string nonce);
+
     constructor(
         address corp_,
         address minter_,
@@ -45,7 +58,8 @@ contract Vault {
         address guardian_,
         address signer_,
         uint256 capitalAnchor_,
-        uint256 voucherTtlS_
+        uint256 voucherTtlS_,
+        address house_
     ) {
         require(corp_ != address(0) && minter_ != address(0) && voucherSigner_ != address(0), "roles");
         require(guardian_ != address(0) && signer_ != address(0), "safety");
@@ -56,6 +70,7 @@ contract Vault {
         voucherSigner = voucherSigner_;
         guardian = guardian_;
         signer = signer_;
+        house = house_;
         capitalAnchor = capitalAnchor_;
         voucherTtlS = voucherTtlS_;
         DOMAIN_SEPARATOR = keccak256(
@@ -79,6 +94,7 @@ contract Vault {
     }
 
     function deposit(address account, uint256 corpAmount) external {
+        require(msg.sender == account, "sender");
         require(account != address(0) && corpAmount > 0, "deposit");
         uint256 before = corp.balanceOf(address(this));
         require(corp.transferFrom(account, address(this), corpAmount), "pull");
@@ -87,18 +103,23 @@ contract Vault {
         uint256 got = afterBal - before;
         require(got > 0, "got");
         pending[account] += got;
+        totalPending += got;
     }
 
-    function mintCapital(address account, uint256 capitalAmount) external {
+    function mintCapital(address account, uint256 corpAmount, uint256 capitalAmount) external {
         require(msg.sender == minter, "minter");
-        require(account != address(0) && capitalAmount > 0, "mint");
+        require(account != address(0) && corpAmount > 0 && capitalAmount > 0, "mint");
         uint256 queued = pending[account];
-        require(queued > 0, "pending");
-        require(capitalAmount <= queued * capitalAnchor, "anchor");
-        pending[account] = 0;
-        backingOf[account] += queued;
-        totalBacking += queued;
+        require(queued >= corpAmount, "pending");
+        if (corpAmount <= type(uint256).max / capitalAnchor) {
+            require(capitalAmount <= corpAmount * capitalAnchor, "anchor");
+        }
+        pending[account] = queued - corpAmount;
+        totalPending -= corpAmount;
+        backingOf[account] += corpAmount;
+        totalBacking += corpAmount;
         capitalOf[account] += capitalAmount;
+        _syncUncovered(account);
     }
 
     function issueVoucher(string calldata nonce, address account, uint256 corpAmount, uint256 issuedAtS)
@@ -107,10 +128,27 @@ contract Vault {
         require(msg.sender == voucherSigner, "signer");
         require(bytes(nonce).length > 0 && account != address(0) && corpAmount > 0, "voucher");
         require(!used[nonce] && issued[nonce].account == address(0), "replay");
-        uint256 avail = availableOf(account);
-        require(corpAmount <= avail, "cover");
+        require(issuedAtS <= block.timestamp, "time");
+        require(issuedAtS <= type(uint256).max - voucherTtlS, "time");
+        require(corpAmount <= voucherRoom(account), "cover");
         reservedOf[account] += corpAmount;
+        totalReserved += corpAmount;
+        _syncUncovered(account);
         issued[nonce] = Issued({account: account, corpAmount: corpAmount, issuedAtS: issuedAtS});
+        emit VoucherIssued(nonce, account, corpAmount, issuedAtS);
+    }
+
+    function voucherRoom(address account) public view returns (uint256) {
+        uint256 bal = corp.balanceOf(address(this));
+        uint256 own = backingOf[account];
+        uint256 houseBal = backingOf[house];
+        uint256 others = totalBacking - own;
+        if (account != house && pending[account] == 0) others -= houseBal;
+        uint256 ownUncovered = uncoveredOf[account];
+        uint256 othersUncovered = totalUncovered - ownUncovered;
+        uint256 locked = others + totalPending + reservedOf[account] + othersUncovered;
+        if (bal > locked) return bal - locked;
+        return 0;
     }
 
     function presentVoucher(string calldata nonce, address account, uint256 corpAmount, uint256 issuedAtS)
@@ -121,12 +159,26 @@ contract Vault {
         Issued memory known = issued[nonce];
         require(known.account == account && known.corpAmount == corpAmount && known.issuedAtS == issuedAtS, "unknown");
         require(!used[nonce], "replay");
-        require(corp.balanceOf(address(this)) >= corpAmount, "cover");
+        uint256 fromOwn = backingOf[account];
+        if (fromOwn > corpAmount) fromOwn = corpAmount;
+        uint256 left = corpAmount - fromOwn;
+        uint256 fromHouse = 0;
+        if (account != house && left > 0) {
+            fromHouse = backingOf[house];
+            if (fromHouse > left) fromHouse = left;
+            left = left - fromHouse;
+        }
+        uint256 bal = corp.balanceOf(address(this));
+        uint256 assigned = totalBacking + totalPending;
+        require(bal >= corpAmount && bal >= assigned && bal - assigned >= left, "cover");
         used[nonce] = true;
+        outcomeOf[nonce] = OUTCOME_PRESENTED;
         delete issued[nonce];
         _consumeReserved(account, corpAmount);
-        _releaseBacking(account, corpAmount);
+        _debitBacking(account, fromOwn);
+        _debitBacking(house, fromHouse);
         require(corp.transfer(account, corpAmount), "push");
+        emit VoucherPresented(nonce, account, corpAmount);
     }
 
     function releaseExpiredVoucher(string calldata nonce) external {
@@ -135,8 +187,10 @@ contract Vault {
         require(!used[nonce], "replay");
         require(block.timestamp > known.issuedAtS + voucherTtlS, "ttl");
         used[nonce] = true;
+        outcomeOf[nonce] = OUTCOME_RELEASED;
         delete issued[nonce];
         _consumeReserved(known.account, known.corpAmount);
+        emit VoucherReleased(nonce);
     }
 
     function proposeSigner(address next) external {
@@ -199,23 +253,39 @@ contract Vault {
             capitalOf[player] = cap;
         }
         require(corp.transfer(player, amount), "push");
+        _syncUncovered(player);
     }
 
     function _consumeReserved(address account, uint256 corpAmount) internal {
         uint256 reserved = reservedOf[account];
         require(reserved >= corpAmount, "reserved");
         reservedOf[account] = reserved - corpAmount;
+        totalReserved -= corpAmount;
+        _syncUncovered(account);
     }
 
-    function _releaseBacking(address account, uint256 corpAmount) internal {
+    function _debitBacking(address account, uint256 amount) internal {
+        if (amount == 0) return;
         uint256 backing = backingOf[account];
-        require(backing >= corpAmount, "backing");
-        backingOf[account] = backing - corpAmount;
-        totalBacking -= corpAmount;
+        require(backing >= amount, "backing");
+        backingOf[account] = backing - amount;
+        totalBacking -= amount;
         uint256 cap = backingOf[account] * capitalAnchor;
         if (capitalOf[account] > cap) {
             capitalOf[account] = cap;
         }
+        _syncUncovered(account);
+    }
+
+    function _syncUncovered(address account) internal {
+        uint256 reserved = reservedOf[account];
+        uint256 backing = backingOf[account];
+        uint256 next = reserved > backing ? reserved - backing : 0;
+        uint256 prev = uncoveredOf[account];
+        if (next == prev) return;
+        if (next > prev) totalUncovered += next - prev;
+        else totalUncovered -= prev - next;
+        uncoveredOf[account] = next;
     }
 
     function _verify(bytes32 root, bytes32 leaf, bytes32[] calldata proof) internal pure returns (bool) {

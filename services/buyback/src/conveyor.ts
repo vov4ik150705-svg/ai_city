@@ -1,5 +1,5 @@
 import type { AssetPort } from "@corporator/chainport"
-import { kettleOk } from "@corporator/chainport"
+import { kettleOk, PRIZE_KETTLE_FARM } from "@corporator/chainport"
 import { codes } from "@corporator/protocol"
 import {
   emptyBasketState,
@@ -22,6 +22,7 @@ export type BasketStamps = {
 }
 
 export type ConveyorSlice = {
+  readonly batchId: string
   readonly kettle: bigint
   readonly token: string
   readonly players: readonly string[]
@@ -32,6 +33,7 @@ export type ConveyorSlice = {
 export type ConveyorReturn = {
   readonly kettle: bigint
   readonly token: string
+  readonly windowId?: string
 }
 
 export type ConveyorBatch = {
@@ -49,6 +51,7 @@ export type ConveyorBatch = {
   readonly corpDepthWei?: bigint
   readonly slices?: readonly ConveyorSlice[]
   readonly returns?: readonly ConveyorReturn[]
+  readonly farmWindows?: { readonly [windowId: string]: string }
 }
 
 export type PrizeCall = {
@@ -80,10 +83,37 @@ function slicedKey(kettle: bigint, token: string): string {
   return kettle.toString() + "/" + token
 }
 
+function farmReturnOpen(batch: ConveyorBatch, row: ConveyorReturn): boolean {
+  if (row.kettle !== PRIZE_KETTLE_FARM) return true
+  const id = row.windowId
+  if (id === undefined || id.length === 0) return false
+  const mark = batch.farmWindows?.[id]
+  return mark === "sent" || mark === "idle"
+}
+
 function tokenOf(batch: ConveyorBatch, ticker: string): string {
   const mapped = batch.tokenByTicker
   if (mapped === undefined) return ticker
   return mapped[ticker] ?? ticker
+}
+
+function keptCarry(
+  hops: readonly BasketHop[],
+  fills: { readonly [ticker: string]: bigint } | undefined,
+  nextCarry: { readonly [ticker: string]: bigint },
+): { [ticker: string]: bigint } {
+  const out: { [ticker: string]: bigint } = {}
+  for (const ticker of Object.keys(nextCarry)) {
+    const prev = nextCarry[ticker]
+    if (prev !== undefined) out[ticker] = prev
+  }
+  if (fills === undefined) return out
+  for (const hop of hops) {
+    const got = fills[hop.ticker]
+    if (got !== undefined && got > 0n) continue
+    out[hop.ticker] = (out[hop.ticker] ?? 0n) + hop.sendWei
+  }
+  return out
 }
 
 function fillOf(
@@ -243,7 +273,7 @@ export async function runStockConveyor(
     }
     const sliceRows = batch.slices ?? []
     for (const row of sliceRows) {
-      if (!kettleOk(row.kettle) || row.callerService !== pack.voucherService) {
+      if (!kettleOk(row.kettle) || row.callerService !== pack.voucherService || row.kettle === PRIZE_KETTLE_FARM) {
         degraded = 1n
         if (code.length === 0) code = codes.API_MALFORMED
         continue
@@ -252,6 +282,7 @@ export async function runStockConveyor(
         calls.push({ op: "slice", kettle: row.kettle, token: row.token })
         const out = await port.prizeTreasury.slice(
           row.callerService,
+          row.batchId,
           row.token,
           row.kettle,
           row.players,
@@ -274,6 +305,7 @@ export async function runStockConveyor(
         if (code.length === 0) code = codes.API_MALFORMED
         continue
       }
+      if (!farmReturnOpen(batch, row)) continue
       if ((sliced[slicedKey(row.kettle, row.token)] ?? 0n) !== 0n) continue
       try {
         calls.push({ op: "returnUnsettled", kettle: row.kettle, token: row.token })
@@ -290,8 +322,8 @@ export async function runStockConveyor(
     return {
       next: {
         buyback: buyback.next,
-        month: month.next,
-        farmCarry: farm.nextCarry,
+        month: { ...month.next, carryWei: keptCarry(month.hops, batch.monthFills, month.next.carryWei) },
+        farmCarry: keptCarry(farm.hops, batch.farmFills, farm.nextCarry),
         farmRemainderWei: farm.remainderWei,
         sliced,
         basketStamps: stamps,

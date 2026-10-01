@@ -35,13 +35,19 @@ export {
   isPortKind,
   kettleOk,
   ok,
+  OUTCOME_PRESENTED,
+  OUTCOME_RELEASED,
   PRIZE_KETTLE_FARM,
   PRIZE_KETTLE_MONTH,
   silentTransport,
 } from "./values.js"
 export { createMockPort } from "./mock.js"
+export { dataApprove, dataClaimUnstaked, dataDeposit, dataPresentVoucher, dataPrizeClaim, dataRequestUnstake, dataStake } from "./rpc/abi.js"
 export { createLiveTransport, createRpcPort } from "./rpc/index.js"
-export type { JsonRpcPost, LiveContracts, LiveRpcConfig } from "./rpc/index.js"
+export type { LiveContracts, LiveRpcConfig } from "./rpc/index.js"
+export { fetchPoster, postEth } from "./rpc/jsonrpc.js"
+export { addressOfPrivateKey, gasLimitOf, signLegacyTx } from "./rpc/sign.js"
+export type { JsonRpcPost } from "./rpc/jsonrpc.js"
 export { launchIntent, postSignedRaw, readCreatorTaxBps, readPlayerReady } from "./rpc/index.js"
 export type { EnvMap, LaunchIntent, PlayerReady } from "./rpc/index.js"
 export { lyingTransport, transportFromPort, transportFromPost } from "./rpc/fixture.js"

@@ -1,24 +1,30 @@
-import type { ReactElement } from "react"
+import { useState, type ReactElement } from "react"
 import { lookup } from "../../strings.js"
-import { blockingRefusal, Refusal } from "../parts/refusal.js"
+import { evaluateActionGate } from "../gates.js"
+import { PackCost } from "../parts/PackCost.js"
+import { Refusal, refusalFromIntent, shownRefusalText } from "../parts/refusal.js"
 import { ScreenFrame, type ScreenProps } from "../parts/ScreenFrame.js"
 
 export function BuildScreen(props: ScreenProps): ReactElement {
+  const [buildRefusal, setBuildRefusal] = useState<{ readonly id: string; readonly code: string } | undefined>(undefined)
   const used = new Set<string>()
   const action = props.pack.actions["build_place"]
-  const hit =
+  const gate =
     action === undefined
-      ? { code: undefined, rest: [] as const }
-      : blockingRefusal({
+      ? { kind: "ok" as const }
+      : evaluateActionGate({
+          pack: props.pack,
           action,
-          capabilities: props.pack.capabilities,
+          view: props.view,
           demo: props.demo,
-          isolated: props.pack.demoIsolated,
-          failed: props.failed,
-          showCount: props.pack.refusalShowCount,
+          extraFailed: props.failed,
+          lookId: props.lookId,
         })
-  const blocked = hit.code !== undefined
-  const codeText = hit.code === undefined ? "" : lookup(props.strings, hit.code, used)
+  const blocked = gate.kind !== "ok"
+  const refusalCode = gate.kind === "blocked" ? gate.refusal.code : undefined
+  const refusalRest = gate.kind === "blocked" ? gate.refusal.rest : []
+  const codeText = refusalCode === undefined ? "" : lookup(props.strings, refusalCode, used)
+  const unavailable = lookup(props.strings, "UI_UNAVAILABLE", used)
   return (
     <ScreenFrame
       id="build"
@@ -27,7 +33,13 @@ export function BuildScreen(props: ScreenProps): ReactElement {
       empty={props.pack.catalog.length === 0}
       onClose={props.onClose}
     >
-      {blocked && hit.code !== undefined ? <Refusal code={hit.code} text={codeText} rest={hit.rest} /> : null}
+      {gate.kind === "missing" ? (
+        <span data-key="UI_UNAVAILABLE" data-gate="missing" className="hud-unavailable">
+          {unavailable}
+        </span>
+      ) : blocked && refusalCode !== undefined ? (
+        <Refusal code={refusalCode} text={codeText} rest={refusalRest} />
+      ) : null}
       <ul className="hud-list">
         {props.pack.catalog.map((row) => {
           const key = "UI_BLD_" + row.id.toUpperCase()
@@ -38,22 +50,27 @@ export function BuildScreen(props: ScreenProps): ReactElement {
                 type="button"
                 data-building={row.id}
                 data-action="build_place"
+                data-gate={gate.kind}
                 disabled={blocked}
                 onClick={() => {
                   if (blocked) return
-                  const done = props.onIntent(
+                  const pending = props.onIntent(
                     { kind: "build", buildingId: row.id },
                     {
                       building_id: row.id,
-                      tile_x: props.pendingTileX,
-                      tile_y: props.pendingTileY,
                     },
                   )
-                  if (done !== undefined) void done.then(undefined, () => undefined)
+                  void refusalFromIntent(pending).then((code) => {
+                    setBuildRefusal(code.length === 0 ? undefined : { id: row.id, code })
+                  })
                 }}
               >
                 {label}
               </button>
+              {buildRefusal !== undefined && buildRefusal.id === row.id ? (
+                <Refusal code={buildRefusal.code} text={shownRefusalText(lookup(props.strings, buildRefusal.code, used), buildRefusal.code)} rest={[]} />
+              ) : null}
+              <PackCost amount={row.cost} label={lookup(props.strings, "UI_CAPITAL_COST", used)} unavailable={unavailable} />
             </li>
           )
         })}

@@ -149,12 +149,12 @@ describe.sequential("C4 construction", () => {
     expect(cfg.voucherTtlS).toBe(asBig(atPath(loaded.pack, ["generated", "arch", "tick_length_real_seconds"])))
     const account = "a"
     const mock = createMockPort(cfg, { corp: { [account]: 100n } })
-    const mintFirst = await mock.vault.mintCapital(account, 1n)
+    const mintFirst = await mock.vault.mintCapital(account, 1n, 1n)
     expect(mintFirst.ok).toBe(false)
     if (!mintFirst.ok) expect(mintFirst.code).toBe(codes.API_MALFORMED)
     const deposited = await mock.vault.deposit(account, 50n)
     expect(deposited.ok).toBe(true)
-    const minted = await mock.vault.mintCapital(account, 1n)
+    const minted = await mock.vault.mintCapital(account, 50n, 1n)
     expect(minted.ok).toBe(true)
     const voucher: Voucher = { nonce: "n1", account, corpAmount: 20n, issuedAtS: 0n }
     expect((await mock.vault.issueVoucher(voucher)).ok).toBe(true)
@@ -185,7 +185,7 @@ describe.sequential("C4 construction", () => {
     expect(before.ok && after.ok).toBe(true)
     if (before.ok && after.ok) expect(after.amount).toBe(before.amount)
     expect((await mock.stakeRegistry.stake(account, "NVDA", 1n)).ok).toBe(true)
-    expect((await mock.stakeRegistry.unstake(account, "NVDA", 1n)).ok).toBe(true)
+    expect((await mock.stakeRegistry.requestUnstake(account, "NVDA", 1n)).ok).toBe(true)
     const snap = await mock.stakeRegistry.snapshot(account)
     expect(snap.ok).toBe(true)
     if (snap.ok) {

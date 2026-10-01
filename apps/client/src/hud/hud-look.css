@@ -6,10 +6,10 @@
   --hud-look-panel-height: 266px;
   --hud-look-panel-scale: 0.86;
   --hud-look-panel-radius: 16px;
-  --hud-look-panel-border: rgba(255, 255, 255, 0.1);
-  --hud-look-panel-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-  --hud-look-gradient-top: rgba(44, 103, 170, 0.86);
-  --hud-look-gradient-bottom: rgba(30, 79, 140, 0.86);
+  --hud-look-panel-border: var(--hud-tone-border);
+  --hud-look-panel-shadow: var(--hud-shadow-panel);
+  --hud-look-gradient-top: var(--hud-tone-panel);
+  --hud-look-gradient-bottom: var(--hud-tone-panel);
   --hud-look-pad-x: 12px;
   --hud-look-pad-top: 3px;
   --hud-look-pad-bottom: 18px;
@@ -118,14 +118,14 @@
   --hud-look-detail-manage-h: 28px;
   --hud-look-detail-manage-radius: 7px;
   --hud-look-detail-manage-go: 16px;
-  --hud-look-select-border: rgba(255, 182, 74, 0.85);
-  --hud-look-art-fill: rgba(19, 66, 123, 0.28);
-  --hud-look-rule: rgba(255, 255, 255, 0.08);
-  --hud-look-meter-track: rgba(255, 255, 255, 0.12);
-  --hud-look-coin-fill: #ffb64a;
-  --hud-look-sun: #ffcf4a;
-  --hud-look-card-border: rgba(255, 255, 255, 0.04);
-  --hud-look-selected-ring: rgba(69, 199, 244, 0.55);
+  --hud-look-select-border: var(--hud-tone-blue-ring);
+  --hud-look-art-fill: var(--hud-tone-blue-soft);
+  --hud-look-rule: var(--hud-tone-divider);
+  --hud-look-meter-track: var(--hud-tone-meter-track);
+  --hud-look-coin-fill: var(--hud-tone-blue-accent);
+  --hud-look-sun: var(--hud-tone-sun);
+  --hud-look-card-border: var(--hud-tone-border);
+  --hud-look-selected-ring: var(--hud-tone-blue-ring);
 }
 
 .hud-economy,
@@ -259,6 +259,7 @@
 .hud-recent-activity__view,
 .hud-status-bar__notification,
 .hud-status-bar__wallet,
+.hud-status-bar__season,
 .hud-building-detail__manage {
   margin: 0;
   padding: 0;

@@ -6,6 +6,5 @@ export default [
   "services/sampler/vitest.config.ts",
   "services/buyback/vitest.config.ts",
   "services/attestor/vitest.config.ts",
-  "services/llm/vitest.config.ts",
   "apps/client/vitest.config.ts",
 ]

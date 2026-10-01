@@ -1,6 +1,6 @@
 """Diet Terra + 19 catalog buildings into runtime_terra19/.
 
-Does not modify models/ or art/island_v3/runtime/. LOD0 keeps source
+Does not modify models/. LOD0 keeps source
 triangle counts (join + compress only). LOD1/LOD2 are simplified copies.
 """
 

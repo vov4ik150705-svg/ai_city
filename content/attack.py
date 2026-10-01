@@ -59,6 +59,14 @@ def a_l02_dangling_beacon(d: dict) -> None:
     d["districts"]["districts"]["compute"]["beacon"] = "ghost_tower"
 
 
+def a_l02_output_link_ghost_role(d: dict) -> None:
+    d["buildings"]["buildings"]["city_hall"]["output_link"]["require_role"] = "ghost_role"
+
+
+def a_l02_output_link_ghost_exclusive(d: dict) -> None:
+    d["buildings"]["buildings"]["energy_plant"]["output_link"]["exclusive_with"] = ["ghost_tower"]
+
+
 def a_l03_contour_named_like_role(d: dict) -> None:
     d["agents"]["contours"]["engineer"] = {
         "src": "attack",
@@ -83,6 +91,20 @@ def a_l07_energy_without_producer(d: dict) -> None:
         if b.get("output") == "energy":
             b["output"] = None
     d["resources"]["resources"]["energy"]["base_source"] = None
+
+
+def a_l07_compute_without_producer(d: dict) -> None:
+    for b in d["buildings"]["buildings"].values():
+        if b.get("output") == "compute":
+            b["output"] = None
+
+
+def a_l07_compute_curve_zero(d: dict) -> None:
+    d["buildings"]["buildings"]["workshop"]["energy_base_per_tick"] = 0
+
+
+def a_l07_compute_uncovered(d: dict) -> None:
+    d["buildings"]["buildings"]["data_center"]["output"] = "capital"
 
 
 def a_l08_beacon_points_elsewhere(d: dict) -> None:
@@ -182,7 +204,8 @@ def a_l22_safety_dropped(d: dict) -> None:
 
 
 def a_l23_bank_drains_the_pool(d: dict) -> None:
-    d["launch"]["params"]["bank_daily_limit_pool_share_bps"]["v"] = 500
+    cap = int(d["meta"]["params"]["bank_daily_limit_pool_share_cap_bps"]["v"])
+    d["launch"]["params"]["bank_daily_limit_pool_share_bps"]["v"] = cap + 100
 
 
 def a_l24_eth_ratio_not_kots(d: dict) -> None:
@@ -412,7 +435,7 @@ def a_l42_amplification_too_low(d: dict) -> None:
 
 
 def a_l42_amplification_too_high(d: dict) -> None:
-    d["balance"]["params"]["fund_amplification_target_bps"]["v"] = 20000
+    d["balance"]["params"]["fund_amplification_target_bps"]["v"] = 40000
 
 
 def a_l42_boundary_below_window(d: dict) -> None:
@@ -456,6 +479,11 @@ def a_l47_window_stored(d: dict) -> None:
         "src": "attack src x",
         "why": "Stored T2 return in sim.json to trip L47 on a duplicated number",
     }
+
+
+def a_l47_window_in_sim_src(d: dict) -> None:
+    lo = build.build_balance(d)["amplification_window_lo_bps"]
+    d["_l47_source"] = f"hardcoded window {lo}"
 
 
 def a_l48_band_without_pending(d: dict) -> None:
@@ -771,8 +799,12 @@ def a_l92_stored_window(d: dict) -> None:
         "v": 7,
         "u": "days",
         "src": "attack stored window",
-        "why": "Stored claim window duplicates payroll_daily_divisor on purpose",
+        "why": "Stored claim window duplicates fragment_window_city_days on purpose",
     }
+
+
+def a_l92_alias_payroll(d: dict) -> None:
+    d["fragments"]["params"]["fragment_window_city_days"]["v"] = d["economy"]["params"]["payroll_daily_divisor"]["v"]
 
 
 def a_l93_split_6001(d: dict) -> None:
@@ -2363,7 +2395,7 @@ def a_l275_date_in_hud(d: dict) -> None:
     d["_client_source"] = {"hud/App.tsx": "export const leaked = Date.now()\n"}
 
 
-def a_l276_drop_llm(d: dict) -> None:
+def a_l276_drop_attestor(d: dict) -> None:
     d["_compose_yaml"] = (
         "services:\n"
         "  postgres:\n"
@@ -2379,9 +2411,6 @@ def a_l276_drop_llm(d: dict) -> None:
         "  buyback:\n"
         "    ports:\n"
         '      - "7462:7462"\n'
-        "  attestor:\n"
-        "    ports:\n"
-        '      - "7463:7463"\n'
     )
 
 
@@ -2650,6 +2679,10 @@ def a_l304_split_6000_4000(d: dict) -> None:
 
 def a_l304_active_work_51(d: dict) -> None:
     d["fragments"]["params"]["active_work_creator_tax_bps"]["v"] = 51
+
+
+def a_l304_farm_exceeds_stock(d: dict) -> None:
+    d["fragments"]["params"]["active_work_creator_tax_bps"]["v"] = 90
 
 
 def a_l305_pending_reopened(d: dict) -> None:
@@ -4064,6 +4097,135 @@ def a_l388_restore_screen(d: dict) -> None:
     a_l346_restore_screen(d)
 
 
+def a_l389_gain_8000(d: dict) -> None:
+    d["balance"]["params"]["bank_level_gain_bps"]["v"] = 8000
+
+
+def a_l390_boost_below_identity(d: dict) -> None:
+    d["economy"]["params"]["payroll_boost_bps"]["v"] = 5000
+
+
+def a_l390_launch_stingier(d: dict) -> None:
+    d["economy"]["params"]["payroll_boost_launch_bps"]["v"] = 20000
+
+
+def a_l390_window_zero(d: dict) -> None:
+    d["economy"]["params"]["payroll_boost_launch_city_days"]["v"] = 0
+
+
+def a_l391_drop_days_left(d: dict) -> None:
+    sources = d["screens"]["state_sources"]
+    sources.pop("aggregate.payroll_boost_days_left", None)
+
+
+def a_l391_drop_boost_bps(d: dict) -> None:
+    sources = d["screens"]["state_sources"]
+    sources.pop("aggregate.payroll_boost_bps", None)
+
+
+def a_l392_growth_clip(d: dict) -> None:
+    d["modifiers"]["cap_anchors"]["output_bps"]["max_from"] = "output_growth_bps"
+
+
+def a_l392_node_raised(d: dict) -> None:
+    nodes = d.setdefault("progression", {}).setdefault("progression_nodes", {})
+    prev = nodes.get("n_compute_capital") if isinstance(nodes.get("n_compute_capital"), dict) else {}
+    nodes["n_compute_capital"] = {**prev, "key": "output_bps", "magnitude": 3000}
+
+
+def a_l393_strip_beacon_links(d: dict) -> None:
+    bag = ((d.get("buildings") or {}).get("buildings") or {})
+    for spec in bag.values():
+        if isinstance(spec, dict) and spec.get("tier") == "beacon":
+            spec.pop("output_link", None)
+
+
+def a_l393_strip_all_links(d: dict) -> None:
+    bag = ((d.get("buildings") or {}).get("buildings") or {})
+    for spec in bag.values():
+        if isinstance(spec, dict):
+            spec.pop("output_link", None)
+
+
+def a_l394_lab_bakes_neighbour(d: dict) -> None:
+    aff = d["economy"]["params"]["affinity_neighbour_bps"]["v"]
+    lab = d["buildings"]["buildings"]["robotics_lab"]
+    stored = lab.get("output_weight_bps")
+    if isinstance(stored, dict):
+        stored["v"] = aff
+        return
+    lab["output_weight_bps"] = {
+        "v": aff,
+        "u": "bps",
+        "src": "docs/BALANCE.md §4",
+        "why": "Attack: bake neighbour affinity into the table weight on purpose",
+    }
+
+
+def a_l394_workshop_bakes_neighbour(d: dict) -> None:
+    d["buildings"]["buildings"]["workshop"]["output_weight_bps"]["v"] = d["economy"]["params"][
+        "affinity_neighbour_bps"
+    ]["v"]
+
+
+def a_l395_sleeper_minus(d: dict) -> None:
+    d["meta"]["params"]["return_minimalist_floor_bps"]["v"] = 8271
+
+
+def a_l395_a_equals_boost(d: dict) -> None:
+    d["balance"]["params"]["fund_amplification_target_bps"]["v"] = d["economy"]["params"][
+        "payroll_boost_bps"
+    ]["v"]
+
+
+def a_l396_drop_activate(d: dict) -> None:
+    d["screens"]["actions"].pop("building_activate", None)
+
+
+def a_l396_build_tile_on_card(d: dict) -> None:
+    req = list(d["screens"]["actions"]["building_build"]["requires"])
+    req.append("build_tile")
+    d["screens"]["actions"]["building_build"]["requires"] = req
+
+
+def a_l397_corp_on_open(d: dict) -> None:
+    req = list(d["screens"]["actions"]["districts_open"]["requires"])
+    req.append("corp")
+    d["screens"]["actions"]["districts_open"]["requires"] = req
+
+
+def a_l397_open_spends_capital(d: dict) -> None:
+    d["screens"]["actions"]["districts_open"]["spend"] = "capital"
+
+
+def a_l398_drop_voucher_ru(d: dict) -> None:
+    ru = dict(lint._ru_texts(d))
+    ru.pop("VOUCHER_EXPIRED", None)
+    d.setdefault("strings", {})["ru"] = ru
+
+
+def a_l398_drop_chain_en(d: dict) -> None:
+    en = dict(lint._en_texts(d))
+    en.pop("CHAIN_TX_UNCONFIRMED", None)
+    d.setdefault("strings", {})["en"] = en
+
+
+def a_l398_drop_wallet_code(d: dict) -> None:
+    d["codes"]["codes"].pop("WALLET_TX_REJECTED", None)
+
+
+def a_l399_one_city_day(d: dict) -> None:
+    d["economy"]["params"]["unstake_cooldown_city_days"]["v"] = 1
+
+
+def a_l399_zero_days(d: dict) -> None:
+    d["economy"]["params"]["unstake_cooldown_city_days"]["v"] = 0
+
+
+def a_l399_env_value(d: dict) -> None:
+    d["_env_example"] = "CORPORATOR_UNSTAKE_COOLDOWN_S=1\n"
+
+
 def a_l349_blocks_tick(d: dict) -> None:
     d["arch"]["services"]["attestor"]["blocks_tick"] = 1
 
@@ -5099,6 +5261,10 @@ def a_l386_few_anchors(d: dict) -> None:
     d["_island_anchor_names"] = ["anchor_city_hall", "anchor_bank"]
 
 
+def a_l386_missing_mass(d: dict) -> None:
+    d["_island_mass_path"] = "art/island_v3/no_such_mass.glb"
+
+
 def a_l386_drop_orbit(d: dict) -> None:
     params = ((d.get("render") or {}).get("params") or {})
     row = params.get("island_orbit_distance_min")
@@ -5106,85 +5272,12 @@ def a_l386_drop_orbit(d: dict) -> None:
         row["v"] = 0
 
 
-
-def a_l387_sign_day_zero(d: dict) -> None:
-    row = ((d.get("render") or {}).get("params") or {}).get("sign_day_gain_bps")
+def a_l386_drop_look_orbit_mul(d: dict) -> None:
+    params = ((d.get("render") or {}).get("params") or {})
+    row = params.get("look_orbit_distance_max_mul")
     if isinstance(row, dict):
         row["v"] = 0
 
-
-def a_l387_sign_day_high(d: dict) -> None:
-    row = ((d.get("render") or {}).get("params") or {}).get("sign_day_gain_bps")
-    if isinstance(row, dict):
-        row["v"] = 9000
-
-
-def a_l387_shadows_off(d: dict) -> None:
-    row = ((d.get("render") or {}).get("params") or {}).get("island_shadows")
-    if isinstance(row, dict):
-        row["v"] = 0
-
-
-def a_l387_bloom_live_bad(d: dict) -> None:
-    row = ((d.get("render") or {}).get("params") or {}).get("island_bloom_live")
-    if isinstance(row, dict):
-        row["v"] = 2
-
-
-def a_l387_max_gain(d: dict) -> None:
-    d["_render_source"] = {
-        "sun.ts": "export const signDayGainBps = 1n\n",
-        "three.ts": (
-            "signDayGainBps\nbloomLive\nPCFSoftShadowMap\napplyClassifiedGlow\n"
-            "const gainW = 1\nconst gainS = 0\nmat.emissiveIntensity = gainW > gainS ? gainW : gainS\n"
-        ),
-        "islandLook.ts": "export function applyClassifiedGlow() {}\n",
-        "islandMaterials.ts": "metalness = 0\n",
-    }
-
-
-def a_l387_emissive_zero(d: dict) -> None:
-    row = ((d.get("render") or {}).get("params") or {}).get("emissive_gain_bps")
-    if isinstance(row, dict):
-        row["v"] = 0
-
-
-def a_l387_windows_follow_lights(d: dict) -> None:
-    d["_render_source"] = {
-        "sun.ts": (
-            "export const signDayGainBps = 1n\n"
-            "export function windowGainBps(lightsFlag, emissiveBps) {\n"
-            "  return glowGainBps(lightsFlag, emissiveBps)\n"
-            "}\n"
-        ),
-        "three.ts": "signDayGainBps\nbloomLive\nPCFSoftShadowMap\napplyClassifiedGlow\n",
-        "islandLook.ts": "export function applyClassifiedGlow() {}\n",
-        "islandMaterials.ts": "metalness = 0\n",
-    }
-
-
-def a_l387_body_as_window(d: dict) -> None:
-    d["_render_source"] = {
-        "sun.ts": "export const signDayGainBps = 1n\n",
-        "three.ts": "signDayGainBps\nbloomLive\nPCFSoftShadowMap\napplyClassifiedGlow\n",
-        "islandLook.ts": "export function applyClassifiedGlow() {}\n",
-        "islandMaterials.ts": 'glow.push({ mat, kind: "window" })\nmetalness = 0\n',
-    }
-
-
-def a_l387_drop_from_gate(d: dict) -> None:
-    row = ((d.get("arch") or {}).get("roadmap") or {}).get("island_client")
-    if isinstance(row, dict):
-        row["gate_cmd"] = (
-            "python content/lint.py && python content/build.py && "
-            "python content/attack.py --only L385,L386"
-        )
-
-
-def a_l387_no_packview(d: dict) -> None:
-    d["_client_source"] = {
-        "packview.ts": "export type ClientLight = {}\n",
-    }
 
 
 def a_l353_unregistered_l328(d: dict) -> None:
@@ -5216,11 +5309,16 @@ def a_l355_drop_sign(d: dict) -> None:
 
 ATTACKS = [
     ("L02", "маяк района указывает на несуществующее здание", a_l02_dangling_beacon),
+    ("L02", "output_link.require_role указывает на несуществующую роль", a_l02_output_link_ghost_role),
+    ("L02", "output_link.exclusive_with указывает на несуществующее здание", a_l02_output_link_ghost_exclusive),
     ("L03", "контур назван как роль", a_l03_contour_named_like_role),
     ("L04", "веса пула найма больше не дают 100%", a_l04_broken_hire_pool),
     ("L05", "у банка подменён второй контур", a_l05_flipped_affinity),
     ("L06", "в здании без родной роли снят флаг автономности", a_l06_unworkable_not_autonomous),
     ("L07", "у energy отобраны все производители", a_l07_energy_without_producer),
+    ("L07", "у compute отобраны все производители", a_l07_compute_without_producer),
+    ("L07", "кривая compute L1 у производителя обнулена", a_l07_compute_curve_zero),
+    ("L07", "max L1 compute производителя не покрывает потребителя", a_l07_compute_uncovered),
     ("L08", "маяк смотрит в чужой район", a_l08_beacon_points_elsewhere),
     ("L09", "объявлена выведенная величина без генератора", a_l09_derived_without_generator),
     ("L11", "добавлен код без текста", a_l11_code_without_text),
@@ -5240,7 +5338,7 @@ ATTACKS = [
     ("L21", "леджеры фрагментов заданы ручным списком трёх тикеров", a_l21_fragment_hand_list),
     ("L22", "транш выкупа × запас превышает creator_tax_bps", a_l22_tranche_eats_the_tax),
     ("L22", "запас проскальзывания выкупа уронен до ×1", a_l22_safety_dropped),
-    ("L23", "дневной вывод 5% глубины пула ломает якорь", a_l23_bank_drains_the_pool),
+    ("L23", "дневной вывод выше капа доли пула", a_l23_bank_drains_the_pool),
     ("L24", "ETH Q0 сдвинут: запуск больше не совпадает с фикстурой KOTS", a_l24_eth_ratio_not_kots),
     ("L25", "capital_unit_usd обнулён: курс минта неопределим, касса не доказуема", a_l25_zero_unit),
     ("L25", "единица Capital слишком мелкая: потолок 2000 уже связывает на сиде", a_l25_ceiling_binds_at_seed),
@@ -5281,7 +5379,7 @@ ATTACKS = [
     ("L41", "рост XP 10000: L5 тривиален за сезон без Handbook", a_l41_level_trivial),
     ("L41", "рост XP 50000: L5 недостижим даже с Handbook", a_l41_level_unreachable),
     ("L42", "A = 10000: оба возврата ниже полос", a_l42_amplification_too_low),
-    ("L42", "A = 20000: оба возврата выше полос", a_l42_amplification_too_high),
+    ("L42", "A = 40000: оба возврата выше полос 83–91 / 165–182", a_l42_amplification_too_high),
     ("L42", "A = window_lo-1: return_min ниже пола минималиста", a_l42_boundary_below_window),
     ("L43", "Robotics Lab стала производителем compute: ресурс производится и не расходуется", a_l43_compute_no_consumer),
     ("L43", "у Robotics Lab сохранён energy_base 0: забор по весу ненулевой, derived inputs без energy", a_l43_draw_without_inputs),
@@ -5291,6 +5389,7 @@ ATTACKS = [
     ("L44", "найм 999 bps: на 1 ниже пола 1000", a_l44_hire_just_below_floor),
     ("L46", "сценарию подложен неизвестный kind", a_l46_unknown_kind),
     ("L47", "окно возврата T2 сохранено в sim.params", a_l47_window_stored),
+    ("L47", "окно A зашито литералом в sim.py", a_l47_window_in_sim_src),
     ("L48", "строка pending про непокрытие снята: полоса шире трения", a_l48_band_without_pending),
     ("L49", "обязательный feed_silence удалён", a_l49_missing_required),
     ("L50", "слив резерва 6% за неделю", a_l50_six_percent_week),
@@ -5354,6 +5453,7 @@ ATTACKS = [
     ("L91", "начисление фрагментов на workshop", a_l91_workshop_accrual),
     ("L91", "играбельный logistics_hub снят с beacon: начисление 0", a_l91_playable_hub_zero),
     ("L92", "окно клейма записано литералом 7", a_l92_stored_window),
+    ("L92", "окно фарма снова равно горизонту фонда", a_l92_alias_payroll),
     ("L93", "protocol_fragments_bps = 6001, сплит не 10000", a_l93_split_6001),
     ("L94", "fragment_creator_tax_share_bps = 100", a_l94_tax_share),
     ("L95", "hop haircut 2 bps слабее замера 10k$", a_l95_hop_two),
@@ -5611,7 +5711,7 @@ ATTACKS = [
     ("L274", "heartbeat длиннее трети периода сэмплера", a_l274_heartbeat_too_long),
     ("L275", "Date.now в main.tsx вне clock.ts", a_l275_date_in_main),
     ("L275", "Date.now в HUD вне clock.ts", a_l275_date_in_hud),
-    ("L276", "compose без llm", a_l276_drop_llm),
+    ("L276", "compose без attestor", a_l276_drop_attestor),
     ("L276", "runtime_pglite=1", a_l276_runtime_pglite),
     ("L276", "Dockerfile копирует только api/dist", a_l276_dockerfile_api_only),
     ("L277", "Bank.sol пятый контракт", a_l277_bank_sol),
@@ -5658,7 +5758,8 @@ ATTACKS = [
     ("L293", "потолок фабрики в паке поднят до 2000", a_l293_ceiling_raised),
     ("L294", "CORP в prize_assets", a_l294_corp_in_list),
     ("L304", "сплит 6000/4000 вернул T7 $CORP", a_l304_split_6000_4000),
-    ("L304", "active-work pool изменён с 50 на 51 bps", a_l304_active_work_51),
+    ("L304", "active-work pool изменён с 60 на 51 bps", a_l304_active_work_51),
+    ("L304", "фарм 90 bps съедает стоковую ногу", a_l304_farm_exceeds_stock),
     ("L305", "burn_reserve_rescue снова в pending", a_l305_pending_reopened),
     ("L305", "returnBurnReserve на vault", a_l305_return_burn_fn),
     ("L305", "returnUnsettled на vault", a_l305_vault_return_unsettled),
@@ -5914,20 +6015,36 @@ ATTACKS = [
     ("L386", "island_seed в session.ts", a_l386_island_seed),
     ("L386", "island_client.gate_cmd без L386", a_l386_drop_from_gate),
     ("L386", "--jobs 8 в island_client.gate_cmd", a_l386_jobs8),
-    ("L386", "якорей меньше 26", a_l386_few_anchors),
+    ("L386", "якоря occupancy на Terra-массе", a_l386_few_anchors),
+    ("L386", "нет runtime_terra19/island_mass.glb", a_l386_missing_mass),
     ("L386", "island_orbit_distance_min=0", a_l386_drop_orbit),
-    ("L387", "sign_day_gain_bps=0", a_l387_sign_day_zero),
-    ("L387", "sign_day_gain_bps=9000", a_l387_sign_day_high),
-    ("L387", "island_shadows=0", a_l387_shadows_off),
-    ("L387", "island_bloom_live=2", a_l387_bloom_live_bad),
-    ("L387", "gainW > gainS в three.ts", a_l387_max_gain),
-    ("L387", "island_client.gate_cmd без L387", a_l387_drop_from_gate),
-    ("L387", "packview не читает sign_day_gain_bps", a_l387_no_packview),
-    ("L387", "emissive_gain_bps=0", a_l387_emissive_zero),
-    ("L387", "windowGainBps следует lightsFlag", a_l387_windows_follow_lights),
-    ("L387", "unknown emissive как window", a_l387_body_as_window),
+    ("L386", "look_orbit_distance_max_mul=0", a_l386_drop_look_orbit_mul),
     ("L388", "секция companion возвращена в пак", a_l388_restore_section),
     ("L388", "экран companion возвращён", a_l388_restore_screen),
+    ("L389", "личный L1 банка 8000 bps при трубе 5%", a_l389_gain_8000),
+    ("L390", "буст ниже единицы", a_l390_boost_below_identity),
+    ("L390", "окно скупее постоянного режима", a_l390_launch_stingier),
+    ("L390", "окно нулевой длины", a_l390_window_zero),
+    ("L391", "days_left вынут из контракта снимка", a_l391_drop_days_left),
+    ("L391", "boost_bps вынут из контракта снимка", a_l391_drop_boost_bps),
+    ("L392", "потолок output_bps вернули на output_growth_bps", a_l392_growth_clip),
+    ("L392", "узел n_compute_capital +3000, потолок не пересчитан", a_l392_node_raised),
+    ("L393", "у маяков снят output_link", a_l393_strip_beacon_links),
+    ("L393", "сняты все output_link", a_l393_strip_all_links),
+    ("L394", "robotics_lab снова запекает affinity_neighbour в вес", a_l394_lab_bakes_neighbour),
+    ("L394", "workshop запекает affinity_neighbour в вес", a_l394_workshop_bakes_neighbour),
+    ("L395", "пол спящего вернули в небольшой минус", a_l395_sleeper_minus),
+    ("L395", "A равен payroll_boost_bps", a_l395_a_equals_boost),
+    ("L396", "снят building_activate", a_l396_drop_activate),
+    ("L396", "building_build снова требует build_tile", a_l396_build_tile_on_card),
+    ("L397", "corp вернули в districts_open", a_l397_corp_on_open),
+    ("L397", "districts_open снова тратит capital", a_l397_open_spends_capital),
+    ("L398", "строка VOUCHER_EXPIRED снята из ru", a_l398_drop_voucher_ru),
+    ("L398", "строка CHAIN_TX_UNCONFIRMED снята из en", a_l398_drop_chain_en),
+    ("L398", "код WALLET_TX_REJECTED снят", a_l398_drop_wallet_code),
+    ("L399", "одни сутки города: кулдаун равен отсрочке", a_l399_one_city_day),
+    ("L399", "ноль суток города", a_l399_zero_days),
+    ("L399", "подмена CORPORATOR_UNSTAKE_COOLDOWN_S в .env.example", a_l399_env_value),
     ("L307", "logistics.playable_v1 оставлен false", a_l307_logistics_cut),
     ("L307", "automation.playable_v1 снят: оффлайн 18 недостижим", a_l307_automation_cut),
     ("L307", "finance.playable_v1 снят: доля фонда не набирается", a_l307_finance_cut),
@@ -6305,9 +6422,13 @@ def construction_no_t2_mint(data: dict) -> str | None:
     bal = build.build_balance(data)
     if bal["level_output"]["workshop"][0] <= 0:
         return "workshop L1 output is 0: the normalisation building does not pay"
-    # Robotics Lab output is neighbour-weight, still a fund payout, not a mint.
-    if bal["robotics_lab_output_weight_bps"] != data["economy"]["params"]["affinity_neighbour_bps"]["v"]:
-        return "robotics_lab output weight is not affinity_neighbour_bps"
+    if bal["level_output"]["robotics_lab"][0] <= 0:
+        return "robotics_lab L1 output is 0: the synergy producer does not pay"
+    # Table weight is the normalisation unit. Neighbour affinity is runtime-only.
+    if bal["robotics_lab_output_weight_bps"] != BPS:
+        return "robotics_lab output weight is not BPS"
+    if bal["robotics_lab_output_weight_bps"] == data["economy"]["params"]["affinity_neighbour_bps"]["v"]:
+        return "robotics_lab output weight still equals affinity_neighbour_bps"
     return None
     ceiling = data["economy"]["params"]["capital_anchor"]["v"]
     band = data["economy"]["params"]["anchor_band_bps"]["v"]
@@ -6488,8 +6609,214 @@ def construction_tick_payroll(data: dict) -> str | None:
         return f"zero payout with non-empty fund: {pa} {pb} fund={state['fund']}"
     if pa * 1 < pb * 2:
         return f"split not proportional: {pa} vs {pb}"
-    if state["payroll_ratio_bps"] <= 0 or state["payroll_ratio_bps"] > BPS:
-        return f"payroll_ratio {state['payroll_ratio_bps']} not published in (0, 10000]"
+    if state["payroll_ratio_bps"] <= 0 or state["payroll_ratio_bps"] > cfg["payroll_boost_launch_bps"]:
+        return (
+            f"payroll_ratio {state['payroll_ratio_bps']} not published in "
+            f"(0, {cfg['payroll_boost_launch_bps']}]"
+        )
+    return None
+
+
+def _e1_tick_inputs(cfg: dict, idx: int) -> dict:
+    return {
+        "tick_index": idx,
+        "eth_usd_8dec": cfg["eth_usd_8dec"],
+        "corp_eth_wei_per_whole": cfg["seed_corp_wei"],
+        "feed_live": 1,
+        "pack_hash": cfg["pack_hash"],
+        "dex_turnover_usd_8dec": 0,
+    }
+
+
+def _e1_arm_fund(cfg: dict, state: dict, units: int) -> None:
+    ticks = cfg["ticks_day"]
+    div = cfg["payroll_daily_divisor"]
+    want = units * div * ticks
+    state["fund"] = want
+    state["day_budget"] = 0 if div == 0 else want // div
+    state["tick_budget"] = 0 if ticks == 0 else state["day_budget"] // ticks
+    state["day_budget_day"] = cfg["anchor_day"]
+    bags = want
+    for city in state["cities"].values():
+        bags += int(city.get("capital") or 0)
+    anchor = cfg["capital_anchor"]
+    need_vault = bags if anchor <= 0 else (bags + anchor - 1) // anchor
+    if state["vault_corp"] < need_vault:
+        add = need_vault - state["vault_corp"]
+        state["vault_corp"] = need_vault
+        state["corp_deposited_total"] = int(state.get("corp_deposited_total") or 0) + add
+    if state["capital_outstanding"] < bags:
+        d = bags - state["capital_outstanding"]
+        state["capital_outstanding"] += d
+        state["capital_minted_total"] = int(state.get("capital_minted_total") or 0) + d
+
+
+def _e1_cashbox(state: dict) -> int:
+    cities = state.get("cities") or {}
+    return int(state.get("fund") or 0) + sum(int(c.get("capital") or 0) for c in cities.values())
+
+
+def _e1_i1_holds(cfg: dict, state: dict) -> bool:
+    cap = int(state.get("vault_corp") or 0) * cfg["capital_anchor"]
+    return cap >= int(state.get("capital_outstanding") or 0)
+
+
+def construction_e1_payroll_boost_state(data: dict) -> str | None:
+    """E1 attacks 3-6: empty fund, unit fund, huge boost vs I4, cashbox 100 ticks."""
+    import tick as t
+    import sim as s
+
+    pack, _ = build.build_pack()
+    cfg = t.load_config(pack)
+    spec = pack["sections"]["sim"]["archetypes"]["minimalist"]
+
+    def two_cities() -> dict:
+        a = s.spawn_city(cfg, "minimalist", spec, "a", 1, 0)
+        b = s.spawn_city(cfg, "minimalist", spec, "b", 1, 0)
+        a["login_period"] = 1
+        b["login_period"] = 1
+        a["output_base"] = 300
+        b["output_base"] = 100
+        return t.new_state(cfg, {"a": a, "b": b}, {})
+
+    empty = two_cities()
+    empty["fund"] = 0
+    empty["tick_budget"] = cfg["ticks_day"] * cfg["payroll_daily_divisor"]
+    empty["day_budget"] = empty["tick_budget"]
+    empty["day_budget_day"] = cfg["anchor_day"]
+    try:
+        empty, _recs = t.tick(empty, _e1_tick_inputs(cfg, 1))
+    except t.TickError as exc:
+        return f"empty fund raised {exc.code}"
+    pa = int(empty["cities"]["a"].get("payout") or 0)
+    pb = int(empty["cities"]["b"].get("payout") or 0)
+    if pa != 0 or pb != 0:
+        return f"empty fund paid {pa} {pb}"
+
+    unit = two_cities()
+    unit["fund"] = 1
+    unit["tick_budget"] = cfg["ticks_day"] * cfg["payroll_daily_divisor"]
+    unit["day_budget"] = unit["tick_budget"]
+    unit["day_budget_day"] = cfg["anchor_day"]
+    unit["capital_outstanding"] = max(int(unit.get("capital_outstanding") or 0), 1)
+    unit["vault_corp"] = max(int(unit.get("vault_corp") or 0), 1)
+    try:
+        unit, _recs = t.tick(unit, _e1_tick_inputs(cfg, 1))
+        paid = int(unit["cities"]["a"].get("payout") or 0) + int(unit["cities"]["b"].get("payout") or 0)
+        if paid > 1:
+            return f"unit fund paid {paid} > 1"
+        if not _e1_i1_holds(cfg, unit):
+            return "unit fund broke I1"
+    except t.TickError as exc:
+        if exc.code == "I4_OVER_BUDGET":
+            return "unit fund fired I4_OVER_BUDGET"
+        if exc.code != "I4_ZERO_PAY":
+            return f"unit fund raised {exc.code}"
+        if not _e1_i1_holds(cfg, unit):
+            return "unit fund dust broke I1"
+
+    huge = two_cities()
+    _e1_arm_fund(cfg, huge, 200)
+    huge["day_budget_day"] = None
+    cfg_huge = dict(cfg)
+    cfg_huge["payroll_boost_bps"] = 1_000_000
+    cfg_huge["payroll_boost_launch_bps"] = 1_000_000
+    huge["cfg"] = cfg_huge
+    try:
+        huge, _recs = t.tick(huge, _e1_tick_inputs(cfg_huge, 0))
+    except t.TickError as exc:
+        if exc.code == "I4_OVER_BUDGET":
+            return "huge boost fired I4_OVER_BUDGET"
+        return f"huge boost raised {exc.code}"
+    paid_huge = int(huge["acc"].get("payroll_paid") or 0)
+    if paid_huge > int(huge.get("tick_budget") or 0):
+        return f"huge boost paid {paid_huge} over budget {huge.get('tick_budget')}"
+
+    box = two_cities()
+    _e1_arm_fund(cfg, box, 200)
+    box["reserve_corp"] = 0
+    box["reserve_cork"] = 0
+    box["day_budget_day"] = None
+    before = _e1_cashbox(box)
+    try:
+        for i in range(100):
+            box, _recs = t.tick(box, _e1_tick_inputs(cfg, i))
+    except t.TickError as exc:
+        return f"cashbox 100 raised {exc.code}"
+    after = _e1_cashbox(box)
+    if after != before:
+        return f"cashbox 100 fund+capital {before} -> {after}"
+    return None
+
+
+def construction_e2_window_days_left(data: dict) -> str | None:
+    """E2: days_left follows tick_index vs days×ticks_day, not state.day."""
+    import tick as t
+
+    pack, _ = build.build_pack()
+    cfg = t.load_config(pack)
+    days = cfg["payroll_boost_launch_city_days"]
+    ticks_day = cfg["ticks_day"]
+    launch = cfg["payroll_boost_launch_bps"]
+    steady = cfg["payroll_boost_bps"]
+    zero = {"tick_index": 0}
+    got0 = t._payroll_boost_days_left(cfg, zero)
+    if got0 != days:
+        return f"tick 0 days_left {got0} != {days}"
+    if t._payroll_boost_bps(cfg, zero) != launch:
+        return "tick 0 boost is not launch"
+    last = {"tick_index": days * ticks_day - 1}
+    got_last = t._payroll_boost_days_left(cfg, last)
+    if got_last != 1:
+        return f"last window tick days_left {got_last} != 1"
+    if t._payroll_boost_bps(cfg, last) != launch:
+        return "last window tick boost is not launch"
+    after = {"tick_index": days * ticks_day}
+    got_after = t._payroll_boost_days_left(cfg, after)
+    if got_after != 0:
+        return f"after window days_left {got_after} != 0"
+    if t._payroll_boost_bps(cfg, after) != steady:
+        return "after window boost is not steady"
+    return None
+
+
+def construction_e4_output_links_baked(data: dict) -> str | None:
+    """E4: baked output_links outnumber capital producers; plant mag is quantum × 3."""
+    pack, _problems = build.build_pack()
+    gen = ((pack.get("generated") or {}).get("buildings") or {})
+    links = gen.get("output_links") or {}
+    buildings = ((data.get("buildings") or {}).get("buildings") or {})
+    producers = [
+        bid
+        for bid, spec in buildings.items()
+        if isinstance(spec, dict) and spec.get("output") in ("capital", "capital_from_population")
+    ]
+    if len(links) <= len(producers):
+        return f"output_links {len(links)} <= producers {len(producers)}"
+    plant = links.get("energy_plant") or {}
+    base = int((((data.get("progression") or {}).get("params") or {}).get("node_effect_base_bps") or {}).get("v") or 0)
+    mult = int((((data.get("modifiers") or {}).get("params") or {}).get("building_link_quantum_mult") or {}).get("v") or 0)
+    want = base * mult * 3
+    got = int(plant.get("magnitude") or 0)
+    if got != want:
+        return f"energy_plant magnitude {got} != {want}"
+    return None
+
+
+def construction_e5_sleeper_recoups(data: dict) -> str | None:
+    """E5: sleeper paper return is at par; A is not payroll_boost_bps."""
+    pack, _problems = build.build_pack()
+    bal = (pack.get("generated") or {}).get("balance") or {}
+    rm = int(bal.get("return_min_bps") or 0)
+    ro = int(bal.get("return_opt_bps") or 0)
+    if rm < BPS:
+        return f"return_min_bps {rm} < BPS: sleeper is still a designed minus"
+    if ro <= rm:
+        return f"return_opt_bps {ro} <= return_min_bps {rm}: playing is not above sleeper"
+    a = int((((data.get("balance") or {}).get("params") or {}).get("fund_amplification_target_bps") or {}).get("v") or 0)
+    boost = int((((data.get("economy") or {}).get("params") or {}).get("payroll_boost_bps") or {}).get("v") or 0)
+    if boost > 0 and a == boost:
+        return f"A {a} equals payroll_boost_bps"
     return None
 
 
@@ -7073,9 +7400,12 @@ def construction_t6_zero_claims_keep_pool(data: dict) -> str | None:
 
 def construction_t6_window_derived(data: dict) -> str | None:
     days = fragments.window_days(data)
-    expected = data["economy"]["params"]["payroll_daily_divisor"]["v"]
+    expected = data["fragments"]["params"]["fragment_window_city_days"]["v"]
+    payroll = data["economy"]["params"]["payroll_daily_divisor"]["v"]
     if days != expected:
-        return f"derived window {days} != {expected}"
+        return f"derived window {days} != fragment_window_city_days {expected}"
+    if days == payroll:
+        return f"farm window {days} still aliases payroll_daily_divisor"
     caught = [e for e in _run_one(lint.l92_window_derived, data) if e.startswith("L92")]
     if caught:
         return f"L92 fired on derived window: {caught[0]}"
@@ -7115,7 +7445,9 @@ def construction_t6_l77_700_still_fails(data: dict) -> str | None:
 
 def construction_t7_zipf_floor(data: dict) -> str | None:
     n = data["seasons"]["params"]["prize_top_n"]["v"]
-    row = seasons.zipf_payout(BPS, n, rounding=seasons.ROUND_FLOOR)
+    row = seasons.zipf_payout(
+        BPS, n, rounding=seasons.ROUND_FLOOR, alpha_bps=seasons.zipf_curve_alpha(data)
+    )
     if not row["invariant_ok"] or row["sum_payout"] > BPS:
         return f"Zipf floor exceeded pool: {row}"
     caught = [e for e in _run_one(lint.l107_zipf_floor_le_pool, data) if e.startswith("L107")]
@@ -8995,8 +9327,12 @@ HUD_SHELL_CONSTRUCTION = (
     "hud_geometry_from_fixture",
     "bank_plaque_always_present",
     "payroll_row_appears_when_trimmed",
+    "payroll_coverage_shows_boost_without_trim",
+    "e2_launch_chip_shows_then_vanishes",
+    "e2_client_does_not_compute_launch_window",
     "stock_bar_shows_two_numbers",
     "building_select_opens_popover_not_route",
+    "preview_popover_facts_come_from_pack_roles",
     "keeps FunctionStrip as keyboard non-3D access at narrow widths",
     "keeps compact chrome copy unclipped without hiding primary state",
     "announces loading and error distinctly from empty/unavailable/stale",
@@ -9431,7 +9767,7 @@ def construction_launch_precondition_not_launched(data: dict) -> str | None:
 
 
 def construction_process_listens(data: dict) -> str | None:
-    want = ("api", "sampler", "buyback", "attestor", "llm")
+    want = ("api", "sampler", "buyback", "attestor")
     ports = ((data.get("arch") or {}).get("listen") or {}).get("ports") or {}
     overlay = data.get("_main_files")
     for sid in want:
@@ -10902,6 +11238,7 @@ def construction_research_objective_opens_node(data: dict) -> str | None:
             "c": {
                 "objective": "research",
                 "idle": "",
+                "research_focus": "grid",
                 "research_progress": 0,
             }
         }
@@ -10912,11 +11249,27 @@ def construction_research_objective_opens_node(data: dict) -> str | None:
     )
     if "grid" not in (state["cities"]["c"].get("research_unlocked") or []):
         return "advance_research did not open grid for compute-ready research"
+    unpaid = {
+        "cities": {
+            "c": {
+                "objective": "research",
+                "idle": "",
+                "research_progress": 0,
+            }
+        }
+    }
+    tick_mod._advance_research(
+        {"research_objective": "research", "research_time_ticks": {"grid": 1, "tools": 1}},
+        unpaid,
+    )
+    if unpaid["cities"]["c"].get("research_unlocked") or unpaid["cities"]["c"].get("research_focus"):
+        return "advance_research opened a node without research_start"
     idle_state = {
         "cities": {
             "c": {
                 "objective": "research",
                 "idle": "IDLE_NO_COMPUTE",
+                "research_focus": "grid",
                 "research_progress": 0,
             }
         }
@@ -12926,11 +13279,16 @@ def construction_rehearsal_pack_hash_equals_prod(data: dict) -> str | None:
 
 def construction_farm_window_settles_at_fourteen(data: dict) -> str | None:
     days = fragments.window_days(data)
-    div = int((((data.get("economy") or {}).get("params") or {}).get("payroll_daily_divisor") or {}).get("v") or 0)
-    if days != div:
-        return f"window_days {days} != payroll_daily_divisor {div}"
-    if days != 14:
-        return f"farm window is {days}, not fourteen"
+    payroll = int((((data.get("economy") or {}).get("params") or {}).get("payroll_daily_divisor") or {}).get("v") or 0)
+    src = int((((data.get("fragments") or {}).get("params") or {}).get("fragment_window_city_days") or {}).get("v") or 0)
+    if days != src:
+        return f"window_days {days} != fragment_window_city_days {src}"
+    if days != 7:
+        return f"farm window is {days}, not seven city days"
+    if payroll != 14:
+        return f"payroll_daily_divisor moved to {payroll}: wage horizon is not this change"
+    if days == payroll:
+        return "farm window aliases payroll_daily_divisor"
     if fragments.window_index(days, days) != 0:
         return "last day of window 0 is not index 0"
     if fragments.window_index(days + 1, days) != 1:
@@ -12943,11 +13301,16 @@ def construction_farm_window_settles_at_fourteen(data: dict) -> str | None:
         "v": 1,
         "u": "city_days",
         "src": "PLAN_RELEASE P5 A-P-4 ghost",
-        "why": "Stored farm window length would fork payroll_daily_divisor the first time the divisor moves",
+        "why": "Stored farm window length would fork fragment_window_city_days the first time the param moves",
     }
     caught = [e for e in _run_one(lint.l92_window_derived, stored) if e.startswith("L92")]
     if not caught:
         return "stored fragment_claim_window_city_days was not detected"
+    glued = copy.deepcopy(data)
+    a_l92_alias_payroll(glued)
+    caught_alias = [e for e in _run_one(lint.l92_window_derived, glued) if e.startswith("L92")]
+    if not caught_alias:
+        return "farm window aliased to payroll_daily_divisor was not detected"
     return None
 
 
@@ -12989,11 +13352,13 @@ def construction_chain_silence_does_not_block_tick(data: dict) -> str | None:
         _t.tick(state, _t11_inp(cfg, 0, {"feed_live": 0}))
     except Exception as exc:
         return f"feed_live=0 raised {type(exc).__name__}: {exc}"
-    llm = ((data.get("arch") or {}).get("services") or {}).get("llm") or {}
-    if int(llm.get("blocks_tick") or 0):
-        return "llm.blocks_tick=1"
-    if llm.get("fail_mode") != "open":
-        return "llm fail_mode is not open"
+    for sid, spec in ((data.get("arch") or {}).get("services") or {}).items():
+        if sid == "pack_gate":
+            continue
+        if int(spec.get("blocks_tick") or 0):
+            return f"{sid}.blocks_tick=1"
+        if spec.get("fail_mode") != "open":
+            return f"{sid} fail_mode is not open"
     return None
 
 
@@ -13090,6 +13455,10 @@ CONSTRUCTION = (
     ("float в ряде цен отвергается тиком", construction_tick_float_rejected),
     ("минт без депозита падает I3", construction_tick_i3),
     ("запросы выше бюджета: пропорция и payroll_ratio", construction_tick_payroll),
+    ("E1: пустой фонд, единица, огромный буст, касса 100 тиков", construction_e1_payroll_boost_state),
+    ("E2: days_left по tick_index, ноль после окна", construction_e2_window_days_left),
+    ("E4: output_links запечены, plant mag = quantum × 3", construction_e4_output_links_baked),
+    ("E5: спящий на пари, A не boost", construction_e5_sleeper_recoups),
     ("вывод больше дневного лимита: урезание и код", construction_tick_bank_cut),
     ("равные запросы банка: доли равны при любом имени и порядке", construction_l55_equal_asks_order),
     ("порядок ключей входа не меняет запись", construction_tick_key_order),
@@ -13123,7 +13492,7 @@ CONSTRUCTION = (
     ("T6 маяк playable+paid начисляет, L91 молчит", construction_t6_beacon_paid),
     ("T6 payroll_ratio=0: валидный тик всё равно капает фрагменты", construction_t6_payroll_zero_still_accrues),
     ("T6 sum_frag=0: пул 50 остаётся", construction_t6_zero_claims_keep_pool),
-    ("T6 окно derived 14, L92 молчит", construction_t6_window_derived),
+    ("T6 окно derived weekly, L92 молчит", construction_t6_window_derived),
     ("T6 сплит 10000+0, L93 молчит", construction_t6_split_6000_4000),
     ("T6 демо изолирован, L99 молчит", construction_t6_demo_isolated),
     ("T6 не отменил L77: +700 unpaid output всё ещё падает", construction_t6_l77_700_still_fails),
@@ -13229,13 +13598,13 @@ CONSTRUCTION = (
     ("ровно одно alwaysApply фазовое правило; live-phase.mdc нет", construction_code_phase_rule_not_always),
     ("денежные ключи roadmap на месте; owner_drain и снятие money_form детектируются", construction_money_stage_keys_exist),
     ("launch.deployed пуст целиком; частичное и полное заполнение детектируются", construction_launch_precondition_not_launched),
-    ("пять main.ts и listen.ports на entrypoint-сервисах", construction_process_listens),
+    ("четыре main.ts и listen.ports на entrypoint-сервисах", construction_process_listens),
     ("три пульса ws_heartbeat_s внутри sampler_period_s", construction_ws_heartbeat_derived),
     ("планировщик читает city_time, не Date и не tick(", construction_tick_scheduler_uses_city_time),
     ("boot без city_time сервера не рисует пустой HUD", construction_client_boot_requires_city_time),
     ("POST /command несёт intent_id и expected_city_time", construction_command_posts_intent),
     ("HUD txn truth: typed intent, hours/level/quote/log, no fake confirm", construction_hud_txn_truth),
-    ("compose из пака: пять сервисов + postgres, образ без pglite", construction_compose_from_pack),
+    ("compose из пака: четыре сервиса + postgres, образ без pglite", construction_compose_from_pack),
     ("openPg на pg, PGlite остаётся харнессом", construction_postgres_replay_matches_pglite),
     ("минт Capital только после депозита; Bank.sol роняет L277", construction_vault_deposit_then_mint),
     ("часов банка нет в src; weekday роняет L277", construction_bank_not_onchain),
@@ -13311,7 +13680,7 @@ CONSTRUCTION = (
     ("бэкап со свидетелем реплея; снятие свидетеля роняет L324", construction_restore_replay_matches_origin),
     ("tick_locks на месте; снятие таблицы роняет L322", construction_two_replicas_tick_once),
     ("репетиция на прод-паке; сжатые сутки города роняют L325", construction_rehearsal_pack_hash_equals_prod),
-    ("окно фарма = divisor; хранимая длина окна роняет L92", construction_farm_window_settles_at_fourteen),
+    ("окно фарма = 7 суток; склейка с фондом и хранимая длина роняют L92", construction_farm_window_settles_at_fourteen),
     ("период призов 30 суток; делитель 4 роняет L282", construction_prize_period_settles_at_thirty),
     ("молчание цепи не останавливает тик; closed attestor роняет L246", construction_chain_silence_does_not_block_tick),
     ("метрика измерена, не скопирована с порога; observe=threshold и импорт helper роняют L326", construction_metric_observed_is_measured),
@@ -13388,6 +13757,24 @@ SERIAL_PROBES = frozenset(
     {
         "construction_t10_layout_missing_pack",
         "construction_t10_layout_missing_scene",
+        # ensure_heroes writes the same GLB paths. Parallel workers lose os.replace on Windows.
+        "a_l374_drop_hero",
+        "a_l374_clone_sha",
+        "a_l374_lod_not_lighter",
+        "a_l374_nvidia_clone",
+        "a_l374_missing_glb",
+        "a_l374_high_quads_drift",
+        "a_l374_extra_hero",
+        "a_l374_no_loader",
+        "a_l375_drop_plant",
+        "a_l375_no_span",
+        "a_l375_spawn_effect",
+        "a_l375_engine_glb",
+        "a_l375_filler",
+        "a_l375_sticker_lot",
+        "construction_visual3_heroes_by_building_id",
+        "construction_visual3_lod_lighter_than_high",
+        "construction_visual3_plant_on_lot",
     }
 )
 
@@ -13470,11 +13857,17 @@ def _split_index(index: int) -> tuple[str, int]:
 def _serial_indices() -> set[int]:
     n_a = _n_attacks()
     n_d = _n_direct()
-    return {
+    out = {
+        i
+        for i, (_, _, fn) in enumerate(ATTACKS)
+        if fn.__name__ in SERIAL_PROBES
+    }
+    out.update(
         n_a + n_d + i
         for i, (_, fn) in enumerate(CONSTRUCTION)
         if fn.__name__ in SERIAL_PROBES
-    }
+    )
+    return out
 
 
 def _selected_indices(args: argparse.Namespace) -> list[int]:

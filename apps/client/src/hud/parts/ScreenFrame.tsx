@@ -12,7 +12,7 @@ export type ScreenProps = {
   readonly failed: ReadonlySet<string>
   readonly loading: boolean
   readonly onClose: () => void
-  readonly onNavigate: (id: string) => void
+  readonly onNavigate: (id: string, objectId?: string) => void
   readonly pendingCell: string
   readonly pendingTileX: bigint
   readonly pendingTileY: bigint
@@ -23,6 +23,10 @@ export type ScreenProps = {
   readonly onLocal: (effect: string) => void
   readonly lookId?: string
   readonly selectedObjectId?: string
+  readonly commandRefusal?: { readonly action: string; readonly code: string }
+  readonly bankVoucher?: import("../screens/bank.js").BankVoucher
+  readonly stockOut?: string
+  readonly adapterCode?: string
 }
 
 export type ScreenFrameProps = {
@@ -50,6 +54,8 @@ export function ScreenFrame(props: ScreenFrameProps): ReactElement {
       data-mount={mount}
       data-loading-kind={loadingKind}
       data-empty-kind={chrome === undefined ? "" : chrome.emptyKind}
+      data-busy={props.loading ? "1" : "0"}
+      data-empty={props.empty ? "1" : "0"}
       className={`hud-screen hud-screen--${mount}`}
     >
       <header className="hud-screen__bar">

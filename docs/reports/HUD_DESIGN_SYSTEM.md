@@ -3,11 +3,11 @@
 - Source path: `C:\Users\sk640\Desktop\corporator_hud_system.md`
 - Source SHA256: `08C3621AB06F13E73BAE1F753CAA1FDD2D043219CF7B39944ADC0F4425FC51D4`
 - Ingestion date: 2026-09-15
-- Authority / status: this ingested repository copy is the HUD visual and interaction-design authority for Corporator. `hud_prompt.md` is not HUD authority. `docs/SCREENS.md` remains the mechanical screen, route, and refusal contract. `docs/reports/TZ_HUD.md` remains legacy reference only. Do not restore `HUD.md`.
+- Authority / status: errata only (no Settings, no bottom nav, Recent Activity ≤ 3). Not the lock of look. Live HUD look is `hud/design-reference/` (`00` + `DESIGN_SCHEME.md`) and `.cursor/rules/hud-visual.mdc`. `docs/SCREENS.md` remains the mechanical screen, route, and refusal contract. `docs/archive/reports/hud_prompt.md` and `docs/archive/reports/TZ_HUD.md` are archive (`R-V-102`); do not execute them. Do not restore `HUD.md`.
 
 ## Phase 1 Errata
 
-These errata resolve already-audited contradictions in the ingested v1.1 body. They do not add mechanics, screens, routes, or data sources, and they do not rewrite the specification body. Where the body conflicts with this block, this block wins. This copy has one authority and one status; do not invent v1.2 or new 8.x sections.
+These errata resolve already-audited contradictions in the ingested v1.1 body. They do not add mechanics, screens, routes, or data sources, and they do not rewrite the specification body. Where the body conflicts with this block, this block wins. This block does not win over `hud/design-reference/`. Do not invent v1.2 or new 8.x sections.
 
 1. **No permanent bottom navigation.** There is no permanent bottom nav on any device. Old STEP 5 wording and any bottom-dock wording in the body are historical and non-executable. Do not restore a bottom dock, a priority bar, or a More bar.
 
@@ -19,7 +19,9 @@ These errata resolve already-audited contradictions in the ingested v1.1 body. T
 
 5. **Version labels are section-local history.** Labels such as UPDATE v1.1 / v1.3 / … / v1.8 in the body are section-local history of those sections. They do not change the authority or status of this ingested copy.
 
-6. **Typography.** IBM Plex Sans for UI text; JetBrains Mono for technical and data text (balances, time, statuses, tabular values). Both faces are local/vendored; no CDN.
+6. **Typography.** IBM Plex Sans for UI text; JetBrains Mono for technical and data text (balances, time, statuses, tabular values). Both faces are local/vendored; no CDN. Source Serif 4 from archived `hud_prompt.md` is not a live HUD face.
+
+7. **Look lock is outside this file.** `hud/design-reference/` is the visual source. Navy glass and older type ramps in the ingested body are not executable look.
 
 ---
 CORPORATOR — HUD DESIGN SYSTEM v1.1
@@ -336,7 +338,7 @@ The popover contains:
 - Manage action;
 - relevant schedule/reason when useful.
 
-Position it relative to the actual building.
+Position it relative to the actual building: prefer a slot below the projected GLB box, flip above (or beside) when the lower slot would cover the mesh or chrome.
 
 Keep the selected building visible whenever possible.
 
@@ -1478,6 +1480,10 @@ Show when supported:
 - Capital cost;
 - defined effect change;
 - supplied upgrade duration only when actually available.
+
+API `commit:upgrade` is live: the client posts `building_id`. Cost is
+`generated.balance.level_cost` for the next level; City Hall is not
+player-upgraded. Cap is `TIER_NOT_UNLOCKED`.
 
 Never invent:
 - construction state;
@@ -3642,15 +3648,16 @@ Do not create physical construction behavior or new buildings as a visual result
 
 15. RUNTIME QUALIFICATION
 
-Merge is authored/generated in content, but the current API does not implement
-the merge command.
+Merge is authored/generated in content. API `commit:merge` is live: the client
+posts `merge_id` from `generated.progression.progression_merges`. Matching,
+min-tier, pack magnitude (`C-20`) and `merge_cost` are enforced on the server.
 
 Therefore:
 
 - design the canonical UI fully;
 - fixture/demo states may be used explicitly;
 - do not present fixture data as live state;
-- unavailable live execution must be shown honestly.
+- a matching block is `MERGE_MATCHING_BLOCKED`, not a silent grey button.
 
 
 ==================================================
@@ -4629,8 +4636,8 @@ Fragments:
 
 Farm window:
 
-- 14 global protocol days.
-- 350 real hours per window.
+- 7 global protocol days.
+- 175 real hours per window.
 - All cities share the same Farm windows.
 - Personal city calendars do not create separate Farm pools.
 - Settlement occurs at the start of the next global window at its designated boundary.
@@ -4930,7 +4937,7 @@ Treat the design above as canonical UI specification.
 Current implementation is partial:
 - fragment settlement logic exists,
 - fragment accrual still has synthetic dependencies,
-- fragment claim / external reward custody is partial,
+- fragment claim pays settled `fragment_owed` into `tokens_held` via live `commit:claim_fragment`; it does not hop to ERC-20 custody,
 - full client reward state is incomplete.
 
 Therefore fixture/demo values must never be presented as live values.
@@ -5563,9 +5570,7 @@ UI должен показывать:
 - transaction state
 
 Важно:
-API deposit route в текущем runtime отсутствует.
-UI НЕ должен изображать подтверждённый live deposit, если backend/adapter этого реально не поддерживает.
-При отсутствии capability использовать явный unavailable / not implemented / integration state.
+API `commit:deposit` is live: the client posts `amount`. Capital is minted only through `mintFromBacking` after `corp_held` is debited. Review → Confirm remains. Do not treat a review screen as confirmed custody.
 
 ## Withdraw
 
@@ -5592,7 +5597,7 @@ City Sunday:
 
 ### Global limit
 Global limit:
-live pool ETH × 0.01
+live pool ETH × 0.05
 
 Лимит сбрасывается на каждом global protocol day.
 
@@ -5688,8 +5693,8 @@ ReviewPanel перед подтверждением должен показыв�
 
 Из authoritative implementation state:
 - engine reservation path существует;
-- API withdraw command / voucher presentation host отсутствует;
-- tick withdraw_intent может всё ещё заполниться сразу.
+- API `commit:withdraw` is live: authorize then present; Capital burns, vault $CORP credits `corp_held`;
+- tick `withdraw_intent` / `bankWithdraw` still fills immediately (`C-22`, left in place).
 
 Поэтому документация и UI должны описывать canonical intended flow, но НЕ выдавать его за полностью работающий production flow.
 
@@ -6072,7 +6077,7 @@ Production DEX:
 - received token balance;
 - chain receipt.
 
-UI должен отражать partial / unavailable integration state, если capability отсутствует.
+UI должен отражать partial / unavailable integration state, если capability отсутствует. HUD does not open Review → Confirm until the hop is priced; otherwise `EXCHANGE_HOP_UNAVAILABLE` before the wizard.
 
 ## 13. Shared Constructor
 

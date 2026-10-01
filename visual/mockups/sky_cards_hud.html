@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Corporator — Sky Cards HUD mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0D2E51;
+      --act: #2667EB;
+      --line: #CFE0F4;
+      --veil: rgba(255, 255, 255, 0.16);
+      --pop: rgba(255, 255, 255, 0.86);
+      --work: rgba(255, 255, 255, 0.92);
+      --good: #1F9D6A;
+      --warn: #D4892A;
+      --bad: #D15A5A;
+      --track: #E4EEF8;
+      --muted: color-mix(in srgb, #0D2E51 68%, white);
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-7: 32px;
+      --r-ctl: 8px;
+      --r-card: 12px;
+      --r-panel: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #7eb6e4; }
+    body {
+      font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+      color: var(--ink);
+      overflow: hidden;
+    }
+    button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    img { display: block; max-width: 100%; }
+
+    .frame {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .stage {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1920px;
+      height: 1080px;
+      margin: -540px 0 0 -960px;
+      transform: scale(var(--fit, 1));
+      background: #9fd0f4;
+      overflow: hidden;
+    }
+
+    .island-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 44%;
+      pointer-events: none;
+    }
+    .hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .hud * { pointer-events: auto; }
+
+    .topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: var(--space-6);
+      padding: 28px 40px 12px;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .brand strong {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+    .brand span {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .clock {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 280px;
+    }
+    .clock-day {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+    }
+    .clock-time {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    .clock-meta {
+      display: flex;
+      gap: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .hours {
+      width: 220px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--track);
+      position: relative;
+    }
+    .hours i {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 62%;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--act) 55%, white);
+    }
+    .hours b {
+      position: absolute;
+      top: -3px;
+      left: 54%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--act);
+    }
+    .top-right {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .chip--good { color: var(--good); }
+    .chip--ink { color: var(--ink); }
+    .chip--muted { color: var(--muted); }
+    .ico {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      color: var(--ink);
+    }
+    .ico svg { width: 18px; height: 18px; }
+    .badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 14px;
+      height: 14px;
+      padding: 0 3px;
+      border-radius: 999px;
+      background: var(--act);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 14px;
+      text-align: center;
+    }
+    .wallet {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      line-height: 1.15;
+    }
+    .wallet b { font-weight: 600; font-size: 12px; }
+    .wallet span { font-size: 10px; font-weight: 500; color: var(--muted); letter-spacing: 0.04em; }
+
+    .group {
+      position: absolute;
+      width: 260px;
+      padding: 8px 4px;
+      text-shadow: 0 1px 10px rgba(255, 255, 255, 0.72);
+    }
+    .group::before {
+      content: "";
+      position: absolute;
+      inset: -28px -36px;
+      background: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.22), transparent 72%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    .group--left { left: 40px; top: 118px; }
+    .group--right { right: 40px; top: 118px; }
+    .group--bl { left: 40px; bottom: 40px; width: 470px; }
+    .group--br { right: 40px; bottom: 40px; width: 340px; }
+    .kicker {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .rule {
+      height: 1px;
+      background: var(--line);
+      margin: 12px 0;
+    }
+    .hero-k {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .hero-v {
+      margin-top: 2px;
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+    .hero-sub {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .row b { font-weight: 600; }
+    .hint {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+    .bar {
+      margin-top: 8px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--track);
+      overflow: hidden;
+    }
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--act);
+    }
+    .link {
+      color: var(--act);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-rows { display: flex; flex-direction: column; gap: 10px; }
+    .status-rows .row { font-size: 13px; }
+    .pop-next { margin-top: 14px; }
+
+    .fns {
+      display: flex;
+      gap: 10px;
+    }
+    .fn {
+      width: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .fn.is-on .thumb {
+      outline: 1.5px solid var(--act);
+      outline-offset: 1px;
+    }
+    .thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--r-card);
+      background: #e4f1fb;
+      overflow: hidden;
+    }
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .fn span {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-align: center;
+      max-width: 76px;
+    }
+    .fn-status {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--good);
+      display: inline-block;
+      margin-right: 4px;
+      vertical-align: 1px;
+    }
+    .fn-status.warn { background: var(--warn); }
+
+    .events { display: flex; flex-direction: column; }
+    .ev-h {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .event {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 8px 12px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+    .event time {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .event strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .event em {
+      display: block;
+      margin-top: 2px;
+      font-style: normal;
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .hotspot {
+      position: absolute;
+      left: 910px;
+      top: 390px;
+      width: 96px;
+      height: 96px;
+      border-radius: 18px;
+      border: 1.5px solid transparent;
+    }
+    body[data-view="popover"] .hotspot {
+      border-color: color-mix(in srgb, var(--act) 70%, white);
+      box-shadow: 0 0 0 6px rgba(38, 103, 235, 0.12);
+    }
+
+    .popover {
+      display: none;
+      position: absolute;
+      left: 1030px;
+      top: 280px;
+      width: 312px;
+      padding: 14px;
+      background: var(--pop);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      backdrop-filter: blur(16px);
+    }
+    body[data-view="popover"] .popover { display: block; }
+    .pop-art {
+      height: 132px;
+      border-radius: 10px;
+      background: #e7f1fb;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .pop-art img { width: 100%; height: 100%; object-fit: contain; }
+    .pop-h {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .pop-h strong { font-size: 16px; font-weight: 600; }
+    .pop-h span { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 8px 0 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+    .status .dot { background: var(--good); }
+    .fact {
+      font-size: 13px;
+      font-weight: 500;
+      margin: 6px 0;
+    }
+    .fact span { color: var(--muted); font-weight: 400; }
+    .primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 40px;
+      margin-top: 16px;
+      border-radius: var(--r-ctl);
+      background: var(--act);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .ghost {
+      height: 40px;
+      padding: 0 16px;
+      border-radius: var(--r-ctl);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .workspace {
+      display: none;
+      position: absolute;
+      top: 84px;
+      right: 24px;
+      bottom: 24px;
+      width: min(480px, 38vw);
+      background: var(--work);
+      border: 1px solid var(--line);
+      border-radius: var(--r-panel);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      flex-direction: column;
+    }
+    body[data-view="workspace"] .workspace { display: flex; }
+    body[data-view="workspace"] .group--right,
+    body[data-view="workspace"] .group--br,
+    body[data-view="workspace"] .group--bl,
+    body[data-view="workspace"] .popover,
+    body[data-view="workspace"] .hotspot { display: none; }
+
+    .ws-h {
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 18px 12px;
+    }
+    .ws-h .thumb { width: 64px; height: 64px; }
+    .ws-h h2 { margin: 0; font-size: 18px; font-weight: 600; }
+    .ws-h p { margin: 4px 0 0; font-size: 12px; font-weight: 500; color: var(--muted); }
+    .close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 18px;
+      color: var(--muted);
+    }
+    .tabs {
+      display: flex;
+      gap: 18px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .tab {
+      padding: 10px 0 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      border-bottom: 1.5px solid transparent;
+    }
+    .tab.is-on {
+      color: var(--act);
+      font-weight: 600;
+      border-bottom-color: var(--act);
+    }
+    .ws-body {
+      flex: 1;
+      overflow: auto;
+      padding: 16px 18px 8px;
+    }
+    .ws-body h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 16px;
+    }
+    .metric-grid b { display: block; margin-top: 2px; font-size: 16px; font-weight: 600; }
+    .agent {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      padding: 12px 0;
+    }
+    .portrait {
+      width: 56px;
+      height: 68px;
+      border-radius: 8px;
+      background: #e7f1fb;
+      overflow: hidden;
+    }
+    .portrait img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
+    .ws-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px 16px;
+      border-top: 1px solid var(--line);
+    }
+    .ws-actions .primary { width: auto; flex: 1; margin: 0; }
+    .note { font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 8px; }
+
+    .preview {
+      position: fixed;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(13, 46, 81, 0.55);
+      color: #fff;
+      z-index: 30;
+      pointer-events: auto;
+    }
+    .preview button {
+      height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.75);
+    }
+    .preview button.is-on { background: #fff; color: var(--ink); }
+    body.hide-chrome .preview { display: none; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .popover, .workspace { transition: opacity 180ms ease, transform 180ms ease; }
+    }
+  </style>
+</head>
+<body data-view="hud">
+  <div class="frame">
+  <div class="stage">
+    <img class="island-img" src="../island/island1.png" alt="" />
+    <div class="hud">
+      <header class="topbar">
+        <div class="brand">
+          <strong>CORPORATOR</strong>
+          <span>CITY 01 · LEVEL 4</span>
+        </div>
+        <div class="clock">
+          <div class="clock-day">DAY 17</div>
+          <div class="clock-time">14:32</div>
+          <div class="clock-meta"><span>DAY</span><span>WORKING HOURS</span></div>
+          <div class="hours" aria-label="Working hours 08:00 to 20:00"><i></i><b></b></div>
+        </div>
+        <div class="top-right">
+          <span class="chip chip--good" title="Bank open until 20:00 city time"><i class="dot"></i> OPEN until 20:00</span>
+          <span class="chip chip--ink">SEASON 01</span>
+          <span class="ico" aria-label="Notifications, 2 unread">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 9a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+            <span class="badge">2</span>
+          </span>
+          <div class="wallet">
+            <b>CONNECTED</b>
+            <span>$CORP wallet</span>
+          </div>
+          <span class="chip chip--good" aria-label="Connection live"><i class="dot"></i> LIVE</span>
+        </div>
+      </header>
+
+      <section class="group group--left" aria-label="Economy">
+        <div class="kicker">ECONOMY</div>
+        <div class="hero-k">CAPITAL</div>
+        <div class="hero-v">124,800</div>
+        <div class="hero-sub">+1,240 · Paid last tick</div>
+        <div class="rule"></div>
+        <div class="row"><span>PAYROLL</span><b>86%</b></div>
+        <div class="bar" aria-label="Payroll coverage 86%"><i style="width:86%"></i></div>
+        <span class="hint">Last tick coverage · cut applied to everyone</span>
+        <div class="rule"></div>
+        <div class="row"><span>ENERGY</span><b>800 / 1,000</b></div>
+        <div class="row" style="margin-top:10px"><span>COMPUTE</span><b>400 / 600</b></div>
+      </section>
+
+      <section class="group group--right" aria-label="City status">
+        <div class="kicker">CITY STATUS</div>
+        <div class="status-rows">
+          <div class="row"><span>POPULATION</span><b>1,284</b></div>
+          <div class="bar" aria-label="Progress to next city level"><i style="width:64%"></i></div>
+          <span class="hint">To next City Level</span>
+          <div class="row"><span>CITY LEVEL</span><b>4</b></div>
+          <div class="rule"></div>
+          <div class="row"><span>PRODUCTIVITY</span><b>82%</b></div>
+          <div class="row"><span>HAPPINESS</span><b>71%</b></div>
+          <div class="row"><span>STABILITY</span><b>94%</b></div>
+        </div>
+        <button class="link pop-next" type="button">View details</button>
+      </section>
+
+      <section class="group group--bl" aria-label="Active functions">
+        <div class="kicker">ACTIVE FUNCTIONS</div>
+        <div class="fns">
+          <button class="fn is-on" type="button" data-open="popover">
+            <div class="thumb"><img src="thumbs/workshop.png" alt="" /></div>
+            <span><i class="fn-status"></i>Workshop</span>
+          </button>
+          <button class="fn" type="button" data-open="popover">
+            <div class="thumb"><img src="thumbs/power-node.png" alt="" /></div>
+            <span><i class="fn-status warn"></i>Power Node</span>
+          </button>
+          <button class="fn" type="button">
+            <div class="thumb"><img src="thumbs/bank.png" alt="" /></div>
+            <span><i class="fn-status"></i>Bank</span>
+          </button>
+          <button class="fn" type="button">
+            <div class="thumb"><img src="thumbs/exchange.png" alt="" /></div>
+            <span><i class="fn-status"></i>Exchange</span>
+          </button>
+          <button class="fn" type="button">
+            <div class="thumb"><img src="thumbs/ai-research.png" alt="" /></div>
+            <span><i class="fn-status"></i>AI Research</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="group group--br" aria-label="Recent activity">
+        <div class="ev-h">
+          <div class="kicker" style="margin:0">RECENT ACTIVITY</div>
+          <button class="link" type="button">View all</button>
+        </div>
+        <div class="events">
+          <article class="event">
+            <time>14:31</time>
+            <div><strong>WORKSHOP</strong><em>Work resumed · Energy available</em></div>
+          </article>
+          <article class="event">
+            <time>14:12</time>
+            <div><strong>POWER NODE</strong><em>Stopped · Insufficient Energy</em></div>
+          </article>
+          <article class="event">
+            <time>13:48</time>
+            <div><strong>EXCHANGE</strong><em>Trade completed</em></div>
+          </article>
+        </div>
+      </section>
+
+      <button class="hotspot" type="button" data-open="popover" aria-label="Select Workshop"></button>
+
+      <aside class="popover" aria-label="Workshop">
+        <div class="pop-art"><img src="thumbs/workshop.png" alt="Workshop" /></div>
+        <div class="pop-h"><strong>WORKSHOP</strong><span>LV 2</span></div>
+        <div class="status"><i class="dot"></i> RUNNING</div>
+        <div class="fact">Engineer · Alex R.</div>
+        <div class="fact">Produce</div>
+        <div class="fact"><span>Last paid tick</span> · +24 Capital</div>
+        <div class="fact"><span>Schedule</span> · Always</div>
+        <button class="primary" type="button" data-open="workspace">Manage</button>
+      </aside>
+
+      <aside class="workspace" aria-label="Building workspace">
+        <header class="ws-h">
+          <div class="thumb"><img src="thumbs/workshop.png" alt="" /></div>
+          <div>
+            <h2>Workshop</h2>
+            <p>Level 2 · <span class="chip chip--good" style="gap:6px"><i class="dot"></i> RUNNING</span></p>
+          </div>
+          <button class="close" type="button" data-open="hud" aria-label="Close">×</button>
+        </header>
+        <nav class="tabs" aria-label="Workspace tabs">
+          <button class="tab is-on" type="button" data-tab="overview">Overview</button>
+          <button class="tab" type="button" data-tab="staffing">Staffing</button>
+          <button class="tab" type="button" data-tab="upgrades">Upgrades</button>
+          <button class="tab" type="button" data-tab="activity">Activity</button>
+        </nav>
+        <div class="ws-body" id="tab-overview">
+          <h3>FUNCTION</h3>
+          <p class="fact" style="margin-top:0">Produces Capital each paid tick. No industry lock.</p>
+          <div class="rule"></div>
+          <div class="metric-grid">
+            <div><h3>OUTPUT</h3><b>+24 Capital</b><span class="hint">Per paid tick</span></div>
+            <div><h3>SCHEDULE</h3><b>Always</b><span class="hint">Working hours 08:00–20:00</span></div>
+            <div><h3>ENERGY</h3><b>120 / tick</b><span class="hint">Available 800</span></div>
+            <div><h3>WORKER</h3><b>Engineer</b><span class="hint">Alex R. · Lv 3</span></div>
+          </div>
+        </div>
+        <div class="ws-body" id="tab-staffing" hidden>
+          <h3>ASSIGNED</h3>
+          <div class="agent">
+            <div class="portrait"><img src="thumbs/engineer.png" alt="" /></div>
+            <div>
+              <div class="pop-h"><strong>Alex R.</strong><span>LV 3</span></div>
+              <div class="fact">Engineer</div>
+              <div class="fact">Workshop · Produce · <span class="status" style="margin:0;letter-spacing:0.08em">WORKING</span></div>
+              <div class="bar" style="margin-top:10px"><i style="width:52%"></i></div>
+              <span class="hint">XP 420 / 800</span>
+            </div>
+          </div>
+        </div>
+        <div class="ws-body" id="tab-upgrades" hidden>
+          <h3>NEXT LEVEL</h3>
+          <div class="row"><span>Level 2 → 3</span><b>48,000 Capital</b></div>
+          <p class="hint">Effect: +1 base output per paid tick. No construction site. Slot stays occupied.</p>
+          <div class="rule"></div>
+          <div class="row"><span>Duration</span><b>12 city ticks</b></div>
+        </div>
+        <div class="ws-body" id="tab-activity" hidden>
+          <article class="event" style="border-top:0;padding-top:0">
+            <time>14:31</time>
+            <div><strong>Work resumed</strong><em>Energy available</em></div>
+          </article>
+          <article class="event">
+            <time>14:08</time>
+            <div><strong>Paid tick</strong><em>+24 Capital · Alex R.</em></div>
+          </article>
+          <article class="event">
+            <time>13:44</time>
+            <div><strong>Idle</strong><em>нет energy</em></div>
+          </article>
+        </div>
+        <footer class="ws-actions">
+          <div>
+            <button class="ghost" type="button">Deactivate</button>
+            <div class="note">Does not release this function’s logical slot.</div>
+          </div>
+          <button class="primary" type="button">Upgrade</button>
+        </footer>
+      </aside>
+    </div>
+
+  </div>
+    <nav class="preview" aria-label="Mockup states">
+      <button type="button" class="is-on" data-open="hud">HUD</button>
+      <button type="button" data-open="popover">Popover</button>
+      <button type="button" data-open="workspace">Workspace</button>
+    </nav>
+  </div>
+
+  <script>
+    const body = document.body;
+    const previewBtns = [...document.querySelectorAll(".preview button")];
+    function fit() {
+      document.documentElement.style.setProperty("--fit", String(Math.min(innerWidth / 1920, innerHeight / 1080)));
+    }
+    addEventListener("resize", fit);
+    fit();
+    function setView(view) {
+      body.dataset.view = view;
+      previewBtns.forEach((btn) => btn.classList.toggle("is-on", btn.dataset.open === view));
+    }
+    document.querySelectorAll("[data-open]").forEach((el) => {
+      if (el.closest(".preview") || el.classList.contains("tab")) return;
+      el.addEventListener("click", () => setView(el.dataset.open));
+    });
+    previewBtns.forEach((btn) => btn.addEventListener("click", () => setView(btn.dataset.open)));
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("is-on", t === tab));
+        ["overview", "staffing", "upgrades", "activity"].forEach((id) => {
+          const pane = document.getElementById("tab-" + id);
+          if (pane) pane.hidden = id !== tab.dataset.tab;
+        });
+      });
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setView("hud");
+      if (e.key === "1") setView("hud");
+      if (e.key === "2") setView("popover");
+      if (e.key === "3") setView("workspace");
+    });
+    const params = new URLSearchParams(location.search);
+    if (params.get("chrome") === "0") body.classList.add("hide-chrome");
+    const start = params.get("view");
+    if (start === "popover" || start === "workspace" || start === "hud") setView(start);
+    fetch("../island/island1.png").then((r) => r.blob()).then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const island = document.querySelector(".island-img");
+      if (island) island.src = url;
+    }).catch(() => {});
+  </script>
+</body>
+</html>

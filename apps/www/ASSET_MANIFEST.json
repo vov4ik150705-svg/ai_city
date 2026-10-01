@@ -1,0 +1,38 @@
+{
+  "status": "Studio renders from assets/website. Not live gameplay screenshots.",
+  "heroIsland": {
+    "source": "assets/website/island_site_hero/06_banner.png",
+    "srcSet": "assets/website/island_site_hero/01_match.png 800w, assets/website/island_site_hero/06_banner.png 1536w",
+    "placements": ["Home hero", "The Game / fixed-island editorial illustration"],
+    "treatment": "Responsive srcset, radial edge mask, midnight background; no ocean, roaming units, construction, or WebGL."
+  },
+  "industryArtwork": {
+    "source": "assets/website/buildings_std",
+    "assets": {
+      "Compute / AI Research Center": "ai_research_center.png",
+      "Energy / Energy Plant": "energy_plant.png",
+      "Logistics / Logistics Hub": "logistics_hub.png",
+      "Consumer / Flagship Store": "flagship_store.png",
+      "Automation / Cloud Campus": "cloud_campus.png",
+      "Finance / Finance Tower": "finance_tower.png"
+    }
+  },
+  "gameplayExample": {
+    "asset": "assets/website/buildings_std/workshop.png",
+    "placements": ["The Game / Workshop rule explorer"]
+  },
+  "workforce": {
+    "source": "assets/website/units",
+    "assets": [
+      "Engineer_anfas.png",
+      "Logistician_anfas.png",
+      "trader_anfas.png",
+      "scientist_anfas.png",
+      "manager_anfas.png"
+    ]
+  },
+  "brand": {
+    "logo": "CSS/typographic C mark in src/components.tsx",
+    "favicon": "public/favicon.svg"
+  }
+}

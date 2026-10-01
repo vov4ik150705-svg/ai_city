@@ -1,0 +1,142 @@
+:root {
+  --site-font-display: "TT Octosquares Condensed";
+  --site-font-body: "Roboto", system-ui, sans-serif;
+  --site-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --site-bg-light: #f4f6f9;
+  --site-sky-fallback: #9ccff8;
+  --site-surface: #ffffff;
+  --site-surface-glass: rgba(255, 255, 255, 0.72);
+  --site-text-primary: #0b0f14;
+  --site-text-secondary: #3a4049;
+  --site-text-muted: #6b7380;
+  --site-text-inverse: #ffffff;
+  --site-border: rgba(11, 15, 20, 0.12);
+  --site-border-subtle: rgba(11, 15, 20, 0.07);
+  --site-border-active: #0b0f14;
+  --site-chip-border: #9db7d3;
+  --site-input-bg: rgba(255, 255, 255, 0.85);
+
+  --site-dark-bg: #0c151b;
+  --site-dark-surface: #121c24;
+  --site-dark-text-primary: #ffffff;
+  --site-dark-text-secondary: #c8d0d8;
+  --site-dark-text-muted: #8793a0;
+  --site-dark-border: rgba(255, 255, 255, 0.12);
+
+  --site-cta-bg: #151a21;
+  --site-cta-bg-hover: #262d36;
+  --site-cta-bg-active: #000000;
+  --site-cta-text: #ffffff;
+  --site-secondary-border: #151a21;
+  --site-secondary-bg-hover: rgba(11, 15, 20, 0.06);
+  --site-cta-on-dark-bg: #0b1116;
+  --site-disabled-opacity: 0.4;
+  --site-success: #1bb920;
+  --site-info: #2f6feb;
+  --site-warning: #f5a524;
+  --site-danger: #e5484d;
+  --site-focus: #2f6feb;
+
+  --site-ind-compute: #33e01f;
+  --site-ind-energy: #ff0014;
+  --site-ind-logistics: #fd9b00;
+  --site-ind-consumer: #6b01fd;
+  --site-ind-automation: #00d3fe;
+  --site-ind-finance: #006ffe;
+
+  --site-role-engineer: #f28c28;
+  --site-role-logistician: #3d6bd9;
+  --site-role-trader: #9b5cff;
+  --site-role-scientist: #1fc8c8;
+  --site-role-manager: #ffffff;
+
+  --block-accent: var(--site-border-active);
+
+  --site-scale: 0.88;
+
+  --site-space-1: calc(4px * var(--site-scale));
+  --site-space-2: calc(8px * var(--site-scale));
+  --site-space-3: calc(12px * var(--site-scale));
+  --site-space-4: calc(16px * var(--site-scale));
+  --site-space-5: calc(24px * var(--site-scale));
+  --site-space-6: calc(32px * var(--site-scale));
+  --site-space-7: calc(48px * var(--site-scale));
+  --site-space-8: calc(64px * var(--site-scale));
+  --site-space-9: calc(96px * var(--site-scale));
+  --site-space-10: calc(128px * var(--site-scale));
+
+  --site-section-y: calc(96px * var(--site-scale));
+  --site-page-top: calc(var(--site-header-h) + 48px * var(--site-scale));
+  --site-page-bottom: calc(96px * var(--site-scale));
+  --site-heading-to-body: calc(24px * var(--site-scale));
+  --site-body-to-cta: calc(48px * var(--site-scale));
+  --site-card-pad: calc(24px * var(--site-scale));
+  --site-card-gap: calc(24px * var(--site-scale));
+  --site-column-gap: calc(48px * var(--site-scale));
+
+  --site-container-max: calc(1296px * var(--site-scale));
+  --site-gutter-desktop: clamp(
+    calc(40px * var(--site-scale)),
+    calc(5vw * var(--site-scale)),
+    calc(72px * var(--site-scale))
+  );
+  --site-gutter-tablet: calc(36px * var(--site-scale));
+  --site-gutter-mobile: calc(24px * var(--site-scale));
+  --site-gutter-mobile-xs: calc(20px * var(--site-scale));
+  --site-gutter: var(--site-gutter-desktop);
+  --site-reading-max: calc(640px * var(--site-scale));
+  --site-hero-copy-max: 40%;
+
+  --site-header-h: calc(58px * var(--site-scale));
+
+  --site-radius-xs: calc(6px * var(--site-scale));
+  --site-radius-sm: calc(8px * var(--site-scale));
+  --site-radius-md: calc(12px * var(--site-scale));
+  --site-radius-lg: calc(16px * var(--site-scale));
+  --site-radius-pill: 999px;
+  --site-radius-modal: calc(16px * var(--site-scale));
+
+  --site-border-w: 1px;
+  --site-border-w-strong: 1.5px;
+  --site-border-w-active: 2px;
+
+  --site-shadow-card: 0 1px 2px rgba(11, 15, 20, 0.04), 0 8px 24px rgba(11, 15, 20, 0.06);
+  --site-backdrop-glass: blur(12px) saturate(1.1);
+  --site-glow-selected: 0 0 0 1px var(--block-accent), 0 0 24px color-mix(in srgb, var(--block-accent) 35%, transparent);
+  --site-blur-locked: blur(8px);
+
+  --site-dur-hover: 150ms;
+  --site-dur-press: 100ms;
+  --site-dur-state: 220ms;
+  --site-dur-modal: 240ms;
+  --site-dur-header: 450ms;
+  --site-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (max-width: 1150px) {
+  :root {
+    --site-gutter: var(--site-gutter-tablet);
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --site-gutter: var(--site-gutter-mobile);
+    --site-header-h: calc(56px * var(--site-scale));
+    --site-section-y: calc(56px * var(--site-scale));
+    --site-page-top: calc(var(--site-header-h) + 24px * var(--site-scale));
+    --site-page-bottom: calc(56px * var(--site-scale));
+    --site-heading-to-body: calc(16px * var(--site-scale));
+    --site-body-to-cta: calc(32px * var(--site-scale));
+    --site-card-pad: calc(16px * var(--site-scale));
+    --site-card-gap: calc(16px * var(--site-scale));
+    --site-column-gap: 0px;
+  }
+}
+
+@media (max-width: 380px) {
+  :root {
+    --site-gutter: var(--site-gutter-mobile-xs);
+  }
+}

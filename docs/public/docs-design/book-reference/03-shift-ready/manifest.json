@@ -1,0 +1,58 @@
+{
+  "n": 3,
+  "anchor": "shift",
+  "dir": "03-shift-ready",
+  "title": "Every hour, a shift",
+  "eyebrow": "03 — PEOPLE",
+  "intro": "Once every city hour the city takes stock. Everyone who worked hands in a pay slip. Everyone who couldn't leaves a note saying why.",
+  "note": "Offline, your city works for up to 12 hours. After that, hours are skipped, not saved.",
+  "linkLabel": "More in the handbook → How a seat earns",
+  "ref": "agents.md#how-a-seat-earns",
+  "alt": "A clock strikes the hour; two engineers drop blue pay slips into a box while a third worker sticks a grey note on it.",
+  "w": 1672,
+  "h": 941,
+  "hash": "C3E2AA2C849EFA1CB7022A0654D413CCEE9756EBE0EDC1D37EA0FB405BD23DA2",
+  "geometry": {
+    "left": 330,
+    "top": 70,
+    "width": 960,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 3: Every hour, a shift",
+      "artBottom": 676.28125,
+      "noteTop": 756,
+      "handbookAnchor": "#how-a-seat-earns"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

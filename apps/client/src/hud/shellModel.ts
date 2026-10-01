@@ -15,9 +15,19 @@ import {
 } from "./fields.js"
 import type { ClientSnapshot } from "./snapshot.js"
 import type { ClientPack } from "../packview.js"
-import { ACTIVE_FUNCTIONS_DEFAULT_ROWS } from "./selection.js"
+import { format } from "../strings.js"
 
 type PayrollTrim = { readonly key: string; readonly text: string } | undefined
+
+const CITY_TAG_LENGTH = 4
+
+/** The API labels a city with its opaque id. A long hex id is shown as
+ * `City 08B9`: the word plus a short tag, never the whole hash on the bar. */
+export function cityLabelText(raw: string | undefined, word: string): string {
+  if (raw === undefined || raw.length === 0) return word
+  if (!/^[0-9a-f]+$/i.test(raw) || raw.length <= CITY_TAG_LENGTH) return raw
+  return `${word} ${raw.slice(0, CITY_TAG_LENGTH).toUpperCase()}`
+}
 type LogRow = {
   readonly id: string
   readonly key: string
@@ -127,7 +137,7 @@ export function buildShell(args: {
   return {
     brand: t("UI_BRAND"),
     brandKey: "UI_BRAND",
-    cityLabel: args.snap.cityLabel === undefined || args.snap.cityLabel.length === 0 ? t("UI_CITY") : args.snap.cityLabel,
+    cityLabel: cityLabelText(args.snap.cityLabel, t("UI_CITY")),
     cityLabelKey: "UI_CITY",
     accountText: args.demo ? t("UI_CONNECTION_DEMO") : t("UI_CONNECTION_LIVE"),
     accountKey: args.demo ? "UI_CONNECTION_DEMO" : "UI_CONNECTION_LIVE",
@@ -269,6 +279,32 @@ function resourceView(
   }
 }
 
+function formatBoostMult(boost: bigint, bps: bigint): string {
+  if (bps <= 0n) return boost.toString()
+  if (boost % bps === 0n) return (boost / bps).toString()
+  return formatShare(boost, bps)
+}
+
+function launchWindowView(
+  t: (key: string) => string,
+  pack: ClientPack,
+  snap: ClientSnapshot,
+  unavailable: string,
+): FieldView | undefined {
+  const days = snap.payrollBoostDaysLeft
+  if (days === 0n) return undefined
+  if (days === undefined) {
+    return unavailableField("UI_UNAVAILABLE", unavailable)
+  }
+  const boost = snap.payrollBoostBps
+  const mult = boost === undefined ? unavailable : formatBoostMult(boost, pack.bps)
+  return readyField(
+    "UI_PAYROLL_LAUNCH_WINDOW",
+    format(t("UI_PAYROLL_LAUNCH_WINDOW"), { mult, days: days.toString() }),
+    days.toString(),
+  )
+}
+
 function payrollView(
   args: {
     readonly t: (key: string) => string
@@ -283,6 +319,7 @@ function payrollView(
   const ratio = args.snap.payrollRatioBps
   const paid = args.snap.payrollPaid
   const requested = args.snap.payrollRequested
+  const launchWindow = launchWindowView(t, args.pack, args.snap, unavailable)
   if (ratio === undefined && paid === undefined && requested === undefined) {
     return {
       kind: "unavailable",
@@ -295,6 +332,7 @@ function payrollView(
       paid: unavailableField("UI_UNAVAILABLE", unavailable),
       requested: unavailableField("UI_UNAVAILABLE", unavailable),
       coverage: unavailableField("UI_UNAVAILABLE", unavailable),
+      launchWindow,
       trim: undefined,
     }
   }
@@ -321,6 +359,7 @@ function payrollView(
         ? unavailableField("UI_UNAVAILABLE", unavailable)
         : readyField("UI_PAYROLL_REQUESTED", args.si(requested), requested.toString()),
     coverage,
+    launchWindow,
     trim: args.payroll,
   }
 }
@@ -402,12 +441,12 @@ function eventsView(
   args: { readonly t: (key: string) => string; readonly snap: ClientSnapshot; readonly log: readonly LogRow[] },
   t: (key: string) => string,
 ): EventsView {
-  const title = t("UI_RECENT_EVENTS")
+  const title = t("UI_RECENT_ACTIVITY")
   const kind = snapshotLogKind(args.snap)
   if (kind === "loading") {
     return {
       kind: "loading",
-      key: "UI_RECENT_EVENTS",
+      key: "UI_RECENT_ACTIVITY",
       title,
       messageKey: "UI_EVENTS_LOADING",
       message: t("UI_EVENTS_LOADING"),
@@ -417,7 +456,7 @@ function eventsView(
   if (kind === "error") {
     return {
       kind: "error",
-      key: "UI_RECENT_EVENTS",
+      key: "UI_RECENT_ACTIVITY",
       title,
       messageKey: "UI_EVENTS_ERROR",
       message: t("UI_EVENTS_ERROR"),
@@ -427,7 +466,7 @@ function eventsView(
   if (kind === "unavailable") {
     return {
       kind: "unavailable",
-      key: "UI_RECENT_EVENTS",
+      key: "UI_RECENT_ACTIVITY",
       title,
       messageKey: "UI_UNAVAILABLE",
       message: t("UI_UNAVAILABLE"),
@@ -439,7 +478,7 @@ function eventsView(
   if (kind === "empty" || rows.length === 0) {
     return {
       kind: "empty",
-      key: "UI_RECENT_EVENTS",
+      key: "UI_RECENT_ACTIVITY",
       title,
       messageKey: "UI_EMPTY_NO_EVENTS",
       message: t("UI_EMPTY_NO_EVENTS"),
@@ -448,7 +487,7 @@ function eventsView(
   }
   return {
     kind: "ready",
-    key: "UI_RECENT_EVENTS",
+    key: "UI_RECENT_ACTIVITY",
     title,
     messageKey: "UI_EMPTY_NO_EVENTS",
     message: t("UI_EMPTY_NO_EVENTS"),
@@ -475,12 +514,16 @@ function functionsView(
       rows: [],
     }
   }
-  const rows = raw.slice(0, ACTIVE_FUNCTIONS_DEFAULT_ROWS).map((row) => ({
+  const rows = raw.map((row) => ({
     id: row.id,
     nameKey: row.nameKey,
     name: t(row.nameKey),
     statusKey: row.statusKey,
     status: t(row.statusKey),
+    level: row.level,
+    worker: row.worker ?? "",
+    task: row.task ?? "",
+    ...(typeof row.paid === "bigint" ? { paid: row.paid } : {}),
   }))
   return {
     kind: rows.length === 0 ? "empty" : "ready",

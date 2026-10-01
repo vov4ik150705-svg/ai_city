@@ -6,11 +6,8 @@ art/preview/v2/
 
 # I0 authoring sources: not runtime, not git
 art/island_v3/*.blend
-art/island_v3/island.glb
-art/island_v3/snapshots/**/*.blend
 models/
 art/island_v3/*.blend1
-art/island_v3/island_grid_backup.glb
 art/island_v3/vendor/
 
 # Dependencies: restored by `pnpm install`

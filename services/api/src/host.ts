@@ -8,7 +8,11 @@ import { exportLive, liveMetricsJson, metricsFromPack, observeFromState, type Me
 import { makeCtx, type PackCtx } from "./pack_ctx.js"
 import { evaluateReadiness, type Readiness } from "./readiness.js"
 import { openPglite, type Store } from "./store.js"
-import { isPackHashHalt, runTick, type Attestor, type TickRun } from "./tick_host.js"
+import { isPackHashHalt, restoreLiveState, runTick, type Attestor, type TickRun } from "./tick_host.js"
+import { type TickLock } from "./tick_lock.js"
+import { asEngineDict, asText } from "./values.js"
+import { publishWorldPatches } from "./ws_patch.js"
+import { loadProjectLive } from "./project_live.js"
 
 export type ApiHost = {
   readonly ctx: PackCtx
@@ -21,6 +25,7 @@ export type ApiHost = {
   state: Dict
   attestLag: bigint
   attestLog: readonly AttestLogRow[]
+  commandLock: TickLock | undefined
   handle(
     method: string,
     path: string,
@@ -55,6 +60,7 @@ export async function createHost(
   const registry = registerPack(emptyRegistry(), packBytes)
   const channels = createHub()
   const frozen = structuredClone(genesis)
+  const restored = await restoreLiveState(ctx, store, frozen)
   const host: ApiHost = {
     ctx,
     store,
@@ -63,9 +69,10 @@ export async function createHost(
     channels,
     migrationVersion,
     metrics: metricsFromPack(ctx),
-    state: structuredClone(genesis),
+    state: restored,
     attestLag: 0n,
     attestLog: [],
+    commandLock: undefined,
     async handle(
       method: string,
       path: string,
@@ -80,28 +87,31 @@ export async function createHost(
         attestLag: host.attestLag,
         metrics: liveMetricsJson(exportLive(ctx, observed)),
         attestLog: host.attestLog,
+        commandLock: host.commandLock,
       })
     },
     async stepTick(inputs: Dict, attestor?: Attestor): Promise<TickRun> {
-      const ran = await runTick(ctx, store, host.state, inputs, attestor)
-      host.state = ran.state
-      host.attestLag += 1n
+      const named = asText(inputs["city_id"])
+      const cities = asEngineDict(host.state["cities"])
+      const cityId = named.length > 0 ? named : (Object.keys(cities)[0] ?? asText(host.state["city_id"]))
+      const ran = await runTick(ctx, store, host.state, inputs, attestor, (next) => {
+        host.state = next
+        host.attestLag += 1n
+      })
       if (attestor !== undefined) {
         const row = ran.attest
-        const city = inputs["city_id"]
         const time = inputs["city_time"]
-        const cityId = typeof city === "string" ? city : ""
         const cityTime = typeof time === "bigint" ? time.toString() : ""
         const badge = row === undefined ? "logged" : row.badge
         const root = row === undefined ? "" : row.rootHex
         const cid = row === undefined ? "" : row.cidHex
         const key =
           badge === "verified" ? "UI_ATTEST_VERIFIED" : badge === "degraded" ? "UI_ATTEST_DEGRADED" : "UI_ATTEST_LOGGED"
-        host.attestLog = [
-          ...host.attestLog,
-          { id: cityId + ":" + cityTime, key, badge, root, cid },
-        ]
+        host.attestLog = [...host.attestLog, { id: cityId + ":" + cityTime, key, badge, root, cid }]
       }
+      await publishWorldPatches(host.channels, ctx, host.state, host.attestLog, (id) =>
+        loadProjectLive(ctx, store, host.state, id),
+      )
       return ran
     },
     async readiness(): Promise<Readiness> {

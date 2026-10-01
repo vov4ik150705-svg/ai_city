@@ -1,6 +1,6 @@
 {
-  "note": "Literal HUD.md extract: topbar, columns, center, bottom menu, v1 cut, never-cut. Not a source: the screens registry must reproduce panels and never-cut codes.",
-  "src": "HUD.md §2",
+  "note": "Literal extract of the deleted HUD.md shell: topbar, columns, center, bottom menu, v1 cut, never-cut. Not a source: the screens registry must reproduce panels and never-cut codes. Live contract is docs/SCREENS.md; live visual is hud/design-reference plus docs/reports/HUD_DESIGN_SYSTEM.md errata.",
+  "src": "deleted HUD.md §2; live: docs/SCREENS.md, docs/reports/HUD_DESIGN_SYSTEM.md",
   "topbar": { "id": "topbar", "hud_ref": "HUD.md §3" },
   "left_panels": [
     { "id": "overview", "hud_ref": "HUD.md §4.1" },
@@ -37,6 +37,8 @@
       "codes": [
         "IDLE_NO_ENERGY",
         "IDLE_NO_COMPUTE",
+        "IDLE_NO_TRAIN_TARGET",
+        "IDLE_NO_RESEARCH_FOCUS",
         "IDLE_NO_MATERIALS",
         "IDLE_WRONG_ROLE",
         "IDLE_BANK_CLOSED",

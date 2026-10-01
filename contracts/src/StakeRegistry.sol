@@ -7,19 +7,32 @@ interface IERC20Stake {
     function balanceOf(address account) external view returns (uint256);
 }
 
-/// Stock staking. Snapshot is a recorded input to the tick, not a live RPC inside it.
-/// DESIGN.md §4.5, §10.
+/// Stock staking. Unstake sits in a cooldown bucket, then the holder claims it.
+/// Snapshot is active stake only. DESIGN.md §4.5, §10.
 contract StakeRegistry {
     address public immutable owner;
+    uint256 public immutable unstakeCooldownS;
 
     mapping(bytes32 => address) public tokenOf;
     mapping(address => mapping(bytes32 => uint256)) public amountOf;
     mapping(address => mapping(bytes32 => bool)) public hasTicker;
     mapping(address => string[]) private _tickers;
 
-    constructor(address owner_) {
+    struct Cooling {
+        uint256 amount;
+        uint256 readyAtS;
+    }
+
+    mapping(address => mapping(bytes32 => Cooling)) public coolingOf;
+
+    event UnstakeRequested(address account, string ticker, uint256 amount, uint256 readyAtS);
+    event UnstakeClaimed(address account, string ticker, uint256 amount);
+
+    constructor(address owner_, uint256 unstakeCooldownS_) {
         require(owner_ != address(0), "owner");
+        require(unstakeCooldownS_ > 0, "cooldown");
         owner = owner_;
+        unstakeCooldownS = unstakeCooldownS_;
     }
 
     function setToken(string calldata ticker, address token) external {
@@ -29,6 +42,7 @@ contract StakeRegistry {
     }
 
     function stake(address account, string calldata ticker, uint256 amount) external {
+        require(msg.sender == account, "sender");
         require(account != address(0) && bytes(ticker).length > 0 && amount > 0, "stake");
         bytes32 key = keccak256(bytes(ticker));
         address token = tokenOf[key];
@@ -47,7 +61,7 @@ contract StakeRegistry {
         amountOf[account][key] += got;
     }
 
-    function unstake(string calldata ticker, uint256 amount) external {
+    function requestUnstake(string calldata ticker, uint256 amount) external {
         require(bytes(ticker).length > 0 && amount > 0, "unstake");
         bytes32 key = keccak256(bytes(ticker));
         address token = tokenOf[key];
@@ -55,7 +69,49 @@ contract StakeRegistry {
         uint256 have = amountOf[msg.sender][key];
         require(have >= amount, "amount");
         amountOf[msg.sender][key] = have - amount;
-        require(IERC20Stake(token).transfer(msg.sender, amount), "push");
+        Cooling storage bucket = coolingOf[msg.sender][key];
+        if (bucket.amount > 0 && block.timestamp >= bucket.readyAtS) {
+            uint256 pay = bucket.amount;
+            bucket.amount = 0;
+            bucket.readyAtS = 0;
+            require(IERC20Stake(token).transfer(msg.sender, pay), "push");
+        }
+        bucket.amount += amount;
+        bucket.readyAtS = block.timestamp + unstakeCooldownS;
+        emit UnstakeRequested(msg.sender, ticker, amount, bucket.readyAtS);
+    }
+
+    function claimUnstaked(string calldata ticker) external {
+        bytes32 key = keccak256(bytes(ticker));
+        Cooling storage bucket = coolingOf[msg.sender][key];
+        require(bucket.amount > 0, "amount");
+        require(block.timestamp >= bucket.readyAtS, "cooldown");
+        address token = tokenOf[key];
+        require(token != address(0), "listed");
+        uint256 pay = bucket.amount;
+        bucket.amount = 0;
+        bucket.readyAtS = 0;
+        require(IERC20Stake(token).transfer(msg.sender, pay), "push");
+        emit UnstakeClaimed(msg.sender, ticker, pay);
+    }
+
+    function coolingSnapshot(address account)
+        external
+        view
+        returns (string[] memory tickers, uint256[] memory amounts, uint256[] memory readyAtS)
+    {
+        string[] storage listed = _tickers[account];
+        uint256 n = listed.length;
+        tickers = new string[](n);
+        amounts = new uint256[](n);
+        readyAtS = new uint256[](n);
+        for (uint256 i = 0; i < n; i++) {
+            tickers[i] = listed[i];
+            Cooling storage bucket = coolingOf[account][keccak256(bytes(listed[i]))];
+            amounts[i] = bucket.amount;
+            readyAtS[i] = bucket.readyAtS;
+        }
+        _sortCooling(tickers, amounts, readyAtS);
     }
 
     function snapshot(address account) external view returns (string[] memory tickers, uint256[] memory amounts) {
@@ -88,6 +144,18 @@ contract StakeRegistry {
                 if (!_less(tickers[j], tickers[j - 1])) break;
                 (tickers[j - 1], tickers[j]) = (tickers[j], tickers[j - 1]);
                 (amounts[j - 1], amounts[j]) = (amounts[j], amounts[j - 1]);
+            }
+        }
+    }
+
+    function _sortCooling(string[] memory tickers, uint256[] memory amounts, uint256[] memory readyAtS) internal pure {
+        uint256 n = tickers.length;
+        for (uint256 i = 1; i < n; i++) {
+            for (uint256 j = i; j > 0; j--) {
+                if (!_less(tickers[j], tickers[j - 1])) break;
+                (tickers[j - 1], tickers[j]) = (tickers[j], tickers[j - 1]);
+                (amounts[j - 1], amounts[j]) = (amounts[j], amounts[j - 1]);
+                (readyAtS[j - 1], readyAtS[j]) = (readyAtS[j], readyAtS[j - 1]);
             }
         }
     }

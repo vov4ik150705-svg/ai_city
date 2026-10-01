@@ -41,7 +41,8 @@ contract M5Test {
             guardian,
             safetySigner,
             PackConstants.CAPITAL_ANCHOR,
-            PackConstants.VOUCHER_TTL_S
+            PackConstants.VOUCHER_TTL_S,
+            address(0)
         );
         address[] memory stocks = new address[](6);
         stocks[0] = address(nvda);
@@ -65,7 +66,7 @@ contract M5Test {
         corp.approve(address(vault), 100);
         vault.deposit(player, 100);
         vm.stopPrank();
-        vault.mintCapital(player, 100);
+        vault.mintCapital(player, 100, 100);
         vm.prank(safetySigner);
         vm.expectRevert();
         vault.refundPlayer(player, 101);
@@ -86,7 +87,7 @@ contract M5Test {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 700;
         vm.prank(safetySigner);
-        prizes.slice(address(nvda), 0, players, amounts);
+        prizes.slice(bytes32(uint256(1)), address(nvda), 0, players, amounts);
         vm.prank(bot);
         prizes.returnUnsettled(address(nvda), 0);
         assertEq(nvda.balanceOf(bot), 300);
@@ -104,7 +105,7 @@ contract M5Test {
         vm.stopPrank();
         vm.expectRevert();
         vault.issueVoucher("early", player, 1, block.timestamp);
-        vault.mintCapital(player, 100);
+        vault.mintCapital(player, 100, 100);
         vault.issueVoucher("ok", player, 100, block.timestamp);
         vm.expectRevert();
         vault.issueVoucher("over", player, 1, block.timestamp);

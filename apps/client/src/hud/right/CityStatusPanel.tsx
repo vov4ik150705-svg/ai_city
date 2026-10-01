@@ -9,6 +9,7 @@ export function CityStatusPanel(props: {
   readonly strings: StringTable
   readonly pack: ClientPack
   readonly onDetails?: () => void
+  readonly onDistricts?: () => void
 }): ReactElement {
   return (
     <CityStatusLook
@@ -16,6 +17,7 @@ export function CityStatusPanel(props: {
       strings={props.strings}
       pack={props.pack}
       {...(props.onDetails === undefined ? {} : { onDetails: props.onDetails })}
+      {...(props.onDistricts === undefined ? {} : { onDistricts: props.onDistricts })}
     />
   )
 }

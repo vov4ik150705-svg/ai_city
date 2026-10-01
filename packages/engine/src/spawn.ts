@@ -1,5 +1,32 @@
-import { asBig, asDict, asList, asStr } from "./values.js"
+import { asBig, asDict, asList, asStr, sortedKeys } from "./values.js"
 import type { Dict } from "./values.js"
+
+export function plantPrebuilt(cfg: Dict, city: Dict): void {
+  const data = asDict(cfg["data"])
+  const buildings = asDict(asDict(data["buildings"])["buildings"])
+  const functions: Dict[] = []
+  const have = new Set<string>()
+  for (const raw of asList(city["functions"])) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) continue
+    const row = asDict(raw)
+    const id = asStr(row["id"])
+    if (id.length === 0) continue
+    functions.push(row)
+    have.add(id)
+  }
+  const level = asBig(city["city_level"], 1n)
+  for (const id of sortedKeys(buildings)) {
+    const def = asDict(buildings[id])
+    if (def["prebuilt"] !== true) continue
+    if (have.has(id)) continue
+    functions.push({ id, level })
+    have.add(id)
+  }
+  city["functions"] = functions
+  if (!("agents" in city)) city["agents"] = []
+  if (!("energy_stock" in city)) city["energy_stock"] = 0n
+  if (!("compute_stock" in city)) city["compute_stock"] = 0n
+}
 
 export function spawnCity(
   cfg: Dict,

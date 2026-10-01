@@ -1,0 +1,58 @@
+{
+  "n": 7,
+  "anchor": "way-home",
+  "dir": "07-way-home-ready",
+  "title": "The way home",
+  "eyebrow": "07 — MONEY",
+  "intro": "Want your $CORP back? The Bank turns Capital into a ticket that's good for one city hour. Take it to your wallet in time, and the coins are yours.",
+  "note": "Coming in is always cheaper than going out: a full round trip costs about 14.45% in fees.",
+  "linkLabel": "More in the handbook → The Bank",
+  "ref": "economy.md#the-bank",
+  "alt": "At a bank window chips turn into a ticket with an hourglass, and a hand carries it along a path to a wallet.",
+  "w": 1672,
+  "h": 941,
+  "hash": "801411E3B9AD5EE2C2B58C651FB47783C9AEFE055CBC4A3ED5ECBABC09856BC6",
+  "geometry": {
+    "left": 90,
+    "top": 0,
+    "width": 1200,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 7: The way home",
+      "artBottom": 741.34375,
+      "noteTop": 756,
+      "handbookAnchor": "#the-bank"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

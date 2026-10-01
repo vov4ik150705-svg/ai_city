@@ -118,6 +118,20 @@
       "src": "DESIGN.md §2.5",
       "why": "Server aggregate: payroll_ratio after the fund split"
     },
+    "aggregate.payroll_boost_bps": {
+      "owner": "T11",
+      "producer": "produce_aggregate_payroll_boost_bps",
+      "doc_ref": "docs/BRIEF.md §6 T11",
+      "src": "DESIGN.md §2.5",
+      "why": "Server aggregate: already-selected payroll boost, never recomputed on the client"
+    },
+    "aggregate.payroll_boost_days_left": {
+      "owner": "T11",
+      "producer": "produce_aggregate_payroll_boost_days_left",
+      "doc_ref": "docs/BRIEF.md §6 T11",
+      "src": "DESIGN.md §2.5",
+      "why": "Server aggregate: city days left in the launch window; zero hides the chip"
+    },
     "aggregate.happiness": {
       "owner": "T11",
       "producer": "produce_aggregate_happiness",
@@ -156,7 +170,7 @@
       "producer": "produce_seasons_influence_rank",
       "doc_ref": "docs/BRIEF.md §6 T11",
       "src": "DESIGN.md §8",
-      "why": "Season Influence integral rank, never a prize-claim live flag"
+      "why": "Season Influence integral rank, never a prize-claim live flag; board lists every wallet city without the qualify filter"
     },
     "fragments.city_ledger": {
       "owner": "T11",
@@ -177,7 +191,7 @@
       "producer": "produce_oracle_stock_price",
       "doc_ref": "docs/BRIEF.md §6 T11",
       "src": "HUD.md §6.2",
-      "why": "Oracle TWAP of a stock token, never the spot of our pool"
+      "why": "Oracle TWAP of a stock token, never the spot of our pool; stocks beside the price is tokens_held for that ticker"
     },
     "oracle.district_efficiency": {
       "owner": "T11",
@@ -406,9 +420,9 @@
         "leaderboard_table"
       ],
       "loading_kind": "skeleton",
-      "empty_kind": "not_qualified_yet",
+      "empty_kind": "no_entities_yet",
       "src": "docs/BRIEF.md §6 T9",
-      "why": "Influence rank is live; basket atoms and period hours come from the pack; empty and uncovered are consequences"
+      "why": "Live board lists every wallet city by Influence; prize Zipf and claim stay gated; empty is no wallet cities, not missing qualification"
     },
     "building_card": {
       "kind": "screen",
@@ -469,22 +483,6 @@
       "empty_kind": "no_events_yet",
       "src": "docs/BRIEF.md §6 T9",
       "why": "Reports caught-up ticks capped by offline window; no commit and no hour shop"
-    },
-    "onboarding_demo": {
-      "kind": "screen",
-      "mount": "fullscreen",
-      "hud_ref": "docs/BRIEF.md §2",
-      "doc_ref": "docs/BRIEF.md §2",
-      "v1": "live",
-      "entry": "always",
-      "panels": [
-        "onboard_stage"
-      ],
-      "loading_kind": "skeleton",
-      "empty_kind": "no_entities_yet",
-      "demo_flow": 1,
-      "src": "docs/BRIEF.md §6 T9",
-      "why": "Demo teaches idle reason before withdraw so DEMO_NO_WITHDRAW is honest"
     },
     "wallet_connect": {
       "kind": "screen",
@@ -682,102 +680,6 @@
       "src": "HUD.md §6.3",
       "why": "Seven menu entries including stub missions and live research"
     },
-    "flow_onboard_clock": {
-      "kind": "flow",
-      "mount": "fullscreen",
-      "hud_ref": "docs/BRIEF.md §2",
-      "doc_ref": "docs/BRIEF.md §2",
-      "v1": "live",
-      "entry": "always",
-      "panels": [
-        "onboard_stage"
-      ],
-      "loading_kind": "skeleton",
-      "empty_kind": "no_events_yet",
-      "demo_flow": 1,
-      "src": "docs/SCREENS.md §6",
-      "why": "Onboarding step: city and clock before any spend"
-    },
-    "flow_onboard_seat": {
-      "kind": "flow",
-      "mount": "fullscreen",
-      "hud_ref": "docs/BRIEF.md §2",
-      "doc_ref": "DESIGN.md §5.6",
-      "v1": "live",
-      "entry": "always",
-      "panels": [
-        "onboard_stage"
-      ],
-      "loading_kind": "skeleton",
-      "empty_kind": "no_entities_yet",
-      "demo_flow": 1,
-      "src": "docs/SCREENS.md §6",
-      "why": "Onboarding step: seat Engineer in Workshop without a wallet"
-    },
-    "flow_onboard_payout": {
-      "kind": "flow",
-      "mount": "fullscreen",
-      "hud_ref": "docs/BRIEF.md §2",
-      "doc_ref": "DESIGN.md §5.3",
-      "v1": "live",
-      "entry": "always",
-      "panels": [
-        "onboard_stage"
-      ],
-      "loading_kind": "skeleton",
-      "empty_kind": "no_events_yet",
-      "demo_flow": 1,
-      "src": "docs/SCREENS.md §6",
-      "why": "Onboarding step: a valid tick with a visible payout"
-    },
-    "flow_onboard_idle": {
-      "kind": "flow",
-      "mount": "fullscreen",
-      "hud_ref": "docs/BRIEF.md §2",
-      "doc_ref": "DESIGN.md §5.3",
-      "v1": "live",
-      "entry": "always",
-      "panels": [
-        "onboard_stage"
-      ],
-      "loading_kind": "skeleton",
-      "empty_kind": "no_events_yet",
-      "demo_flow": 1,
-      "src": "docs/SCREENS.md §6",
-      "why": "Onboarding step: artificial idle with IDLE_NO_ENERGY before money exit"
-    },
-    "flow_onboard_bank": {
-      "kind": "flow",
-      "mount": "fullscreen",
-      "hud_ref": "HUD.md §3",
-      "doc_ref": "DESIGN.md §3.2",
-      "v1": "live",
-      "entry": "always",
-      "panels": [
-        "onboard_stage"
-      ],
-      "loading_kind": "skeleton",
-      "empty_kind": "no_events_yet",
-      "demo_flow": 1,
-      "src": "docs/SCREENS.md §6",
-      "why": "Onboarding step: bank plaque and hours, still no withdraw"
-    },
-    "flow_onboard_wallet": {
-      "kind": "flow",
-      "mount": "fullscreen",
-      "hud_ref": "docs/BRIEF.md §2",
-      "doc_ref": "docs/BRIEF.md §2",
-      "v1": "live",
-      "entry": "always",
-      "panels": [
-        "onboard_stage"
-      ],
-      "loading_kind": "skeleton",
-      "empty_kind": "no_events_yet",
-      "demo_flow": 1,
-      "src": "docs/SCREENS.md §6",
-      "why": "Onboarding step: offer wallet connect while showing DEMO_NO_WITHDRAW"
-    },
     "flow_return_summary": {
       "kind": "flow",
       "mount": "overlay",
@@ -829,6 +731,8 @@
       "fields": [
         "overview_gdp",
         "overview_payroll",
+        "overview_payroll_boost",
+        "overview_payroll_boost_days",
         "overview_happiness",
         "overview_stability",
         "overview_treasury"
@@ -982,6 +886,7 @@
       "title_key": "UI_LEADERBOARD",
       "fields": [
         "leaderboard_rank",
+        "leaderboard_live_board",
         "leaderboard_basket",
         "leaderboard_period_hours"
       ],
@@ -1019,14 +924,6 @@
         "offline_ticks"
       ],
       "src": "DESIGN.md §4.2"
-    },
-    "onboard_stage": {
-      "screen": "onboarding_demo",
-      "title_key": "UI_ONBOARDING",
-      "fields": [
-        "onboard_clock"
-      ],
-      "src": "docs/BRIEF.md §2"
     },
     "wallet_status": {
       "screen": "wallet_connect",
@@ -1142,6 +1039,28 @@
       ],
       "src": "HUD.md §4.1",
       "why": "Payroll ratio is hidden at full; below full it shows PAYROLL_TRIMMED"
+    },
+    "overview_payroll_boost": {
+      "kind": "bps",
+      "value_kind": "live_state",
+      "state_source": "aggregate.payroll_boost_bps",
+      "source": "server",
+      "si": 0,
+      "unit": "bps",
+      "state_codes": [],
+      "src": "DESIGN.md §2.5",
+      "why": "Selected payroll boost from the engine; the HUD never chooses launch vs steady"
+    },
+    "overview_payroll_boost_days": {
+      "kind": "int",
+      "value_kind": "live_state",
+      "state_source": "aggregate.payroll_boost_days_left",
+      "source": "server",
+      "si": 0,
+      "unit": "count",
+      "state_codes": [],
+      "src": "DESIGN.md §2.5",
+      "why": "City days left in the launch window; zero means the chip is gone, not x3 forever"
     },
     "overview_happiness": {
       "kind": "int",
@@ -1487,7 +1406,20 @@
         "PRIZE_CLAIM_UNCOVERED"
       ],
       "src": "docs/PRIZES.md",
-      "why": "Rank live; empty pool and uncovered claim are consequences, not an owner-withdraw notice"
+      "why": "Rank live; empty pool and uncovered claim are consequences, not an owner-withdraw notice. Live board is every wallet city; prize rank still requires qualification"
+    },
+    "leaderboard_live_board": {
+      "kind": "list",
+      "value_kind": "live_state",
+      "state_source": "seasons.influence_rank",
+      "source": "server",
+      "si": 0,
+      "unit": "count",
+      "state_codes": [
+        "PRIZE_NOT_QUALIFIED"
+      ],
+      "src": "DESIGN.md §8",
+      "why": "Public live board of every wallet city ordered by Influence then GDP; not prize_top_n and not a qualify filter"
     },
     "leaderboard_basket": {
       "kind": "list",
@@ -1585,18 +1517,6 @@
       ],
       "src": "DESIGN.md §4.2",
       "why": "Caught-up ticks cannot exceed the offline cap derived from time params"
-    },
-    "onboard_clock": {
-      "kind": "timer",
-      "value_kind": "client_local",
-      "source": "client_clock",
-      "si": 0,
-      "unit": "city_hours",
-      "state_codes": [
-        "IDLE_NO_ENERGY"
-      ],
-      "src": "docs/SCREENS.md §6",
-      "why": "Demo clock teaches city time before any wallet or spend"
     },
     "wallet_chain_id": {
       "kind": "text",
@@ -1811,14 +1731,13 @@
       "effect": "commit:open_district",
       "requires": [
         "wallet",
-        "stake_threshold",
-        "corp"
+        "stake_threshold"
       ],
-      "spend": "corp",
+      "spend": "none",
       "demo_blocked": 0,
       "v1": "live",
       "src": "DESIGN.md §4.5",
-      "why": "Opening a district spends CORP; identity is a connected wallet"
+      "why": "Opening a district spends nothing; stake at S_min holds it, and identity is a connected wallet"
     },
     "districts_select_automation": {
       "screen": "districts",
@@ -1911,6 +1830,20 @@
       "v1": "live",
       "src": "DESIGN.md §7.2",
       "why": "Withdraw burns Capital; identity is demo isolation then a connected wallet"
+    },
+    "bank_present_voucher": {
+      "screen": "bank",
+      "kind": "button",
+      "label": "UI_PRESENT_VOUCHER",
+      "effect": "commit:present_voucher",
+      "requires": [
+        "wallet"
+      ],
+      "spend": "none",
+      "demo_blocked": 0,
+      "v1": "live",
+      "src": "docs/CANON.md R-W-04",
+      "why": "Presents the withdrawal voucher on chain; the player signs, the server does not"
     },
     "missions_start": {
       "screen": "missions",
@@ -2013,6 +1946,34 @@
       "src": "DESIGN.md §4.8",
       "why": "Stake multiple for the next tier; one unlock-tier gate per action"
     },
+    "district_unstake": {
+      "screen": "district_card",
+      "kind": "button",
+      "label": "UI_UNSTAKE",
+      "effect": "commit:unstake",
+      "requires": [
+        "district_open"
+      ],
+      "spend": "none",
+      "demo_blocked": 0,
+      "v1": "live",
+      "src": "docs/CANON.md R-W-02",
+      "why": "Pulls stake back; dropping under S_min freezes the district after the grace delay"
+    },
+    "district_claim_unstaked": {
+      "screen": "district_card",
+      "kind": "button",
+      "label": "UI_CLAIM_UNSTAKED",
+      "effect": "commit:claim_unstaked",
+      "requires": [
+        "wallet"
+      ],
+      "spend": "none",
+      "demo_blocked": 0,
+      "v1": "live",
+      "src": "docs/reports/TZ_WITHDRAW.md R-X-03",
+      "why": "Claims tokens after the cooldown bucket matures. The district freeze uses a different clock"
+    },
     "district_pick_node": {
       "screen": "district_card",
       "kind": "button",
@@ -2065,32 +2026,6 @@
       "src": "DESIGN.md §4.2",
       "why": "Continue after catch-up is navigate only; no commit and no hour shop"
     },
-    "onboard_next": {
-      "screen": "onboarding_demo",
-      "kind": "button",
-      "label": "UI_NEXT",
-      "effect": "navigate:onboarding_demo",
-      "requires": [],
-      "spend": "none",
-      "demo_blocked": 0,
-      "v1": "live",
-      "src": "docs/SCREENS.md §6",
-      "why": "Demo next step; no wallet, no CORP, no spend on the demo flow"
-    },
-    "onboard_wallet_offer": {
-      "screen": "onboarding_demo",
-      "kind": "button",
-      "label": "UI_CONNECT_WALLET",
-      "effect": "navigate:wallet_connect",
-      "requires": [
-        "not_demo_withdraw"
-      ],
-      "spend": "none",
-      "demo_blocked": 1,
-      "v1": "live",
-      "src": "docs/BRIEF.md §2",
-      "why": "Offer to connect while DEMO_NO_WITHDRAW is already on screen"
-    },
     "wallet_connect_start": {
       "screen": "wallet_connect",
       "kind": "button",
@@ -2129,6 +2064,46 @@
       "src": "HUD.md §9",
       "why": "Language is client-only and does not touch the tick"
     },
+    "building_build": {
+      "screen": "building_card",
+      "kind": "button",
+      "label": "UI_BUILD",
+      "effect": "commit:build",
+      "requires": [
+        "city_level",
+        "build_slot",
+        "capital"
+      ],
+      "spend": "capital",
+      "demo_blocked": 0,
+      "v1": "live",
+      "src": "docs/CANON.md R-W-01",
+      "why": "Places the building from its card, with no lot cell and no separate build screen"
+    },
+    "building_activate": {
+      "screen": "building_card",
+      "kind": "button",
+      "label": "UI_ACTIVATE",
+      "effect": "commit:build",
+      "requires": [],
+      "spend": "none",
+      "demo_blocked": 0,
+      "v1": "live",
+      "src": "docs/CANON.md R-W-01",
+      "why": "Turns a switched-off building back on; the server reads the active field"
+    },
+    "building_deactivate": {
+      "screen": "building_card",
+      "kind": "button",
+      "label": "UI_DEACTIVATE",
+      "effect": "commit:build",
+      "requires": [],
+      "spend": "none",
+      "demo_blocked": 0,
+      "v1": "live",
+      "src": "docs/CANON.md R-W-01",
+      "why": "Switches a building off; the server reads the deactivate field, not a second effect"
+    },
     "building_upgrade": {
       "screen": "building_card",
       "kind": "button",
@@ -2156,6 +2131,18 @@
       "v1": "live",
       "src": "DESIGN.md §5.9",
       "why": "Objective change; out of hours is a warning, not a spend"
+    },
+    "agent_assign": {
+      "screen": "agent_card",
+      "kind": "button",
+      "label": "UI_MANAGE",
+      "effect": "commit:assign",
+      "requires": [],
+      "spend": "none",
+      "demo_blocked": 0,
+      "v1": "live",
+      "src": "DESIGN.md §5.6",
+      "why": "Instant reassignment; an occupied function displaces the previous agent"
     }
   },
   "capabilities": {
@@ -2535,6 +2522,42 @@
     "VAULT_EXIT_UNCOVERED": [
       "bank"
     ],
+    "VOUCHER_EXPIRED": [
+      "bank"
+    ],
+    "VOUCHER_PENDING_SIGN": [
+      "bank"
+    ],
+    "VOUCHER_PENDING": [
+      "bank"
+    ],
+    "VOUCHER_REJECTED": [
+      "bank"
+    ],
+    "VOUCHER_EXPIRE_LIMIT": [
+      "bank"
+    ],
+    "UNSTAKE_COOLING": [
+      "district_card"
+    ],
+    "UNSTAKE_NOTHING_PENDING": [
+      "district_card"
+    ],
+    "STAKE_LEDGER_LIVE": [
+      "district_card"
+    ],
+    "FRAGMENT_SLICE_PENDING": [
+      "exchange"
+    ],
+    "PRIZE_NOTHING_OWED": [
+      "exchange"
+    ],
+    "EXCHANGE_DELIVERY_UNVERIFIED": [
+      "exchange"
+    ],
+    "LEDGER_NOT_EMPTY_LIVE": [
+      "bank"
+    ],
     "ORACLE_STALE": [
       "stock_bar",
       "districts_panel"
@@ -2559,13 +2582,20 @@
     "IDLE_NO_ENERGY": [
       "log_panel",
       "agents_panel",
-      "scene",
-      "onboarding_demo"
+      "scene"
     ],
     "IDLE_NO_COMPUTE": [
       "log_panel",
       "agents_panel",
       "scene"
+    ],
+    "IDLE_NO_TRAIN_TARGET": [
+      "log_panel",
+      "agents_panel"
+    ],
+    "IDLE_NO_RESEARCH_FOCUS": [
+      "log_panel",
+      "agents_panel"
     ],
     "IDLE_NO_MATERIALS": [
       "log_panel",
@@ -2668,58 +2698,6 @@
     ]
   },
   "flows": {
-    "onboarding_demo": {
-      "steps": {
-        "clock": {
-          "step": 1,
-          "teaches": "city clock and topbar hours",
-          "done_when": "time.params.tick_length_city_hours.v",
-          "blocked_codes": [],
-          "src": "docs/SCREENS.md §6"
-        },
-        "seat": {
-          "step": 2,
-          "teaches": "seat Engineer in Workshop",
-          "done_when": "agents.params.slots_cap.v",
-          "blocked_codes": [],
-          "src": "docs/SCREENS.md §6"
-        },
-        "payout": {
-          "step": 3,
-          "teaches": "valid tick with a visible payout",
-          "done_when": "economy.params.payroll_daily_divisor.v",
-          "blocked_codes": [],
-          "src": "docs/SCREENS.md §6"
-        },
-        "idle": {
-          "step": 4,
-          "teaches": "artificial idle with a written reason",
-          "done_when": "codes.codes.IDLE_NO_ENERGY",
-          "blocked_codes": [
-            "IDLE_NO_ENERGY"
-          ],
-          "src": "docs/SCREENS.md §6"
-        },
-        "bank": {
-          "step": 5,
-          "teaches": "bank plaque and city hours",
-          "done_when": "time.params.bank_open_hour.v",
-          "blocked_codes": [
-            "BANK_CLOSED"
-          ],
-          "src": "docs/SCREENS.md §6"
-        },
-        "wallet": {
-          "step": 6,
-          "teaches": "connect wallet after seeing idle",
-          "done_when": "screens.params.demo_isolated.v",
-          "blocked_codes": [
-            "DEMO_NO_WITHDRAW"
-          ],
-          "src": "docs/SCREENS.md §6"
-        }
-      }
-    },
     "offline_return": {
       "steps": {
         "summary": {

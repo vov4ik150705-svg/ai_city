@@ -109,6 +109,30 @@
       "src": "DESIGN.md §2.5",
       "why": "Пробка сверху: фонд не держит больше 30 дней среднего расхода, излишек переливается в резерв без ручного управления"
     },
+    "payroll_boost_bps": {
+      "v": 30000,
+      "u": "bps",
+      "src": "docs/CANON.md R-E-01, docs/reports/TZ_EARNINGS.md §3.1",
+      "why": "Fund may raise a tick payout up to three times the requests. Ceiling, not a floor: an empty fund still pays what it has"
+    },
+    "payroll_boost_launch_bps": {
+      "v": 80000,
+      "u": "bps",
+      "src": "docs/CANON.md R-E-02, docs/reports/TZ_EARNINGS.md §2.2",
+      "why": "Launch window ceiling ×8.00. Holds payout about nine city days on the 200-player turnover crash; after the window the steady ×3 ceiling remains"
+    },
+    "payroll_boost_launch_city_days": {
+      "v": 7,
+      "u": "days",
+      "src": "docs/CANON.md R-E-02, docs/reports/TZ_EARNINGS.md §3.3",
+      "why": "Launch boost window in city days. Compared to tick_index, not state.day: the clock anchor is noon so day 1 is a half-day"
+    },
+    "payroll_inflow_window_city_days": {
+      "v": 3,
+      "u": "days",
+      "src": "docs/reports/TZ_EARNINGS.md §3.2",
+      "why": "Smoothed fund inflow days used as the other day_budget candidate. Frozen at hour 0 so city order inside a tick cannot move payroll_ratio"
+    },
     "reserve_weekly_drain_bps": {
       "v": 500,
       "u": "bps",
@@ -156,6 +180,12 @@
       "u": "city_hours",
       "src": "DESIGN.md §4.5",
       "why": "Отсрочка перед заморозкой района, чтобы случайное движение не убивало город мгновенно"
+    },
+    "unstake_cooldown_city_days": {
+      "v": 30,
+      "u": "city_days",
+      "src": "docs/reports/TZ_WITHDRAW.md §2.1",
+      "why": "Срок бакета токенов в сутках города. Секунды для контракта выводятся, а не хранятся вторым числом"
     },
     "affinity_home_bps": {
       "v": 10000,

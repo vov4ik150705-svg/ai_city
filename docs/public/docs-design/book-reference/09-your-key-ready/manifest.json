@@ -1,0 +1,58 @@
+{
+  "n": 9,
+  "anchor": "your-key",
+  "dir": "09-your-key-ready",
+  "title": "The key stays yours",
+  "eyebrow": "09 — DISTRICTS",
+  "intro": "A staked token doesn't go to the game. It waits in a contract, and you can ask for it back at any time. It comes home after 30 city days.",
+  "note": "You can't cancel an unstake. Asking again while tokens are cooling restarts the clock.",
+  "linkLabel": "More in the handbook → Unstaking and the cooldown",
+  "ref": "industries.md#unstaking-and-the-cooldown",
+  "alt": "A key taken from a lock leads two ways: a short path where the district frosts over after a day, and a long one through a calendar to a wallet.",
+  "w": 1672,
+  "h": 941,
+  "hash": "7F019D66A597D220A813FC45CDA48262E916B7CC8956099F2E00ACAA0D403AEC",
+  "geometry": {
+    "left": 90,
+    "top": 0,
+    "width": 1200,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 9: The key stays yours",
+      "artBottom": 741.34375,
+      "noteTop": 756,
+      "handbookAnchor": "#unstaking-and-the-cooldown"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

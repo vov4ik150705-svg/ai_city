@@ -13,11 +13,12 @@
     }
   },
   "dependencies": {
-    "@corporator/protocol": "workspace:*"
+    "@corporator/engine": "workspace:*",
+    "@corporator/protocol": "workspace:*",
+    "@noble/secp256k1": "2.3.0"
   },
   "devDependencies": {
     "@corporator/contentpack": "workspace:*",
-    "@corporator/engine": "workspace:*",
     "vitest": "4.1.11"
   },
   "scripts": {

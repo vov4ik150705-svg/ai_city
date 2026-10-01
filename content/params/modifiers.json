@@ -31,15 +31,21 @@
       "u": "bps",
       "src": "docs/BRIEF.md §6 T5 law C",
       "why": "Second witness multiplier 1.30. Stepwise 3 then 1.5 then 1.3 floors to 5; reverse floors to 4; fused floors to 5"
+    },
+    "building_link_quantum_mult": {
+      "v": 2,
+      "u": "count",
+      "src": "docs/CANON.md R-E-04, TZ_EARNINGS E4",
+      "why": "Owner pick 1: baked link magnitude is node_effect_base_bps times this times steps. Doubles the quantum so a narrow linked city beats a wide unlinked one on dollars and percent"
     }
   },
   "cap_anchors": {
     "output_bps": {
-      "max_from": "output_growth_bps",
+      "max_from": "output_bps_reachable_max_bps",
       "max_section": "balance",
       "min_from": "reciprocal",
-      "src": "docs/BALANCE.md §4",
-      "why": "One building-level step of output growth. A content stack must not replace a level"
+      "src": "docs/BALANCE.md §4, docs/CANON.md R-E-03",
+      "why": "Everything the written content can actually stack on one building. A clip below this throws away content the player already paid for"
     },
     "energy_cost_bps": {
       "max_from": "energy_growth_bps",

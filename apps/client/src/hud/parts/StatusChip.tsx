@@ -20,6 +20,7 @@ export type StatusChipProps = {
 
 export function statusKindFromKey(statusKey: string): StatusKind {
   if (statusKey.startsWith("IDLE") || statusKey.includes("CLOSED")) return "warn"
+  if (statusKey === "UI_FROZEN" || statusKey === "UI_DEACTIVATED") return "warn"
   if (statusKey === "UI_UNAVAILABLE") return "dim"
   return "ok"
 }

@@ -1,5 +1,14 @@
 import { codes } from "@corporator/protocol"
-import { err, type PortAmount, type PortErr, type PortResult, type RpcOutcome, type StakeRow } from "../values.js"
+import {
+  err,
+  type CoolingRow,
+  type PortAmount,
+  type PortErr,
+  type PortResult,
+  type RpcOutcome,
+  type StakeRow,
+  type TxLog,
+} from "../values.js"
 
 export const rpcMethod = {
   balanceOf: "corp_token_balanceOf",
@@ -8,17 +17,38 @@ export const rpcMethod = {
   capitalOf: "vault_capitalOf",
   deposit: "vault_deposit",
   mintCapital: "vault_mintCapital",
+  signMintCapital: "vault_signMintCapital",
   issueVoucher: "vault_issueVoucher",
   presentVoucher: "vault_presentVoucher",
   stake: "stake_registry_stake",
-  unstake: "stake_registry_unstake",
+  requestUnstake: "stake_registry_requestUnstake",
+  claimUnstaked: "stake_registry_claimUnstaked",
+  coolingSnapshot: "stake_registry_coolingSnapshot",
   snapshot: "stake_registry_snapshot",
   putRoot: "merkle_roots_putRoot",
   getRoot: "merkle_roots_getRoot",
   prizeDeposit: "prize_treasury_deposit",
   prizeSlice: "prize_treasury_slice",
+  owed: "prize_treasury_owed",
+  unsliced: "prize_treasury_unsliced",
+  batchUsed: "prize_treasury_batchUsed",
   prizeReturnUnsettled: "prize_treasury_returnUnsettled",
   prizeClaimPrize: "prize_treasury_claimPrize",
+  allowance: "corp_token_allowance",
+  vaultPending: "vault_pending",
+  vaultIssued: "vault_issued",
+  vaultUsed: "vault_used",
+  vaultOutcome: "vault_outcomeOf",
+  releaseExpiredVoucher: "vault_releaseExpiredVoucher",
+  vaultBacking: "vault_backingOf",
+  vaultReserved: "vault_reservedOf",
+  txReceipt: "chain_txReceipt",
+  txByHash: "chain_txByHash",
+  pendingNonce: "chain_pendingNonce",
+  estimateGas: "chain_estimateGas",
+  gasPrice: "chain_gasPrice",
+  latestBlockTime: "chain_latestBlockTime",
+  sendRaw: "chain_sendRaw",
   chainId: "eth_chainId",
 } as const
 
@@ -85,12 +115,44 @@ function flagOk(row: { readonly [key: string]: unknown }): boolean | undefined {
   return undefined
 }
 
+function txText(row: { readonly [key: string]: unknown }, key: string): string | undefined {
+  const value = row[key]
+  if (typeof value !== "string" || value.length === 0) return undefined
+  return value
+}
+
+function okWithTx(row: { readonly [key: string]: unknown }): PortResult {
+  const txHash = txText(row, "txHash")
+  const txNonce = txText(row, "txNonce")
+  const txRaw = txText(row, "txRaw")
+  const confirmed = row["txConfirmed"]
+  if (txHash === undefined && txNonce === undefined && txRaw === undefined && typeof confirmed !== "boolean") {
+    return { ok: true }
+  }
+  const out: {
+    ok: true
+    txHash?: string
+    txNonce?: string
+    txRaw?: string
+    txConfirmed?: boolean
+  } = { ok: true }
+  if (txHash !== undefined) out.txHash = txHash
+  if (txNonce !== undefined) out.txNonce = txNonce
+  if (txRaw !== undefined) out.txRaw = txRaw
+  if (typeof confirmed === "boolean") out.txConfirmed = confirmed
+  return out
+}
+
+export function encodeSignedTx(hash: string, nonce: bigint, raw: string): string {
+  return JSON.stringify({ ok: true, txHash: hash, txNonce: nonce.toString(), txRaw: raw, txConfirmed: false })
+}
+
 export function decodeResult(outcome: RpcOutcome): PortResult {
   const parsed = decodeOutcome(outcome)
   const row = asRecord(parsed)
   if (row === undefined) return silence()
   const flag = flagOk(row)
-  if (flag === true) return { ok: true }
+  if (flag === true) return okWithTx(row)
   if (flag === false) {
     const code = row["code"]
     if (typeof code !== "string" || code.length === 0) return silence()
@@ -163,6 +225,45 @@ export function decodeSnapshot(
   return { ok: true, rows }
 }
 
+export function encodeCooling(rows: readonly CoolingRow[]): string {
+  const out: { ticker: string; amount: string; readyAtS: string }[] = []
+  for (const row of rows) out.push({ ticker: row.ticker, amount: dec(row.amount), readyAtS: dec(row.readyAtS) })
+  return JSON.stringify({ ok: true, rows: out })
+}
+
+export function decodeCoolingSnapshot(
+  outcome: RpcOutcome,
+): { readonly ok: true; readonly rows: readonly CoolingRow[] } | PortErr {
+  const parsed = decodeOutcome(outcome)
+  const row = asRecord(parsed)
+  if (row === undefined) return silence()
+  const flag = flagOk(row)
+  if (flag === false) {
+    const code = row["code"]
+    if (typeof code !== "string" || code.length === 0) return silence()
+    return err(code)
+  }
+  if (flag !== true) return silence()
+  const raw = row["rows"]
+  if (!Array.isArray(raw)) return silence()
+  const rows: CoolingRow[] = []
+  for (const item of raw) {
+    const rec = asRecord(item)
+    if (rec === undefined) return silence()
+    const ticker = rec["ticker"]
+    const amount = rec["amount"]
+    const readyAtS = rec["readyAtS"]
+    if (typeof ticker !== "string" || ticker.length === 0) return silence()
+    if (typeof amount !== "string" || amount.length === 0) return silence()
+    if (typeof readyAtS !== "string" || readyAtS.length === 0) return silence()
+    const qty = parseDec(amount)
+    const ready = parseDec(readyAtS)
+    if (qty === undefined || ready === undefined) return silence()
+    rows.push({ ticker, amount: qty, readyAtS: ready })
+  }
+  return { ok: true, rows }
+}
+
 export function decodeChain(outcome: RpcOutcome): string | undefined {
   const parsed = decodeOutcome(outcome)
   const row = asRecord(parsed)
@@ -172,6 +273,132 @@ export function decodeChain(outcome: RpcOutcome): string | undefined {
   const chain = row["chain"]
   if (typeof chain !== "string") return undefined
   return chain
+}
+
+function logsOf(raw: unknown): readonly TxLog[] | undefined {
+  if (raw === undefined || raw === null) return []
+  if (!Array.isArray(raw)) return undefined
+  const out: TxLog[] = []
+  for (const item of raw) {
+    const rec = asRecord(item)
+    if (rec === undefined) return undefined
+    const address = rec["address"]
+    const data = rec["data"]
+    const topics = rec["topics"]
+    if (typeof address !== "string" || typeof data !== "string" || !Array.isArray(topics)) return undefined
+    const tops: string[] = []
+    for (const topic of topics) {
+      if (typeof topic !== "string") return undefined
+      tops.push(topic)
+    }
+    out.push({ address, topics: tops, data })
+  }
+  return out
+}
+
+export function encodeTxView(row: {
+  readonly status: bigint
+  readonly from: string
+  readonly to: string
+  readonly input: string
+  readonly logs: readonly TxLog[]
+}): string {
+  const logs: { address: string; topics: string[]; data: string }[] = []
+  for (const log of row.logs) logs.push({ address: log.address, topics: [...log.topics], data: log.data })
+  return JSON.stringify({
+    ok: true,
+    status: dec(row.status),
+    from: row.from,
+    to: row.to,
+    input: row.input,
+    logs,
+  })
+}
+
+export function decodeTxView(
+  outcome: RpcOutcome,
+):
+  | {
+      readonly ok: true
+      readonly status: bigint
+      readonly from: string
+      readonly to: string
+      readonly input: string
+      readonly logs: readonly TxLog[]
+    }
+  | PortErr {
+  const parsed = decodeOutcome(outcome)
+  const row = asRecord(parsed)
+  if (row === undefined) return silence()
+  const flag = flagOk(row)
+  if (flag === false) {
+    const code = row["code"]
+    if (typeof code !== "string" || code.length === 0) return silence()
+    return err(code)
+  }
+  if (flag !== true) return silence()
+  const statusRaw = row["status"]
+  const from = row["from"]
+  const to = row["to"]
+  const input = row["input"]
+  if (typeof statusRaw !== "string" || typeof from !== "string" || typeof to !== "string" || typeof input !== "string") {
+    return silence()
+  }
+  const status = parseDec(statusRaw)
+  if (status === undefined || from.length === 0 || to.length === 0) return silence()
+  const logs = logsOf(row["logs"])
+  if (logs === undefined) return silence()
+  return { ok: true, status, from, to, input, logs }
+}
+
+export function encodeUsed(used: boolean): string {
+  return JSON.stringify({ ok: true, used })
+}
+
+export function decodeUsed(outcome: RpcOutcome): { readonly ok: true; readonly used: boolean } | PortErr {
+  const parsed = decodeOutcome(outcome)
+  const row = asRecord(parsed)
+  if (row === undefined) return silence()
+  const flag = flagOk(row)
+  if (flag === false) {
+    const code = row["code"]
+    if (typeof code !== "string" || code.length === 0) return silence()
+    return err(code)
+  }
+  if (flag !== true || typeof row["used"] !== "boolean") return silence()
+  return { ok: true, used: row["used"] }
+}
+
+export function encodeIssued(account: string, corpAmount: bigint, issuedAtS: bigint): string {
+  return JSON.stringify({
+    ok: true,
+    account,
+    corpAmount: dec(corpAmount),
+    issuedAtS: dec(issuedAtS),
+  })
+}
+
+export function decodeIssued(
+  outcome: RpcOutcome,
+): { readonly ok: true; readonly account: string; readonly corpAmount: bigint; readonly issuedAtS: bigint } | PortErr {
+  const parsed = decodeOutcome(outcome)
+  const row = asRecord(parsed)
+  if (row === undefined) return silence()
+  const flag = flagOk(row)
+  if (flag === false) {
+    const code = row["code"]
+    if (typeof code !== "string" || code.length === 0) return silence()
+    return err(code)
+  }
+  if (flag !== true) return silence()
+  const account = row["account"]
+  const corpRaw = row["corpAmount"]
+  const atRaw = row["issuedAtS"]
+  if (typeof account !== "string" || typeof corpRaw !== "string" || typeof atRaw !== "string") return silence()
+  const corpAmount = parseDec(corpRaw)
+  const issuedAtS = parseDec(atRaw)
+  if (corpAmount === undefined || issuedAtS === undefined) return silence()
+  return { ok: true, account, corpAmount, issuedAtS }
 }
 
 export function encodeOk(): string {

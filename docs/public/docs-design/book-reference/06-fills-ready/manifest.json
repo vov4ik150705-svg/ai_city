@@ -1,0 +1,58 @@
+{
+  "n": 6,
+  "anchor": "fills",
+  "dir": "06-fills-ready",
+  "title": "What fills the tank",
+  "eyebrow": "06 — MONEY",
+  "intro": "Two streams. When anyone spends Capital, part of it burns and the rest flows back into the tank. And every $CORP trade leaves a small toll — half of it ends up here too.",
+  "note": "When the tank is over-full, the extra goes to a reserve and drips back slowly.",
+  "linkLabel": "More in the handbook → How value moves",
+  "ref": "economy.md#how-value-moves",
+  "alt": "Chips split between a small flame and a pipe into the tank; a toll gate under a trading pond drips into four pipes: the tank, a prize jar, a podium and a small studio house.",
+  "w": 1671,
+  "h": 941,
+  "hash": "6021C46BA4EDFE7695EEB17335B8C85B02E120558CC5E51997C1986680AE6ECC",
+  "geometry": {
+    "left": 90,
+    "top": 0,
+    "width": 1200,
+    "introTop": 211
+  },
+  "packHash": "8bec28aaccd56643d2be56ae5af68c1bf9a3888cbb70b1c9de27a1513fc4b295",
+  "values": {
+    "home_pct": 100,
+    "neighbour_pct": 60,
+    "tick_minutes": 62.5,
+    "offline_hours": 12,
+    "boost_launch": 8,
+    "boost_launch_days": 7,
+    "boost": 3,
+    "burn_pct": 40,
+    "spend_fund_pct": 60,
+    "creator_tax_pct": 2,
+    "bank_open": "08:00",
+    "bank_close": "20:00",
+    "round_trip_pct": 14.45,
+    "unstake_days": 30,
+    "prize_top_n": 10,
+    "period_days": 30
+  },
+  "approved": true,
+  "validation": {
+    "desktop": {
+      "images": true,
+      "fonts": true,
+      "active": "Page 6: What fills the tank",
+      "artBottom": 741.75,
+      "noteTop": 756,
+      "handbookAnchor": "#how-value-moves"
+    },
+    "mobile": {
+      "overflow": false,
+      "artWidth": 311,
+      "navBottom": 812
+    },
+    "zoom": true,
+    "pageErrors": []
+  }
+}

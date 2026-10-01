@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Industries row</title>
+  <style>
+    :root {
+      --ink: #111318;
+      --muted: #6b7280;
+      --line: #e6e8ec;
+      --page: #f7fbfe;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+    body { background: #eaf4fb; }
+    .stage {
+      position: relative;
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 72px 24px 36px;
+    }
+    .cloud {
+      position: absolute;
+      left: -4%;
+      right: -4%;
+      bottom: 8px;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .cloud img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .row {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      min-height: 420px;
+      padding-bottom: 78px;
+    }
+    .row button {
+      position: relative;
+      z-index: 1;
+      appearance: none;
+      border: 0;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+      line-height: 0;
+      margin: 0 -10px;
+    }
+    .row img {
+      display: block;
+      width: auto;
+      filter: drop-shadow(0 16px 10px rgba(20, 40, 70, 0.16));
+    }
+    .row button.is-on img {
+      filter:
+        drop-shadow(1px 0 0 #fff)
+        drop-shadow(-1px 0 0 #fff)
+        drop-shadow(0 1px 0 #fff)
+        drop-shadow(0 -1px 0 #fff)
+        drop-shadow(2px 0 0 rgba(255,255,255,.85))
+        drop-shadow(-2px 0 0 rgba(255,255,255,.85))
+        drop-shadow(0 18px 12px rgba(20, 40, 70, 0.2));
+    }
+    .panel {
+      position: absolute;
+      z-index: 2;
+      width: 280px;
+      padding: 14px 16px 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 14px 36px rgba(11, 30, 80, 0.12);
+    }
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+    .panel p {
+      margin: 0;
+      color: #3c4454;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .chips span {
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f3f6fb;
+      color: #3c4454;
+      font-size: 12px;
+    }
+    .panel a {
+      display: inline-block;
+      margin-top: 10px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="row" id="row">
+      <div class="cloud" aria-hidden="true">
+        <img src="industries-cloud.png?v=3" alt="" />
+      </div>
+    </div>
+    <aside class="panel" id="panel" hidden></aside>
+  </div>
+  <script>
+    const items = [
+      { id: "compute", file: "buildings/AI Research Center.png", h: 248, title: "Compute · NVDA", body: "Computing and research. AI Research Center turns Energy into Compute.", chips: ["Energy", "Logistics", "Automation"] },
+      { id: "energy", file: "buildings/Energy Plant.png", h: 176, title: "Energy · TSLA", body: "The supply beneath everything else. Energy Plant adds Energy.", chips: ["Compute", "Logistics"] },
+      { id: "logistics", file: "buildings/Logistics Hub.png", h: 150, title: "Logistics · AMZN", body: "Cuts idle time. It is not a resource you consume.", chips: ["Compute", "Energy", "Consumer"] },
+      { id: "consumer", file: "buildings/Flagship Store.png", h: 164, title: "Consumer · AAPL", body: "Housing and population-linked retail activity.", chips: ["Logistics"] },
+      { id: "automation", file: "buildings/Cloud Campus.png", h: 230, title: "Automation · MSFT", body: "Workforce capacity and offline time, up to 18 city hours.", chips: ["Compute", "Finance"] },
+      { id: "finance", file: "buildings/Finance Tower.png", h: 248, title: "Finance · COIN", body: "Banking and fund-related capabilities.", chips: ["Automation"] }
+    ];
+    const row = document.getElementById("row");
+    const panel = document.getElementById("panel");
+    const stage = document.querySelector(".stage");
+
+    function show(item, button) {
+      for (const el of row.children) el.classList.toggle("is-on", el === button);
+      panel.hidden = false;
+      panel.innerHTML = "<h2>" + item.title + "</h2><p>" + item.body + "</p><div class=\"chips\">" + item.chips.map((c) => "<span>" + c + "</span>").join("") + "</div><a href=\"#\">See what it opens</a>";
+      const stageBox = stage.getBoundingClientRect();
+      const box = button.getBoundingClientRect();
+      const left = box.left - stageBox.left + box.width / 2 - 140;
+      const top = box.top - stageBox.top - 8;
+      panel.style.left = Math.max(16, Math.min(left, stageBox.width - 296)) + "px";
+      panel.style.top = Math.max(8, top - panel.offsetHeight) + "px";
+    }
+
+    for (const item of items) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.id = item.id;
+      const img = document.createElement("img");
+      img.src = item.file;
+      img.alt = item.title;
+      img.style.height = item.h + "px";
+      button.appendChild(img);
+      button.addEventListener("pointerenter", () => show(item, button));
+      button.addEventListener("focus", () => show(item, button));
+      img.addEventListener("load", () => {
+        if (button.classList.contains("is-on")) show(item, button);
+      });
+      row.appendChild(button);
+    }
+    show(items[1], row.querySelector("[data-id='energy']"));
+  </script>
+</body>
+</html>

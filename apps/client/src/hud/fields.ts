@@ -41,6 +41,7 @@ export type PayrollView = {
   readonly paid: FieldView
   readonly requested: FieldView
   readonly coverage: FieldView
+  readonly launchWindow: FieldView | undefined
   readonly trim: { readonly key: string; readonly text: string } | undefined
 }
 
@@ -58,6 +59,10 @@ export type FunctionsView = {
     readonly name: string
     readonly statusKey: string
     readonly status: string
+    readonly level: bigint | undefined
+    readonly worker: string
+    readonly task: string
+    readonly paid?: bigint
   }[]
 }
 
@@ -132,6 +137,16 @@ export function formatShare(value: bigint, bps: bigint): string {
   return `${((value * hundred) / bps).toString()}%`
 }
 
+/** Pack bps that are not a whole percent (650 → 6.5%). Integer percents stay without a decimal. */
+export function formatShareTenths(value: bigint, bps: bigint): string {
+  if (bps <= 0n) return value.toString()
+  const tenths = (value * (10n * 10n * 10n)) / bps
+  const whole = tenths / 10n
+  const frac = tenths % 10n
+  if (frac === 0n) return `${whole.toString()}%`
+  return `${whole.toString()}.${frac.toString()}%`
+}
+
 export function padClockPart(n: bigint): string {
   const s = n.toString()
   if (s.length >= 2) return s
@@ -161,6 +176,12 @@ export function clockAxisAlong(hour: bigint, openHour: bigint, closeHour: bigint
   if (along < 0n) along = 0n
   if (along > span) along = span
   return along
+}
+
+/** Display-only shortening of a server wallet string. Does not rank. */
+export function formatWalletLabel(wallet: string): string {
+  if (wallet.length <= 12) return wallet
+  return `${wallet.slice(0, 6)}…${wallet.slice(-4)}`
 }
 
 function stateField(kind: Exclude<FieldKind, "ready">, key: string, text: string): FieldView {

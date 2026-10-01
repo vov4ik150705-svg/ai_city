@@ -12,7 +12,7 @@
 
 Начисление только за **валидный оплаченный тик** в здании `tier=beacon` с одним `district`, район играбелен. Workshop, синергии (`requires` ≥ 2, в том числе `robotics_lab`), заполнитель, IDLE, стройка, неиграбельный маяк — ноль. Иначе синергия плодит второй сток без своей paper-ветки, а база без стейка фармит NVDA.
 
-База = gross output тика **до** `payroll_ratio`. `fragment_rate_bps` (стадия `post`, `mul`) — тот же fused-mulDiv, что T5. Efficiency района уже в output — второй раз не умножаем. Тонкий фонд не убивает оба контура: фрагменты — требование к другому пулу.
+База = gross output тика **до** `payroll_ratio`. `fragment_rate_bps` (стадия `post`, `mul`) — тот же fused-mulDiv, что T5. Efficiency района уже в output — второй раз не умножаем. Building-link `output_bps` (E4) поднимает gross маяка и поэтому начисление из того же конечного пула; полосы пересчитываются в E5. Тонкий фонд не убивает оба контура: фрагменты — требование к другому пулу.
 
 AAPL / `flagship_store`: валидный тик маяка consumer даёт фрагменты AAPL. Population-конверсия остаётся output.
 
@@ -20,7 +20,7 @@ AAPL / `flagship_store`: валидный тик маяка consumer даёт ф
 
 ## 2. Окно и settlement
 
-`fragment_claim_window_city_days := payroll_daily_divisor`. Не хранится. Реальное время = окно × `city_day_real_hours` (вывод). Граница: `window_index = (city_day − 1) // 14`. Settlement в `efficiency_recalc_hour` (06:00) первого часа нового окна, код `FRAGMENT_WINDOW_SETTLED`. Потом леджер обнуляется.
+`fragment_claim_window_city_days := fragment_window_city_days` (7 суток города ≈ неделя, 175 реальных часов). Не хранится. Не `payroll_daily_divisor` (тот 14 — горизонт фонда зарплат). Реальное время = окно × `city_day_real_hours` (вывод). Граница: `window_index = (city_day − 1) // window`. Settlement в `efficiency_recalc_hour` (06:00) первого часа нового окна, код `FRAGMENT_WINDOW_SETTLED`. Потом леджер обнуляется.
 
 ```
 payout_i = floor( fragments_i × pool / Σfragments )     # Σ>0
@@ -48,12 +48,12 @@ N=1: кап **не** применяется. N≥2: один город ≤ по
 
 | Кран | bps | Почему |
 |---|---:|---|
-| Creator tax | 100 payroll / 30 leaderboard / 50 active-work / 20 studio | Из creator tax 200 bps оборота: 100 bps payroll, 30 bps `month`, 50 bps `farm`, 20 bps studio. |
+| Creator tax | 100 payroll / 20 leaderboard / 60 active-work / 20 studio | Из creator tax 200 bps оборота: 100 bps payroll, 20 bps `month`, 60 bps `farm`, 20 bps studio. |
 | `reserve_cork` | 0 | Пробка — восстановление фонда, не приз. **R-T6-1** против `docs/LAUNCH.md` §10. |
 | `spend_protocol` | 0 | Capital spending no longer funds a stock kettle; spend is 4000 burn + 6000 payroll + 0 protocol. |
 | NFT | 0 | G6 зафиксировал ноль (`D-G-9`). Выручка сначала закрывает счёт инференса (`nft_proceeds_sink`); доля в пул — обещание доходности. |
 
-Creator-tax stock split is 30/50 bps of turnover for `month`/`farm`; the raw prize leg is 100 bps of turnover and its 20 bps studio take is removed before the stock split. The old `spend_protocol` 10000/0 split is inactive because `spend_protocol_bps=0`.
+Creator-tax stock split is 20/60 bps of turnover for `month`/`farm`; the raw prize leg is 100 bps of turnover and its 20 bps studio take is removed before the stock split. The old `spend_protocol` 10000/0 split is inactive because `spend_protocol_bps=0`.
 
 Конвейер снаружи тика, тот же транш выкупа (L22), не новый лимит. 1% налога с продажи CORP **возвращается в фонд** — побочный сбор DEX, не кран фрагментов. Аллокация `budget_t = eth_net × frag_t / Σfrag`. Нулевой леджер → не покупать (нет мёртвого COIN, пока Finance в v1.1).
 
@@ -92,7 +92,7 @@ Hop: `fragment_hop_haircut_bps` = 3, замер `docs/LAUNCH.md` §13 строк
 
 ### 6.1 Длина
 
-`season_len_city_days := season_city_days`. Не второй параметр: горизонт возврата T2, прогон T3 и призовой сезон — одно число. Реальные часы = длина × `city_day_real_hours` (вывод; не хранить float суток). 90 не кратно окну фрагментов 14 — **не** сдвигать на 84 (**R-T6-3** жив: окно ≠ период ≠ сезон).
+`season_len_city_days := season_city_days`. Не второй параметр: горизонт возврата T2, прогон T3 и призовой сезон — одно число. Реальные часы = длина × `city_day_real_hours` (вывод; не хранить float суток). 90 не кратно окну фрагментов 7 — **не** сдвигать сезон под окно (**R-T6-3** жив: окно ≠ период ≠ сезон).
 
 Период призов: `prize_periods_per_season` хранится как делитель, `prize_period_city_days := season_city_days / prize_periods_per_season` — derived, не вторая длина (L282). Реальные часы периода — вывод. Граница: `prize_period_index = (city_day − 1) // prize_period_city_days`. Settlement в `efficiency_recalc_hour` первого часа нового периода, код `PRIZE_PERIOD_SETTLED`. `SEASON_SETTLED` — только на границе сезона, архив HUD.
 
@@ -126,34 +126,34 @@ Efficiency — против канонической нейтрали 10000, н�
 
 Кап T6 остаётся на город. Призы — на кошелёк (**R-T6-5** закрыт для призов).
 
-1. Один кошелёк — один слот: `max` Influence городов, не сумма и не среднее. Код `PRIZE_WALLET_MERGED`.
+1. Один кошелёк — один слот: `max` Influence городов, не сумма и не среднее. Код `PRIZE_WALLET_MERGED`. Тик копирует непустой `wallet` города в ряд `seasonSettle`, в том числе если ряд пришёл из `season_row` без поля. Пустой `wallet` не пишется: ключ слияния `c:<city_id>`, выплата без подмены адреса, чтобы не совпасть ни с `0x`, ни с подписью `city:<id>`. Checksum `0x`-адреса, пробелы по краям, внутри hex и неразрывный пробел нормализуются при ingest, как у живой таблицы HUD. `live_stake` — тот же флаг, что в TS: строка `"0"` стейка не даёт. Город с `account_kind=demo` не занимает слот, даже без флага `demo`.
 2. Интеграл, не снимок. Клон в последний день периода не получает нули задним числом (L121).
 3. Квалификация: `season_qualify_bps` от длины периода (`qualify_days` derived). Клон на предпоследнем дне периода — `PRIZE_NOT_QUALIFIED`. Строго меньше порога — `PRIZE_NOT_QUALIFIED`.
 4. Живой стейк на settlement: хотя бы один `playable_v1` не заморожен. Порог в токенах не выдумывается. `PRIZE_STAKE_REQUIRED`.
 5. Демо: `DEMO_NO_PRIZE`.
 
-Остаточный сивил N ключей × оптимизированных городов × сезон — **R-T7-4**. KYC нет. Кривую не плющить, чтобы #10 был мелким. Налог фонда не забирать.
+Остаточный сивил N ключей × оптимизированных городов × сезон — **R-T7-4**. KYC нет. Кривая — смесь α=8000 (80% гармоника / 20% равные): #1 остаётся лидером, #10 чуть жирнее, не равные доли. Налог фонда не забирать.
 
 Стоимость защит vs rank-10 — GENERATED «T7: антисивил».
 
 ### 6.4 Кривая топ-N
 
-`prize_top_n` = 10, `prize_curve_alpha_bps` = 10000 (α = 1, дискретная гармоника). Ручной ряд долей запрещён. Веса одни на всех; выплата — **по каждому активу корзины** (`prize_assets` = шесть `districts[].ticker`, never `$CORP`).
+`prize_top_n` = 10, `prize_curve_alpha_bps` = 8000 (80% гармоника BPS//k, 20% равные BPS//n). Ручной ряд долей запрещён. Веса одни на всех; выплата — **по каждому активу корзины** (`prize_assets` = шесть `districts[].ticker`, never `$CORP`). Живая таблица HUD показывает все не-демо кошельки без этого потолка; Zipf режет только выплату.
 
 ```
-weight_k = BPS // k
+weight_k = (alpha × (BPS // k) + (BPS − alpha) × (BPS // n)) // BPS
 payout_k(asset) = floor( pool[asset] × weight_k / Σweight )
 assert Σ payout[asset] ≤ pool[asset]
 dust[asset] → следующий период того же актива
 ```
 
-N_eligible = 0 → деления нет, пул цел, `PRIZE_NO_ELIGIBLE`. N = 1 → 100% **каждого** пула, H_10 на пустых местах не ест вес. N > 10 → топ-10, веса H_10. Ceil на гармонике — атака L107/L284. Перелив пыли NVDA в TSLA — атака L284. Тай-брейк: меньший `city_id` (строка) выше. Не random.
+N_eligible = 0 → деления нет, пул цел, `PRIZE_NO_ELIGIBLE`. N = 1 → 100% **каждого** пула, смесь на пустых местах не ест вес. N > 10 → топ-10, веса смеси при n=10. Ceil на кривой — атака L107/L284. Перелив пыли NVDA в TSLA — атака L284. Тай-брейк: меньший `city_id` (строка) выше. Не random.
 
 Кап доли `prize_share_cap_over_contribution_bps` (derived): при N_eligible ≥ 2 доля кошелька в пуле ≤ доля qualifying active-work вклада × k. Срезанное остаётся в пуле, `PRIZE_SHARE_CAPPED[cap]`. N = 1 без капа. Свидетели — GENERATED «M3: корзина Zipf и кап доли».
 
 ### 6.5 Источник пула
 
-Два накопителя, не смешанные. **Месяц (`month`)** — 0.3% оборота DEX на сторону, Zipf Influence, окно периода. **Фарм (`farm`)** — 0.5% оборота DEX, талоны за валидную смену в маяке, окно 14 суток. `spend_protocol` равен нулю, поэтому Capital spending не создаёт стоковый поток. Tax, cork и NFT не являются дополнительными кранами. Hop обоих котлов = 0: конвейер (M4) покупает стоки снаружи тика. Актив приза — сток, не `$CORP`.
+Два накопителя, не смешанные. **Месяц (`month`)** — 0.2% оборота DEX на сторону, Zipf Influence, окно периода. **Фарм (`farm`)** — 0.6% оборота DEX, талоны за валидную смену в маяке, окно 7 суток города. `spend_protocol` равен нулю, поэтому Capital spending не создаёт стоковый поток. Tax, cork и NFT не являются дополнительными кранами. Hop обоих котлов = 0: конвейер (M4) покупает стоки снаружи тика. Актив приза — сток, не `$CORP`.
 
 Конвейер снаружи тика. Он получает три непересекающиеся ETH-ноги: `treasury_fund_eth` для buyback `$CORP` и payroll, `treasury_leaderboard_eth` для котла `month`, `treasury_farm_eth` для котла `farm`; одна нога не пересчитывается из другой. `pool_in` — записанный вход по активу, измерение баланса, не накопитель ожиданий. `returnUnsettled` на паузе возвращает боту-вкладчику только unsliced выбранного котла; нарезанное `owed` не входит. Отказ RPC → `pool_in=0`, `PRIZE_HOP_STALE`, экономика тика жива. Тот же транш выкупа 0.33% (L22).
 

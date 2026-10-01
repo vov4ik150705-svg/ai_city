@@ -1,28 +1,49 @@
 .hud-root {
 /* HUD_TOKENS_BEGIN */
-  /* Desktop HUD v1.1 chrome. District accents remain --accent-* from palette.ts. */
-  --hud-cyan: #45C7F4;
-  --hud-select: #FFB64A;
-  --hud-sun: #FFB64A;
-  --hud-clock-navy: #245A9A;
-  --hud-clock-rest: #1D4B86;
+  /* Light HUD, taken from hud/design-reference/00-hud-full.png. Values: hud/design-reference/DESIGN_SCHEME.md. */
+  --hud-cyan: #0A5CF8;
+  --hud-select: #FFFFFF;
+  --hud-sun: #F5A40A;
+  --hud-clock-navy: #0A5CF8;
+  --hud-clock-rest: #D9E6F5;
 
-  --hud-tone-background: #1D4B86;
-  --hud-tone-panel: #245A9A;
-  --hud-tone-panel-hover: #2E68AA;
-  --hud-tone-panel-active: color-mix(in srgb, #2E68AA 88%, #45C7F4);
-  --hud-tone-border: color-mix(in srgb, #45C7F4 22%, #1D4B86);
-  --hud-tone-border-subtle: #1D4B86;
-  --hud-tone-primary-text: #F4F7FA;
-  --hud-tone-secondary-text: #C7D5E3;
-  --hud-tone-muted-text: #8FA8C0;
-  --hud-tone-cyan-accent: #45C7F4;
-  --hud-tone-blue-accent: var(--accent-fin);
-  --hud-tone-green-success: #63D68A;
-  --hud-tone-yellow-warning: #F0B85B;
-  --hud-tone-red-error: #E97878;
-  --hud-tone-orange-economic: #FFB64A;
-  --hud-tone-sun: #FFB64A;
+  --hud-tone-background: #E4F0FD;
+  --hud-tone-bar: #D6EAFD;
+  --hud-tone-panel: rgba(242, 247, 254, 0.92);
+  --hud-tone-panel-solid: #F2F7FE;
+  --hud-tone-panel-hover: rgba(255, 255, 255, 0.96);
+  --hud-tone-panel-active: #E6F0FF;
+  --hud-tone-card: rgba(255, 255, 255, 0.78);
+  --hud-tone-card-hover: rgba(255, 255, 255, 0.96);
+  --hud-tone-input: #FFFFFF;
+  --hud-tone-border: #D3E2F4;
+  --hud-tone-border-strong: #B9CFEA;
+  --hud-tone-border-subtle: #E1EAF6;
+  --hud-tone-divider: #E1EAF6;
+  --hud-tone-meter-track: #D9E6F5;
+  --hud-tone-ink: #0B1236;
+  --hud-tone-primary-text: #0F1E4A;
+  --hud-tone-secondary-text: #3F4E70;
+  --hud-tone-muted-text: #6F7D9C;
+  --hud-tone-disabled-text: #9AA7C2;
+  --hud-tone-disabled-fill: #EAF0F8;
+  --hud-tone-closed-text: #6C7A99;
+  --hud-tone-closed-fill: #E9EEF6;
+  --hud-tone-cyan-accent: #0A5CF8;
+  --hud-tone-blue-accent: #0A5CF8;
+  --hud-tone-blue-hover: #0850DE;
+  --hud-tone-blue-soft: #E6F0FF;
+  --hud-tone-blue-ring: rgba(10, 92, 248, 0.24);
+  --hud-tone-green-success: #0E9F5A;
+  --hud-tone-green-soft: #E1F5EA;
+  --hud-tone-yellow-warning: #F5A40A;
+  --hud-tone-yellow-soft: #FFF3DA;
+  --hud-tone-red-error: #E5383B;
+  --hud-tone-red-badge: #FF3B30;
+  --hud-tone-red-soft: #FDE7E7;
+  --hud-tone-orange-economic: #F5A40A;
+  --hud-tone-sun: #F5A40A;
+  --hud-tone-on-accent: #FFFFFF;
 
   --hud-font-display: var(--hud-face-ui, "IBM Plex Sans"), ui-sans-serif, sans-serif;
   --hud-font-data: var(--hud-face-data, "JetBrains Mono"), ui-monospace, monospace;
@@ -67,9 +88,9 @@
   --hud-space-6: 1.5rem;
   --hud-space-7: 2rem;
 
-  --hud-radius-small: 8px;
-  --hud-radius-medium: 12px;
-  --hud-radius-large: 16px;
+  --hud-radius-small: 3px;
+  --hud-radius-medium: 5px;
+  --hud-radius-large: 6px;
   --hud-radius-pill: 999rem;
   --hud-control-min-size: 2.75rem;
   --hud-panel-padding: var(--hud-space-3);
@@ -86,15 +107,17 @@
   --hud-border-subtle: var(--hud-hair) solid var(--hud-tone-border-subtle);
   --hud-border-active: var(--hud-hair) solid var(--hud-tone-cyan-accent);
 
-  --hud-shadow-panel: var(--hud-glass-panel-inset), 0 0.5rem 1rem color-mix(in srgb, #1D4B86 40%, transparent);
-  --hud-shadow-hover: 0 0.5rem 1rem color-mix(in srgb, #1D4B86 48%, transparent);
-  --hud-shadow-selected: inset 0 -0.15rem 0 var(--hud-tone-cyan-accent);
+  --hud-shadow-panel: var(--hud-glass-panel-inset), 0 8px 24px rgba(11, 30, 80, 0.10);
+  --hud-shadow-hover: 0 10px 28px rgba(11, 30, 80, 0.14);
+  --hud-shadow-popover: 0 14px 36px rgba(11, 30, 80, 0.18);
+  --hud-shadow-dialog: 0 24px 60px rgba(11, 30, 80, 0.24);
+  --hud-shadow-selected: inset 0 -0.15rem 0 var(--hud-tone-blue-accent);
 
-  --hud-glass-panel-opacity: 88%;
-  --hud-glass-panel-blur: 0.125rem;
-  --hud-glass-panel-fallback: #245A9A;
-  --hud-glass-panel-gradient: linear-gradient(180deg, #2C67AA 0%, #1E4F8C 100%);
-  --hud-glass-panel-inset: inset 0 var(--hud-hair) 0 color-mix(in srgb, #F4F7FA 10%, transparent);
+  --hud-glass-panel-opacity: 92%;
+  --hud-glass-panel-blur: 8px;
+  --hud-glass-panel-fallback: #F2F7FE;
+  --hud-glass-panel-gradient: linear-gradient(180deg, rgba(242, 247, 254, 0.92) 0%, rgba(242, 247, 254, 0.92) 100%);
+  --hud-glass-panel-inset: inset 0 var(--hud-hair) 0 rgba(255, 255, 255, 0.7);
 
   --hud-chrome-drawer-top: 5.5rem;
   --hud-chrome-lower-offset: 5.25rem;
@@ -162,10 +185,10 @@
   --hud-look-panel-height: 266px;
   --hud-look-panel-scale: 0.86;
   --hud-look-panel-radius: 16px;
-  --hud-look-panel-border: rgba(255, 255, 255, 0.1);
-  --hud-look-panel-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-  --hud-look-gradient-top: rgba(44, 103, 170, 0.86);
-  --hud-look-gradient-bottom: rgba(30, 79, 140, 0.86);
+  --hud-look-panel-border: #D3E2F4;
+  --hud-look-panel-shadow: 0 8px 24px rgba(11, 30, 80, 0.10);
+  --hud-look-gradient-top: rgba(242, 247, 254, 0.92);
+  --hud-look-gradient-bottom: rgba(242, 247, 254, 0.92);
   --hud-look-pad-x: 12px;
   --hud-look-pad-top: 3px;
   --hud-look-pad-bottom: 18px;
@@ -274,14 +297,14 @@
   --hud-look-detail-manage-h: 28px;
   --hud-look-detail-manage-radius: 7px;
   --hud-look-detail-manage-go: 16px;
-  --hud-look-select-border: rgba(255, 182, 74, 0.85);
-  --hud-look-art-fill: rgba(19, 66, 123, 0.28);
-  --hud-look-rule: rgba(255, 255, 255, 0.08);
-  --hud-look-meter-track: rgba(255, 255, 255, 0.12);
-  --hud-look-coin-fill: #ffb64a;
-  --hud-look-sun: #ffcf4a;
-  --hud-look-card-border: rgba(255, 255, 255, 0.04);
-  --hud-look-selected-ring: rgba(69, 199, 244, 0.55);
+  --hud-look-select-border: rgba(10, 92, 248, 0.55);
+  --hud-look-art-fill: rgba(230, 240, 255, 0.9);
+  --hud-look-rule: #E1EAF6;
+  --hud-look-meter-track: #D9E6F5;
+  --hud-look-coin-fill: #0A5CF8;
+  --hud-look-sun: #F5A40A;
+  --hud-look-card-border: #D3E2F4;
+  --hud-look-selected-ring: rgba(10, 92, 248, 0.24);
 /* HUD_TOKENS_END */
   position: relative;
   width: 100%;
@@ -289,7 +312,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--hud-tone-primary-text);
-  color-scheme: dark;
+  color-scheme: light;
   font-family: var(--hud-font-ui);
   font-size: var(--hud-size-body);
   font-weight: var(--hud-weight-regular);
@@ -358,10 +381,11 @@
   pointer-events: none;
   display: grid;
   grid-template-columns: var(--hud-rail-width) minmax(0, 1fr) var(--hud-rail-width);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "topbar topbar topbar"
-    "left-rail scene-safe-center right-rail";
+    "left-rail scene-safe-center right-rail"
+    "functions scene-safe-center activity";
   gap: var(--hud-gap);
   padding-top: max(var(--hud-space-2), env(safe-area-inset-top));
   padding-right: max(var(--hud-space-2), env(safe-area-inset-right));
@@ -606,12 +630,9 @@
 
 .hud-clock {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    ". pair ."
-    "start track end";
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "pair start track end";
   column-gap: var(--hud-space-2);
-  row-gap: var(--hud-space-1);
   align-items: center;
   min-width: 0;
   width: 100%;
@@ -621,8 +642,9 @@
 .hud-clock__pair {
   grid-area: pair;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
   gap: var(--hud-space-2);
   min-width: 0;
 }
@@ -1333,32 +1355,17 @@ button.hud-chip {
   cursor: pointer;
 }
 
-.hud-schema__cell[data-ticker="NVDA"] {
-  color: var(--hud-tone-blue-accent);
-}
-
-.hud-schema__cell[data-ticker="TSLA"] {
-  color: var(--hud-tone-red-error);
-}
-
-.hud-schema__cell[data-ticker="AMZN"] {
-  color: var(--hud-tone-yellow-warning);
-}
-
-.hud-schema__cell[data-ticker="AAPL"] {
-  color: var(--hud-tone-primary-text);
-}
-
-.hud-schema__cell[data-ticker="MSFT"] {
-  color: var(--hud-tone-blue-accent);
-}
-
+.hud-schema__cell[data-ticker="NVDA"],
+.hud-schema__cell[data-ticker="TSLA"],
+.hud-schema__cell[data-ticker="AMZN"],
+.hud-schema__cell[data-ticker="AAPL"],
+.hud-schema__cell[data-ticker="MSFT"],
 .hud-schema__cell[data-ticker="COIN"] {
-  color: var(--hud-tone-blue-accent);
+  color: color-mix(in srgb, var(--hud-accent, var(--hud-tone-ink)) 78%, var(--hud-tone-ink));
 }
 
 .hud-functions {
-  grid-area: scene-safe-center;
+  grid-area: functions;
   align-self: end;
   justify-self: start;
   z-index: 2;
@@ -1376,7 +1383,7 @@ button.hud-chip {
 }
 
 .hud-activity {
-  grid-area: scene-safe-center;
+  grid-area: activity;
   align-self: end;
   justify-self: end;
   z-index: 2;
@@ -1668,6 +1675,38 @@ button.hud-chip {
   list-style: none;
   margin: 0;
   padding: var(--hud-pad);
+}
+
+.hud-board {
+  max-height: 22rem;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hud-space-2);
+}
+
+.hud-board__row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  gap: var(--hud-space-2);
+  align-items: center;
+  padding: var(--hud-space-2);
+}
+
+.hud-board__row--self {
+  outline: var(--hud-border-subtle);
+}
+
+.hud-board__rank {
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-board__row .hud-list-item__trailing {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: var(--hud-space-1);
+  font-variant-numeric: tabular-nums;
 }
 
 .hud-attest {
@@ -1972,21 +2011,21 @@ button.hud-chip {
 .hud-btn--primary,
 .hud-action,
 .hud-hire {
-  background: #45C7F4;
-  color: #1D4B86;
-  border-color: #45C7F4;
+  background: var(--hud-tone-blue-accent);
+  color: var(--hud-tone-on-accent);
+  border-color: var(--hud-tone-blue-accent);
 }
 
 .hud-btn--secondary {
-  background: transparent;
-  color: #F4F7FA;
-  border-color: color-mix(in srgb, #45C7F4 40%, #1D4B86);
+  background: var(--hud-tone-input);
+  color: var(--hud-tone-primary-text);
+  border-color: var(--hud-tone-border-strong);
 }
 
 .hud-btn--ghost,
 .hud-linkbtn {
   background: transparent;
-  color: #45C7F4;
+  color: var(--hud-tone-blue-accent);
   border-color: transparent;
 }
 
@@ -2025,12 +2064,12 @@ button.hud-chip {
 .hud-thumb[data-thumb="sheet"],
 .hud-rcard__art[data-art="unavailable"],
 .hud-icard__beacon[data-beacon="unavailable"] {
-  background: color-mix(in srgb, #8FA8C0 16%, transparent);
+  background: color-mix(in srgb, var(--hud-tone-muted-text) 16%, transparent);
   color: var(--hud-tone-muted-text);
 }
 
 .hud-thumb[data-thumb="decorative"] {
-  background: color-mix(in srgb, #8FA8C0 10%, transparent);
+  background: color-mix(in srgb, var(--hud-tone-muted-text) 10%, transparent);
 }
 
 .hud-bcard__thumb .hud-unavailable,
@@ -2054,9 +2093,15 @@ button.hud-chip {
 
 .hud-acard--roster {
   display: grid;
-  grid-template-columns: var(--hud-stat-icon) minmax(0, 1fr) auto;
+  grid-template-columns: var(--hud-icon-display) minmax(0, 1fr) auto;
   gap: var(--hud-space-2);
   align-items: start;
+}
+
+.hud-acard--roster .hud-portrait {
+  width: var(--hud-icon-display);
+  height: var(--hud-icon-display);
+  border-radius: var(--hud-radius-pill);
 }
 
 .hud-acard__who {
@@ -2088,6 +2133,7 @@ button.hud-chip {
   .hud-root * {
     animation: none;
     transition: none;
+    scroll-behavior: auto;
   }
 }
 
@@ -2372,6 +2418,7 @@ button.hud-chip {
 .hud-co {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   padding: 0 0.28rem;
   border-radius: 0.2rem;
   font-size: var(--hud-size-badge);
@@ -2589,10 +2636,10 @@ button.hud-chip {
   place-items: center;
   width: var(--hud-thumb-building);
   height: var(--hud-thumb-building);
-  overflow: hidden;
-  border-radius: var(--hud-radius-small);
-  background: color-mix(in srgb, var(--hud-tone-cyan-accent) 14%, transparent);
-  color: var(--hud-tone-cyan-accent);
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  color: var(--hud-tone-ink);
 }
 
 .hud-thumb--compact {
@@ -2600,7 +2647,14 @@ button.hud-chip {
   height: var(--hud-stat-icon);
 }
 
-.hud-thumb__img,
+.hud-thumb__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
 .hud-portrait__img {
   display: block;
   width: 100%;
@@ -2690,11 +2744,17 @@ button.hud-chip {
 }
 
 .hud-catalog__row {
-  grid-template-columns: var(--hud-stat-icon) minmax(0, 1fr) auto auto;
+  grid-template-columns: var(--hud-stat-icon) minmax(0, 1fr) auto auto auto;
 }
 
 .hud-agent__btn {
   grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.hud-catalog__cost {
+  font-variant-numeric: tabular-nums;
+  color: var(--hud-tone-muted-text);
+  white-space: nowrap;
 }
 
 .hud-catalog__row .hud-unavailable,
@@ -3189,28 +3249,64 @@ button.hud-chip {
   display: none;
 }
 
+.hud-dialog-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--hud-layer-feedback);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hud-space-4);
+  box-sizing: border-box;
+  background: color-mix(in srgb, var(--hud-tone-ink) 28%, transparent);
+  pointer-events: auto;
+}
+
 .hud-dialog,
 .hud-review-panel {
-  border-radius: var(--hud-radius-medium);
+  border-radius: var(--hud-radius-large);
+}
+
+.hud-dialog {
+  width: min(31.625rem, 100%);
+  max-width: 31.625rem;
 }
 
 .hud-dialog__header,
 .hud-dialog__body {
-  padding: var(--hud-space-3);
+  padding: var(--hud-space-4);
 }
 
 .hud-dialog__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--hud-space-2);
-  border-bottom: var(--hud-border-subtle);
+}
+
+.hud-dialog__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--hud-space-2);
+  min-width: 0;
+}
+
+.hud-dialog__titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hud-space-1);
+  min-width: 0;
 }
 
 .hud-dialog__title {
   margin: 0;
   font-family: var(--hud-font-ui);
-  font-size: var(--hud-size-section);
+  font-size: var(--hud-size-hero);
+  font-weight: var(--hud-weight-bold);
+}
+
+.hud-dialog__lede {
+  margin: 0;
 }
 
 .hud-filter {
