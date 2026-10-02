@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-02",
+  "purpose": "Dedicated Dexscreener cloud-title composition",
+  "font": "TT Octosquares Trial Condensed Black — project original",
+  "tool": "Built-in image_gen for scene and transparent foreground clouds; original-font typography and original branding composed afterward",
+  "exports": [
+    {
+      "file": "dexscreener-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 6354395
+    },
+    {
+      "file": "dexscreener-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 1791510
+    },
+    {
+      "file": "dexscreener-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 462154
+    },
+    {
+      "file": "dexscreener-preview-600x200.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 315623
+    },
+    {
+      "file": "dexscreener-preview-300x100.png",
+      "width": 300,
+      "height": 100,
+      "bytes": 85584
+    }
+  ],
+  "texts": [
+    "CORPORATOR",
+    "HIRE AGENTS.",
+    "UPGRADE BUILDINGS.",
+    "RUN THE ECONOMY."
+  ],
+  "sceneSha256": "a3eb9e29fe6b46a836e85865eefd8eaa4c4f9355f996e934998f7799c315f6c6",
+  "layers": 5,
+  "clouds": {
+    "width": 2172,
+    "height": 724,
+    "hasAlpha": true
+  }
+}

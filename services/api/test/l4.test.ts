@@ -90,6 +90,7 @@ describe.sequential("L4 pg_compose", () => {
     const liteReplay = await replayStored(lite.ctx, lite.store, structuredClone(lite.genesis), cityId)
     expectBytes(liteReplay.headers, hdrs)
     expectBytes(liteReplay.records, recs)
+    await lite.store.close()
     const pg = await startPostgres()
     try {
       const bytes = packBytes()

@@ -103,6 +103,32 @@ async function waitTcp(port: number): Promise<void> {
   throw new Error("postgres not ready")
 }
 
+async function waitSql(url: string): Promise<void> {
+  const pg = (await import("pg")).default
+  let streak = 0
+  let i = 0
+  while (i < 40) {
+    const client = new pg.Client({ connectionString: url, connectionTimeoutMillis: 2000 })
+    try {
+      await client.connect()
+      await client.query("SELECT 1")
+      await client.end()
+      streak += 1
+      if (streak >= 3) return
+    } catch {
+      streak = 0
+      try {
+        await client.end()
+      } catch {
+        // The postmaster dropped this socket while it was still starting.
+      }
+    }
+    await sleep(500)
+    i += 1
+  }
+  throw new Error("postgres not ready")
+}
+
 async function startDocker(password: string, hostPort: number): Promise<PostgresHandle | undefined> {
   const internal = portNumber(postgresPort)
   const run = spawnSync(
@@ -135,6 +161,7 @@ async function startDocker(password: string, hostPort: number): Promise<Postgres
   if (run.status !== 0) return undefined
   try {
     await waitTcp(hostPort)
+    await waitSql(dsn("127.0.0.1", hostPort, password))
   } catch (err) {
     spawnSync("docker", ["rm", "-f", "corporator-l4-pg"], { encoding: "utf8" })
     throw err
@@ -182,6 +209,7 @@ async function startEmbedded(password: string, hostPort: number): Promise<Postgr
   } catch {
     // Cluster may already have a database named after the role.
   }
+  await waitSql(dsn("127.0.0.1", hostPort, password))
   return {
     url: dsn("127.0.0.1", hostPort, password),
     async stop(): Promise<void> {

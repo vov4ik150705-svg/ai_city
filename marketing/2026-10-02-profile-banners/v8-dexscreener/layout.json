@@ -2,9 +2,9 @@
   "sceneSource": "scene-dex-generated.png",
   "cloudSource": "clouds-foreground-generated.png",
   "title": {
-    "x": 215,
-    "y": 932,
-    "size": 282,
+    "x": 290,
+    "y": 965,
+    "size": 242,
     "depth": 10
   },
   "brand": {

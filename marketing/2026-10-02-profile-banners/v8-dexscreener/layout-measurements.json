@@ -1,0 +1,19 @@
+{
+  "featureFontSize": 62,
+  "titleFont": "TT Octosquares Trial Condensed Black",
+  "titleSize": 242,
+  "sceneNative": {
+    "width": 2172,
+    "height": 724
+  },
+  "cloudNative": {
+    "source": "clouds-foreground-generated.png"
+  },
+  "layers": [
+    "01 · Unified generated city and team",
+    "02 · CORPORATOR — exact game font",
+    "03 · Game feature copy",
+    "04 · Exact original token and $CORP",
+    "05 · Foreground clouds around lettering"
+  ]
+}
