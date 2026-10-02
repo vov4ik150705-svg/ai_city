@@ -1,0 +1,42 @@
+{
+  "canvas": [
+    3000,
+    1000
+  ],
+  "nativeCoordinates": [
+    2172,
+    724
+  ],
+  "labels": [
+    {
+      "building": "Clearing House",
+      "text": [
+        "CLEARING",
+        "HOUSE",
+        "Microsoft"
+      ],
+      "position": "Existing three facade panels; temple emblem, four squares and coinbase C retained"
+    },
+    {
+      "building": "Robotics Lab",
+      "text": [
+        "NVIDIA"
+      ],
+      "emblemSource": "media/kit/buildings/robotics_lab.png",
+      "position": "Existing front facade panel"
+    },
+    {
+      "building": "Energy Plant",
+      "text": [
+        "TESLA"
+      ],
+      "position": "Existing right side, below Tesla T"
+    },
+    {
+      "building": "Retail Complex",
+      "emblemSource": "media/kit/buildings/retail_complex.png",
+      "position": "Existing visible front Apple and side amazon panels; invented purple marks removed"
+    }
+  ],
+  "scope": "Exact in-world glyph correction and original logo inserts. No city or character source pictures composited."
+}

@@ -1,6 +1,6 @@
 {
   "sceneSource": "scene-generated-03.png",
-  "title": { "x": 1500, "y": 940, "size": 200, "depth": 12 },
-  "x": { "brandWidth": 88, "brandX": 150, "brandY": 85, "tagSize": 46, "tagY": 986, "tagColor": "#243447" },
-  "dexscreener": { "brandWidth": 145, "brandX": 2730, "brandY": 70, "wordWidth": 250, "wordX": 2675, "wordY": 235 }
+  "title": { "x": 2525, "y": 220, "size": 112, "depth": 8 },
+  "x": { "brandWidth": 88, "brandX": 150, "brandY": 85, "tagSize": 43, "tagY": 280, "tagColor": "#243447" },
+  "dexscreener": { "brandWidth": 158, "brandX": 200, "brandY": 70, "wordWidth": 295, "wordX": 132, "wordY": 270 }
 }

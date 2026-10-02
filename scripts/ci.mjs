@@ -1,4 +1,4 @@
-/* GENERATED from pack 4555d9a00ba1bfdbd4c6fba6e3a0e20f2c623eb16d718b866ce56498ae71a26e; do not edit */
+/* GENERATED from pack e8e837109fb0f34e3f125f86dd2195f60e491c86d5e24e2efb65d8aa39ff58fa; do not edit */
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -34,7 +34,7 @@ export const ciSteps = [
   },
   {
     "id": "install_frozen",
-    "cmd": "pnpm -w install --frozen-lockfile",
+    "cmd": "pnpm install --frozen-lockfile",
     "catches": "lockfile drift, undeclared dependency",
     "red_input": "change pnpm-lock.yaml without a matching package.json",
     "track": "push"

@@ -3697,12 +3697,12 @@
       "why": "TS parity is against oracle bytes. A stale vector file must fail before merge"
     },
     "install_frozen": {
-      "cmd": "pnpm -w install --frozen-lockfile",
+      "cmd": "pnpm install --frozen-lockfile",
       "catches": "lockfile drift, undeclared dependency",
       "red_input": "change pnpm-lock.yaml without a matching package.json",
       "track": "push",
       "src": "D-C-14, PLAN_CODE C9",
-      "why": "Toolchain pins live in the pack. An unlocked install would silently pick another tarball"
+      "why": "Install every workspace package. pnpm -w install only links the root, so tsc cannot see @corporator/*"
     },
     "workspace_gate": {
       "cmd": "pnpm -w run gate",

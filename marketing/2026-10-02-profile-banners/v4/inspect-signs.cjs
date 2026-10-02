@@ -1,0 +1,2 @@
+const sharp=require('C:/Users/sk640/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/sharp');
+(async()=>{for(const [n,r]of [['clearing',{left:1240,top:235,width:220,height:130}],['robotics',{left:475,top:230,width:145,height:90}],['retail',{left:1360,top:325,width:155,height:160}],['energy',{left:435,top:285,width:35,height:60}]])await sharp(__dirname+'/scene-generated-03.png').extract(r).resize({width:r.width*5}).png().toFile(__dirname+'/inspection/'+n+'-native-coordinates.png');})();

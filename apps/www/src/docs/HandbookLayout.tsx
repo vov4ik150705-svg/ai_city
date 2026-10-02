@@ -1,4 +1,3 @@
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useEffect, useState, type ReactNode } from "react"
 import { Link } from "../site"
 import type { Chapter, Heading } from "./md/chapter"
@@ -79,7 +78,6 @@ export function HandbookLayout({ chapter, children }: { chapter: Chapter | undef
   const slug = chapter?.slug
   const sections = chapter === undefined ? [] : sectionsOf(chapter)
   const reading = useReadingSection(sections.map((heading) => heading.id))
-  const reduced = useReducedMotion()
 
   useEffect(() => setOpen(false), [slug])
 
@@ -114,12 +112,9 @@ export function HandbookLayout({ chapter, children }: { chapter: Chapter | undef
             <ol id="hb-nav-list" className="hb-nav__list">
               {chapters.map((item) => {
                 const selected = item.slug === slug
+                const itemSections = sectionsOf(item)
                 return (
-                  <motion.li
-                    key={item.slug}
-                    layout="position"
-                    transition={{ layout: { duration: reduced === true ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] } }}
-                  >
+                  <li key={item.slug}>
                     <Link
                       to={chapterHref(item.slug)}
                       className="hb-nav__link"
@@ -131,64 +126,49 @@ export function HandbookLayout({ chapter, children }: { chapter: Chapter | undef
                       <span className="hb-nav__title">
                         {item.title}
                         {selected ? (
-                          <motion.span
-                            className="hb-nav__rule"
-                            initial={reduced === true ? false : { opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: reduced === true ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-                          >
+                          <span className="hb-nav__rule">
                             <HandRule seed={`nav:${item.slug}`} />
-                          </motion.span>
+                          </span>
                         ) : null}
                       </span>
                     </Link>
-                    <AnimatePresence initial={false}>
-                      {selected && sections.length > 0 ? (
-                        <motion.div
-                          key={item.slug}
-                          className="hb-nav__sections-wrap"
-                          initial={reduced === true ? false : { height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: reduced === true ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
-                          style={{ overflow: "hidden" }}
-                        >
-                        <div className="hb-nav__sec-spine" aria-hidden="true">
-                          <HandVRule seed={`nav-sec:${item.slug}`} />
+                    {itemSections.length > 0 ? (
+                      <div
+                        className={selected ? "hb-nav__sections-wrap is-open" : "hb-nav__sections-wrap"}
+                        {...(selected ? {} : { inert: true, "aria-hidden": true as const })}
+                      >
+                        <div className="hb-nav__sections-clip">
+                          <div className="hb-nav__sec-spine" aria-hidden="true">
+                            <HandVRule seed={`nav-sec:${item.slug}`} />
+                          </div>
+                          <ol className="hb-nav__sections">
+                            {itemSections.map((heading) => {
+                              const here = selected && heading.id === reading
+                              return (
+                                <li key={heading.id}>
+                                  <Link
+                                    to={`${chapterHref(item.slug)}#${heading.id}`}
+                                    className="hb-nav__section"
+                                    aria-current={here ? "location" : undefined}
+                                    onClick={() => setOpen(false)}
+                                  >
+                                    <span className="hb-nav__section-text">
+                                      {heading.text}
+                                      {here ? (
+                                        <span className="hb-nav__section-rule">
+                                          <HandRule seed={`nav-sec:${heading.id}`} />
+                                        </span>
+                                      ) : null}
+                                    </span>
+                                  </Link>
+                                </li>
+                              )
+                            })}
+                          </ol>
                         </div>
-                        <ol className="hb-nav__sections">
-                          {sections.map((heading) => {
-                            const here = heading.id === reading
-                            return (
-                              <li key={heading.id}>
-                                <Link
-                                  to={`${chapterHref(item.slug)}#${heading.id}`}
-                                  className="hb-nav__section"
-                                  aria-current={here ? "location" : undefined}
-                                  onClick={() => setOpen(false)}
-                                >
-                                  <span className="hb-nav__section-text">
-                                    {heading.text}
-                                    {here ? (
-                                      <motion.span
-                                        className="hb-nav__section-rule"
-                                        initial={reduced === true ? false : { opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: reduced === true ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-                                      >
-                                        <HandRule seed={`nav-sec:${heading.id}`} />
-                                      </motion.span>
-                                    ) : null}
-                                  </span>
-                                </Link>
-                              </li>
-                            )
-                          })}
-                        </ol>
-                        </motion.div>
-                      ) : null}
-                    </AnimatePresence>
-                  </motion.li>
+                      </div>
+                    ) : null}
+                  </li>
                 )
               })}
             </ol>

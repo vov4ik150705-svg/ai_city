@@ -55,15 +55,12 @@ html[data-header="docs"] body {
   background: #ffffff;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .site-header.is-concealed {
-    transform: translateY(-100%);
-  }
+.site-header.is-concealed {
+  transform: translateY(-100%);
+}
 
-  .site-header-dock:hover .site-header.is-concealed,
-  .site-header-dock:focus-within .site-header.is-concealed {
-    transform: translateY(0);
-  }
+.site-header-dock:focus-within .site-header.is-concealed {
+  transform: translateY(0);
 }
 
 .site-header__inner {

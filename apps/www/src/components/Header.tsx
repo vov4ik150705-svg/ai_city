@@ -19,7 +19,7 @@ function HeaderFace({
   docs,
   path,
   menu,
-  scrolled,
+  concealed,
   setMenu,
   openPlay,
   toggleRef,
@@ -29,7 +29,7 @@ function HeaderFace({
   docs: boolean
   path: string
   menu: boolean
-  scrolled: boolean
+  concealed: boolean
   setMenu: Dispatch<SetStateAction<boolean>>
   openPlay: () => void
   toggleRef: RefObject<HTMLButtonElement | null>
@@ -37,7 +37,7 @@ function HeaderFace({
   instant: boolean
 }) {
   const present = useIsPresent()
-  const headerClass = ["site-header", scrolled && !menu && !docs ? "is-concealed" : "", docs ? "site-header--docs" : ""]
+  const headerClass = ["site-header", concealed && !menu ? "is-concealed" : "", docs ? "site-header--docs" : ""]
     .filter((part) => part !== "")
     .join(" ")
 
@@ -126,7 +126,7 @@ function HeaderFace({
 export function Header({ path }: { path: string }) {
   const { openPlay } = useContext(SiteContext)
   const [menu, setMenu] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const [concealed, setConcealed] = useState(false)
   const menuRef = useRef<HTMLElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const onDocs = path.startsWith("/docs")
@@ -143,7 +143,29 @@ export function Header({ path }: { path: string }) {
   useEffect(() => setMenu(false), [path])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 0)
+    let last = window.scrollY
+    let acc = 0
+    const edge = 8
+    const trip = 24
+    const onScroll = () => {
+      const y = window.scrollY
+      const delta = y - last
+      last = y
+      if (y <= edge) {
+        acc = 0
+        setConcealed(false)
+        return
+      }
+      if (delta === 0) return
+      acc += delta
+      if (acc > trip) {
+        acc = 0
+        setConcealed(true)
+      } else if (acc < -trip) {
+        acc = 0
+        setConcealed(false)
+      }
+    }
     onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
@@ -193,7 +215,7 @@ export function Header({ path }: { path: string }) {
           docs={onDocs}
           path={path}
           menu={menu}
-          scrolled={scrolled}
+          concealed={concealed}
           setMenu={setMenu}
           openPlay={openPlay}
           toggleRef={toggleRef}
