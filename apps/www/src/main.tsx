@@ -1,6 +1,7 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import App from "./App"
+import { holdFreshDocumentTop } from "./scroll"
 import { startSmoothScroll } from "./smoothScroll"
 import "./styles/tokens.css"
 import "./styles/base.css"
@@ -13,6 +14,7 @@ if (rootEl === null) {
   throw new Error("www root missing")
 }
 
+holdFreshDocumentTop()
 startSmoothScroll()
 
 createRoot(rootEl).render(

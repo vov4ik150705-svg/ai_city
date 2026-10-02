@@ -85,12 +85,17 @@
   /* Same place the list already occupies under the mode switch, so sticking
      and returning to the top of a chapter do not lift or drop the panel. */
   top: calc(var(--site-header-h) + var(--docs-modes-h) + var(--hb-shell-pad));
-  max-height: none;
-  overflow: visible;
+  max-height: calc(100svh - var(--site-header-h) - var(--docs-modes-h) - var(--hb-shell-pad) - 20px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
 }
 
 .hb-nav::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
 }
 
 .hb-nav__toggle {

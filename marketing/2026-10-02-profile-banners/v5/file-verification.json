@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-02",
+  "sceneSha256": "438173dbfbf7a191887abc186425b642c0056c40e0f9db59a6abae759aac57df",
+  "originalScene": "../v4/scene-clean-3000x1000.png",
+  "tool": "Built-in image_gen; targeted architectural proportions edit",
+  "exports": [
+    {
+      "file": "x-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7439715
+    },
+    {
+      "file": "x-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 2021005
+    },
+    {
+      "file": "x-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 535896
+    },
+    {
+      "file": "x-preview-600x200.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 345050
+    },
+    {
+      "file": "dexscreener-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7450479
+    },
+    {
+      "file": "dexscreener-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 2022595
+    },
+    {
+      "file": "dexscreener-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 536681
+    },
+    {
+      "file": "dexscreener-preview-600x200.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 345651
+    }
+  ],
+  "masters": [
+    {
+      "version": "x",
+      "layers": 4,
+      "sharedScene": true,
+      "headline": "CORPORATOR",
+      "tagline": "A city worth running."
+    },
+    {
+      "version": "dexscreener",
+      "layers": 4,
+      "sharedScene": true,
+      "headline": "CORPORATOR",
+      "tagline": null
+    }
+  ]
+}
