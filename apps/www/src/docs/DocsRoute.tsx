@@ -4,14 +4,14 @@ import "./handbook/handbook.css"
 import { useEffect } from "react"
 import { applyPageMeta } from "../meta"
 import { Link } from "../site"
-import { HANDBOOK_NAME, HandbookLayout } from "./HandbookLayout"
+import { HandbookLayout } from "./HandbookLayout"
 import type { Chapter } from "./md/chapter"
 import { Book } from "./book/Book"
 import { chapterHref, chapterSlugOf, DOCS_ROOT, INDEX_CHAPTER } from "./paths"
 import { InlineNodes } from "./render/Inline"
 import { Blocks } from "./render/Blocks"
 import { HandRule } from "./sketch/Sketch"
-import { chapterBySlug, chapterNumber, chapters, sourceProblems } from "./source"
+import { chapterBySlug, chapters, sourceProblems } from "./source"
 
 function Pager({ chapter }: { chapter: Chapter }) {
   const index = chapters.indexOf(chapter)
@@ -43,9 +43,6 @@ function ChapterPage({ chapter }: { chapter: Chapter }) {
   return (
     <>
       <header className="hb-header">
-        <p className="hb-kicker">
-          {chapterNumber(chapter)} — {HANDBOOK_NAME}
-        </p>
         <h1 className="hb-title" id={title?.kind === "heading" ? title.id : undefined}>
           <span className="hb-title__text">
             {chapter.title}

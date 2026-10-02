@@ -316,14 +316,6 @@
   margin-bottom: 40px;
 }
 
-.hb-kicker {
-  margin: 0 0 14px;
-  font: 600 20px/1 var(--font-hand);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--hb-muted);
-}
-
 .hb-title {
   margin: 0 0 30px;
   font: 700 clamp(44px, 5.2vw, 66px) / 1 var(--font-hand);
@@ -984,10 +976,6 @@
 }
 
 @media (max-width: 900px) {
-  .hb-kicker {
-    display: none;
-  }
-
   .hb-shell {
     grid-template-columns: minmax(0, 1fr);
     gap: 24px;
