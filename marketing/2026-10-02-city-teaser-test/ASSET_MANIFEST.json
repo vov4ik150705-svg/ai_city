@@ -1,0 +1,687 @@
+{
+  "created": "2026-10-02",
+  "source_root": "C:\\Users\\sk640\\ai_city",
+  "original_files_unchanged": true,
+  "fps": 30,
+  "duration_seconds": 32,
+  "total_frames": 960,
+  "timeline": [
+    {
+      "scene": "01",
+      "start": 0,
+      "end_exclusive": 4,
+      "first_frame": 0,
+      "last_frame": 119
+    },
+    {
+      "scene": "02",
+      "start": 4,
+      "end_exclusive": 8,
+      "first_frame": 120,
+      "last_frame": 239
+    },
+    {
+      "scene": "03",
+      "start": 8,
+      "end_exclusive": 13,
+      "first_frame": 240,
+      "last_frame": 389
+    },
+    {
+      "scene": "04",
+      "start": 13,
+      "end_exclusive": 18,
+      "first_frame": 390,
+      "last_frame": 539
+    },
+    {
+      "scene": "05",
+      "start": 18,
+      "end_exclusive": 23,
+      "first_frame": 540,
+      "last_frame": 689
+    },
+    {
+      "scene": "06",
+      "start": 23,
+      "end_exclusive": 28,
+      "first_frame": 690,
+      "last_frame": 839
+    },
+    {
+      "scene": "07",
+      "start": 28,
+      "end_exclusive": 32,
+      "first_frame": 840,
+      "last_frame": 959
+    }
+  ],
+  "files": [
+    {
+      "source": "media/island/island_04_hero_walk_left.png",
+      "file": "assets/island/island_hero.png",
+      "kind": "render",
+      "use": "01,06: цельный кадр острова, не вырезать здания",
+      "bytes": 1884264,
+      "sha256": "baf3a38633f2f0bbf0d737ab7ef4dce8f21795d1ff4898b940f041db0fd953df",
+      "width": 3840,
+      "height": 2160,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/arts/economy-sky-art.png",
+      "file": "assets/background/sky.png",
+      "kind": "render",
+      "use": "02–06: фон и подача, не источник геометрии острова",
+      "bytes": 1433458,
+      "sha256": "02a43e60bd08947ef0dfabeee6e4cf55a587ea7fd0141eee04a5fe62ea2db0e7",
+      "width": 1671,
+      "height": 941,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/units/Engineer.png",
+      "file": "assets/roles/engineer.png",
+      "kind": "render",
+      "use": "03: состав; 04: Engineer, Scientist, Trader — назначения",
+      "bytes": 1615600,
+      "sha256": "6e3625fdb58ee1d6379c61ddc3f30eec02e7d00b2a2af3cd77811de6ffa94574",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "alpha_bbox": [
+        0,
+        31,
+        1012,
+        1506
+      ]
+    },
+    {
+      "source": "media/kit/roles/engineer.png",
+      "file": "references/roles/engineer.png",
+      "kind": "reference_only",
+      "use": "Проверка лица, одежды и предмета роли; не вставлять лист в видео",
+      "bytes": 1389977,
+      "sha256": "ff70b94dbca23cd0cc9a432da596ecbe3a21520ae9665d57f673f69691a66ab2",
+      "width": 2048,
+      "height": 1240,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/units/Logistician.png",
+      "file": "assets/roles/logistician.png",
+      "kind": "render",
+      "use": "03: состав; 04: Engineer, Scientist, Trader — назначения",
+      "bytes": 1437308,
+      "sha256": "d4a39d583cce7a80a7a6718c8569cabf151f7d1aca7c03fc2811f959e0673240",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "alpha_bbox": [
+        25,
+        53,
+        964,
+        1504
+      ]
+    },
+    {
+      "source": "media/kit/roles/logistician.png",
+      "file": "references/roles/logistician.png",
+      "kind": "reference_only",
+      "use": "Проверка лица, одежды и предмета роли; не вставлять лист в видео",
+      "bytes": 1220034,
+      "sha256": "e00b6591dd1d95fd0541724e99e97bb7398d42ae5439e95b842f88b12b6bf1e4",
+      "width": 2048,
+      "height": 1240,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/units/manager.png",
+      "file": "assets/roles/manager.png",
+      "kind": "render",
+      "use": "03: состав; 04: Engineer, Scientist, Trader — назначения",
+      "bytes": 719348,
+      "sha256": "2efee968f3dc2f4348941d19b483338c60ae0f3bc036c38c7b250590f1ccbc09",
+      "width": 1408,
+      "height": 1408,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        457,
+        34,
+        988,
+        1378
+      ]
+    },
+    {
+      "source": "media/kit/roles/manager.png",
+      "file": "references/roles/manager.png",
+      "kind": "reference_only",
+      "use": "Проверка лица, одежды и предмета роли; не вставлять лист в видео",
+      "bytes": 1188260,
+      "sha256": "42df56891e0d119c4afbbb46880ebe540448a70aa38abf43ab0c71a0dc1b3ef9",
+      "width": 2048,
+      "height": 1240,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/units/scientist.png",
+      "file": "assets/roles/scientist.png",
+      "kind": "render",
+      "use": "03: состав; 04: Engineer, Scientist, Trader — назначения",
+      "bytes": 1409212,
+      "sha256": "f1663f55508f137ac442b1586e4f1d540e7ca361675ad11bf0eb97fc571db045",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "alpha_bbox": [
+        65,
+        40,
+        1012,
+        1513
+      ]
+    },
+    {
+      "source": "media/kit/roles/scientist.png",
+      "file": "references/roles/scientist.png",
+      "kind": "reference_only",
+      "use": "Проверка лица, одежды и предмета роли; не вставлять лист в видео",
+      "bytes": 1171642,
+      "sha256": "cee69b8704e1d890c213f8ce46fcfd2769b199cf9a2470deaebd31d49cd70c48",
+      "width": 2048,
+      "height": 1240,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/units/trader.png",
+      "file": "assets/roles/trader.png",
+      "kind": "render",
+      "use": "03: состав; 04: Engineer, Scientist, Trader — назначения",
+      "bytes": 385319,
+      "sha256": "9a0d278167b9fe2940c0b7f154c414ed30028bba7ee6eccbd96e1ff2aabf9f2f",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        0,
+        0,
+        1024,
+        1024
+      ]
+    },
+    {
+      "source": "media/kit/roles/trader.png",
+      "file": "references/roles/trader.png",
+      "kind": "reference_only",
+      "use": "Проверка лица, одежды и предмета роли; не вставлять лист в видео",
+      "bytes": 1234208,
+      "sha256": "7a688a04c500288a1edb78fd556841601850eaae35d0104efa52f8732dc575d8",
+      "width": 2048,
+      "height": 1240,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Workshop.png",
+      "file": "assets/buildings/workshop.png",
+      "kind": "render",
+      "use": "02,04",
+      "bytes": 746710,
+      "sha256": "d7e8f36452b77395863843ca42ecae38bd234080c2d400f7d6b21eded35d374c",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        214,
+        152,
+        1048,
+        1176
+      ]
+    },
+    {
+      "source": "media/kit/buildings/workshop.png",
+      "file": "references/buildings/workshop.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1315605,
+      "sha256": "02bc4eb517d772a62b44c1f115a996e46c86341bc54991902d79f69d2e9fea6f",
+      "width": 2048,
+      "height": 1390,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Power Node.png",
+      "file": "assets/buildings/power_node.png",
+      "kind": "render",
+      "use": "02",
+      "bytes": 582538,
+      "sha256": "a8cc399eed8a48dbfb2d22b75f5882c69103b1c677ec172b27d6e21e562085d1",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        219,
+        73,
+        1036,
+        1144
+      ]
+    },
+    {
+      "source": "media/kit/buildings/power_node.png",
+      "file": "references/buildings/power_node.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1013245,
+      "sha256": "4853591bd56ff966e65ef95ffac0dada05f7ebe0b434282d18d0b4f8704c6054",
+      "width": 2048,
+      "height": 1390,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Bank.png",
+      "file": "assets/buildings/bank.png",
+      "kind": "render",
+      "use": "02,04,06",
+      "bytes": 974817,
+      "sha256": "8bf0efffcac906a2d75fbe804607d65bb78871314322283dfc547654103b6462",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        179,
+        235,
+        1128,
+        1109
+      ]
+    },
+    {
+      "source": "media/kit/buildings/bank.png",
+      "file": "references/buildings/bank.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1616531,
+      "sha256": "8e46f2984c81b2a679bf0f05328d0023f27c2087a3bd82966bae16b40db1abe2",
+      "width": 2048,
+      "height": 1312,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Agent Hub.png",
+      "file": "assets/buildings/agent_hub.png",
+      "kind": "render",
+      "use": "03, необязательный фон композиции",
+      "bytes": 806283,
+      "sha256": "0c03f4ba5a44aa7939e4e074c23b4fd66337598f514d111543ad3541ef322fc4",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        124,
+        326,
+        1131,
+        981
+      ]
+    },
+    {
+      "source": "media/kit/buildings/agent_hub.png",
+      "file": "references/buildings/agent_hub.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1446889,
+      "sha256": "d24f638c547dc4fd6f349a5d60b2c01868fdbbbb6ebfb11794bba9aaf5eda302",
+      "width": 2048,
+      "height": 1175,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/AI Research Center.png",
+      "file": "assets/buildings/ai_research_center.png",
+      "kind": "render",
+      "use": "04,05: NVDA · Compute",
+      "bytes": 518962,
+      "sha256": "4c25b80684ff0911162b61230b322e33cc8d581fbdc5e51fa05fe0f999bef90e",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        345,
+        123,
+        928,
+        1158
+      ]
+    },
+    {
+      "source": "media/kit/buildings/ai_research_center.png",
+      "file": "references/buildings/ai_research_center.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 914211,
+      "sha256": "ce887b37eb57fa6efd69aca57cf75375427c190a47e1e6f47d4ea9909d5f3806",
+      "width": 2048,
+      "height": 1390,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Energy Plant.png",
+      "file": "assets/buildings/energy_plant.png",
+      "kind": "render",
+      "use": "05: TSLA · Energy",
+      "bytes": 1025642,
+      "sha256": "1081fc9e93108cebf670479e435307b2dab2290abd060e1b8ffc98c165a63309",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        134,
+        173,
+        1132,
+        1096
+      ]
+    },
+    {
+      "source": "media/kit/buildings/energy_plant.png",
+      "file": "references/buildings/energy_plant.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1462044,
+      "sha256": "40236b95e2668bc82da897fec145bea7874e3d0846bb482d5430af1acd64496e",
+      "width": 2048,
+      "height": 1322,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Logistics Hub.png",
+      "file": "assets/buildings/logistics_hub.png",
+      "kind": "render",
+      "use": "05: AMZN · Logistics",
+      "bytes": 729990,
+      "sha256": "97c680fc7b8f656a69a6413cf9b87676a19cc4254dff7e6c3cfa241ebbd2a132",
+      "width": 1268,
+      "height": 1241,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        46,
+        313,
+        1239,
+        987
+      ]
+    },
+    {
+      "source": "media/kit/buildings/logistics_hub.png",
+      "file": "references/buildings/logistics_hub.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1215660,
+      "sha256": "57405baec5265ff76fae4ca616843a2df1132dc85bbda9dd01f5740c11d862e9",
+      "width": 2048,
+      "height": 1113,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Flagship Store.png",
+      "file": "assets/buildings/flagship_store.png",
+      "kind": "render",
+      "use": "05: AAPL · Consumer",
+      "bytes": 1054192,
+      "sha256": "25326598a7b6cde50b3d4caf563942d86607e8b2c46e727bde5f40939c12b249",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        153,
+        100,
+        1384,
+        980
+      ]
+    },
+    {
+      "source": "media/kit/buildings/flagship_store.png",
+      "file": "references/buildings/flagship_store.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1058748,
+      "sha256": "87c5fed8439dc36519e30f769f6e38f3f0d466162d2f9d5e6268002e99d6daa9",
+      "width": 2048,
+      "height": 1210,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Cloud Campus.png",
+      "file": "assets/buildings/cloud_campus.png",
+      "kind": "render",
+      "use": "05: MSFT · Automation",
+      "bytes": 685671,
+      "sha256": "af9f5a1a5647a62be6392a39cfebc2ffa6e560d745bf65e9e60d34386384dbc4",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        281,
+        107,
+        973,
+        1211
+      ]
+    },
+    {
+      "source": "media/kit/buildings/cloud_campus.png",
+      "file": "references/buildings/cloud_campus.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 1051665,
+      "sha256": "ea2bb99a802126805bfdd3743819ac69d3903f8d3752f3b2e0da943cdd2b3994",
+      "width": 2048,
+      "height": 1390,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/buildings/Finance Tower.png",
+      "file": "assets/buildings/finance_tower.png",
+      "kind": "render",
+      "use": "05: COIN · Finance",
+      "bytes": 708169,
+      "sha256": "d6b0c795a2ef64ff97836064aaaee78cde22375cf48c4a5fde2ccaefe7d62714",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "alpha_bbox": [
+        282,
+        89,
+        966,
+        1170
+      ]
+    },
+    {
+      "source": "media/kit/buildings/finance_tower.png",
+      "file": "references/buildings/finance_tower.png",
+      "kind": "reference_only",
+      "use": "Проверка геометрии и вывесок; оригинал имеет приоритет",
+      "bytes": 988020,
+      "sha256": "5c8346f2a47e9fda35db6ce1700e8ffa092ef1596ecb9c07018378f1aef3f38a",
+      "width": 2048,
+      "height": 1390,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/corporator_logo/logo solo.png",
+      "file": "assets/brand/logo_solo.png",
+      "kind": "render",
+      "use": "07: оригинальный знак с собственным тёплым белым фоном, не перерисовывать",
+      "bytes": 822011,
+      "sha256": "58395b6846eb9e60bea4edc4e0bee3f50ac94e5b4c2a73ca8dae40dc02beef57",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/kit/island_map.png",
+      "file": "references/island_map.png",
+      "kind": "reference_only",
+      "use": "Проверка острова/вывесок; не вставлять лист в видео",
+      "bytes": 2889033,
+      "sha256": "2f706680b483c1eaee8769c2c69e6b671088f673d65f566ea4820aa1cedebd64",
+      "width": 2048,
+      "height": 2492,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/kit/signs_all.png",
+      "file": "references/signs_all.png",
+      "kind": "reference_only",
+      "use": "Проверка острова/вывесок; не вставлять лист в видео",
+      "bytes": 2860168,
+      "sha256": "340b8fe9e3222c017301802d0881a9704a6b1c77320090e5cf9e178a6c89895f",
+      "width": 2048,
+      "height": 3360,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "source": "media/VISUAL_DESIGN_SYSTEM.md",
+      "file": "rules/VISUAL_DESIGN_SYSTEM.md",
+      "kind": "rule",
+      "use": "Обязательное чтение, точная копия на дату сборки",
+      "bytes": 86122,
+      "sha256": "247a8d4d17408bc8eebad1299cae5fe388f8bb2c0c6fc295c2d9047b010a38af"
+    },
+    {
+      "source": "media/MEDIA_GENERATION_RULE.md",
+      "file": "rules/MEDIA_GENERATION_RULE.md",
+      "kind": "rule",
+      "use": "Обязательное чтение, точная копия на дату сборки",
+      "bytes": 33189,
+      "sha256": "577e6a132c55b29c2a7048d086a30641231a0d3b0b7350b9db3edf97658e7992"
+    },
+    {
+      "source": "media/REFERENCE_MANIFEST.md",
+      "file": "rules/REFERENCE_MANIFEST.md",
+      "kind": "rule",
+      "use": "Обязательное чтение, точная копия на дату сборки",
+      "bytes": 16742,
+      "sha256": "d32fbdff8b8481c3bd43cc861adb4165d9c0efd56b2250b18e1a1d13e2f0122f"
+    },
+    {
+      "source": "marketing/VOICE.md",
+      "file": "rules/VOICE.md",
+      "kind": "rule",
+      "use": "Голос рассказчика, копия на дату сборки; внешние пути относятся к исходному репозиторию",
+      "bytes": 59509,
+      "sha256": "1f170bf4f79435431178f366c20da6c298fb15d3cc96f6ac0eedffb5be3f5430"
+    },
+    {
+      "source": "marketing/2026-10-02-profile-banners/fonts/Outfit-Regular.ttf",
+      "file": "fonts/Outfit-Regular.ttf",
+      "kind": "font_or_license",
+      "use": "Шрифт титров / приложенная лицензия",
+      "bytes": 54912,
+      "sha256": "f24945365147c9e783e91d8649959b59be6b00c9ee4ecd2f6b33afbb2dd871fe"
+    },
+    {
+      "source": "marketing/2026-10-02-profile-banners/fonts/Outfit-Bold.ttf",
+      "file": "fonts/Outfit-Bold.ttf",
+      "kind": "font_or_license",
+      "use": "Шрифт титров / приложенная лицензия",
+      "bytes": 55392,
+      "sha256": "6654b93d21301ec61887d3cedd6c11d9df1b1dfb63f9cf45ac7995f6e2235ab1"
+    },
+    {
+      "source": "marketing/2026-10-02-profile-banners/fonts/Outfit-OFL.txt",
+      "file": "fonts/Outfit-OFL.txt",
+      "kind": "font_or_license",
+      "use": "Шрифт титров / приложенная лицензия",
+      "bytes": 4482,
+      "sha256": "8fc6af31312082959cc8297b30e04d94ff457faecc9fb0aeeb8906bf448f20e6"
+    }
+  ]
+}

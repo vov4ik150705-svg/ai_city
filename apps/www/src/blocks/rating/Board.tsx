@@ -53,7 +53,7 @@ function Tip({ text }: { text: string }) {
   return (
     <span className="rating-tip">
       <button type="button" className="rating-tip__button" aria-describedby={tipId} aria-label="About Day GDP">
-        <Info size={14} aria-hidden="true" />
+        <Info size={13} aria-hidden="true" />
       </button>
       <span id={tipId} role="tooltip" className="rating-tip__bubble type-tooltip">
         {text}
@@ -193,11 +193,17 @@ export function RatingBoard({
 
   return (
     <div className="rating-board-wrap">
-      {example && showRows ? <p className="rating-board__example type-caption">{ratingCopy.example}</p> : null}
+      <header className="rating-stand">
+        <div className="rating-stand__copy">
+          <p className="rating-stand__eyebrow">{ratingCopy.standEyebrow}</p>
+          <h2 id="rating-board-title" className="rating-stand__title">
+            {ratingCopy.standTitle}
+          </h2>
+          <p className="rating-stand__lead">{ratingCopy.standLead}</p>
+        </div>
+        {example && showRows ? <p className="rating-stand__example">{ratingCopy.example}</p> : null}
+      </header>
       <section className="rating-board" aria-labelledby="rating-board-title">
-        <h2 id="rating-board-title" className="rating-sr">
-          {ratingCopy.columns.join(", ")}
-        </h2>
         <form
           className="rating-board__bar"
           role="search"
@@ -233,7 +239,7 @@ export function RatingBoard({
                 <th scope="col" className="type-label rating-table__num" aria-sort="descending">
                   <span className="rating-table__head">
                     {ratingCopy.columns[2]}
-                    <ChevronDown size={14} aria-hidden="true" />
+                    <ChevronDown size={12} aria-hidden="true" />
                   </span>
                 </th>
                 <th scope="col" className="type-label rating-table__num">
@@ -316,20 +322,22 @@ export function RatingBoard({
             <p className="rating-board__range type-body-sm">{range}</p>
             <label className="rating-rows">
               <span>{ratingCopy.rowsLabel}</span>
-              <select
-                value={pageSize}
-                onChange={(event) => {
-                  const next = Number(event.target.value)
-                  if (isPageSize(next)) changeSize(next)
-                }}
-              >
-                {ratingCopy.pageSizes.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={14} aria-hidden="true" />
+              <span className="rating-rows__box">
+                <select
+                  value={pageSize}
+                  onChange={(event) => {
+                    const next = Number(event.target.value)
+                    if (isPageSize(next)) changeSize(next)
+                  }}
+                >
+                  {ratingCopy.pageSizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} aria-hidden="true" />
+              </span>
             </label>
             <nav className="rating-pager" aria-label="Pages">
               <button type="button" className="rating-pager__step" disabled={safePage <= 1} onClick={() => go(safePage - 1)}>

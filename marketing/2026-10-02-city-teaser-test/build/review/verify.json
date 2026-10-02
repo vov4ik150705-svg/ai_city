@@ -1,0 +1,50 @@
+{
+ "master": {
+  "path": "output/corporator-teaser-test-v1.mp4",
+  "bytes": 7663379,
+  "container": {
+   "brand": "major_brand     : isom",
+   "duration_hms": "00:00:32.00",
+   "video": "Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709/unknown/unknown, progressive), 1920x1080, 1712 kb/s, 30 fps, 30 tbr, 15360 tbn (default)",
+   "audio": "Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 194 kb/s (default)"
+  }
+ },
+ "muted": {
+  "path": "output/corporator-teaser-test-v1-muted.mp4",
+  "bytes": 6862375,
+  "container": {
+   "brand": "major_brand     : isom",
+   "duration_hms": "00:00:32.00",
+   "video": "Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709/unknown/unknown, progressive), 1920x1080, 1712 kb/s, 30 fps, 30 tbr, 15360 tbn (default)"
+  }
+ },
+ "frames": {
+  "master_frame_count": 960,
+  "muted_frame_count": 960,
+  "expected": 960,
+  "black_or_blank_frames": [],
+  "black_count": 0,
+  "black_in_muted": 0,
+  "luma_mean_min": 150.55,
+  "luma_mean_max": 248.34,
+  "luma_min_overall": 0.0,
+  "last_10s_mean_luma": [
+   222.8,
+   237.4,
+   204.4,
+   204.5,
+   204.7,
+   204.9,
+   248.3,
+   245.7,
+   245.7,
+   245.7
+  ]
+ },
+ "final_frame_960x270_check": {
+  "logo_block_ink_px": 10461,
+  "wordmark_ink_px": 10602,
+  "tagline_ink_px": 2729,
+  "handle_ink_px": 1492
+ }
+}

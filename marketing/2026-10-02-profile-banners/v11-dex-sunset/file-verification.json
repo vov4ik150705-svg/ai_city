@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-02",
+  "text": "CORPORATOR",
+  "promotionalSideText": false,
+  "brandToken": false,
+  "titleAlpha": true,
+  "titleTransform": {
+    "uniformWidth": 1920,
+    "left": 540,
+    "top": 430
+  },
+  "titleVisibleBounds": {
+    "minX": 688,
+    "minY": 741,
+    "maxX": 2321,
+    "maxY": 999
+  },
+  "titleVisiblePixels": 397679,
+  "sceneSha256": "dbd9900bcac8e71654ab37b49593910fa9b142635d4fe4b84ecb7efc77ce7995",
+  "fontSource": "TT Octosquares Trial Condensed Black",
+  "oraLayers": 3,
+  "sourceDimensions": [
+    {
+      "file": "scene-clean-generated.png",
+      "width": 2172,
+      "height": 724,
+      "hasAlpha": false
+    },
+    {
+      "file": "title-3d-generated.png",
+      "width": 2172,
+      "height": 724,
+      "hasAlpha": true
+    }
+  ],
+  "exports": [
+    {
+      "file": "dexscreener-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7730231
+    },
+    {
+      "file": "dexscreener-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 2108121
+    },
+    {
+      "file": "dexscreener-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 544305
+    },
+    {
+      "file": "dexscreener-preview-600x200.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 361511
+    },
+    {
+      "file": "dexscreener-preview-300x100.png",
+      "width": 300,
+      "height": 100,
+      "bytes": 95030
+    }
+  ],
+  "edition": "dark sunset",
+  "titleUnchangedFromV10": true,
+  "titleSha256": "c829c146aa5878f269736b93205bf760dd6daf7b28f4a6c57f5d45fd2f27d4df",
+  "cloudSource": {
+    "width": 2172,
+    "height": 724,
+    "hasAlpha": true
+  },
+  "oraMergedMatchesMaster": true
+}

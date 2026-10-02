@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-02",
+  "teamLayout": {
+    "teamWidth": 1680,
+    "teamLeft": 660,
+    "teamTop": 405,
+    "fadeStart": 780,
+    "fadeEnd": 885
+  },
+  "teamSourceCrop": {
+    "left": 40,
+    "top": 101,
+    "width": 2105,
+    "height": 601
+  },
+  "titleUnchangedFromV9": true,
+  "titleSha256": "c829c146aa5878f269736b93205bf760dd6daf7b28f4a6c57f5d45fd2f27d4df",
+  "oraLayers": 4,
+  "sources": {
+    "background": {
+      "width": 2172,
+      "height": 724
+    },
+    "team": {
+      "width": 2172,
+      "height": 724,
+      "hasAlpha": true
+    }
+  },
+  "exports": [
+    {
+      "file": "dexscreener-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7312296
+    },
+    {
+      "file": "dexscreener-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 1976557
+    },
+    {
+      "file": "dexscreener-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 543517
+    },
+    {
+      "file": "dexscreener-preview-600x200.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 336358
+    },
+    {
+      "file": "dexscreener-preview-300x100.png",
+      "width": 300,
+      "height": 100,
+      "bytes": 88296
+    }
+  ]
+}

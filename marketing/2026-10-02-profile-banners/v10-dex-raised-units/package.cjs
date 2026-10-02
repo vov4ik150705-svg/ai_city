@@ -1,0 +1,10 @@
+const fs=require('fs'),path=require('path'),crypto=require('crypto');const deps='C:/Users/sk640/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/';const JSZip=require(deps+'jszip'),out=__dirname,hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+(async()=>{
+ const ora=await JSZip.loadAsync(fs.readFileSync(out+'/dexscreener-layered-master.ora'));
+ if(((await ora.file('stack.xml').async('string')).match(/<layer /g)||[]).length!==4)throw Error('Expected four layers');
+ if(hash(await ora.file('mergedimage.png').async('nodebuffer'))!==hash(fs.readFileSync(out+'/dexscreener-3000x1000.png')))throw Error('Merged master mismatch');
+ if(hash(await ora.file('data/layer2.png').async('nodebuffer'))!==hash(fs.readFileSync(out+'/../v9-dex-volume/layers/title-3d.png')))throw Error('Title mismatch');
+ const files=['README.md','verification-report.md','file-verification.json','layout.json','title-layout.json','background-generated.png','background-3000x1000.png','team-generated.png','scene-clean-3000x1000.png','scene-clean-1500x500.png','scene-generation-prompt.txt','background-generation-prompt.txt','team-extraction-prompt.txt','title-generation-prompt.txt','title-3d-generated.png','title-font-guide.png','title-font-mask.png','fonts/TT-Octosquares-Trial-Condensed-Black.ttf','layers/team-raised.png','layers/title-3d.png','layers/foreground-clouds.png','dexscreener-editable-master.svg','dexscreener-layered-master.ora','dexscreener-3000x1000.png','dexscreener-1500x500.png','dexscreener-1500x500.jpg','dexscreener-preview-600x200.png','dexscreener-preview-300x100.png'];
+ const zip=new JSZip();for(const p of files)zip.file('Corporator Dexscreener V10/'+p,fs.readFileSync(out+'/'+p));
+ const archive=path.resolve(out,'..','corporator-dexscreener-v10-raised-units-2026-10-02.zip');fs.writeFileSync(archive,await zip.generateAsync({type:'nodebuffer',compression:'DEFLATE',compressionOptions:{level:6}}));console.log(JSON.stringify({archive,bytes:fs.statSync(archive).size,verifiedLayers:4,titleUnchanged:true},null,2));
+})().catch(e=>{console.error(e);process.exit(1)});
