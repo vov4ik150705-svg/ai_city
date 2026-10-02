@@ -1,6 +1,7 @@
 import type { CoolingRow, RpcOutcome, RpcTransport, StakeRow, TxLog } from "../values.js"
 import {
   dataAllowance,
+  dataApprove,
   dataBackingOf,
   dataBalanceOf,
   dataCapitalOf,
@@ -52,7 +53,7 @@ import {
   rpcMethod,
 } from "./codec.js"
 import { fetchPoster, postEth, type JsonRpcPost } from "./jsonrpc.js"
-import { broadcastRoleTx, type InflightTx } from "./sign.js"
+import { addressOfPrivateKey, broadcastRoleTx, roleKey, type InflightTx } from "./sign.js"
 
 export type LiveContracts = {
   readonly corpToken: string
@@ -327,10 +328,45 @@ async function dispatch(
       return { status: "ok", body: encodeIssued(issued.account, issued.corpAmount, issued.issuedAtS) }
     }
     case rpcMethod.deposit: {
-      if (vault.length === 0) return { status: "silence" }
+      if (vault.length === 0 || corp.length === 0) return { status: "silence" }
+      const account = arg(args, 0)
       const amount = parseDec(arg(args, 1))
-      if (amount === undefined) return { status: "silence" }
-      return sendTx(post, { to: vault, data: dataDeposit(arg(args, 0), amount) })
+      if (!isAddr(account) || amount === undefined || amount <= 0n) return { status: "silence" }
+      const from = addressOfPrivateKey(roleKey("buyback_executor"))
+      if (from === undefined || from.toLowerCase() !== account.toLowerCase()) return { status: "silence" }
+      const allowData = dataAllowance(account, vault)
+      if (allowData.length === 0) return { status: "silence" }
+      const rawAllow = await postEth(post, "eth_call", [{ to: corp, data: allowData }, "latest"])
+      if (rawAllow.status !== "ok") return { status: "silence" }
+      const have = decodeUint(rawAllow.body)
+      if (have === undefined) return { status: "silence" }
+      if (have < amount) {
+        const approveData = dataApprove(vault, amount)
+        if (approveData.length === 0) return { status: "silence" }
+        const approved = await broadcastRoleTx({
+          post,
+          chainId,
+          bps,
+          gasHeadroomBps,
+          role: "buyback_executor",
+          to: corp,
+          data: approveData,
+          inflight,
+        })
+        if (approved.status !== "ok") return approved
+      }
+      const data = dataDeposit(account, amount)
+      if (data.length === 0) return { status: "silence" }
+      return broadcastRoleTx({
+        post,
+        chainId,
+        bps,
+        gasHeadroomBps,
+        role: "buyback_executor",
+        to: vault,
+        data,
+        inflight,
+      })
     }
     case rpcMethod.mintCapital:
     case rpcMethod.signMintCapital: {
@@ -520,7 +556,20 @@ async function dispatch(
           : callerAddress(rawFrom, callers.depositorService, callers.depositorAddress)
       const kettle = parseDec(arg(args, 2))
       if (!isAddr(from) || kettle === undefined) return { status: "silence" }
-      return sendTx(post, { from, to: prizes, data: dataPrizeReturnUnsettled(arg(args, 1), kettle) })
+      const signer = addressOfPrivateKey(roleKey("buyback_executor"))
+      if (signer === undefined || signer.toLowerCase() !== from.toLowerCase()) return { status: "silence" }
+      const data = dataPrizeReturnUnsettled(arg(args, 1), kettle)
+      if (data.length === 0) return { status: "silence" }
+      return broadcastRoleTx({
+        post,
+        chainId,
+        bps,
+        gasHeadroomBps,
+        role: "buyback_executor",
+        to: prizes,
+        data,
+        inflight,
+      })
     }
     case rpcMethod.prizeClaimPrize: {
       if (prizes.length === 0) return { status: "silence" }

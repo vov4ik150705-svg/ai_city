@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest"
 import { atPath, loadPack, type Json } from "@corporator/contentpack"
 import { codes } from "@corporator/protocol"
 import { createLiveTransport, createRpcPort, type JsonRpcPost, type PortConfig } from "../src/index.ts"
-import { ROLE_ENV } from "../src/rpc/sign.ts"
+import { ROLE_ENV, addressOfPrivateKey } from "../src/rpc/sign.ts"
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 const PRIV = "0x" + "11".repeat(32)
@@ -51,9 +51,13 @@ describe("PL8 raw role transactions", () => {
     const roots = padAddr(4n)
     const prizes = padAddr(5n)
     const methods: string[] = []
+    let allowance = "0x" + "0".repeat(64)
     const post: JsonRpcPost = async (body) => {
       const row = rpcBody(body)
       methods.push(row.method)
+      if (row.method === "eth_call") {
+        return JSON.stringify({ jsonrpc: "2.0", id: "0", result: allowance })
+      }
       if (row.method === "eth_chainId") {
         return JSON.stringify({ jsonrpc: "2.0", id: "0", result: "0x" + chainId.toString(16) })
       }
@@ -112,6 +116,11 @@ describe("PL8 raw role transactions", () => {
       if (!quiet.ok) expect(quiet.code).toBe(codes.SERVICE_DEGRADED)
       expect(methods.includes("eth_sendTransaction")).toBe(false)
       expect(methods.includes("eth_sendRawTransaction")).toBe(false)
+      methods.length = 0
+      const unsigned = await port.vault.deposit(padAddr(8n), 1n)
+      expect(unsigned.ok).toBe(false)
+      expect(methods.includes("eth_sendTransaction")).toBe(false)
+      expect(methods.includes("eth_sendRawTransaction")).toBe(false)
       process.env[executorKey] = PRIV
       methods.length = 0
       const deposited = await port.prizeTreasury.deposit(buy, padAddr(6n), 0n, 1n)
@@ -129,6 +138,52 @@ describe("PL8 raw role transactions", () => {
       expect(rooted.ok).toBe(true)
       expect(methods.includes("eth_sendRawTransaction")).toBe(true)
       expect(methods.includes("eth_sendTransaction")).toBe(false)
+      const house = addressOfPrivateKey(PRIV)
+      expect(house).toBeDefined()
+      if (house === undefined) return
+      methods.length = 0
+      const wrong = await port.vault.deposit(padAddr(8n), 1n)
+      expect(wrong.ok).toBe(false)
+      expect(methods.includes("eth_sendTransaction")).toBe(false)
+      expect(methods.includes("eth_sendRawTransaction")).toBe(false)
+      allowance = "0x" + "ff".repeat(32)
+      methods.length = 0
+      const covered = await port.vault.deposit(house, 1n)
+      expect(covered.ok).toBe(true)
+      expect(methods.includes("eth_sendTransaction")).toBe(false)
+      expect(methods.filter((name) => name === "eth_sendRawTransaction").length).toBe(1)
+      allowance = "0x" + "0".repeat(64)
+      methods.length = 0
+      const opened = await port.vault.deposit(house, 1n)
+      expect(opened.ok).toBe(true)
+      expect(methods.includes("eth_sendTransaction")).toBe(false)
+      expect(methods.filter((name) => name === "eth_sendRawTransaction").length).toBe(2)
+      const callers = {
+        depositorService: buy,
+        depositorAddress: house,
+        signerService: "api",
+        signerAddress: padAddr(9n),
+      }
+      const returning = createRpcPort(
+        cfg,
+        createLiveTransport(
+          {
+            url: "http://127.0.0.1:9",
+            chainId,
+            timeoutMs: 1n,
+            bps: 10000n,
+            gasHeadroomBps: 1000n,
+            contracts: { corpToken: corp, vault, stakeRegistry: stake, merkleRoots: roots, prizeTreasury: prizes },
+            callers,
+          },
+          post,
+        ),
+      )
+      methods.length = 0
+      const sentBack = await returning.prizeTreasury.returnUnsettled(buy, padAddr(6n), 0n)
+      expect(sentBack.ok).toBe(true)
+      expect(methods.includes("eth_sendTransaction")).toBe(false)
+      expect(methods.includes("eth_sendRawTransaction")).toBe(true)
     } finally {
       if (prevExec === undefined) delete process.env[executorKey]
       else process.env[executorKey] = prevExec
