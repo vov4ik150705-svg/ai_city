@@ -643,6 +643,7 @@ def emit_ci_workflow(pack: dict) -> str:
     arch_sec = (pack.get("sections") or {}).get("arch") or {}
     toolchain = arch_sec.get("toolchain") or {}
     node_ver = str((toolchain.get("node") or {}).get("version") or "")
+    pnpm_ver = str((toolchain.get("pnpm") or {}).get("version") or "")
     py_ver = str((toolchain.get("python") or {}).get("version") or "")
     foundry_ver = str((toolchain.get("foundry") or {}).get("version") or "")
     rows = ci_step_rows(pack)
@@ -669,6 +670,10 @@ def emit_ci_workflow(pack: dict) -> str:
         "      - uses: actions/setup-node@v4",
         "        with:",
         f'          node-version: "{node_ver}"',
+        "      - name: enable_pnpm",
+        "        env:",
+        '          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"',
+        f"        run: corepack enable && corepack prepare pnpm@{pnpm_ver} --activate",
         "      - name: pip_install",
         "        run: python -m pip install -r requirements.txt",
     ]
@@ -691,6 +696,10 @@ def emit_ci_workflow(pack: dict) -> str:
             "      - uses: foundry-rs/foundry-toolchain@v1",
             "        with:",
             f'          version: "{foundry_ver}"',
+            "      - name: enable_pnpm",
+            "        env:",
+            '          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"',
+            f"        run: corepack enable && corepack prepare pnpm@{pnpm_ver} --activate",
             "      - name: pip_install",
             "        run: python -m pip install -r requirements.txt",
         ]

@@ -1,0 +1,253 @@
+{
+  "rulePrecedence": "Latest owner instruction allows redrawn enhanced architecture and roles, keeping structure, colors, signs and identity. Reference images are semantic guides; they are not pasted city or character pixels.",
+  "originals": [
+    {
+      "path": "media/VISUAL_DESIGN_SYSTEM.md",
+      "sha256": "247a8d4d17408bc8eebad1299cae5fe388f8bb2c0c6fc295c2d9047b010a38af"
+    },
+    {
+      "path": "media/MEDIA_GENERATION_RULE.md",
+      "sha256": "577e6a132c55b29c2a7048d086a30641231a0d3b0b7350b9db3edf97658e7992"
+    },
+    {
+      "path": "media/REFERENCE_MANIFEST.md",
+      "sha256": "d32fbdff8b8481c3bd43cc861adb4165d9c0efd56b2250b18e1a1d13e2f0122f"
+    },
+    {
+      "path": "media/island/island_03_tight.png",
+      "sha256": "8ba3437e4d27b7c49d07517f71baf24693bf3ad89b90397b9c25dd59797a0521"
+    },
+    {
+      "path": "media/island/island_04_hero_walk_left.png",
+      "sha256": "baf3a38633f2f0bbf0d737ab7ef4dce8f21795d1ff4898b940f041db0fd953df"
+    },
+    {
+      "path": "media/island/island_06_lowest_fill.png",
+      "sha256": "22882f4bd8c86b3013fa377a5fb2d3aa85adc378efaa3c601625942e53e04c87"
+    },
+    {
+      "path": "media/kit/island_map.png",
+      "sha256": "2f706680b483c1eaee8769c2c69e6b671088f673d65f566ea4820aa1cedebd64"
+    },
+    {
+      "path": "media/kit/signs_all.png",
+      "sha256": "340b8fe9e3222c017301802d0881a9704a6b1c77320090e5cf9e178a6c89895f"
+    },
+    {
+      "path": "media/kit/overview_buildings.png",
+      "sha256": "c9e9b14abf3625b75ad38495c87ddb83b14c443605addf6f272542c53ac10973"
+    },
+    {
+      "path": "media/arts/economy-sky-art.png",
+      "sha256": "02a43e60bd08947ef0dfabeee6e4cf55a587ea7fd0141eee04a5fe62ea2db0e7"
+    },
+    {
+      "path": "media/corporator_logo/logo solo.png",
+      "sha256": "58395b6846eb9e60bea4edc4e0bee3f50ac94e5b4c2a73ca8dae40dc02beef57"
+    },
+    {
+      "path": "media/corporator_logo/logo token.png",
+      "sha256": "19288af558af3db670078d269c11a38c27763b6da4521671294808dd044ae9e0"
+    },
+    {
+      "path": "media/buildings/Agent Hub.png",
+      "sha256": "0c03f4ba5a44aa7939e4e074c23b4fd66337598f514d111543ad3541ef322fc4"
+    },
+    {
+      "path": "media/buildings/AI Research Center.png",
+      "sha256": "4c25b80684ff0911162b61230b322e33cc8d581fbdc5e51fa05fe0f999bef90e"
+    },
+    {
+      "path": "media/buildings/Bank.png",
+      "sha256": "8bf0efffcac906a2d75fbe804607d65bb78871314322283dfc547654103b6462"
+    },
+    {
+      "path": "media/buildings/City Hall.png",
+      "sha256": "698251abff6c5dd2eeae68303b2e52df9ff401dd662da2a59e6fa5215e4a93e6"
+    },
+    {
+      "path": "media/buildings/clearing house.png",
+      "sha256": "41370e415970ab5ae2f32624d1e54ea4d48b4a59c727a512272d21234c33d233"
+    },
+    {
+      "path": "media/buildings/Cloud Campus.png",
+      "sha256": "af9f5a1a5647a62be6392a39cfebc2ffa6e560d745bf65e9e60d34386384dbc4"
+    },
+    {
+      "path": "media/buildings/Data Center.png",
+      "sha256": "7df7b699ec723ab2c80c4e2f9a51d942381d741d8ee5d538c4ed6bdf3efc4368"
+    },
+    {
+      "path": "media/buildings/Drone Depot.png",
+      "sha256": "1c2ec554d7da40b00eb021b857ae2c1adbfedaab7ae84995632b5f13c440fe15"
+    },
+    {
+      "path": "media/buildings/Energy Plant.png",
+      "sha256": "1081fc9e93108cebf670479e435307b2dab2290abd060e1b8ffc98c165a63309"
+    },
+    {
+      "path": "media/buildings/Exchange.png",
+      "sha256": "046df4688985e00f3ec9306791f9e11bb94d81cfd8492f4992f8a759db8ba846"
+    },
+    {
+      "path": "media/buildings/Finance Tower.png",
+      "sha256": "d6b0c795a2ef64ff97836064aaaee78cde22375cf48c4a5fde2ccaefe7d62714"
+    },
+    {
+      "path": "media/buildings/Flagship Store.png",
+      "sha256": "25326598a7b6cde50b3d4caf563942d86607e8b2c46e727bde5f40939c12b249"
+    },
+    {
+      "path": "media/buildings/Fleet Yard.png",
+      "sha256": "b5579fc236ad42a399ad8a11766a3fad88d6b9664916bbdd56e0fe444b462691"
+    },
+    {
+      "path": "media/buildings/Logistics Hub.png",
+      "sha256": "97c680fc7b8f656a69a6413cf9b87676a19cc4254dff7e6c3cfa241ebbd2a132"
+    },
+    {
+      "path": "media/buildings/Neon Residence.png",
+      "sha256": "39349518b37fadc51e69b098be6a77aa05ca61b5185f001ed911d3d92bf9a2ea"
+    },
+    {
+      "path": "media/buildings/Power Node.png",
+      "sha256": "a8cc399eed8a48dbfb2d22b75f5882c69103b1c677ec172b27d6e21e562085d1"
+    },
+    {
+      "path": "media/buildings/Retail Complex.png",
+      "sha256": "7baa08b04f37261922e2e5d7ff1cfaf9dcb2d31a47a7ce4c31db2e3bd4150570"
+    },
+    {
+      "path": "media/buildings/Robotics Lab.png",
+      "sha256": "1436673a63dedbadc2ad007b0cc52b09673abf9a877d7f929a2191a7ea298023"
+    },
+    {
+      "path": "media/buildings/Workshop.png",
+      "sha256": "d7e8f36452b77395863843ca42ecae38bd234080c2d400f7d6b21eded35d374c"
+    },
+    {
+      "path": "media/units/Engineer.png",
+      "sha256": "6e3625fdb58ee1d6379c61ddc3f30eec02e7d00b2a2af3cd77811de6ffa94574"
+    },
+    {
+      "path": "media/units/Logistician.png",
+      "sha256": "d4a39d583cce7a80a7a6718c8569cabf151f7d1aca7c03fc2811f959e0673240"
+    },
+    {
+      "path": "media/units/manager.png",
+      "sha256": "2efee968f3dc2f4348941d19b483338c60ae0f3bc036c38c7b250590f1ccbc09"
+    },
+    {
+      "path": "media/units/scientist.png",
+      "sha256": "f1663f55508f137ac442b1586e4f1d540e7ca361675ad11bf0eb97fc571db045"
+    },
+    {
+      "path": "media/units/trader.png",
+      "sha256": "9a0d278167b9fe2940c0b7f154c414ed30028bba7ee6eccbd96e1ff2aabf9f2f"
+    },
+    {
+      "path": "media/kit/buildings/agent_hub.png",
+      "sha256": "d24f638c547dc4fd6f349a5d60b2c01868fdbbbb6ebfb11794bba9aaf5eda302"
+    },
+    {
+      "path": "media/kit/buildings/ai_research_center.png",
+      "sha256": "ce887b37eb57fa6efd69aca57cf75375427c190a47e1e6f47d4ea9909d5f3806"
+    },
+    {
+      "path": "media/kit/buildings/bank.png",
+      "sha256": "8e46f2984c81b2a679bf0f05328d0023f27c2087a3bd82966bae16b40db1abe2"
+    },
+    {
+      "path": "media/kit/buildings/city_hall.png",
+      "sha256": "ba75cda114148ef03f3a48ffae2538185952ae6e9c4f795946cc4f4e5a5b520b"
+    },
+    {
+      "path": "media/kit/buildings/clearing_house.png",
+      "sha256": "22f29c511f9afb1323915e2f0b2c615467752c5f2d93b49f47022a590c97e578"
+    },
+    {
+      "path": "media/kit/buildings/cloud_campus.png",
+      "sha256": "ea2bb99a802126805bfdd3743819ac69d3903f8d3752f3b2e0da943cdd2b3994"
+    },
+    {
+      "path": "media/kit/buildings/data_center.png",
+      "sha256": "6142b7acbb7b5bfa9c9e2167f203d44d290fc3479633fa3b0343851fddc2d3b9"
+    },
+    {
+      "path": "media/kit/buildings/drone_depot.png",
+      "sha256": "7f5159b61bb242992918970593664fae60130295da5418239bd2fe6048dfdfbd"
+    },
+    {
+      "path": "media/kit/buildings/energy_plant.png",
+      "sha256": "40236b95e2668bc82da897fec145bea7874e3d0846bb482d5430af1acd64496e"
+    },
+    {
+      "path": "media/kit/buildings/exchange.png",
+      "sha256": "b377596b3b88d367e281a6f9c8d97cb20440fabd797f5bae7c0e76da503a9ec4"
+    },
+    {
+      "path": "media/kit/buildings/finance_tower.png",
+      "sha256": "5c8346f2a47e9fda35db6ce1700e8ffa092ef1596ecb9c07018378f1aef3f38a"
+    },
+    {
+      "path": "media/kit/buildings/flagship_store.png",
+      "sha256": "87c5fed8439dc36519e30f769f6e38f3f0d466162d2f9d5e6268002e99d6daa9"
+    },
+    {
+      "path": "media/kit/buildings/fleet_yard.png",
+      "sha256": "05ff4b3c292cf6db5c9beb3c61d2ac5f60c12d582de7dad71230b6dcfe80408c"
+    },
+    {
+      "path": "media/kit/buildings/logistics_hub.png",
+      "sha256": "57405baec5265ff76fae4ca616843a2df1132dc85bbda9dd01f5740c11d862e9"
+    },
+    {
+      "path": "media/kit/buildings/neon_residence.png",
+      "sha256": "59d44ddb46c671a602b04e8689077da8bb906bade22e7927be776ea032cc60e6"
+    },
+    {
+      "path": "media/kit/buildings/power_node.png",
+      "sha256": "4853591bd56ff966e65ef95ffac0dada05f7ebe0b434282d18d0b4f8704c6054"
+    },
+    {
+      "path": "media/kit/buildings/retail_complex.png",
+      "sha256": "dda563f541887dafdb47159a186d88998aa78c1e4cc3d57d2543b98ba4148a13"
+    },
+    {
+      "path": "media/kit/buildings/robotics_lab.png",
+      "sha256": "83ca39feb873f02d95d678b121d6e6f60d3c75a9c4ea6943da384c86c9662c24"
+    },
+    {
+      "path": "media/kit/buildings/workshop.png",
+      "sha256": "02bc4eb517d772a62b44c1f115a996e46c86341bc54991902d79f69d2e9fea6f"
+    },
+    {
+      "path": "media/kit/roles/engineer.png",
+      "sha256": "ff70b94dbca23cd0cc9a432da596ecbe3a21520ae9665d57f673f69691a66ab2"
+    },
+    {
+      "path": "media/kit/roles/logistician.png",
+      "sha256": "e00b6591dd1d95fd0541724e99e97bb7398d42ae5439e95b842f88b12b6bf1e4"
+    },
+    {
+      "path": "media/kit/roles/manager.png",
+      "sha256": "42df56891e0d119c4afbbb46880ebe540448a70aa38abf43ab0c71a0dc1b3ef9"
+    },
+    {
+      "path": "media/kit/roles/scientist.png",
+      "sha256": "cee69b8704e1d890c213f8ce46fcfd2769b199cf9a2470deaebd31d49cd70c48"
+    },
+    {
+      "path": "media/kit/roles/trader.png",
+      "sha256": "7a688a04c500288a1edb78fd556841601850eaae35d0104efa52f8732dc575d8"
+    }
+  ],
+  "generationInputs": [
+    "media/island/island_03_tight.png",
+    "media/kit/island_map.png",
+    "marketing/2026-10-02-profile-banners/v4/references/architecture-and-exact-signs.png",
+    "marketing/2026-10-02-profile-banners/v4/references/five-role-originals-and-views.png",
+    "marketing/2026-10-02-profile-banners/v3/references/art-direction-example.png"
+  ],
+  "styleExampleScope": "Artistic quality, scene depth and lighting only; all example buildings, signs and sixth role excluded."
+}

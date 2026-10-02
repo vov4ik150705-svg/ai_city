@@ -18,6 +18,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24.13.1"
+      - name: enable_pnpm
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack enable && corepack prepare pnpm@11.24.0 --activate
       - name: pip_install
         run: python -m pip install -r requirements.txt
       - name: pack_lint
@@ -46,6 +50,10 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: "1.8.1"
+      - name: enable_pnpm
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack enable && corepack prepare pnpm@11.24.0 --activate
       - name: pip_install
         run: python -m pip install -r requirements.txt
       - name: pack_lint
