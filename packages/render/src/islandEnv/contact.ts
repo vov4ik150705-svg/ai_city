@@ -14,7 +14,7 @@ import {
 } from "three"
 import type { Intersection, Object3D } from "three"
 import { clipRadiusWithTest, isDeckSample } from "./contactClip.js"
-import { FORTY, FORTY_EIGHT, TWENTY, TWO } from "../literals.js"
+import { FORTY, FORTY_EIGHT, hex, TWENTY, TWO } from "../literals.js"
 
 const RAY_LIFT = FORTY
 const RAY_FAR = FORTY_EIGHT
@@ -87,7 +87,7 @@ export function buildContactOcclusion(
   if (rows.length === 0) return null
   const geo = new CircleGeometry(1, TWENTY)
   const mat = new MeshBasicMaterial({
-    color: new Color(0x1c1814),
+    color: new Color(hex("1c1814")),
     transparent: true,
     opacity: 0.22,
     depthWrite: false,

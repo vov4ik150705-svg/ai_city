@@ -46,6 +46,7 @@ const voucherLife = "62 min 30 s"
 const monthlyShare = "0.2%"
 const farmShare = "0.6%"
 const bankMarkup = "10%"
+const bankMarkupFloor = "6.5%"
 
 export const economyBackingTip = "Backing: $CORP held in the Vault against issued Capital."
 
@@ -92,8 +93,13 @@ export type WhoRow = {
 export type FeeRow = {
   readonly label: string
   readonly rate: string
-  readonly note?: string
   readonly nested?: true
+  readonly total?: true
+}
+
+export type FeeGroup = {
+  readonly title: string
+  readonly rows: readonly FeeRow[]
 }
 
 export type EconomyRule = {
@@ -156,16 +162,30 @@ export const whoIsWho: readonly WhoRow[] = [
   },
 ]
 
-export const economyFees: readonly FeeRow[] = [
-  { label: "Vault entry", rate: "2%" },
-  { label: "Creator tax", rate: "2%" },
-  { label: "→ Payroll fund", rate: "1.0% of turnover", nested: true },
-  { label: "→ Monthly prizes", rate: monthlyShare, nested: true },
-  { label: "→ Farm prizes", rate: farmShare, nested: true },
-  { label: "→ Studio", rate: "0.2%", nested: true },
-  { label: "Pool fee", rate: "1%" },
-  { label: "Total per DEX trade", rate: "3%" },
-  { label: "Bank markup", rate: bankMarkup },
+export const economyFeeGroups: readonly FeeGroup[] = [
+  {
+    title: "Deposit",
+    rows: [{ label: "Vault entry", rate: "2%" }],
+  },
+  {
+    title: "Trade",
+    rows: [
+      { label: "Creator tax", rate: "2%" },
+      { label: "Payroll fund", rate: "1.0%", nested: true },
+      { label: "Monthly prizes", rate: monthlyShare, nested: true },
+      { label: "Farm prizes", rate: farmShare, nested: true },
+      { label: "Studio", rate: "0.2%", nested: true },
+      { label: "Pool fee", rate: "1%" },
+      { label: "Total", rate: "3%", total: true },
+    ],
+  },
+  {
+    title: "Cash out",
+    rows: [
+      { label: "Bank markup", rate: bankMarkup },
+      { label: "With a Trader", rate: `down to ${bankMarkupFloor}`, nested: true },
+    ],
+  },
 ]
 
 export const enterFlow: readonly EconomyPicture[] = [

@@ -16,6 +16,9 @@ export default tseslint.config(
       "deploy/**",
       "scripts/**",
       "apps/www/**",
+      "marketing/**",
+      "docs/public/**",
+      "assets/website/**",
     ],
   },
   {

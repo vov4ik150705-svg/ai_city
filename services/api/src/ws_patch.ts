@@ -4,7 +4,7 @@ import { type ChannelHub } from "./channels.js"
 import { type PackCtx } from "./pack_ctx.js"
 import { projectState } from "./project.js"
 import { type ProjectLive } from "./project_live.js"
-import { asEngineDict, asObj, type Dict } from "./values.js"
+import { asObj, type Dict } from "./values.js"
 import { cityIds } from "./scheduler.js"
 
 export const wsChannelClasses = ["tick", "aggregate", "price", "log", "efficiency"] as const

@@ -45,7 +45,7 @@
   flex: 1;
   max-width: 1640px;
   width: 100%;
-  margin: 0 auto;
+  margin: var(--docs-modes-h) auto 0;
   padding: var(--hb-shell-pad) 40px 72px;
 }
 

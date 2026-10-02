@@ -611,7 +611,7 @@ export function projectState(
     )
     sections["seasons.influence_rank"] = {
       ...asObj(projectRank(ctx, state, cityId, city)),
-      prize_board: projectPrizeBoard(ctx, state, walletOf(city, cityId)),
+      prize_board: projectPrizeBoard(ctx, state, walletOf(city)),
     }
     const ledger = projectLedger(city)
     if (Object.keys(asEngineDict(ledger)).length > 0) sections["fragments.city_ledger"] = ledger

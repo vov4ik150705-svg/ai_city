@@ -1,9 +1,12 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react"
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react"
+import { ArrowLink } from "../components/text"
+import { docsLinks } from "../data/docsLinks"
 import {
   autonomousTip,
   buildingFilters,
   buildings,
+  buildingsDocsLabel,
   buildingsHeading,
   buildingsIn,
   buildingsLead,
@@ -377,6 +380,7 @@ export function Buildings() {
         <div className="buildings__copy">
           <h2 className="type-display-1">{buildingsHeading}</h2>
           <p className="buildings__lead type-body-lg">{buildingsLead}</p>
+          <ArrowLink to={docsLinks.buildings}>{buildingsDocsLabel}</ArrowLink>
           <div className="buildings__tabs site-tabs--dark">
             <div ref={tabsRef} role="tablist" aria-label="Building categories" className="site-tabs">
               {buildingFilters.map((tab, index) => {

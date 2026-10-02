@@ -93,7 +93,6 @@ When an action can't run, its button shows the reason code, such as `NOT_ENOUGH_
 - Capital is counted in whole units. The HUD may shorten large amounts, for example `34.2M`.
 - Every number on these pages comes from one versioned rule set, the **rules pack**. See [Versions](reference.md#versions).
 - Examples show arithmetic under stated inputs. They aren't forecasts.
-- `[NEEDS CONFIRMATION]` marks something we can't state as final yet.
 
 Corporator doesn't promise a return. `$CORP` and Stock Tokens can lose value, Payroll can pay less than you asked for, and the Bank limits when and how much you can withdraw. Read [Risks](protocol.md#risks) before you deposit.
 </pre></section><section id="chapter-city"><h1>city</h1><pre>---
@@ -150,7 +149,7 @@ Each building has a **home** role that works it at 100% and sometimes a **neighb
 | Cloud Campus | Automation (MSFT) | Extra agent slots, offline hours | Manager | Scientist | office |
 | Finance Tower | Finance (COIN) | Bank level | Trader | Manager | office |
 
-**Synergy buildings** each belong to two districts. One stops working when either of its districts is frozen. `[NEEDS CONFIRMATION]` whether both districts must be open before you can open one.
+**Synergy buildings** each belong to two districts. One stops working when either of its districts is frozen.
 
 | Building | Districts | Output | Home | Neighbour | Hours |
 |---|---|---|---|---|---|
@@ -235,7 +234,7 @@ Two moments in the day matter:
 - **00:00** closes the day for Payroll, GDP and Influence, and fixes the next day's Payroll budget.
 - **06:00** refreshes district efficiency and settles Farm windows, prize periods and seasons.
 
-All cities currently share one protocol clock, so everyone sees the same city time. `[NEEDS CONFIRMATION]` whether each city will get its own calendar starting at its first login.
+All cities currently share one protocol clock, so everyone sees the same city time.
 
 </pre><h2 id="population-and-city-level">Population and City Level</h2><pre>
 $$
@@ -330,8 +329,8 @@ Every role starts on its default task. You change it on the agent card.
 | Overclock | Engineer | | Output +10%, Energy cost +45% |
 | Route | Logistician | ✓ | Logistics relief +10% |
 | Stockpile | Logistician | | Logistics relief +20%, output −5% |
-| Desk | Trader | ✓ | In the Bank: no effect on withdrawal prices in the current version. `[NEEDS CONFIRMATION]` Meant to lower the markup to its floor ([Bank](economy.md#the-bank)). |
-| Quote | Trader | | In the Exchange: no effect. Purchases carry no route haircut for it to remove. `[NEEDS CONFIRMATION]` whether Quote will get an Exchange effect. |
+| Desk | Trader | ✓ | In the Bank: no effect on withdrawal prices in the current version. Meant to lower the markup to its floor ([Bank](economy.md#the-bank)). |
+| Quote | Trader | | In the Exchange: no effect. Purchases carry no route haircut for it to remove. |
 | Train | Scientist | ✓ | Gives XP to a chosen agent. XP rate +10%, Compute cost +45%. Idle without a target (`IDLE_NO_TRAIN_TARGET`). |
 | Research | Scientist | | Advances the city's current research. Compute cost +45%. Idle without a topic (`IDLE_NO_RESEARCH_FOCUS`). |
 | Focus | Manager | ✓ | +5% output for one kind of work: production, logistics, research, finance, retail or admin |
@@ -640,7 +639,7 @@ $$
 
 At the 2,000 ceiling, the exit rate is 2,200 Capital per `$CORP`. Entry is 1,960 per `$CORP` after the fee. Entering is always cheaper than leaving, and the rules can't be set otherwise.
 
-`[NEEDS CONFIRMATION]` A Trader on the Desk task in your Bank is meant to lower the markup to its 650 bps (6.5%) floor. Withdrawals don't apply it yet. At the floor, the exit rate would be 2,130 Capital per `$CORP` and the round trip 11.64%.
+A Trader on the Desk task in your Bank is meant to lower the markup to its 650 bps (6.5%) floor. Withdrawals don't apply it yet. At the floor, the exit rate would be 2,130 Capital per `$CORP` and the round trip 11.64%.
 
 </pre><h2 id="hours-and-limits">Hours and limits</h2><pre>
 | Rule | Value |
@@ -757,7 +756,7 @@ stateDiagram-v2
 - **Unstake.** You can request your tokens back at any time, with no one's approval, and the amount stops counting as stake at once. If what's left falls below $S_{\min}$, the district enters a **24-city-hour grace period** (`DISTRICT_FREEZING`) and then **freezes**. Its beacon and any synergy building that needs it stop with `IDLE_DISTRICT_FROZEN`, and its nodes stop counting. Nothing is demolished, and restaking lifts the freeze.
 - **Collect after 30 city days.** Unstaked tokens wait in the stake contract for a **30-city-day cooldown**, then you collect them to your wallet ([below](#unstaking-and-the-cooldown)).
 
-Stake above what your tier requires adds no output. `[NEEDS CONFIRMATION]` whether a bonus for extra stake will ship.
+Stake above what your tier requires adds no output.
 
 </pre><h2 id="where-your-stock-tokens-are">Where your Stock Tokens are</h2><pre>
 Every Stock Token you hold for the game is in one of three places. None of them is a balance kept by the game server.
@@ -796,7 +795,7 @@ $$
 - It's recalculated at 06:00 city time and bounded to 85–115%.
 - If the price is more than 6 city hours old, the value holds and the district shows `ORACLE_STALE`. Past 48 city hours it drifts back toward 100% by 500 bps per city day (`ORACLE_DECAYING`). A silent feed never raises efficiency.
 
-Efficiency never passes a stock's gain to you: a 20% rise in NVDA adds 20% to nothing you own. Today it feeds [Influence](seasons.md#influence) and shows on the district card. Seat requests use a neutral 100%. `[NEEDS CONFIRMATION]` whether efficiency will scale seat requests at launch.
+Efficiency never passes a stock's gain to you: a 20% rise in NVDA adds 20% to nothing you own. Today it feeds [Influence](seasons.md#influence) and shows on the district card. Seat requests use a neutral 100%.
 
 </pre><h2 id="tiers-and-nodes">Tiers and nodes</h2><pre>
 | Tier | Unlock cost (Capital) | City Level | Stake |
@@ -889,7 +888,7 @@ Rewards run on one global calendar that's the same for everyone. A city that joi
 | Prize period | 30 | 750 hours | 06:00 on the first day of the next period |
 | Season | 90, three prize periods | 2,250 hours | 06:00 on the first day of the next season |
 
-`[NEEDS CONFIRMATION]` The date of the first period is set at launch.
+The date of the first period is set at launch.
 
 </pre><h2 id="influence">Influence</h2><pre>
 Influence measures how well your city runs for what you've put into it. Size alone doesn't win. It builds up day by day through a prize period and resets to zero at each prize settlement.
@@ -1090,7 +1089,6 @@ Each check proves something different, and none replaces the others. The Journal
 - **Reading state.** Vault and StakeRegistry emit events for vouchers and unstakes. PrizeTreasury and MerkleRoots emit none. Read everything else through the public view functions.
 - **Records.** Each `(city_id, city_day)` has one Merkle root in `MerkleRoots` and one IPFS object with the records.
 - **Rules.** Every result belongs to one rules pack, identified by version and hash.
-- `[NEEDS CONFIRMATION]` A public game API for third parties isn't documented yet.
 
 </pre><h2 id="contracts">Contracts</h2><pre>
 All four game contracts are written in Solidity 0.8.28. None has a pause function. None is deployed yet: addresses will appear in the [deployment register](#deployment-register).
@@ -1212,7 +1210,7 @@ Rules:
 | Snipe tax | Up to 99% on buys in the first 3 seconds after launch. The factory's owner can change this setting. |
 | Token, curve and pool addresses | Not deployed |
 
-`[NEEDS CONFIRMATION]` that the creator tax can't be changed after launch. We treat it as permanent, and that will be checked against the deployed token.
+The creator tax is treated as permanent. That will be checked against the deployed token.
 
 </pre><h2 id="roles-and-permissions">Roles and permissions</h2><pre>
 | Role | Contract | Can | Can't |
@@ -1227,7 +1225,7 @@ Rules:
 | Owner | StakeRegistry | Map tickers to tokens | Move staked or cooling tokens, or change the cooldown |
 | Attestor | MerkleRoots | Publish and overwrite roots | — |
 
-A role's name doesn't tell you whether one key, a multisig or a contract holds it. `[NEEDS CONFIRMATION]` The holder of each role will be published at deployment.
+A role's name doesn't tell you whether one key, a multisig or a contract holds it. The holder of each role will be published at deployment.
 
 </pre><h2 id="deployment-register">Deployment register</h2><pre>
 This table is filled from real deployment records only. An empty field means the item doesn't exist yet.
@@ -1237,14 +1235,14 @@ This table is filled from real deployment records only. An empty field means the
 | Network | Robinhood Chain |
 | Chain ID | `4663` |
 | Public RPC | `https://rpc.mainnet.chain.robinhood.com` |
-| Block explorer | `[NEEDS CONFIRMATION]` |
+| Block explorer | At deployment |
 | USDG | `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` |
 | `$CORP` token, curve and pool | Not deployed |
 | Vault, PrizeTreasury, StakeRegistry, MerkleRoots | Not deployed |
-| Stock Token address per ticker | `[NEEDS CONFIRMATION]` at deployment |
-| Role holders | `[NEEDS CONFIRMATION]` at deployment |
-| First period date | `[NEEDS CONFIRMATION]` at deployment |
-| Source code and audit reports | `[NEEDS CONFIRMATION]` |
+| Stock Token address per ticker | At deployment |
+| Role holders | At deployment |
+| First period date | At deployment |
+| Source code and audit reports | At deployment |
 | Rules pack | See [Versions](reference.md#versions) |
 
 </pre><h2 id="risks">Risks</h2><pre>

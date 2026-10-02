@@ -1,8 +1,12 @@
 import { useEffect, useId, useRef, useState } from "react"
 import { ArrowDown, X } from "lucide-react"
 import { Card } from "../components/Card"
+import { ArrowLink } from "../components/text"
+import { docsLinks } from "../data/docsLinks"
 import {
+  gameDocsLabel,
   gameHeading,
+  gameHudDocsLabel,
   gameHud,
   gameParagraphs,
   gameSteps,
@@ -82,8 +86,10 @@ function GameHudDialog({ name, src, onClose }: { name: string; src: string; onCl
     const node = dialog.current
     if (node === null) return
     const y = window.scrollY
-    if (!node.open) node.showModal()
+    const root = document.documentElement
     const body = document.body
+    root.dataset.scrollLock = "1"
+    if (!node.open) node.showModal()
     const previous = {
       overflow: body.style.overflow,
       position: body.style.position,
@@ -106,6 +112,7 @@ function GameHudDialog({ name, src, onClose }: { name: string; src: string; onCl
       body.style.right = previous.right
       body.style.width = previous.width
       window.scrollTo(0, y)
+      delete root.dataset.scrollLock
     }
   }, [])
 
@@ -197,6 +204,7 @@ export function Game() {
               </p>
             ))}
           </div>
+          <ArrowLink to={docsLinks.firstSession}>{gameDocsLabel}</ArrowLink>
         </div>
         <ol className="game-steps">
           {gameSteps.map((step, index) => (
@@ -264,6 +272,7 @@ export function Game() {
             </li>
           ))}
         </ul>
+        <ArrowLink to={docsLinks.hud}>{gameHudDocsLabel}</ArrowLink>
       </div>
     </section>
   )

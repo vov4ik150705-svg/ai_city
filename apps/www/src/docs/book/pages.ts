@@ -15,10 +15,36 @@ export type BookPage = {
   readonly alt: string
   readonly width: number
   readonly height: number
-  readonly artLeft: number
-  readonly artTop: number
-  readonly artWidth: number
+  /** Opaque pixels of art.png (alpha above 16), in source pixels. */
+  readonly inkX: number
+  readonly inkY: number
+  readonly inkW: number
+  readonly inkH: number
   readonly introTop: number
+}
+
+/** One frame for every picture, in the 1400×860 panel. Ink shares this baseline and horizontal centre. */
+export const BOOK_ART_SLOT = { x: 320, y: 4, w: 1040, h: 668 } as const
+
+export type ArtPlacement = {
+  readonly left: number
+  readonly top: number
+  readonly width: number
+  readonly height: number
+}
+
+/** Percentages of BOOK_ART_SLOT. The full bitmap may hang outside; the ink does not. */
+export function artPlacement(page: Pick<BookPage, "width" | "height" | "inkX" | "inkY" | "inkW" | "inkH">): ArtPlacement {
+  const slot = BOOK_ART_SLOT
+  const scale = Math.min(slot.w / page.inkW, slot.h / page.inkH)
+  const leftPx = (slot.w - page.inkW * scale) / 2 - page.inkX * scale
+  const topPx = slot.h - (page.inkY + page.inkH) * scale
+  return {
+    left: (leftPx / slot.w) * 100,
+    top: (topPx / slot.h) * 100,
+    width: ((page.width * scale) / slot.w) * 100,
+    height: ((page.height * scale) / slot.h) * 100,
+  }
 }
 
 export function bookPages(facts: BookFacts): readonly BookPage[] {
@@ -37,9 +63,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "A floating island city with only a few buildings lit, and two pencil outlines of the same island behind it, lit in different places.",
       width: 1602,
       height: 981,
-      artLeft: 190,
-      artTop: 0,
-      artWidth: 1120,
+      inkX: 286,
+      inkY: 1,
+      inkW: 1315,
+      inkH: 980,
       introTop: 211,
     },
     {
@@ -55,9 +82,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "The same engineer in three doorways, working at full strength, at part strength and standing idle in a bank; five small portraits below.",
       width: 1672,
       height: 941,
-      artLeft: 80,
-      artTop: 0,
-      artWidth: 1200,
+      inkX: 471,
+      inkY: 53,
+      inkW: 1201,
+      inkH: 882,
       introTop: 270,
     },
     {
@@ -74,9 +102,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "A clock strikes the hour; two engineers drop blue pay slips into a box while a third worker sticks a grey note on it.",
       width: 1672,
       height: 941,
-      artLeft: 330,
-      artTop: 70,
-      artWidth: 960,
+      inkX: 4,
+      inkY: 129,
+      inkW: 1660,
+      inkH: 768,
       introTop: 211,
     },
     {
@@ -93,9 +122,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "A wallet with a coin, a stack of chips standing on a small safe with a thread from each chip to a coin, and a fan of six stock-token coins.",
       width: 1672,
       height: 941,
-      artLeft: 220,
-      artTop: 90,
-      artWidth: 1040,
+      inkX: 141,
+      inkY: 203,
+      inkW: 1530,
+      inkH: 710,
       introTop: 211,
     },
     {
@@ -112,9 +142,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "A water tower labelled Payroll feeds three islands; in a quiet hour three cups overflow, in a busy hour nine cups are equally half full.",
       width: 1672,
       height: 941,
-      artLeft: 90,
-      artTop: 0,
-      artWidth: 1200,
+      inkX: 307,
+      inkY: 14,
+      inkW: 1343,
+      inkH: 913,
       introTop: 270,
     },
     {
@@ -131,9 +162,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "Chips split between a small flame and a pipe into the tank; a toll gate under a trading pond drips into four pipes: the tank, a prize jar, a podium and a small studio house.",
       width: 1671,
       height: 941,
-      artLeft: 90,
-      artTop: 0,
-      artWidth: 1200,
+      inkX: 28,
+      inkY: 125,
+      inkW: 1640,
+      inkH: 770,
       introTop: 211,
     },
     {
@@ -150,9 +182,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "At a bank window chips turn into a ticket with an hourglass, and a hand carries it along a path to a wallet.",
       width: 1672,
       height: 941,
-      artLeft: 90,
-      artTop: 0,
-      artWidth: 1200,
+      inkX: 72,
+      inkY: 144,
+      inkW: 1595,
+      inkH: 791,
       introTop: 211,
     },
     {
@@ -169,9 +202,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "Six district buildings in a ring around the island, each with a lock and a key shaped like a stock-token coin.",
       width: 1672,
       height: 941,
-      artLeft: 90,
-      artTop: 0,
-      artWidth: 1200,
+      inkX: 496,
+      inkY: 33,
+      inkW: 1158,
+      inkH: 908,
       introTop: 211,
     },
     {
@@ -187,9 +221,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "A key taken from a lock leads two ways: a short path where the district frosts over after a day, and a long one through a calendar to a wallet.",
       width: 1672,
       height: 941,
-      artLeft: 90,
-      artTop: 0,
-      artWidth: 1200,
+      inkX: 346,
+      inkY: 40,
+      inkW: 1311,
+      inkH: 880,
       introTop: 211,
     },
     {
@@ -206,9 +241,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "Scales tip toward a small, fully lit piece of island; beside them a ten-step podium with shrinking stacks of tokens.",
       width: 1672,
       height: 941,
-      artLeft: 110,
-      artTop: 0,
-      artWidth: 1180,
+      inkX: 398,
+      inkY: 22,
+      inkW: 1254,
+      inkH: 908,
       introTop: 270,
     },
     {
@@ -225,9 +261,10 @@ export function bookPages(facts: BookFacts): readonly BookPage[] {
       alt: "The island at dusk with a signpost to Demo and Handbook; the engineer waves goodbye from the Workshop door.",
       width: 1602,
       height: 981,
-      artLeft: 270,
-      artTop: 0,
-      artWidth: 1100,
+      inkX: 262,
+      inkY: 1,
+      inkW: 1329,
+      inkH: 980,
       introTop: 211,
     },
   ]

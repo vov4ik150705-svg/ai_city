@@ -18,7 +18,7 @@ import { DEFAULT_SKY_ENV, ENV_LOOK_REV, type SkyEnvironmentConfig, type WorldClo
 import { buildCloudLayer, disposeClouds } from "./clouds.js"
 import { buildContactOcclusion, disposeContactOcclusion } from "./contact.js"
 import { SKY_DOME_RADIUS, makeSkyDome } from "./skyDome.js"
-import { FORTY, TEN, TWENTY_FOUR, TWO, TWO_THOUSAND } from "../literals.js"
+import { FORTY, hex, TEN, THREE, TWENTY_FOUR, TWO, TWO_THOUSAND } from "../literals.js"
 
 const _sunTarget = new Vector3()
 
@@ -108,12 +108,12 @@ export function applyEnvironmentLook(
   } else {
     scene.fog = null
   }
-  ambient.color.setHex(0xe8f3ff)
+  ambient.color.setHex(hex("e8f3ff"))
   ambient.intensity = cfg.ambientIntensity
   hemi.color.setHex(cfg.hemiSky)
   hemi.groundColor.setHex(cfg.hemiGround)
   hemi.intensity = cfg.hemiIntensity
-  fill.color.setHex(0xc8e4f4)
+  fill.color.setHex(hex("c8e4f4"))
   fill.intensity = cfg.fillIntensity
   fill.castShadow = false
   sun.color.setHex(cfg.sunColor)
@@ -147,7 +147,7 @@ export function applyEnvironmentLook(
   cam.top = half
   cam.bottom = 0 - half
   cam.near = Math.max(TWO, span * 0.08)
-  cam.far = span * 3.6
+  cam.far = span * (THREE + 0.6)
   cam.updateProjectionMatrix()
 }
 

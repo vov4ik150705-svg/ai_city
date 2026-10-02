@@ -13,7 +13,7 @@ import {
   UniformsUtils,
   Vector3,
 } from "three"
-import { FOUR, SIXTEEN, THREE } from "../literals.js"
+import { EIGHT, FIVE, FORTY, FORTY_EIGHT, FOUR, hex, HUNDRED, ONE_TWENTY_EIGHT, SIX, SIXTEEN, TEN, TEN_TWENTY_FOUR, THREE, TWENTY, TWENTY_SEVEN, TWO, TWO_FIFTY_SIX, TWO_THOUSAND } from "../literals.js"
 
 export const WATERFALL_FX_NAME = "waterfall_fx"
 
@@ -127,7 +127,7 @@ function skipRaycast(): void {
 }
 
 function unit(seed: number): number {
-  const x = Math.sin(seed * 127.1) * 43758.5453
+  const x = Math.sin(seed * ((HUNDRED + TWENTY_SEVEN) + 0.1)) * (((TWO_THOUSAND * (TWENTY + 1)) + (TEN_TWENTY_FOUR + ((TWO_FIFTY_SIX * TWO) + (ONE_TWENTY_EIGHT + (FORTY_EIGHT + (FORTY + SIX)))))) + 0.5453)
   return x - Math.floor(x)
 }
 
@@ -145,7 +145,7 @@ function ensureFxMaterials(clock: WaterfallFxClock): { mist: ShaderMaterial; dro
     const uniforms = UniformsUtils.merge([
       UniformsLib.fog,
       {
-        diffuse: { value: new Color(0xc7e8ff) },
+        diffuse: { value: new Color(hex("c7e8ff")) },
         opacity: { value: 0.22 },
       },
     ])
@@ -168,7 +168,7 @@ function ensureFxMaterials(clock: WaterfallFxClock): { mist: ShaderMaterial; dro
     const uniforms = UniformsUtils.merge([
       UniformsLib.fog,
       {
-        diffuse: { value: new Color(0xbee6ff) },
+        diffuse: { value: new Color(hex("bee6ff")) },
         opacity: { value: 0.42 },
       },
     ])
@@ -233,12 +233,12 @@ export function attachWaterfallFx(
     mist.name = "waterfall_mist"
     mist.renderOrder = THREE
     fillInstances(mist, n, (i, dummy) => {
-      const u = unit(i + 2.17)
-      const v = unit(i + 5.91)
+      const u = unit(i + (TWO + 0.17))
+      const v = unit(i + (FIVE + 0.91))
       dummy.position.set(
         minX + _size.x * 0.5 + (u - 0.5) * _size.x * 0.42,
         minY + _size.y * (0.05 + v * 0.12),
-        minZ + _size.z * 0.5 + (unit(i + 9.4) - 0.5) * _size.z * 0.42,
+        minZ + _size.z * 0.5 + (unit(i + ((EIGHT + 1) + 0.4)) - 0.5) * _size.z * 0.42,
       )
       dummy.scale.set(_size.x * (0.48 + u * 0.22), _size.y * (0.16 + v * 0.08), 1)
     })
@@ -250,15 +250,15 @@ export function attachWaterfallFx(
     drip.name = "waterfall_droplets"
     drip.renderOrder = FOUR
     fillInstances(drip, drops, (i, dummy) => {
-      const u = unit(i + 11.3)
-      const v = unit(i + 23.8)
-      const w = unit(i + 41.2)
+      const u = unit(i + ((TEN + 1) + 0.3))
+      const v = unit(i + ((TWENTY + THREE) + 0.8))
+      const w = unit(i + ((FORTY + 1) + 0.2))
       dummy.position.set(
         minX + _size.x * 0.5 + (u - 0.5) * _size.x * 0.46,
         minY + _size.y * (0.18 + v * 0.72),
         minZ + _size.z * 0.5 + (w - 0.5) * _size.z * 0.46,
       )
-      const s = Math.max(_size.y * 0.012, 0.04) * (0.55 + unit(i + 3.3) * 0.7)
+      const s = Math.max(_size.y * 0.012, 0.04) * (0.55 + unit(i + (THREE + 0.3)) * 0.7)
       dummy.scale.set(s, s, s)
     })
     fx.add(drip)

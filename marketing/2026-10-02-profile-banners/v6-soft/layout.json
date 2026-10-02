@@ -1,0 +1,25 @@
+{
+  "sceneSource": "scene-soft-generated.png",
+  "title": {
+    "x": 2525,
+    "y": 220,
+    "size": 112,
+    "depth": 8
+  },
+  "x": {
+    "brandWidth": 88,
+    "brandX": 150,
+    "brandY": 85,
+    "tagSize": 43,
+    "tagY": 280,
+    "tagColor": "#243447"
+  },
+  "dexscreener": {
+    "brandWidth": 158,
+    "brandX": 200,
+    "brandY": 70,
+    "wordWidth": 295,
+    "wordX": 132,
+    "wordY": 270
+  }
+}

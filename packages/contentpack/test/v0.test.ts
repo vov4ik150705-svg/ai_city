@@ -310,6 +310,9 @@ describe.sequential("V0 construction", () => {
           "hud_geometry_from_fixture",
           "bank_plaque_always_present",
           "payroll_row_appears_when_trimmed",
+          "payroll_coverage_shows_boost_without_trim",
+          "e2_launch_chip_shows_then_vanishes",
+          "e2_client_does_not_compute_launch_window",
           "stock_bar_shows_two_numbers",
           "building_select_opens_popover_not_route",
           "preview_popover_facts_come_from_pack_roles",
@@ -353,6 +356,13 @@ describe.sequential("V0 construction", () => {
           "shows unavailable live industry fields and keeps progression/merge off the overview cards",
           "renders five research items with pack cost/duration and unavailable artwork/start/detail",
           "keeps journal timestamp/entity/unread unavailable and seasons/farm/claims on existing overlays",
+          "raises a building level instead of calling the feature missing",
+          "records the research axis instead of calling the feature missing",
+          "cuts an unfilled refusal slot instead of printing the code",
+          "overview tabs other than summary keep a back step",
+          "answers without a session and hides the demo city",
+          "lists wallet cities in board order, one row per wallet, self stays 0",
+          "does not treat a longer path as the board",
         ])
       } else if (id === "companion_screen") {
         expect(stage.construction_tests ?? []).toEqual([

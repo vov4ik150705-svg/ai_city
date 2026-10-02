@@ -1,5 +1,6 @@
 import { useContext, type CSSProperties } from "react"
 import heroUrl from "../assets/opt/hero.webp"
+import heroMobileUrl from "../assets/opt/hero-mobile.webp"
 import robinhoodUrl from "../../../../website/brand/robinhood-chain/robinhood-chain-brand-assets-v1/Robinhood Chain Brand Assets - V1/Robinhood Chain Logo/Robinhood_Chain_Logo_Black.svg"
 import { Button } from "../components/Button"
 import { heroCopy } from "../data/hero"
@@ -16,15 +17,18 @@ export function Hero() {
       style={{ "--hero-art": `url(${JSON.stringify(heroUrl)})` } as CSSProperties}
     >
       <div className="hero__stage">
-        <img
-          className="hero__art"
-          src={heroUrl}
-          alt=""
-          width={1671}
-          height={941}
-          fetchPriority="high"
-          decoding="async"
-        />
+        <picture className="hero__frame">
+          <source media="(max-width: 700px)" srcSet={heroMobileUrl} width={1400} height={1600} />
+          <img
+            className="hero__art"
+            src={heroUrl}
+            alt=""
+            width={1671}
+            height={941}
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
       </div>
       <div className="site-container">
         <div className="hero__copy">

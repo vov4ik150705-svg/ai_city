@@ -37,7 +37,7 @@ function HeaderFace({
   instant: boolean
 }) {
   const present = useIsPresent()
-  const headerClass = ["site-header", concealed && !menu ? "is-concealed" : "", docs ? "site-header--docs" : ""]
+  const headerClass = ["site-header", concealed && !menu && !docs ? "is-concealed" : "", docs ? "site-header--docs" : ""]
     .filter((part) => part !== "")
     .join(" ")
 
@@ -148,6 +148,7 @@ export function Header({ path }: { path: string }) {
     const edge = 8
     const trip = 24
     const onScroll = () => {
+      if (document.documentElement.dataset.scrollLock === "1") return
       const y = window.scrollY
       const delta = y - last
       last = y

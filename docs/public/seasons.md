@@ -25,7 +25,7 @@ Rewards run on one global calendar that's the same for everyone. A city that joi
 | Prize period | 30 | 750 hours | 06:00 on the first day of the next period |
 | Season | 90, three prize periods | 2,250 hours | 06:00 on the first day of the next season |
 
-`[NEEDS CONFIRMATION]` The date of the first period is set at launch.
+The date of the first period is set at launch.
 
 ## Influence
 

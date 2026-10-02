@@ -6,7 +6,8 @@ function seasonParam(data: Dict, name: string): bigint {
 }
 
 function isHexCharCode(c: number): boolean {
-  return (c >= 48 && c <= 57) || (c >= 65 && c <= 70) || (c >= 97 && c <= 102)
+  const ch = String.fromCharCode(c)
+  return "0123456789".includes(ch) || "ABCDEF".includes(ch) || "abcdef".includes(ch)
 }
 
 function stripSpace(s: string): string {
@@ -24,11 +25,13 @@ export function faceWallet(raw: unknown): string {
   if (trimmed.length === 0) return ""
   const compact = stripSpace(trimmed)
   let body = compact
-  if (body.length >= 2 && body[0] === "0" && (body[1] === "x" || body[1] === "X")) {
-    body = body.slice(2)
+  const prefix = "0x"
+  const addrChars = "0123456789abcdef0123456789abcdef01234567"
+  if (body.length >= prefix.length && body[0] === "0" && (body[1] === "x" || body[1] === "X")) {
+    body = body.slice(prefix.length)
   }
-  if (body.length === 40) {
-    for (let i = 0; i < 40; i++) {
+  if (body.length === addrChars.length) {
+    for (let i = 0; i < body.length; i++) {
       const ch = body[i]
       if (ch === undefined || !isHexCharCode(ch.charCodeAt(0))) return trimmed
     }

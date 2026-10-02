@@ -1,4 +1,5 @@
 import { clampRate, mintRate, staleDecayRate, tickJitterBps } from "./arith.js"
+import { bi18 } from "./literals.js"
 import { happinessOfCity } from "./aggregates.js"
 import { cityBankShareBps, remainingGlobal, resetDayCounters } from "./bank.js"
 import { rateRawFromSamples } from "./config.js"
@@ -418,7 +419,7 @@ export function bankOpen(cfg: Dict, hour: bigint, weekday: bigint): bigint {
 
 function inOfflineWindow(cfg: Dict, city: Dict, tickIndex: bigint): bigint {
   const added = asBig(city["offline_cap_hours"])
-  const hard = asBig(cfg["offline_hard_cap"], 18n)
+  const hard = asBig(cfg["offline_hard_cap"], bi18)
   let cap = asBig(cfg["offline_cap"]) + added
   if (cap > hard) cap = hard
   if (cap < 0n) cap = 0n
@@ -771,7 +772,7 @@ export function bankWithdraw(cfg: Dict, state: Dict, day: bigint, hour: bigint, 
   const live = asBig(state["pool_eth"])
   const cities = asDict(state["cities"])
   resetDayCounters(state, day)
-  let remaining = remainingGlobal(state, live, asBig(cfg["bank_pool_share_bps"]), bps)
+  const remaining = remainingGlobal(state, live, asBig(cfg["bank_pool_share_bps"]), bps)
   const asks: { cid: string; ethAsk: bigint; scaled: bigint }[] = []
   for (const cid of sortedKeys(cities)) {
     const city = asDict(cities[cid])

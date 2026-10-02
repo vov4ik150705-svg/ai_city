@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto"
 import { etc, getPublicKey, sign, Signature } from "@noble/secp256k1"
-import { bytesToHex, hexToBytes, keccak256 } from "@corporator/engine"
+import { bytesToHex, hexToBytes, keccak256 } from "./keccak.js"
 import type { RpcOutcome } from "../values.js"
 import { encodeSignedTx } from "./codec.js"
 import { postEth, type JsonRpcPost } from "./jsonrpc.js"

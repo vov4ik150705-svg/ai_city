@@ -47,6 +47,10 @@
   color: var(--site-dark-text-secondary);
 }
 
+.buildings__copy > .site-arrow-link {
+  margin-top: var(--site-body-to-cta);
+}
+
 .buildings__tabs {
   margin-top: var(--site-space-5);
 }

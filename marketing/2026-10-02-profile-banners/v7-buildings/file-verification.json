@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-02",
+  "sceneSha256": "56f4e4f2ea7a81e5a0d6080c860bdaa2dc9ac9f7d8cb5d3a976a961ada438ac2",
+  "originalScene": "../v6-soft/scene-clean-3000x1000.png",
+  "tool": "Built-in image_gen; building volume, bank identity and rear sign corrections",
+  "exports": [
+    {
+      "file": "x-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7654226
+    },
+    {
+      "file": "x-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 2086806
+    },
+    {
+      "file": "x-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 541476
+    },
+    {
+      "file": "x-preview-600x200.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 356997
+    },
+    {
+      "file": "dexscreener-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7665427
+    },
+    {
+      "file": "dexscreener-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 2088630
+    },
+    {
+      "file": "dexscreener-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 542303
+    },
+    {
+      "file": "dexscreener-preview-600x200.png",
+      "width": 600,
+      "height": 200,
+      "bytes": 357766
+    }
+  ],
+  "masters": [
+    {
+      "version": "x",
+      "layers": 4,
+      "sharedScene": true,
+      "headline": "CORPORATOR",
+      "tagline": "A city worth running."
+    },
+    {
+      "version": "dexscreener",
+      "layers": 4,
+      "sharedScene": true,
+      "headline": "CORPORATOR",
+      "tagline": null
+    }
+  ]
+}

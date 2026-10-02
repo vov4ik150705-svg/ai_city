@@ -1,7 +1,8 @@
+import { bi2, bi10000 } from "./literals.js"
 import { asBig, asBool, asDict, asList, asStr, sortedKeys } from "./values.js"
 import type { Dict } from "./values.js"
 
-const BPS = 10000n
+const BPS = bi10000
 const CODE_NO_CLAIMS = "FRAGMENT_NO_CLAIMS"
 const CODE_POOL_EMPTY = "FRAGMENT_POOL_EMPTY"
 const CODE_CITY_CAPPED = "FRAGMENT_CITY_CAPPED"
@@ -130,7 +131,7 @@ export function settle(fragments: readonly bigint[], pool: bigint, capBps: bigin
       cap_applied: 0n,
     }
   }
-  const useCap = nClaim >= 2n
+  const useCap = nClaim >= bi2
   const capAmt = useCap ? (pool * capBps) / bps : pool
   const payouts: bigint[] = []
   const capped: bigint[] = []

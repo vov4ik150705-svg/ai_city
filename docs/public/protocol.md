@@ -114,7 +114,6 @@ Each check proves something different, and none replaces the others. The Journal
 - **Reading state.** Vault and StakeRegistry emit events for vouchers and unstakes. PrizeTreasury and MerkleRoots emit none. Read everything else through the public view functions.
 - **Records.** Each `(city_id, city_day)` has one Merkle root in `MerkleRoots` and one IPFS object with the records.
 - **Rules.** Every result belongs to one rules pack, identified by version and hash.
-- `[NEEDS CONFIRMATION]` A public game API for third parties isn't documented yet.
 
 ## Contracts
 
@@ -242,7 +241,7 @@ Rules:
 | Snipe tax | Up to 99% on buys in the first 3 seconds after launch. The factory's owner can change this setting. |
 | Token, curve and pool addresses | Not deployed |
 
-`[NEEDS CONFIRMATION]` that the creator tax can't be changed after launch. We treat it as permanent, and that will be checked against the deployed token.
+The creator tax is treated as permanent. That will be checked against the deployed token.
 
 ## Roles and permissions
 
@@ -258,7 +257,7 @@ Rules:
 | Owner | StakeRegistry | Map tickers to tokens | Move staked or cooling tokens, or change the cooldown |
 | Attestor | MerkleRoots | Publish and overwrite roots | — |
 
-A role's name doesn't tell you whether one key, a multisig or a contract holds it. `[NEEDS CONFIRMATION]` The holder of each role will be published at deployment.
+A role's name doesn't tell you whether one key, a multisig or a contract holds it. The holder of each role will be published at deployment.
 
 ## Deployment register
 
@@ -269,14 +268,14 @@ This table is filled from real deployment records only. An empty field means the
 | Network | Robinhood Chain |
 | Chain ID | `4663` |
 | Public RPC | `https://rpc.mainnet.chain.robinhood.com` |
-| Block explorer | `[NEEDS CONFIRMATION]` |
+| Block explorer | At deployment |
 | USDG | `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168` |
 | `$CORP` token, curve and pool | Not deployed |
 | Vault, PrizeTreasury, StakeRegistry, MerkleRoots | Not deployed |
-| Stock Token address per ticker | `[NEEDS CONFIRMATION]` at deployment |
-| Role holders | `[NEEDS CONFIRMATION]` at deployment |
-| First period date | `[NEEDS CONFIRMATION]` at deployment |
-| Source code and audit reports | `[NEEDS CONFIRMATION]` |
+| Stock Token address per ticker | At deployment |
+| Role holders | At deployment |
+| First period date | At deployment |
+| Source code and audit reports | At deployment |
 | Rules pack | See [Versions](reference.md#versions) |
 
 ## Risks

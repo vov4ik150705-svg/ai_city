@@ -9,6 +9,7 @@ import {
   type PortConfig,
 } from "../src/index.ts"
 import { selector } from "../src/rpc/abi.ts"
+import { bytesToHex as portHex, keccak256 as portKeccak } from "../src/rpc/keccak.ts"
 import { ROLE_ENV } from "../src/rpc/sign.ts"
 
 const cfg: PortConfig = {
@@ -27,6 +28,14 @@ function word(n: bigint): string {
 
 function sel(sig: string): string {
   return bytesToHex(keccak256(new TextEncoder().encode(sig))).slice(0, 8)
+}
+
+function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
 }
 
 function live(post: JsonRpcPost) {
@@ -66,6 +75,17 @@ function rpcBody(body: string): { readonly method: string; readonly params: read
 }
 
 describe("X3 chainport", () => {
+  it("chainport keccak matches the engine copy", () => {
+    const empty = new Uint8Array()
+    const abc = new TextEncoder().encode("abc")
+    const wide = new Uint8Array(137)
+    for (let i = 0; i < wide.length; i += 1) wide[i] = i
+    for (const sample of [empty, abc, wide]) {
+      expect(sameBytes(portKeccak(sample), keccak256(sample))).toBe(true)
+      expect(portHex(sample)).toBe(bytesToHex(sample))
+    }
+  })
+
   it("selectors match keccak of the signature", async () => {
     const abi = await import("../src/rpc/abi.ts")
     expect("dataUnstake" in abi).toBe(false)

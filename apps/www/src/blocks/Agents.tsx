@@ -8,7 +8,6 @@ import {
 } from "react"
 import {
   ArrowLeftRight,
-  ArrowRight,
   Bot,
   CircleDollarSign,
   CircleQuestionMark,
@@ -44,7 +43,8 @@ import {
   type AgentRole,
   type SeatName,
 } from "../data/agents"
-import { Destination } from "../site"
+import { docsLinks } from "../data/docsLinks"
+import { ArrowLink } from "../components/text"
 import "../styles/agents.css"
 
 const seatIcon: Record<SeatName, LucideIcon> = {
@@ -317,10 +317,7 @@ export function Agents() {
               {paragraph}
             </p>
           ))}
-          <Destination kind="docs" className="site-arrow-link type-label">
-            {agentsDocsLabel}
-            <ArrowRight size={16} aria-hidden="true" />
-          </Destination>
+          <ArrowLink to={docsLinks.agents}>{agentsDocsLabel}</ArrowLink>
         </div>
         <Stage activeId={active.id} />
         <div className="agents__panels">

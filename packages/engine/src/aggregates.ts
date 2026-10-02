@@ -1,3 +1,4 @@
+import { bi3, bi400, bi600, bi900, bi1350, bi2025, bi3037, n2, n3, n4, n5, n6, n7 } from "./literals.js"
 import { asBig, asDict, asStr, max1 } from "./values.js"
 import type { Dict } from "./values.js"
 
@@ -45,17 +46,17 @@ export function population(occupiedJobs: bigint, populationPerJob: bigint, housi
 }
 
 const HOUSING_LEVEL_INDEX: { readonly [id: string]: readonly number[] } = {
-  flagship_store: [2, 4, 6],
-  retail_complex: [3, 5, 7],
+  flagship_store: [n2, n4, n6],
+  retail_complex: [n3, n5, n7],
 }
 
 const HOUSING_FALLBACK: { readonly [level: number]: bigint } = {
-  2: 400n,
-  3: 600n,
-  4: 900n,
-  5: 1350n,
-  6: 2025n,
-  7: 3037n,
+  [n2]: bi400,
+  [n3]: bi600,
+  [n4]: bi900,
+  [n5]: bi1350,
+  [n6]: bi2025,
+  [n7]: bi3037,
 }
 
 export function housingBaseOf(archetype: string, level: bigint, thresholds: Dict): bigint {
@@ -104,7 +105,7 @@ export function stickyCityLevel(current: bigint, derived: bigint): bigint {
   return cur > derived ? cur : derived
 }
 
-export function buildSlotsOf(agentSlots: bigint, autonomousOrdinary = 3n): bigint {
+export function buildSlotsOf(agentSlots: bigint, autonomousOrdinary = bi3): bigint {
   const out = agentSlots + autonomousOrdinary
   return out > 0n ? out : 0n
 }

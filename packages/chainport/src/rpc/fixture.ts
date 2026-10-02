@@ -103,6 +103,12 @@ async function dispatch(
       }
       return encodeResult(await inner.vault.mintCapital(account, corpAmount, capitalAmount))
     }
+    case rpcMethod.vaultPending:
+      return encodeAmountResult(await inner.vault.pending(arg(args, 0)))
+    case rpcMethod.vaultBacking:
+      return encodeAmountResult(await inner.vault.backingOf(arg(args, 0)))
+    case rpcMethod.vaultReserved:
+      return encodeAmountResult(await inner.vault.reservedOf(arg(args, 0)))
     case rpcMethod.issueVoucher: {
       const voucher = voucherOf(args)
       if (voucher === undefined) return encodeErr(codes.API_MALFORMED)

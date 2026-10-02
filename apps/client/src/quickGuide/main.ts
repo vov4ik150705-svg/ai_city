@@ -78,6 +78,19 @@ const dots: HTMLButtonElement[] = STEPS.map((_, i) => {
 })
 
 let current = 0
+let painted = -1
+let leaving = false
+let motionToken = 0
+
+// Same page change as apps/www/src/pageTransition.tsx.
+const STEP_ENTER_MS = 320
+const STEP_EXIT_MS = 160
+const STEP_ENTER_EASE = "cubic-bezier(0.22, 1, 0.36, 1)"
+const STEP_EXIT_EASE = "cubic-bezier(0.4, 0, 0.6, 1)"
+const STEP_RISE_PX = 10
+
+const spread = must<HTMLElement>(panel, ".qg-spread")
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
 
 function setFootnote(text: string): void {
   const at = text.indexOf(OFFLINE_TOKEN)
@@ -95,10 +108,9 @@ function setFootnote(text: string): void {
   )
 }
 
-function show(index: number): void {
+function paint(index: number): void {
   const step = STEPS[index]
   if (step === undefined) return
-  current = index
   const stepNo = index + 1
   panel.dataset["step"] = String(stepNo)
   doc.dataset["guideStep"] = String(stepNo)
@@ -109,6 +121,10 @@ function show(index: number): void {
   lede.hidden = step.lede === ""
   setFootnote(step.footnote)
   buildMarks(marks, step.marks)
+  painted = index
+}
+
+function chrome(index: number): void {
   count.textContent = `${index + 1} / ${STEPS.length}`
   dots.forEach((d, i) => {
     d.classList.toggle("is-active", i === index)
@@ -121,15 +137,81 @@ function show(index: number): void {
   next.setAttribute("aria-label", last ? "Start playing" : "Next step")
 }
 
+function dropMotion(): void {
+  for (const anim of spread.getAnimations()) {
+    anim.onfinish = null
+    anim.cancel()
+  }
+  spread.style.opacity = ""
+  spread.style.transform = ""
+}
+
+function show(index: number): void {
+  if (STEPS[index] === undefined) return
+  const refresh = index === current && painted === index && !leaving
+  current = index
+  chrome(index)
+  if (refresh) {
+    paint(index)
+    return
+  }
+  if (painted < 0 || reduceMotion.matches) {
+    dropMotion()
+    leaving = false
+    paint(index)
+    return
+  }
+  if (leaving) return
+  leaving = true
+  const token = ++motionToken
+  const from = Number(getComputedStyle(spread).opacity)
+  dropMotion()
+  const exit = spread.animate([{ opacity: Number.isFinite(from) ? from : 1 }, { opacity: 0 }], {
+    duration: STEP_EXIT_MS,
+    easing: STEP_EXIT_EASE,
+    fill: "forwards",
+  })
+  exit.onfinish = () => {
+    if (token !== motionToken) return
+    exit.onfinish = null
+    exit.cancel()
+    paint(current)
+    leaving = false
+    spread.style.opacity = "0"
+    spread.style.transform = `translateY(${STEP_RISE_PX}px)`
+    const enter = spread.animate(
+      [
+        { opacity: 0, transform: `translateY(${STEP_RISE_PX}px)` },
+        { opacity: 1, transform: "translateY(0px)" },
+      ],
+      { duration: STEP_ENTER_MS, easing: STEP_ENTER_EASE, fill: "forwards" },
+    )
+    enter.onfinish = () => {
+      if (token !== motionToken) return
+      enter.onfinish = null
+      spread.style.opacity = ""
+      spread.style.transform = ""
+      enter.cancel()
+    }
+  }
+}
+
 function open(): void {
   doc.dataset["guide"] = "open"
   panel.hidden = false
   reopen.hidden = true
+  motionToken += 1
+  dropMotion()
+  leaving = false
+  painted = -1
   show(0)
   next.focus()
 }
 
 function close(): void {
+  motionToken += 1
+  dropMotion()
+  leaving = false
   doc.dataset["guide"] = "closed"
   panel.hidden = true
   reopen.hidden = false

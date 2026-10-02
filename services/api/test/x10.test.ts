@@ -29,10 +29,6 @@ const HOP_DATA = "0x" + "ab".repeat(4)
 
 type BookTx = { readonly to: string; readonly data: string; readonly status: bigint; readonly logs: readonly TxLog[] }
 
-function padAddr(n: bigint): string {
-  return "0x" + n.toString(16).padStart(40, "0")
-}
-
 function padWord(addr: string): string {
   return "0x" + addr.slice(2).padStart(64, "0")
 }

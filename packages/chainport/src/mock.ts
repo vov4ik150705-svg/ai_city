@@ -34,7 +34,6 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
   let vaultHeld = 0n
   let totalBacking = 0n
   let totalPending = 0n
-  let totalReserved = 0n
   let totalUncovered = 0n
   const house = seed?.house ?? ""
   const initial = seed === undefined ? undefined : seed.corp
@@ -112,7 +111,6 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
       if (issued.has(voucher.nonce) || used.has(voucher.nonce)) return err(codes.API_INTENT_REPLAY)
       if (voucher.corpAmount > voucherRoom(voucher.account)) return err(codes.NOT_ENOUGH_CORP)
       reserved.set(voucher.account, mapGet(reserved, voucher.account) + voucher.corpAmount)
-      totalReserved += voucher.corpAmount
       syncUncovered(voucher.account)
       issued.set(voucher.nonce, voucher)
       return ok()
@@ -148,7 +146,6 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
       if (vaultHeld < voucher.corpAmount || left > free) return err(codes.NOT_ENOUGH_CORP)
       used.add(voucher.nonce)
       reserved.set(voucher.account, hold - voucher.corpAmount)
-      totalReserved -= voucher.corpAmount
       if (fromOwn > 0n) {
         backing.set(voucher.account, own - fromOwn)
         totalBacking -= fromOwn
@@ -176,7 +173,6 @@ export function createMockPort(cfg: PortConfig, seed?: MockSeed): AssetPort {
       const hold = mapGet(reserved, known.account)
       const cut = hold < known.corpAmount ? hold : known.corpAmount
       reserved.set(known.account, hold - cut)
-      totalReserved -= cut
       syncUncovered(known.account)
       return ok()
     },

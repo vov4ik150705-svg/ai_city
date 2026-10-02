@@ -3,6 +3,8 @@ import { FileText, Info, Search, X } from "lucide-react"
 import { listenBind, listenPorts } from "../../../../packages/protocol/src/listen"
 import { ratingRowsFromBody } from "../data/ratingBody"
 import { filterRatingRows, ratingCopy, ratingSections, shortenWallet, type RatingRow } from "../data/rating"
+import { docsLinks } from "../data/docsLinks"
+import { PhraseLink } from "../components/text"
 import { Link } from "../site"
 import { PrizeFunnel } from "./PrizeFunnel"
 import { Calendar } from "./rating/Calendar"
@@ -205,7 +207,12 @@ export function Rating() {
       <div className="site-container rating__page">
         <header className="rating__intro-block">
           <h1 className="type-display-1">{ratingCopy.title}</h1>
-          <p className="rating__intro type-body">{ratingCopy.intro}</p>
+          <p className="rating__intro type-body">
+            <PhraseLink text={ratingCopy.intro} phrase="Leaderboard" to="/leaderboard" />
+          </p>
+          <Link to={docsLinks.influence} className="site-link type-body">
+            {ratingCopy.docsLink}
+          </Link>
           <SectionNav />
         </header>
         <div className="rating__table-block">

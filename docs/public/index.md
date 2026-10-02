@@ -101,6 +101,5 @@ When an action can't run, its button shows the reason code, such as `NOT_ENOUGH_
 - Capital is counted in whole units. The HUD may shorten large amounts, for example `34.2M`.
 - Every number on these pages comes from one versioned rule set, the **rules pack**. See [Versions](reference.md#versions).
 - Examples show arithmetic under stated inputs. They aren't forecasts.
-- `[NEEDS CONFIRMATION]` marks something we can't state as final yet.
 
 Corporator doesn't promise a return. `$CORP` and Stock Tokens can lose value, Payroll can pay less than you asked for, and the Bank limits when and how much you can withdraw. Read [Risks](protocol.md#risks) before you deposit.

@@ -22,7 +22,7 @@ export function memoryPriceStore(startCityTime: bigint = 0n): PriceSampleStore &
   readonly rows: PriceSampleRow[]
 } {
   const rows: PriceSampleRow[] = []
-  let cityTime = startCityTime
+  const cityTime = startCityTime
   return {
     rows,
     async putSample(row: PriceSampleRow): Promise<void> {

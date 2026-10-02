@@ -56,7 +56,7 @@ Each building has a **home** role that works it at 100% and sometimes a **neighb
 | Cloud Campus | Automation (MSFT) | Extra agent slots, offline hours | Manager | Scientist | office |
 | Finance Tower | Finance (COIN) | Bank level | Trader | Manager | office |
 
-**Synergy buildings** each belong to two districts. One stops working when either of its districts is frozen. `[NEEDS CONFIRMATION]` whether both districts must be open before you can open one.
+**Synergy buildings** each belong to two districts. One stops working when either of its districts is frozen.
 
 | Building | Districts | Output | Home | Neighbour | Hours |
 |---|---|---|---|---|---|
@@ -145,7 +145,7 @@ Two moments in the day matter:
 - **00:00** closes the day for Payroll, GDP and Influence, and fixes the next day's Payroll budget.
 - **06:00** refreshes district efficiency and settles Farm windows, prize periods and seasons.
 
-All cities currently share one protocol clock, so everyone sees the same city time. `[NEEDS CONFIRMATION]` whether each city will get its own calendar starting at its first login.
+All cities currently share one protocol clock, so everyone sees the same city time.
 
 ## Population and City Level
 

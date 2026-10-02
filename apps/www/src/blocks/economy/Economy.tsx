@@ -1,7 +1,6 @@
-import { ArrowRight } from "lucide-react"
-import { Heading } from "../../components/text"
+import { ArrowLink, Heading } from "../../components/text"
+import { docsLinks } from "../../data/docsLinks"
 import { economyArt, economyGuideLabel, economyHeading, economyLead } from "../../data/economy"
-import { Destination } from "../../site"
 import "./economy.css"
 import { EconomyPanel } from "./Panel"
 
@@ -36,10 +35,9 @@ export function Economy() {
               <span key={line}>{line} </span>
             ))}
           </p>
-          <Destination kind="docs" className="economy__guide site-arrow-link type-label">
+          <ArrowLink to={docsLinks.economy} className="economy__guide">
             {economyGuideLabel}
-            <ArrowRight size={16} aria-hidden="true" />
-          </Destination>
+          </ArrowLink>
         </div>
       </div>
       <div className="site-container economy__sheet">

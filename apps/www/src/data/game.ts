@@ -9,6 +9,10 @@ import staffArt from "../assets/opt/game/staff.webp"
 
 export const gameHeading = "Four steps to your first paid shift"
 
+export const gameDocsLabel = "Your first session"
+
+export const gameHudDocsLabel = "The HUD"
+
 export const gameTooltips = {
   capital: "Capital: an internal unit, not a token.",
   tick: "Tick: one city hour, 62 min 30 s of real time.",

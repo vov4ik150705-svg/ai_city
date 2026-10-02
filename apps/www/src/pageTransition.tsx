@@ -3,11 +3,11 @@ import { useLayoutEffect, type ReactNode } from "react"
 import { isDocsPath } from "./docs/paths"
 import { hashElementId, scrollToId } from "./scroll"
 
-const pageEase = [0.22, 1, 0.36, 1] as [number, number, number, number]
-const exitEase = [0.4, 0, 0.6, 1] as [number, number, number, number]
-const ENTER_S = 0.32
-const EXIT_S = 0.16
-const CHAPTER_S = 0.32
+export const sitePageEase = [0.22, 1, 0.36, 1] as [number, number, number, number]
+export const sitePageExitEase = [0.4, 0, 0.6, 1] as [number, number, number, number]
+export const SITE_PAGE_ENTER_S = 0.32
+export const SITE_PAGE_EXIT_S = 0.16
+const CHAPTER_S = SITE_PAGE_ENTER_S
 
 const scrollMemory = new Map<string, number>()
 let navKind: "push" | "pop" = "push"
@@ -102,6 +102,7 @@ export function PageTransition({
   children: ReactNode
 }) {
   const reduced = useReducedMotion() === true
+  const docsPage = routeKey === "/docs" || routeKey === "/docs/handbook"
   if (reduced) {
     return (
       <div className="site-page" data-route={routeKey}>
@@ -117,10 +118,10 @@ export function PageTransition({
         key={routeKey}
         className="site-page"
         data-route={routeKey}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: docsPage ? 0 : 10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, transition: { duration: EXIT_S, ease: exitEase } }}
-        transition={{ duration: ENTER_S, ease: pageEase }}
+        exit={{ opacity: 0, transition: { duration: SITE_PAGE_EXIT_S, ease: sitePageExitEase } }}
+        transition={{ duration: SITE_PAGE_ENTER_S, ease: sitePageEase }}
       >
         <PageShell routeKey={routeKey} footer={footer}>
           {children}
@@ -148,7 +149,7 @@ export function ChapterSwap({ slug, children }: { slug: string; children: ReactN
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: CHAPTER_S, ease: pageEase }}
+        transition={{ duration: CHAPTER_S, ease: sitePageEase }}
       >
         <HandbookArrival slug={slug} />
         {children}

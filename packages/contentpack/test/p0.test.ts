@@ -395,6 +395,12 @@ describe.sequential("P0 construction", () => {
           "rehearsal_pack_hash_equals_prod",
           "farm_window_settles_at_fourteen",
           "prize_period_settles_at_thirty",
+          "tick_settle_copies_city_wallet_and_merges",
+          "tick_settle_empty_wallet_does_not_collide_with_address",
+          "tick_settle_seeded_row_copies_city_wallet",
+          "tick_settle_slot_keys_hex_space_prefix_and_stake",
+          "tick_settle_demo_account_kind_does_not_take_prize",
+          "tick_settle_nbsp_hex_and_padded_stake",
           "chain_silence_does_not_block_tick",
         ])
       } else if (id === "ops_watch") {

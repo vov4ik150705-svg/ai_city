@@ -1,3 +1,4 @@
+import { bi2, bi3, bi7 } from "./literals.js"
 import { asBig, asDict, asList, asStr, paramV, pow10, TickError } from "./values.js"
 import type { Dict } from "./values.js"
 
@@ -171,10 +172,10 @@ export function loadConfig(pack: Dict): Dict {
     slots_start: paramV(asDict(d["agents"]), "slots_start"),
     slots_cap: paramV(asDict(d["agents"]), "slots_cap"),
     bank_level_max: asBig(gb["bank_level_max"], 1n),
-    city_level_max: asBig(asDict(gen["agents"])["city_level_at_slots_cap"], 7n),
+    city_level_max: asBig(asDict(gen["agents"])["city_level_at_slots_cap"], bi7),
     agent_level_max: paramV(bal, "agent_level_max"),
     agent_level_gain_bps: paramV(bal, "agent_level_gain_bps"),
-    offline_hard_cap: paramV(time, "offline_cap_city_hours_base") + 1n + 2n + 3n,
+    offline_hard_cap: paramV(time, "offline_cap_city_hours_base") + 1n + bi2 + bi3,
     unstake_grace_city_hours: paramV(econ, "unstake_grace_city_hours"),
     schedules: asDict(time["schedules"]),
     stale_code: "STALE_PRICE",

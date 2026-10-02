@@ -1,4 +1,5 @@
 import { tickJitterBps } from "./arith.js"
+import { n2 } from "./literals.js"
 import { applyStack } from "./stack.js"
 import { seededPrng } from "./state.js"
 import { asBig, asDict, asList, asStr, sortedKeys } from "./values.js"
@@ -295,9 +296,9 @@ function outputPhase(cfg: Dict, city: Dict, bid: string): number {
     const agent = agentOf(city, bid)
     if (agent === undefined) return 1
     if (asStr(agent["role"]) === "engineer") return 1
-    return 2
+    return n2
   }
-  return 2
+  return n2
 }
 
 function buildingDef(cfg: Dict, bid: string): Dict {

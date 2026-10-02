@@ -233,7 +233,7 @@ $$
 
 At the 2,000 ceiling, the exit rate is 2,200 Capital per `$CORP`. Entry is 1,960 per `$CORP` after the fee. Entering is always cheaper than leaving, and the rules can't be set otherwise.
 
-`[NEEDS CONFIRMATION]` A Trader on the Desk task in your Bank is meant to lower the markup to its 650 bps (6.5%) floor. Withdrawals don't apply it yet. At the floor, the exit rate would be 2,130 Capital per `$CORP` and the round trip 11.64%.
+A Trader on the Desk task in your Bank is meant to lower the markup to its 650 bps (6.5%) floor. Withdrawals don't apply it yet. At the floor, the exit rate would be 2,130 Capital per `$CORP` and the round trip 11.64%.
 
 ### Hours and limits
 

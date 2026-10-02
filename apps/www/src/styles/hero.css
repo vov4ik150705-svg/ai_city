@@ -167,7 +167,13 @@
     height: 100svh;
     min-height: 100svh;
     padding-bottom: calc(var(--site-space-4) + max(12px * var(--site-scale), env(safe-area-inset-bottom)));
-    background-size: cover;
+    /* Left sky of the desktop plate. Tall enough to fill the phone, narrow enough that the desktop island stays outside the crop. */
+    background-size: auto max(100svh, 180vw);
+    background-position: left top;
+  }
+
+  body:has(.hero) .site-header:not(.site-header--docs) {
+    background-size: auto max(100svh, 180vw);
     background-position: left top;
   }
 
@@ -208,19 +214,21 @@
     overflow-anchor: none;
   }
 
+  .hero__frame {
+    display: contents;
+  }
+
   .hero__art {
     position: absolute;
-    inset: auto;
-    bottom: 0;
-    left: calc(50% - 136% * var(--site-scale) / 2);
-    width: calc(136% * var(--site-scale));
-    height: auto;
-    max-width: none;
-    object-fit: unset;
-    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--site-space-5));
-    -webkit-mask-composite: source-over;
-    mask-image: linear-gradient(to bottom, transparent, #000 var(--site-space-5));
-    mask-composite: add;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .hero .site-button-row {

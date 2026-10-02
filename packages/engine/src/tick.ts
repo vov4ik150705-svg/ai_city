@@ -1,4 +1,5 @@
 import { canonical } from "./canonical.js"
+import { bi5, bi7, bi240, bi1500 } from "./literals.js"
 import {
   applyDexTurnover,
   applySpend,
@@ -73,8 +74,8 @@ function accumulateInfluenceDay(cfg: Dict, state: Dict, day: bigint, hour: bigin
 function awardXp(cfg: Dict, state: Dict): void {
   const curve = asDict(cfg["xp_to_next"])
   if (Object.keys(curve).length === 0) return
-  const levelMax = asBig(cfg["agent_level_max"], 5n)
-  const gain = asBig(cfg["agent_level_gain_bps"], 1500n)
+  const levelMax = asBig(cfg["agent_level_max"], bi5)
+  const gain = asBig(cfg["agent_level_gain_bps"], bi1500)
   const bps = asBig(cfg["bps"])
   const cities = asDict(state["cities"])
   for (const cid of sortedKeys(cities)) {
@@ -112,7 +113,7 @@ function awardXp(cfg: Dict, state: Dict): void {
 
 function refreshCityProgress(cfg: Dict, state: Dict): void {
   const thresholds = asDict(cfg["population_thresholds"])
-  const levelMax = asBig(cfg["city_level_max"], 7n)
+  const levelMax = asBig(cfg["city_level_max"], bi7)
   const per = asBig(cfg["population_per_job"])
   const data = asDict(cfg["data"])
   const defs = asDict(asDict(data["buildings"])["buildings"])
@@ -295,7 +296,7 @@ function fragmentGrossOf(cfg: Dict, building: Dict): bigint {
   let costL1 = asBig(building["cost_l1"])
   let ow: bigint | undefined
   let growth = bps
-  let payback = 240n
+  let payback = bi240
   if (bid && Object.keys(data).length > 0) {
     const bal = asDict(asDict(data["balance"])["params"])
     const growthRow = asDict(bal["output_growth_bps"])

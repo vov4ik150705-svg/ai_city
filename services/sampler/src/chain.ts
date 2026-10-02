@@ -132,11 +132,11 @@ async function swapTurnover(
   const latest = await postEth(post, "eth_blockNumber", [])
   if (latest.status !== "ok") return undefined
   const tip = BigInt(latest.body)
-  const nowS = BigInt(Math.floor(Date.now() / 1000))
   let from = tip
   let cursor = tip
   let steps = 0n
-  let prevTs = nowS
+  let nowS: bigint | undefined
+  let prevTs = 0n
   while (cursor > 0n && steps <= windowS) {
     const block = await postEth(post, "eth_getBlockByNumber", ["0x" + cursor.toString(16), false])
     if (block.status !== "ok") break
@@ -150,6 +150,7 @@ async function swapTurnover(
     const tsRaw = (row as { readonly timestamp?: unknown }).timestamp
     if (typeof tsRaw !== "string") break
     const ts = BigInt(tsRaw)
+    if (nowS === undefined) nowS = ts
     if (steps > 0n && ts >= prevTs) break
     if (nowS - ts >= windowS) break
     from = cursor
@@ -174,9 +175,7 @@ async function swapTurnover(
     const data = (row as { readonly data?: unknown }).data
     if (typeof data !== "string") continue
     const w = words(data)
-    const a0 = w[0] ?? 0n
     const a1 = w[1] ?? 0n
-    const b0 = w[2] ?? 0n
     const b1 = w[3] ?? 0n
     const ethSide = a1 + b1
     if (wei <= 0n) continue

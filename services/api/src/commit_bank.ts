@@ -342,7 +342,7 @@ function quoteWithdraw(
   if (corp <= 0n) return errResult(ctx, state, codes.API_MALFORMED)
   const vault = asBigint(state["vault_corp"], 0n)
   if (vault < corp) return errResult(ctx, state, codes.VAULT_EXIT_UNCOVERED)
-  let ethAsk = ethAskOf(state, corp)
+  const ethAsk = ethAskOf(state, corp)
   const bps = asBigint(cfg["bps"])
   const depth = asBigint(state["pool_eth"], 0n)
   const poolShare = asBigint(cfg["bank_pool_share_bps"])

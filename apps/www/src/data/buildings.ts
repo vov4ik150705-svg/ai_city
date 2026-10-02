@@ -23,6 +23,8 @@ export const buildingsHeading = "Eighteen doors to open"
 export const buildingsLead =
   "Every building is already standing. You open it, seat an agent and take it up through three levels. A new level makes the building better at its job. It never adds a new tower."
 
+export const buildingsDocsLabel = "The building list"
+
 export const autonomousTip = "Autonomous: works with nobody seated"
 export const prebuiltTip = "Prebuilt: open from day one"
 export const homeRoleTip = "Best fit: the role that works here at 100%"

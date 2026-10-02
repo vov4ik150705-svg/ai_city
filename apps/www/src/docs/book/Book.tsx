@@ -1,12 +1,15 @@
-import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type TouchEvent as ReactTouchEvent } from "react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react"
 import brandUrl from "../../../../../docs/public/docs-design/book-reference/01-island-ready/brand-mark.png?url"
 import { applyPageMeta } from "../../meta"
+import { SITE_PAGE_ENTER_S, SITE_PAGE_EXIT_S, sitePageEase, sitePageExitEase } from "../../pageTransition"
 import { Link, SiteContext } from "../../site"
 import { resolveHref } from "../md/chapter"
 import { chapterHref, INDEX_CHAPTER } from "../paths"
 import { bookFacts } from "./facts"
 import { ModeSwitch } from "./ModeSwitch"
-import { bookPages, readBookAnchor, rememberBookAnchor, type BookPage } from "./pages"
+import { artPlacement, BOOK_ART_SLOT, bookPages, readBookAnchor, rememberBookAnchor, type BookPage } from "./pages"
+import { useArtSwipe } from "./useArtSwipe"
 
 const artUrls = import.meta.glob<string>(
   "../../../../../docs/public/docs-design/book-reference/*/art.png",
@@ -35,16 +38,74 @@ function Arrow({ direction }: { direction: "prev" | "next" }) {
   )
 }
 
+function ArtSlide({ page, labelled = false }: { readonly page: BookPage | undefined; readonly labelled?: boolean }) {
+  if (page === undefined) return <div className="book-slide" aria-hidden="true" />
+  const place = artPlacement(page)
+  return (
+    <div className="book-slide" aria-hidden={labelled ? undefined : true}>
+      <img
+        src={artOf(page)}
+        alt={labelled ? page.alt : ""}
+        width={page.width}
+        height={page.height}
+        draggable={false}
+        style={{ left: `${place.left}%`, top: `${place.top}%`, width: `${place.width}%`, height: `${place.height}%` }}
+      />
+    </div>
+  )
+}
+
+function BookPager({
+  pages,
+  page,
+  show,
+}: {
+  readonly pages: readonly BookPage[]
+  readonly page: BookPage
+  readonly show: (anchor: string) => void
+}) {
+  return (
+    <nav className="book-pager" aria-label="Book pages">
+      <div className="book-dots">
+        {pages.map((item) => (
+          <button
+            key={item.anchor}
+            type="button"
+            className="book-dot"
+            aria-label={`Page ${item.n}: ${item.title.join(" ")}`}
+            aria-current={item.anchor === page.anchor ? "page" : undefined}
+            onClick={() => show(item.anchor)}
+          />
+        ))}
+      </div>
+      <span className="book-count">
+        {page.n} / {pages.length}
+      </span>
+    </nav>
+  )
+}
+
 export function Book() {
   const { open } = useContext(SiteContext)
+  const reduced = useReducedMotion() === true
   const facts = bookFacts()
   const pages = bookPages(facts)
   const [anchor, setAnchor] = useState(readBookAnchor)
+  const [railIndex, setRailIndex] = useState(() => {
+    const initial = pages.findIndex((item) => item.anchor === readBookAnchor())
+    return initial < 0 ? 0 : initial
+  })
   const [zoom, setZoom] = useState(false)
+  const [narrow, setNarrow] = useState(() => window.matchMedia("(max-width: 900px)").matches)
   const frameRef = useRef<HTMLDivElement>(null)
   const hostRef = useRef<HTMLDivElement>(null)
   const zoomScrollRef = useRef<HTMLDivElement>(null)
   const zoomImageRef = useRef<HTMLImageElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const railRef = useRef<HTMLDivElement>(null)
+  const suppressClick = useRef(false)
+  const pagesRef = useRef(pages)
+  pagesRef.current = pages
   const page = pages.find((item) => item.anchor === anchor) ?? pages[0]
   if (page === undefined) throw new Error("book: no pages")
   const index = pages.indexOf(page)
@@ -59,7 +120,10 @@ export function Book() {
   useEffect(() => {
     const sync = () => {
       setZoom(false)
-      setAnchor(readBookAnchor())
+      const nextAnchor = readBookAnchor()
+      setAnchor(nextAnchor)
+      const index = pagesRef.current.findIndex((item) => item.anchor === nextAnchor)
+      if (index >= 0) setRailIndex(index)
     }
     window.addEventListener("popstate", sync)
     window.addEventListener("corporator-nav", sync)
@@ -75,6 +139,25 @@ export function Book() {
     }
     rememberBookAnchor(page.anchor)
   }, [page.anchor])
+
+  const previousDir = previous?.dir
+  const nextDir = next?.dir
+  useEffect(() => {
+    for (const dir of [previousDir, nextDir]) {
+      if (dir === undefined) continue
+      const url = ART_BY_DIR[dir]
+      if (url === undefined) continue
+      const img = new Image()
+      img.src = url
+    }
+  }, [previousDir, nextDir])
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 900px)")
+    const apply = () => setNarrow(query.matches)
+    query.addEventListener("change", apply)
+    return () => query.removeEventListener("change", apply)
+  }, [])
 
   useLayoutEffect(() => {
     const fit = () => {
@@ -143,7 +226,23 @@ export function Book() {
     setZoom(false)
     history.pushState(null, "", `/docs#${nextAnchor}`)
     setAnchor(nextAnchor)
+    const nextIndex = pages.findIndex((item) => item.anchor === nextAnchor)
+    if (nextIndex >= 0) setRailIndex(nextIndex)
   }
+
+  useArtSwipe({
+    enabled: narrow && !zoom,
+    reduced,
+    railIndex,
+    pageCount: pages.length,
+    stageRef,
+    railRef,
+    suppressClick,
+    onCommit: (direction) => {
+      const target = pagesRef.current[railIndex + direction]
+      if (target !== undefined) show(target.anchor)
+    },
+  })
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -158,29 +257,57 @@ export function Book() {
     return () => document.removeEventListener("keydown", onKey)
   }, [zoom, previous, next])
 
-  function onSwipeStart(event: ReactTouchEvent<HTMLParagraphElement>): void {
-    const touch = event.changedTouches[0]
-    if (touch === undefined) return
-    swipe.current = { x: touch.clientX, y: touch.clientY }
-  }
-
-  function onSwipeEnd(event: ReactTouchEvent<HTMLParagraphElement>): void {
-    const start = swipe.current
-    const touch = event.changedTouches[0]
-    if (start === null || touch === undefined) return
-    const dx = touch.clientX - start.x
-    const dy = touch.clientY - start.y
-    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy)) {
-      if (dx > 0 && previous !== undefined) show(previous.anchor)
-      if (dx < 0 && next !== undefined) show(next.anchor)
-    }
-  }
-
-  const swipe = useRef<{ x: number; y: number } | null>(null)
   const art = artOf(page)
+  const place = artPlacement(page)
+  const picture = (
+    <>
+      <button
+        type="button"
+        className="book-art"
+        aria-label="Enlarge illustration"
+        onClick={() => {
+          if (window.innerWidth <= 900) setZoom(true)
+        }}
+      >
+        <img
+          src={art}
+          width={page.width}
+          height={page.height}
+          alt={page.alt}
+          style={{ left: `${place.left}%`, top: `${place.top}%`, width: `${place.width}%`, height: `${place.height}%` }}
+        />
+      </button>
+      <p className="book-eyebrow">{page.eyebrow}</p>
+      <h1 className="book-title" id="book-title">
+        {page.title.map((line, lineIndex) => (
+          <span key={line}>
+            {lineIndex === 0 ? null : <br />}
+            {line}
+          </span>
+        ))}
+      </h1>
+      <p className="book-intro" style={{ top: page.introTop }}>
+        {page.intro}
+      </p>
+      <p className="book-note">{page.note}</p>
+      <Link className="book-more" to={handbook.kind === "internal" ? handbook.href : chapterHref(INDEX_CHAPTER)}>
+        {page.linkLabel}
+      </Link>
+    </>
+  )
 
   return (
-    <div className="book">
+    <div
+      className="book"
+      style={
+        {
+          "--book-slot-x": BOOK_ART_SLOT.x,
+          "--book-slot-y": BOOK_ART_SLOT.y,
+          "--book-slot-w": BOOK_ART_SLOT.w,
+          "--book-slot-h": BOOK_ART_SLOT.h,
+        } as CSSProperties
+      }
+    >
       <ModeSwitch mode="pictures" />
       <div className="book-fit" ref={hostRef}>
         <div className="book-frame" ref={frameRef}>
@@ -189,85 +316,128 @@ export function Book() {
               <img src={brandUrl} alt="" />
               <span>CORPORATOR</span>
             </div>
-            <button
-              type="button"
-              className="book-art"
-              style={{ "--book-art-left": `${page.artLeft}px`, "--book-art-top": `${page.artTop}px`, "--book-art-width": `${page.artWidth}px` } as CSSProperties}
-              aria-label="Enlarge illustration"
-              onClick={() => {
-                if (window.innerWidth <= 900) setZoom(true)
-              }}
-            >
-              <img src={art} width={page.width} height={page.height} alt={page.alt} />
-            </button>
-            <p className="book-eyebrow">{page.eyebrow}</p>
-            <h1 className="book-title" id="book-title">
-              {page.title.map((line, lineIndex) => (
-                <span key={line}>
-                  {lineIndex === 0 ? null : <br />}
-                  {line}
-                </span>
-              ))}
-            </h1>
-            <p
-              className="book-intro"
-              style={{ top: page.introTop }}
-              onTouchStart={onSwipeStart}
-              onTouchEnd={onSwipeEnd}
-            >
-              {page.intro}
-            </p>
-            <p className="book-note">{page.note}</p>
-            <Link className="book-more" to={handbook.kind === "internal" ? handbook.href : chapterHref(INDEX_CHAPTER)}>
-              {page.linkLabel}
-            </Link>
-            <footer className="book-footer">
-              <button
-                type="button"
-                className="book-arrow"
-                aria-label="Previous page"
-                disabled={previous === undefined}
-                onClick={() => {
-                  if (previous !== undefined) show(previous.anchor)
-                }}
-              >
-                <Arrow direction="prev" />
-              </button>
-              <nav className="book-pager" aria-label="Book pages">
-                <div className="book-dots">
-                  {pages.map((item) => (
-                    <button
-                      key={item.anchor}
-                      type="button"
-                      className="book-dot"
-                      aria-label={`Page ${item.n}: ${item.title.join(" ")}`}
-                      aria-current={item.anchor === page.anchor ? "page" : undefined}
-                      onClick={() => show(item.anchor)}
-                    />
-                  ))}
+            {narrow ? (
+              <>
+                <div className="book-lead">
+                  {pages.map((item) => {
+                    const current = item.anchor === page.anchor
+                    return (
+                      <div
+                        key={item.anchor}
+                        className={current ? "book-lead__page is-current" : "book-lead__page"}
+                        aria-hidden={current ? undefined : true}
+                        inert={current ? undefined : true}
+                      >
+                        <p className="book-eyebrow">{item.eyebrow}</p>
+                        <h1 className="book-title" id={current ? "book-title" : undefined}>
+                          {item.title.map((line, lineIndex) => (
+                            <span key={line}>
+                              {lineIndex === 0 ? null : <br />}
+                              {line}
+                            </span>
+                          ))}
+                        </h1>
+                        <p className="book-intro">{item.intro}</p>
+                      </div>
+                    )
+                  })}
                 </div>
-                <span className="book-count">
-                  {page.n} / {pages.length}
-                </span>
-              </nav>
-              {next === undefined ? (
-                <div className="book-end">
-                  <button type="button" className="book-cta is-primary" onClick={() => open("demo")}>
-                    Play the demo
-                  </button>
-                  <Link className="book-cta" to={chapterHref(INDEX_CHAPTER)}>
-                    Read the handbook
+                <div
+                  className="book-stage"
+                  ref={stageRef}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Enlarge illustration"
+                  onClick={() => {
+                    if (suppressClick.current) {
+                      suppressClick.current = false
+                      return
+                    }
+                    setZoom(true)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return
+                    event.preventDefault()
+                    setZoom(true)
+                  }}
+                >
+                  <div className="book-rail" ref={railRef}>
+                    <ArtSlide page={railIndex > 0 ? pages[railIndex - 1] : undefined} />
+                    <ArtSlide page={pages[railIndex] ?? page} labelled />
+                    <ArtSlide page={pages[railIndex + 1]} />
+                  </div>
+                </div>
+                <footer className="book-footer">
+                  <BookPager pages={pages} page={page} show={show} />
+                  {next === undefined ? (
+                    <div className="book-end">
+                      <button type="button" className="book-cta is-primary" onClick={() => open("demo")}>
+                        Play the demo
+                      </button>
+                      <Link className="book-cta" to={chapterHref(INDEX_CHAPTER)}>
+                        Read the handbook
+                      </Link>
+                    </div>
+                  ) : null}
+                </footer>
+                <div className="book-tail">
+                  <p className="book-note">{page.note}</p>
+                  <Link className="book-more" to={handbook.kind === "internal" ? handbook.href : chapterHref(INDEX_CHAPTER)}>
+                    {page.linkLabel}
                   </Link>
                 </div>
-              ) : (
-                <button type="button" className="book-next" aria-label="Next page" onClick={() => show(next.anchor)}>
-                  <span className="book-arrow">
-                    <Arrow direction="next" />
-                  </span>
-                  <span className="book-next__label">Next</span>
-                </button>
-              )}
-            </footer>
+              </>
+            ) : (
+              <>
+                {reduced ? (
+                  <div className="book-spread">{picture}</div>
+                ) : (
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={page.anchor}
+                      className="book-spread"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, transition: { duration: SITE_PAGE_EXIT_S, ease: sitePageExitEase } }}
+                      transition={{ duration: SITE_PAGE_ENTER_S, ease: sitePageEase }}
+                    >
+                      {picture}
+                    </motion.div>
+                  </AnimatePresence>
+                )}
+                <footer className="book-footer">
+                  <button
+                    type="button"
+                    className="book-arrow"
+                    aria-label="Previous page"
+                    disabled={previous === undefined}
+                    onClick={() => {
+                      if (previous !== undefined) show(previous.anchor)
+                    }}
+                  >
+                    <Arrow direction="prev" />
+                  </button>
+                  <BookPager pages={pages} page={page} show={show} />
+                  {next === undefined ? (
+                    <div className="book-end">
+                      <button type="button" className="book-cta is-primary" onClick={() => open("demo")}>
+                        Play the demo
+                      </button>
+                      <Link className="book-cta" to={chapterHref(INDEX_CHAPTER)}>
+                        Read the handbook
+                      </Link>
+                    </div>
+                  ) : (
+                    <button type="button" className="book-next" aria-label="Next page" onClick={() => show(next.anchor)}>
+                      <span className="book-arrow">
+                        <Arrow direction="next" />
+                      </span>
+                      <span className="book-next__label">Next</span>
+                    </button>
+                  )}
+                </footer>
+              </>
+            )}
           </article>
         </div>
       </div>

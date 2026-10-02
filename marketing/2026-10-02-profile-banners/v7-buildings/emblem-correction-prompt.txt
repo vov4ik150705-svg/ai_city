@@ -1,0 +1,15 @@
+TOOL: Built-in image_gen.imagegen; precise-object-edit; transparent_background=false.
+REFERENCED_IMAGE_PATHS:
+C:/Users/sk640/ai_city/marketing/2026-10-02-profile-banners/v7-buildings/scene-buildings-first-pass.png
+C:/Users/sk640/ai_city/media/buildings/Bank.png
+C:/Users/sk640/ai_city/media/kit/buildings/bank.png
+C:/Users/sk640/ai_city/media/kit/buildings/city_hall.png
+C:/Users/sk640/ai_city/media/kit/signs_all.png
+
+Precise localized emblem correction on IMAGE 1 only. Preserve the approved improved building bodies, heights, 19-building composition, rear facades WITHOUT signs, all five foreground roles, full sky/clouds/light/rocks/waterfalls and exact 3:1 framing. DO NOT re-stage or resize any building or character. NO advertising text or token/logo overlay. This is a two tiny emblem-area edit, everything else stays image 1.
+
+A. Bank at about 40.5% width, 35% height: its TRIANGULAR PEDIMENT currently contains a wrong small rounded swirl/eye-like mark. Replace that mark with the ORIGINAL golden pediment emblem from images 2 and 3: gold circular ring containing a faceted geometric symbol, a solid rotated-square/diamond upper shape and an open angular hexagon/U-like outline beneath it, exactly the structure shown in the original close-up. NOT a swirl, an eye, a letter, dollar sign, coin, pentagram or simple circle. Match the existing surface perspective, local gold material and scale. Preserve its BANK word, magenta vertical strips, windows, tall arched golden safe door, stairs, all the bank geometry.
+
+B. City Hall at about 50% width, 13% height: replace the tangled rounded web/dial-like emblem inside the existing cyan ring with the actual ORIGINAL linear CYAN EIGHT-POINT STAR IN A CIRCLE from image 4 close-up and image 5 first row. Eight sharp points, long vertical/horizontal points and shorter diagonal points, fine intersecting straight star lines. No clock hands, dial ticks, gears or rounded mesh. Preserve the circle diameter and existing panel perspective/position, the tower height/slenderness and every other detail.
+
+Do not add signs back onto Logistics Hub, Workshop, Exchange, Fleet Yard, Retail Complex or Power Node rear walls. Preserve the new larger volumetric lower buildings. Keep every other pixel visually as close as possible. Reference sheets' captions are not scene text. Output a complete finished panoramic clean scene, same high-quality faceted stylized 3D render, same 3:1 canvas.

@@ -27,6 +27,11 @@
   color: var(--site-text-secondary);
 }
 
+.game__lead > .site-arrow-link,
+.game > .site-container > .site-arrow-link {
+  margin-top: var(--site-body-to-cta);
+}
+
 .game-steps {
   display: grid;
   grid-template-columns: 18fr 20.5fr 26.5fr 20fr;

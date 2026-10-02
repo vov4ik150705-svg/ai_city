@@ -621,6 +621,13 @@ html[data-guide="closed"] .qg-hud {
   cursor: pointer;
 }
 
+.qg-spread {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .qg-panel :focus-visible {
   outline: 2px solid var(--qg-pen);
   outline-offset: 3px;

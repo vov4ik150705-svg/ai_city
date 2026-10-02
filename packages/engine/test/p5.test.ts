@@ -33,7 +33,6 @@ describe.sequential("P5 construction", () => {
   it("farm_window_settles_at_fourteen", () => {
     const pack = loadPack()
     const cfg = loadConfig(pack)
-    const data = asDict(cfg["data"])
     const window = asBig(
       asDict(asDict(asDict(asDict(pack["sections"])["fragments"])["params"])["fragment_window_city_days"])["v"],
     )
@@ -129,7 +128,6 @@ describe.sequential("P5 construction", () => {
   it("tick_settle_empty_wallet_does_not_collide_with_address", () => {
     const pack = loadPack()
     const cfg = loadConfig(pack)
-    const data = asDict(cfg["data"])
     const hour = asBig(cfg["efficiency_recalc_hour"])
     const period = 30n
     const addr = "0x" + "dd".repeat(20)
@@ -163,7 +161,6 @@ describe.sequential("P5 construction", () => {
   it("tick_settle_seeded_row_copies_city_wallet", () => {
     const pack = loadPack()
     const cfg = loadConfig(pack)
-    const data = asDict(cfg["data"])
     const hour = asBig(cfg["efficiency_recalc_hour"])
     const period = 30n
     const addr = "0x" + "11".repeat(20)

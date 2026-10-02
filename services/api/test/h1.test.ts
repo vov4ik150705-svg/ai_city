@@ -97,7 +97,7 @@ describe("H1 state projection", () => {
       { id: "workshop", nameKey: "UI_BLD_WORKSHOP", statusKey: "IDLE_NO_AGENT", level: 1n, worker: "", task: "" },
       { id: "bank", nameKey: "UI_BLD_BANK", statusKey: "UI_DEACTIVATED", level: 1n, worker: "", task: "" },
       { id: "data_center", nameKey: "UI_BLD_DATA_CENTER", statusKey: "UI_FROZEN", level: 1n, worker: "", task: "" },
-      { id: "robotics_lab", nameKey: "UI_BLD_ROBOTICS_LAB", statusKey: "IDLE_UNDER_CONSTRUCTION", level: 1n, worker: "", task: "" },
+      { id: "robotics_lab", nameKey: "UI_BLD_ROBOTICS_LAB", statusKey: "IDLE_UNDER_CONSTRUCTION", construction: 2n, level: 1n, worker: "", task: "" },
     ])
     expect(buildings["city_level"]).toBe(4n)
     const agents = asObj(sections["tick.agent_state"])["rows"]

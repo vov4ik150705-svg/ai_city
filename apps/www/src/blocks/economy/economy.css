@@ -358,6 +358,17 @@ img[data-bg="dark"] {
   filter: url("#economy-dark-bg");
 }
 
+.economy-fees__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--site-space-5);
+}
+
+.economy-fees__title {
+  margin: 0 0 var(--site-space-2);
+  color: var(--site-text-primary);
+}
+
 .economy-fees {
   width: 100%;
   border-collapse: collapse;
@@ -393,16 +404,11 @@ img[data-bg="dark"] {
   color: var(--site-text-secondary);
 }
 
-.economy-fees__mark {
-  display: inline-block;
-  margin-right: 0.35em;
-  vertical-align: -0.2em;
-}
-
-.economy-fees__note {
-  display: block;
-  color: var(--site-text-muted);
-  white-space: normal;
+.economy-fees tr[data-total] th,
+.economy-fees tr[data-total] td {
+  color: var(--site-text-primary);
+  font-weight: 700;
+  font-synthesis: weight;
 }
 
 .economy-payroll {

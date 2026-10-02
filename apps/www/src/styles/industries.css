@@ -105,6 +105,28 @@
   color: var(--site-text-secondary);
 }
 
+@property --ind-link {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.industries__intro > .site-arrow-link {
+  --ind-link: 0;
+  --arrow-weight: 400;
+  margin-top: var(--site-body-to-cta);
+  color: color-mix(in srgb, var(--ind-ink) calc(var(--ind-link) * 100%), var(--site-text-primary));
+  transition:
+    --ind-link var(--ind-swap) var(--ind-swap-ease),
+    color var(--ind-swap) var(--ind-swap-ease);
+}
+
+.industries__intro > .site-arrow-link:hover,
+.industries__intro > .site-arrow-link:focus-visible {
+  --ind-link: 1;
+  --arrow-weight: 400;
+}
+
 .industries__lead span {
   display: block;
 }

@@ -21,7 +21,7 @@ import {
   type SkyEnvironmentConfig,
   type WorldCloudHint,
 } from "./config.js"
-import { THREE, TWO } from "../literals.js"
+import { hex, THREE, TWO } from "../literals.js"
 
 const _pos = new Vector3()
 const _quat = new Quaternion()
@@ -135,7 +135,7 @@ function meshGeo(root: Group): BufferGeometry {
 
 function cloudMat(): MeshBasicMaterial {
   const mat = new MeshBasicMaterial({
-    color: new Color(0xffffff),
+    color: new Color(hex("ffffff")),
     vertexColors: true,
     transparent: false,
     opacity: 1,

@@ -60,8 +60,8 @@ Every role starts on its default task. You change it on the agent card.
 | Overclock | Engineer | | Output +10%, Energy cost +45% |
 | Route | Logistician | ✓ | Logistics relief +10% |
 | Stockpile | Logistician | | Logistics relief +20%, output −5% |
-| Desk | Trader | ✓ | In the Bank: no effect on withdrawal prices in the current version. `[NEEDS CONFIRMATION]` Meant to lower the markup to its floor ([Bank](economy.md#the-bank)). |
-| Quote | Trader | | In the Exchange: no effect. Purchases carry no route haircut for it to remove. `[NEEDS CONFIRMATION]` whether Quote will get an Exchange effect. |
+| Desk | Trader | ✓ | In the Bank: no effect on withdrawal prices in the current version. Meant to lower the markup to its floor ([Bank](economy.md#the-bank)). |
+| Quote | Trader | | In the Exchange: no effect. Purchases carry no route haircut for it to remove. |
 | Train | Scientist | ✓ | Gives XP to a chosen agent. XP rate +10%, Compute cost +45%. Idle without a target (`IDLE_NO_TRAIN_TARGET`). |
 | Research | Scientist | | Advances the city's current research. Compute cost +45%. Idle without a topic (`IDLE_NO_RESEARCH_FOCUS`). |
 | Focus | Manager | ✓ | +5% output for one kind of work: production, logistics, research, finance, retail or admin |

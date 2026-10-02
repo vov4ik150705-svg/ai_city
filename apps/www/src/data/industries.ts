@@ -28,6 +28,8 @@ export const industriesLeadLines = [
 
 export const industriesLead = industriesLeadLines.join(" ")
 
+export const industriesDocsLabel = "How districts open"
+
 export const industriesMapKicker = "Synergy map"
 
 export const industriesMapTitle = ["Combine industries.", "Unlock higher value."] as const

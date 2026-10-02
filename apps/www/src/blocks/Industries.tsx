@@ -1,11 +1,14 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react"
 import { ChevronRight } from "lucide-react"
 import { Card } from "../components/Card"
+import { ArrowLink } from "../components/text"
+import { docsLinks } from "../data/docsLinks"
 import { Tabs } from "../components/Tabs"
 import {
   defaultIndustryId,
   industries,
   industriesExamplesKicker,
+  industriesDocsLabel,
   industriesHeadingLines,
   industriesInfoTabs,
   industriesLeadLines,
@@ -455,6 +458,7 @@ export function Industries() {
               <span key={line}>{line}</span>
             ))}
           </p>
+          <ArrowLink to={docsLinks.industries}>{industriesDocsLabel}</ArrowLink>
         </div>
         <div className="industries__beacon">
           <BeaconImage industry={shown} />

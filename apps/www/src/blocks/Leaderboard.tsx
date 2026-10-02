@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { Calendar, CircleCheck, Gift, Lock } from "lucide-react"
+import { PhraseLink } from "../components/text"
+import { docsLinks } from "../data/docsLinks"
 import {
   leaderboardCopy,
   leaderboardOpensAt,
@@ -8,6 +10,7 @@ import {
   leaderboardRows,
   type LeaderboardPhase,
 } from "../data/leaderboard"
+import { Link } from "../site"
 import "../styles/leaderboard.css"
 
 function useNow(live: boolean): number {
@@ -161,7 +164,12 @@ export function Leaderboard() {
               </span>
             ))}
           </h1>
-          <p className="lb__lead type-body-lg">{leaderboardCopy.intro}</p>
+          <p className="lb__lead type-body-lg">
+            <PhraseLink text={leaderboardCopy.intro} phrase="Rating" to="/rating" />
+          </p>
+          <Link to={docsLinks.monthly} className="site-link type-body">
+            {leaderboardCopy.docsLink}
+          </Link>
         </header>
         <Weights phase={phase} />
         <Panels />

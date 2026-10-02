@@ -63,14 +63,8 @@ export async function startMain(): Promise<void> {
   listening.host.commandLock = lock
   const delay = Number(tickLengthRealMs)
   const attestor = remoteAttestor()
-  let lastMs = Date.now()
   const timer = setInterval(() => {
-    const now = Date.now()
-    const slipped = now - lastMs
-    lastMs = now
-    const n = Math.floor(slipped / delay)
-    const due = n < 1 ? 1n : BigInt(n)
-    void tickIfWriter(listening.host, lock, attestor, due)
+    void tickIfWriter(listening.host, lock, attestor, 1n)
   }, delay)
   const stop = (): void => {
     clearInterval(timer)

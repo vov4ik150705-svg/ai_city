@@ -102,11 +102,11 @@ describe("H9 HUD readiness inventory", () => {
   })
 
   it("api_applies_fifteen_mutating_routes", () => {
-    expect(commandRoutes.length).toBe(19)
+    expect(commandRoutes.length).toBe(20)
     expect([...commandRoutes]).toContain("/command/noop")
     expect([...commandRoutes]).toContain("/command/assign")
     const effects = applyLiveEffects(commitSrc)
-    expect(effects).toHaveLength(18)
+    expect(effects).toHaveLength(19)
     expect(effects).not.toContain("noop")
     expect(effects).toContain("claim_prize")
     expect(effects).toContain("assign")
@@ -146,12 +146,12 @@ describe("H9 HUD readiness inventory", () => {
       if (intent.kind === "navigate" || intent.kind === "local") continue
       if (transportOf(intent.kind) !== "live") blocked.push(id)
     }
-    expect(Object.keys(authoredActions).length).toBe(43)
-    expect(live).toBe(42)
+    expect(Object.keys(authoredActions).length).toBe(44)
+    expect(live).toBe(43)
     expect(stub).toBe(1)
     expect(stubIds).toEqual(["missions_start"])
     expect(blocked).toEqual(["leaderboard_claim"])
-    expect(live - blocked.length).toBe(41)
+    expect(live - blocked.length).toBe(42)
   })
 
   it("screens_twenty_seven_playable_pack_thirty_three_live", () => {
@@ -181,7 +181,7 @@ describe("H9 HUD readiness inventory", () => {
   })
 
   it("snapshot_twenty_eight_of_thirty_nine_arrive", () => {
-    expect(snapshotKeys(emptySnapshot())).toHaveLength(45)
+    expect(snapshotKeys(emptySnapshot())).toHaveLength(47)
     expect(SNAPSHOT_GAPS).toHaveLength(2)
     const snap = snapshotFromEnvelope({
       city_time: 12n,

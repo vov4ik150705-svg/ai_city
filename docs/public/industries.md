@@ -50,7 +50,7 @@ stateDiagram-v2
 - **Unstake.** You can request your tokens back at any time, with no one's approval, and the amount stops counting as stake at once. If what's left falls below $S_{\min}$, the district enters a **24-city-hour grace period** (`DISTRICT_FREEZING`) and then **freezes**. Its beacon and any synergy building that needs it stop with `IDLE_DISTRICT_FROZEN`, and its nodes stop counting. Nothing is demolished, and restaking lifts the freeze.
 - **Collect after 30 city days.** Unstaked tokens wait in the stake contract for a **30-city-day cooldown**, then you collect them to your wallet ([below](#unstaking-and-the-cooldown)).
 
-Stake above what your tier requires adds no output. `[NEEDS CONFIRMATION]` whether a bonus for extra stake will ship.
+Stake above what your tier requires adds no output.
 
 ### Where your Stock Tokens are
 
@@ -92,7 +92,7 @@ $$
 - It's recalculated at 06:00 city time and bounded to 85–115%.
 - If the price is more than 6 city hours old, the value holds and the district shows `ORACLE_STALE`. Past 48 city hours it drifts back toward 100% by 500 bps per city day (`ORACLE_DECAYING`). A silent feed never raises efficiency.
 
-Efficiency never passes a stock's gain to you: a 20% rise in NVDA adds 20% to nothing you own. Today it feeds [Influence](seasons.md#influence) and shows on the district card. Seat requests use a neutral 100%. `[NEEDS CONFIRMATION]` whether efficiency will scale seat requests at launch.
+Efficiency never passes a stock's gain to you: a 20% rise in NVDA adds 20% to nothing you own. Today it feeds [Influence](seasons.md#influence) and shows on the district card. Seat requests use a neutral 100%.
 
 ## Tiers and nodes
 

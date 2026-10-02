@@ -218,6 +218,7 @@
 
 .site-link {
   color: var(--site-text-primary);
+  text-decoration: underline;
   text-underline-offset: 3px;
 }
 
@@ -225,18 +226,40 @@
   text-decoration-thickness: 2px;
 }
 
+@property --arrow-weight {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 400;
+}
+
 .site-arrow-link {
+  --arrow-weight: 400;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   color: var(--site-text-primary);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-thickness: 1px;
+  font-family: "Roboto Variable", var(--site-font-body);
+  font-weight: var(--arrow-weight);
+  font-synthesis: none;
+  text-decoration: none;
+  transition:
+    --arrow-weight var(--site-dur-state) var(--site-ease),
+    color var(--site-dur-state) var(--site-ease);
+}
+
+.site-arrow-link:hover,
+.site-arrow-link:focus-visible {
+  --arrow-weight: 700;
+  color: #000000;
 }
 
 .site-section[data-theme="dark"] .site-arrow-link {
   color: var(--site-dark-text-primary);
+}
+
+.site-section[data-theme="dark"] .site-arrow-link:hover,
+.site-section[data-theme="dark"] .site-arrow-link:focus-visible {
+  color: color-mix(in srgb, var(--site-dark-text-primary) 62%, black);
 }
 
 .site-eyebrow {

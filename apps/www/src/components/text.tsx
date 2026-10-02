@@ -84,11 +84,26 @@ export function RiskNote() {
   return <p className="type-caption">{footerCopy.disclaimer}</p>
 }
 
-export function ArrowLink({ to, children }: { to: string; children: ReactNode }) {
+export function ArrowLink({ to, className = "", children }: { to: string; className?: string; children: ReactNode }) {
   return (
-    <Link to={to} className="site-arrow-link type-label">
+    <Link to={to} className={className === "" ? "site-arrow-link type-label" : `site-arrow-link type-label ${className}`}>
       {children}
       <ArrowRight size={16} aria-hidden="true" />
     </Link>
+  )
+}
+
+/** Turns one phrase in a sentence into a link. The rest of the sentence stays text. */
+export function PhraseLink({ text, phrase, to }: { text: string; phrase: string; to: string }) {
+  const at = text.indexOf(phrase)
+  if (at < 0) return text
+  return (
+    <>
+      {text.slice(0, at)}
+      <Link to={to} className="site-link">
+        {phrase}
+      </Link>
+      {text.slice(at + phrase.length)}
+    </>
   )
 }

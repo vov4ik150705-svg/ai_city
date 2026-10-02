@@ -24,3 +24,7 @@ export const THOUSAND = TEN * HUNDRED
 export const TWO_THOUSAND = TWO * THOUSAND
 export const NEG_FORTY = 0 - FORTY
 export const NEG_HUNDRED = 0 - HUNDRED
+
+export function hex(digits: string): number {
+  return Number.parseInt(digits, TWO ** FOUR)
+}

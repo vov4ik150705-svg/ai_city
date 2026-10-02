@@ -1,0 +1,12 @@
+TOOL: Built-in image_gen.imagegen; precise-object-edit; transparent_background=false.
+REFERENCED_IMAGE_PATHS:
+C:/Users/sk640/ai_city/marketing/2026-10-02-profile-banners/v7-buildings/scene-buildings-emblem-pass.png
+C:/Users/sk640/ai_city/media/buildings/Bank.png
+C:/Users/sk640/ai_city/marketing/2026-10-02-profile-banners/v7-buildings/verification/bank-original-emblem.png
+C:/Users/sk640/ai_city/marketing/2026-10-02-profile-banners/v7-buildings/verification/bank-generated-detail.png
+
+EDIT ONLY the tiny gold emblem on the BANK triangular pediment in image 1. Everything else must remain visually identical, including all large buildings, rear walls with no signs, five characters, sky/clouds, lighting, title-empty spaces, exact full 3:1 framing. Image 2 is the ORIGINAL Bank building; image 3 is a magnified exact ORIGINAL pediment emblem; image 4 is a magnified current Bank ONLY to locate the faulty mark, not an output canvas.
+
+The current bank emblem is close but its lower U/chevron outline is wrongly CURVED like a smiling mouth and the upper shape is soft/heart-like. Replace with the original sharply FACETED angular emblem from image 3: GOLD CIRCULAR outer ring; inside, solid gold rotated square with an M-shaped notch at its bottom (two angular downward tips); below/around that, a separate OPEN-TOP LOWER HEXAGON outline composed ONLY of straight segments — short upright left/right sides meeting diagonal segments in a sharp V bottom. Match the original. No rounded U, no smile, no teardrop, no heart, no letter, no swirl. This is recognizable existing architectural badge, not a new design. Do not touch BANK letters, vault-door wheel, windows, roof, scale or perspective. At the native scene size, prioritize a small clear angular silhouette instead of added fine ornament.
+
+Output the ENTIRE scene, same cinematic low-poly 3D render, precisely unchanged apart from this one tiny mark. No extra text, labels or promotional logos. Preserve the cyan eight-point star in a circle on City Hall as currently corrected; do not touch it.

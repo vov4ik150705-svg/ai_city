@@ -33,6 +33,7 @@ import { parseJsonBigint } from "./jsonBigint.ts"
 import { asBig, asDict, asStr } from "../src/values.ts"
 import type { Dict } from "../src/values.ts"
 import { loadPack, repo } from "./harness.ts"
+import { bi2, bi3, bi5, bi7, bi18, bi240, bi400, bi600, bi900, bi1350, bi1500, bi2025, bi3037, bi10000, n2, n7 } from "../src/literals.ts"
 
 describe("economy owner rules", () => {
   it("offline clip reaches 18 and never 19", () => {
@@ -116,6 +117,26 @@ describe("economy owner rules", () => {
     expect(cap).toBe(411n)
     expect(cityLevelFromPopulation(400n, thresholds, 7n)).toBe(2n)
     expect(stickyCityLevel(4n, 2n)).toBe(4n)
+    expect(housingBaseOf("flagship_store", 1n, {})).toBe(400n)
+    expect(housingBaseOf("flagship_store", 3n, {})).toBe(2025n)
+    expect(housingBaseOf("retail_complex", 1n, {})).toBe(600n)
+    expect(housingBaseOf("retail_complex", 3n, {})).toBe(3037n)
+    expect(n2).toBe(2)
+    expect(n7).toBe(7)
+    expect(bi2).toBe(2n)
+    expect(bi3).toBe(3n)
+    expect(bi5).toBe(5n)
+    expect(bi7).toBe(7n)
+    expect(bi18).toBe(18n)
+    expect(bi240).toBe(240n)
+    expect(bi400).toBe(400n)
+    expect(bi600).toBe(600n)
+    expect(bi900).toBe(900n)
+    expect(bi1350).toBe(1350n)
+    expect(bi1500).toBe(1500n)
+    expect(bi2025).toBe(2025n)
+    expect(bi3037).toBe(3037n)
+    expect(bi10000).toBe(10000n)
   })
 
   it("new cities do not backfill closed global days", () => {

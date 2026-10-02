@@ -55,7 +55,7 @@ function cityBig(city: Dict, key: string): bigint {
   }
 }
 
-export function walletOf(city: Dict, _cityId: string): string {
+export function walletOf(city: Dict): string {
   return boardWallet(city)
 }
 
@@ -190,7 +190,7 @@ export function projectRank(ctx: PackCtx, state: Dict, cityId: string, city: Dic
   const labels = seasonLabels(ctx, state)
   const influence = cityBig(city, "influence")
   const positiveDays = cityBig(city, "positive_days")
-  const viewerWallet = walletOf(city, cityId)
+  const viewerWallet = walletOf(city)
   const cities = asEngineDict(state["cities"])
   const slots = liveSlots(state)
   const out: { [key: string]: Json } = {
