@@ -1,0 +1,33 @@
+{
+  "sceneSource": "scene-dex-generated.png",
+  "cloudSource": "clouds-foreground-generated.png",
+  "title": {
+    "x": 215,
+    "y": 932,
+    "size": 282,
+    "depth": 10
+  },
+  "brand": {
+    "tokenX": 2290,
+    "tokenY": 160,
+    "tokenWidth": 140,
+    "wordX": 2485,
+    "wordY": 205,
+    "wordWidth": 330
+  },
+  "features": {
+    "x": 2260,
+    "baselines": [
+      450,
+      570,
+      690
+    ],
+    "maxWidth": 675,
+    "maxSize": 82,
+    "text": [
+      "HIRE AGENTS.",
+      "UPGRADE BUILDINGS.",
+      "RUN THE ECONOMY."
+    ]
+  }
+}

@@ -123,7 +123,12 @@ async function startDocker(password: string, hostPort: number): Promise<Postgres
       "PGPORT=" + internal.toString(),
       "-p",
       hostPort.toString() + ":" + internal.toString(),
+      "--shm-size=256m",
       "postgres:" + postgresImageMajor,
+      "-c",
+      "dynamic_shared_memory_type=mmap",
+      "-c",
+      "shared_buffers=32MB",
     ],
     { encoding: "utf8" },
   )
