@@ -117,7 +117,7 @@ export function BuildingStudio({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, premultipliedAlpha: false })
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.05
+      renderer.toneMappingExposure = 1.35
       renderer.setClearColor("#000000", 0)
       const scene = new THREE.Scene()
       const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100)
@@ -125,15 +125,15 @@ export function BuildingStudio({
       const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
       pmrem.dispose()
       scene.environment = environment
-      scene.environmentIntensity = 0.45
-      scene.add(new THREE.HemisphereLight("#e7ebf0", "#1c2024", 0.45))
-      const key = new THREE.DirectionalLight("#ffffff", 1.7)
+      scene.environmentIntensity = 0.9
+      scene.add(new THREE.HemisphereLight("#e7ebf0", "#1c2024", 0.85))
+      const key = new THREE.DirectionalLight("#ffffff", 2.8)
       key.position.set(4.5, 9, 3.2)
       scene.add(key)
-      const fill = new THREE.DirectionalLight("#d5dce6", 0.4)
+      const fill = new THREE.DirectionalLight("#d5dce6", 0.9)
       fill.position.set(-6, 2.5, 5)
       scene.add(fill)
-      const rim = new THREE.DirectionalLight("#ffffff", 0.55)
+      const rim = new THREE.DirectionalLight("#ffffff", 1)
       rim.position.set(-1.5, 7, -8)
       scene.add(rim)
       const orbit = { theta: 0.7, phi: 1.05, radius: 4, minRadius: 1, maxRadius: 12 }

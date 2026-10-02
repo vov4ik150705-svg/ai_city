@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-02",
+  "mode": "Built-in image_gen, unified scene followed by separate typography and exact original brand overlays",
+  "sceneHash": "9258f262bdbc1eb22d2f79bc33515b80c3c8798bb0a9f54dfe412b7595b91022",
+  "generatedSceneLayerHash": "45c4ddd00436036e0fa31e85bc80084f05923c6436562c49c5bea3ba3c837f32",
+  "signageLayerHash": "3cd2ac077120fa2cb776eb1778c3ac1a6d4a6d613f1f72c5359deb1d00d0448e",
+  "exports": [
+    {
+      "file": "x-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7498337
+    },
+    {
+      "file": "x-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 2025289
+    },
+    {
+      "file": "x-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 534577
+    },
+    {
+      "file": "dexscreener-3000x1000.png",
+      "width": 3000,
+      "height": 1000,
+      "bytes": 7507833
+    },
+    {
+      "file": "dexscreener-1500x500.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 2026894
+    },
+    {
+      "file": "dexscreener-1500x500.jpg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 535266
+    }
+  ],
+  "masters": [
+    {
+      "version": "x",
+      "svgHeadline": "CORPORATOR",
+      "tagline": "A city worth running.",
+      "oraLayers": 5,
+      "unifiedSceneIdentical": true
+    },
+    {
+      "version": "dexscreener",
+      "svgHeadline": "CORPORATOR",
+      "tagline": null,
+      "oraLayers": 5,
+      "unifiedSceneIdentical": true
+    }
+  ]
+}
