@@ -36,7 +36,7 @@ function portWith(hostPack: Parameters<typeof portCfgFromPack>[0], snapshot: Ass
 }
 
 function apiServices(text: string): number {
-  return [...text.matchAll(/^  api:$/gm)].length
+  return [...text.matchAll(/^ {2}api:$/gm)].length
 }
 
 describe("PL9 world lock", () => {

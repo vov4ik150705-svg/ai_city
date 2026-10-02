@@ -217,7 +217,6 @@ export async function tickIfWriter(
   attestor?: Attestor,
   dueTicks: bigint = 1n,
 ): Promise<boolean> {
-  const cityId = firstCityId(host.state)
   const held = await lock.tryAcquire()
   if (!held) return false
   await catchUpOnce(host, attestor, dueTicks)
