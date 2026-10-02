@@ -131,6 +131,8 @@ function txViewOf(value: unknown): {
   readonly to: string
   readonly input: string
   readonly logs: readonly TxLog[]
+  readonly blockHash?: string
+  readonly blockNumber?: bigint
 } | undefined {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return undefined
   const row = value as { readonly [key: string]: unknown }
@@ -144,7 +146,15 @@ function txViewOf(value: unknown): {
   const data = typeof input === "string" ? input : "0x"
   const logs = txLogsOf(row["logs"])
   if (logs === undefined) return undefined
-  return { status, from, to, input: data, logs }
+  const hashRaw = row["blockHash"]
+  const blockHash = typeof hashRaw === "string" && hashRaw.length > 0 ? hashRaw : undefined
+  const numberRaw = row["blockNumber"]
+  const blockNumber = typeof numberRaw === "string" ? parseHexUint(numberRaw) : undefined
+  const view = { status, from, to, input: data, logs }
+  if (blockHash !== undefined && blockNumber !== undefined) return { ...view, blockHash, blockNumber }
+  if (blockHash !== undefined) return { ...view, blockHash }
+  if (blockNumber !== undefined) return { ...view, blockNumber }
+  return view
 }
 
 function parseBlockTimestamp(raw: string): bigint | undefined {
@@ -433,7 +443,9 @@ async function dispatch(
       if (roots.length === 0) return { status: "silence" }
       const day = parseDec(arg(args, 1))
       if (day === undefined) return { status: "silence" }
-      return sendTx(post, { to: roots, data: dataPutRoot(arg(args, 0), day, arg(args, 2)) })
+      const data = dataPutRoot(arg(args, 0), day, arg(args, 2))
+      if (data.length === 0) return { status: "silence" }
+      return broadcastRoleTx({ post, chainId, bps, gasHeadroomBps, role: "attestor", to: roots, data, inflight })
     }
     case rpcMethod.getRoot: {
       if (roots.length === 0) return { status: "silence" }
@@ -457,7 +469,18 @@ async function dispatch(
       const kettle = parseDec(arg(args, 2))
       const amount = parseDec(arg(args, 3))
       if (!isAddr(from) || kettle === undefined || amount === undefined) return { status: "silence" }
-      return sendTx(post, { from, to: prizes, data: dataPrizeDeposit(arg(args, 1), kettle, amount) })
+      const data = dataPrizeDeposit(arg(args, 1), kettle, amount)
+      if (data.length === 0) return { status: "silence" }
+      return broadcastRoleTx({
+        post,
+        chainId,
+        bps,
+        gasHeadroomBps,
+        role: "buyback_executor",
+        to: prizes,
+        data,
+        inflight,
+      })
     }
     case rpcMethod.prizeSlice: {
       if (prizes.length === 0) return { status: "silence" }

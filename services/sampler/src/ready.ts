@@ -17,8 +17,10 @@ export function listenReady(hash: string, port: bigint): Promise<ReadyListen> {
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     const url = req.url ?? ""
     if (req.method === "GET" && url === readyTemplate) {
+      const db = process.env.DATABASE_URL
+      const live = db !== undefined && db.length > 0
       res.statusCode = Number(transportHttp.API_INTENT_REPLAY)
-      res.end(Buffer.from(canonical({ pack_hash: hash, ready: 1n })))
+      res.end(Buffer.from(canonical({ pack_hash: hash, ready: live ? 1n : 0n })))
       return
     }
     res.statusCode = Number(transportHttp.API_MALFORMED)

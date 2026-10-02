@@ -28,7 +28,7 @@
 .hero__art {
   position: absolute;
   bottom: 0;
-  left: calc(100% - 97% * var(--site-scale) - var(--site-space-2));
+  left: calc(100% - 97% * var(--site-scale));
   width: calc(97% * var(--site-scale));
   height: auto;
   max-width: none;
@@ -178,19 +178,6 @@
     overflow: clip;
     background-color: transparent;
     background-image: none;
-  }
-
-  body:has(.hero) .site-header:not(.site-header--docs) {
-    background-color: transparent;
-    background-image: none;
-  }
-
-  html[data-header-solid="1"] body:has(.hero) .site-header:not(.site-header--docs) {
-    background-color: var(--site-sky-fallback);
-    background-image: url("../assets/opt/hero.webp");
-    background-repeat: no-repeat;
-    background-size: calc(340% * var(--site-scale)) auto;
-    background-position: left top;
   }
 
   .hero > .site-container {

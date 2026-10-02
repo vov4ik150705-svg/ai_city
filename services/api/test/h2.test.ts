@@ -2276,10 +2276,8 @@ describe("M6 prize custody", () => {
     city["prize_pool_in"] = { NVDA: 50n }
     const t = asBigint(host.state["city_time"])
     const res = await host.handle("POST", "/command/claim_prize", cmdBody("m6a", t), auth.headers)
-    expect(bodyCode(res.body)).toBe("")
-    const nvda = prizePaid(res.body, "NVDA")
-    expect(nvda.paid).toBe(0n)
-    expect(nvda.code).toBe(codes.PRIZE_CLAIM_UNCOVERED)
+    expect(bodyCode(res.body)).toBe(codes.DEMO_NO_PRIZE)
+    expect(prizePaid(res.body, "NVDA").paid).toBe(0n)
   })
 
   it("rpc_silence_does_not_pay", async () => {
@@ -2333,9 +2331,8 @@ describe("M6 prize custody", () => {
     const res = await applyLive(host.ctx, host.state, "claim_prize", {}, auth.cityId, silent)
     expect(res !== undefined).toBe(true)
     if (res !== undefined) {
-      const nvda = prizePaid(res.body, "NVDA")
-      expect(nvda.paid).toBe(0n)
-      expect(nvda.code).toBe(codes.PRIZE_CLAIM_UNCOVERED)
+      expect(bodyCode(res.body)).toBe(codes.DEMO_NO_PRIZE)
+      expect(prizePaid(res.body, "NVDA").paid).toBe(0n)
     }
     const stopped = await bindDeposits(host, { CORPORATOR_DEPOSITS_OPEN: "1", CORPORATOR_VAULT: "not-an-address" })
     expect(stopped).toBeUndefined()
@@ -2368,6 +2365,15 @@ describe("M6 prize custody", () => {
     city["wallet"] = caller
     city["prize_owed"] = { NVDA: 50n }
     city["prize_pool_in"] = { NVDA: 50n }
+    const deployed = walk(host.ctx.pack, ["sections", "launch", "deployed"])
+    if (deployed !== null && typeof deployed === "object" && !Array.isArray(deployed)) {
+      const row = deployed as { [key: string]: string }
+      row["token"] = padAddr(1n)
+      row["curve"] = padAddr(2n)
+      row["pool"] = padAddr(3n)
+      row["hook"] = padAddr(4n)
+      row["tx"] = "0x" + "ab".repeat(32)
+    }
     const res = await applyLive(host.ctx, host.state, "claim_prize", {}, auth.cityId, livePort)
     expect(res !== undefined).toBe(true)
     if (res === undefined) return

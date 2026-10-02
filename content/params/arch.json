@@ -348,6 +348,14 @@
       "src": "D-P-11, PLAN_RELEASE P4",
       "why": "Restore command is pack data. A second script would fork the witness"
     },
+    "dump_sh": {
+      "source": "arch.backup",
+      "artifact": "deploy/dump.sh",
+      "consumer": "api",
+      "command": "python content/codegen.py",
+      "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL13",
+      "why": "pg_dump of DATABASE_URL sits next to restore.sh. The operator schedules it; the pack does not pretend to be cron"
+    },
     "ci_runner": {
       "source": "arch.ci_steps",
       "artifact": "scripts/ci.mjs",
@@ -580,13 +588,13 @@
       "why": "Atomic command counter per session city and tick. A process map would reset on restart"
     },
     "tick_locks": {
-      "key": "city_id",
+      "key": "world",
       "holds": "none",
       "storage": "canonical_bytes",
       "money": 0,
       "account_kind": 0,
       "src": "D-P-8, PLAN_RELEASE P4",
-      "why": "Single tick writer lease. A replica without the row serves reads and does not step the city"
+      "why": "One lease for the cities world row. Tick and every world write take that key. A replica without it serves reads and does not step the city"
     }
   },
   "session": {
@@ -678,14 +686,14 @@
     "why": "One env name per key role. Values stay out of the repo and out of the image layer",
     "roles": {
       "voucher_signer": {
-        "env": "CORPORATOR_VOUCHER_SIGNER",
+        "env": "CORPORATOR_VOUCHER_SIGNER_KEY",
         "src": "D12, PLAN_RELEASE P4",
-        "why": "Bank voucher key. Named once; compose injects it, Dockerfile does not"
+        "why": "Bank voucher private key. The address name stays CORPORATOR_VOUCHER_SIGNER for forge"
       },
       "buyback_executor": {
-        "env": "CORPORATOR_BUYBACK_EXECUTOR",
+        "env": "CORPORATOR_BUYBACK_EXECUTOR_KEY",
         "src": "D9, PLAN_RELEASE P4",
-        "why": "Buyback sender. A second name in yaml would split the role"
+        "why": "Buyback sender private key. CORPORATOR_BUYBACK_EXECUTOR stays the address"
       },
       "prize_payer": {
         "env": "CORPORATOR_PRIZE_PAYER",
@@ -698,9 +706,9 @@
         "why": "Pause key. Address values are owner P7; the name is the pack"
       },
       "signer": {
-        "env": "CORPORATOR_SIGNER",
+        "env": "CORPORATOR_SIGNER_KEY",
         "src": "D-M-14, PLAN_RELEASE P4",
-        "why": "Hot refund signer. Not listed in the Dockerfile"
+        "why": "Hot refund private key. CORPORATOR_SIGNER stays the address for forge"
       },
       "pending_signer": {
         "env": "CORPORATOR_PENDING_SIGNER",
@@ -717,6 +725,51 @@
         "value_src": "generated.api.unstake_cooldown_s",
         "src": "docs/reports/TZ_WITHDRAW.md §2.1",
         "why": "StakeRegistry constructor reads seconds. The name is not a key; codegen writes the derived cooldown"
+      },
+      "CORPORATOR_BUYBACK_URL": {
+        "value_src": "arch.listen.service.buyback",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL7",
+        "why": "API posts the buyback frame to the buyback service. CORPORATOR_LISTEN_BIND stays server.listen only"
+      },
+      "CORPORATOR_ATTESTOR_URL": {
+        "value_src": "arch.listen.service.attestor",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL7",
+        "why": "API posts sealed ticks to the attestor service. A container bind is not an outbound host"
+      },
+      "CORPORATOR_BUYBACK_FRAME_KEY": {
+        "value_src": "arch.env.buyback_frame_key",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL8",
+        "why": "A posted buyback batch with hop_ok, fills or slices is accepted only with this shared secret"
+      },
+      "CORPORATOR_VAULT_MINTER": {
+        "value_src": "arch.env.address",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL12",
+        "why": "Forge envAddress for the vault minter. Not the runtime private key"
+      },
+      "CORPORATOR_VAULT_MINTER_KEY": {
+        "value_src": "arch.env.address",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL12",
+        "why": "Runtime minter private key. Example stays empty. ROLE_ENV.minter reads this name"
+      },
+      "CORPORATOR_VOUCHER_SIGNER": {
+        "value_src": "arch.env.address",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL12",
+        "why": "Forge envAddress for the voucher signer. Not the runtime private key"
+      },
+      "CORPORATOR_SIGNER": {
+        "value_src": "arch.env.address",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL12",
+        "why": "Forge envAddress for the hot signer. Not the runtime private key"
+      },
+      "CORPORATOR_BUYBACK_EXECUTOR": {
+        "value_src": "arch.env.address",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL12",
+        "why": "Forge envAddress and the buyback depositor address. The private key is CORPORATOR_BUYBACK_EXECUTOR_KEY"
+      },
+      "CORPORATOR_CORS_ORIGINS": {
+        "value_src": "arch.env.address",
+        "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL13",
+        "why": "Comma-separated browser origins. Empty means the API sets no Access-Control-Allow-Origin header"
       }
     }
   },
@@ -1191,6 +1244,7 @@
         "no_float_in_bytes",
         "record_key_order_irrelevant",
         "merkle_odd_level_not_duplicated",
+        "ratchet and decay step on ticks_day",
         "offline clip reaches 18 and never 19",
         "build slots are abstract agent_slots plus 3",
         "train is +1 XP additive with remainder; trainer mags do not enter XP",
@@ -1611,6 +1665,10 @@
         "releases the hour when buyback answers degraded",
         "claims the hour once under the lock and posts after it",
         "does not make the tick wait for the post",
+        "bind 0.0.0.0 does not replace CORPORATOR_BUYBACK_URL",
+        "bind 0.0.0.0 without a buyback url does not call 0.0.0.0",
+        "bind 0.0.0.0 does not replace CORPORATOR_ATTESTOR_URL",
+        "empty urls on loopback use listenPorts and the pack ready path",
         "fills the farm bag from the frame, slices owed, and leaves an empty month and a dead hop alone",
         "empty and non-batch bodies degrade and deposit nothing",
         "a canned batch on the funded submit path increases farm unsliced",
@@ -1642,7 +1700,55 @@
         "broadcasts the quoted swap and reads the Transfer from the receipt",
         "does not count a receipt Transfer to another address",
         "does not broadcast a second swap while the first receipt is missing",
-        "keeps a pending NVDA receipt when the next hop is another ticker"
+        "keeps a pending NVDA receipt when the next hop is another ticker",
+        "a silent deposit does not feed the same wei back into planFarmHops",
+        "fillOf without a ticker key deposits nothing",
+        "a full batch without the frame key does not slice",
+        "liveRpcReady rejects a garbage executor address",
+        "prizeDeposit signs the executor key and putRoot signs the attestor key",
+        "two frames of one settlement do not slice twice",
+        "live turnover does not mint capital before a CORP deposit",
+        "fund CORP is deposited to the house and is not minted on the vault",
+        "a stake snapshot of 100 does not overwrite a confirm of 40",
+        "a stake read that sees the world move does not write 100",
+        "a second stake read that still sees the world move does not write 100",
+        "a second lock store cannot change the world row",
+        "an expired tick lock can be taken without SIGTERM",
+        "SIGTERM releases the world lock",
+        "a live holder named api does not yield the lock",
+        "an empty HOSTNAME is not the replica id api",
+        "compose keeps a single api service",
+        "a deposit ticket survives the tick rollback",
+        "issue silence does not store the card and the retry sends issueVoucher again",
+        "claim_prize with an empty launch answers DEMO_NO_PRIZE",
+        "a fragment confirm with sliced 0 does not mark the hash paid",
+        "a one wei buy log does not move the pool",
+        "a foreign hash does not return the other city deposit",
+        "a dirty live ledger closes the store and exits",
+        "mock wallet stake does not credit stake_settled",
+        "two prepares past the rate limit are refused",
+        "a socket frame omits the other city attest log and a dead session closes",
+        "a vanished deposit receipt removes Capital and blocks the same hash",
+        "a deposit receipt that stays is counted once",
+        "two deposit confirms with status 1 do not mint twice",
+        "a silent receipt does not remove Capital",
+        "a vanished receipt does not burn vault below chain backing",
+        "roleKey minter reads CORPORATOR_VAULT_MINTER_KEY",
+        "an address in the old voucher name does not broadcast",
+        "PlayerReady still reads address env names",
+        "deploy/.env is gitignored",
+        "ready with a foreign hash is not HTTP 200",
+        "https://evil.example is not reflected",
+        "prod compose does not publish 5432 on every interface",
+        "healthcheck is not green on ready false",
+        "sampler without a database does not answer ready 1",
+        "buyback without a hop url answers mock",
+        "attestor without a pin url answers mock",
+        "dump script calls pg_dump",
+        "the demo after the window does not create a city",
+        "a body over the pack limit does not reach handle",
+        "demo limit 0 leaves an existing city and a wallet command",
+        "a nonce past the command rate is not stored"
       ]
     },
     "attestor_no_chain": {
@@ -3738,7 +3844,7 @@
       "why": "Contract tests run at night. Push does not compile Solidity"
     },
     "image_smoke": {
-      "cmd": "docker build -f deploy/Dockerfile --build-arg PACK_HASH=ci -t corporator:ci-smoke .",
+      "cmd": "HASH=$(tr -d '[:space:]' < content/out/pack.sha256) && docker build -f deploy/Dockerfile --build-arg PACK_HASH=$HASH -t corporator:$HASH . && docker run --rm -e EXPECT=$HASH corporator:$HASH node -e 'process.exit(process.env.PACK_HASH===process.env.EXPECT?0:1)'",
       "catches": "image without PACK_HASH, root user, python in runtime",
       "red_input": "drop USER node from deploy/Dockerfile",
       "track": "nightly",

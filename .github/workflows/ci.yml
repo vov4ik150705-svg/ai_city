@@ -1,4 +1,4 @@
-# GENERATED from pack dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4; do not edit
+# GENERATED from pack 16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d; do not edit
 name: ci
 on:
   push:
@@ -75,4 +75,4 @@ jobs:
       - name: forge_test
         run: forge test --root contracts
       - name: image_smoke
-        run: docker build -f deploy/Dockerfile --build-arg PACK_HASH=ci -t corporator:ci-smoke .
+        run: HASH=$(tr -d '[:space:]' < content/out/pack.sha256) && docker build -f deploy/Dockerfile --build-arg PACK_HASH=$HASH -t corporator:$HASH . && docker run --rm -e EXPECT=$HASH corporator:$HASH node -e 'process.exit(process.env.PACK_HASH===process.env.EXPECT?0:1)'

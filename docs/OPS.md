@@ -4,7 +4,9 @@
 
 ## Образ
 
-Прод поднимается из образа `corporator:${PACK_HASH}`, не из `volumes: ..:/app`. Пак вшит как `/app/pack.json`; дерево `content/` в runtime-стадии нет. Пользователь процесса — `node`. Миграции — одноразовый сервис `migrate`, затем api. `/ready` зелёный только при совпадении `pack_hash` и `migration_version`. Откат — предыдущий образ с его хешем, не пересборка пака.
+Прод поднимается из образа `corporator:${PACK_HASH}`, не из `volumes: ..:/app`. Пак вшит как `/app/pack.json`; дерево `content/` в runtime-стадии нет. Пользователь процесса — `node`. Миграции — одноразовый сервис `migrate`, затем api. `/ready` зелёный только при совпадении `pack_hash` и `migration_version`; иначе HTTP не 200. Откат — предыдущий образ с его хешем, не пересборка пака.
+
+`docker compose -f deploy/compose.prod.yaml up` без `--profile prod` не поднимает сервисы. Порт 7460 опубликован только на `127.0.0.1` и не выставляется в интернет напрямую; TLS-фронт ставит оператор. Postgres, байбек, самплер и аттестатор с хоста не публикуются. Данные Postgres лежат в томе `corporator_pg`.
 
 Дев-профиль `deploy/compose.yaml` по-прежнему монтирует репозиторий. Это не прод.
 
@@ -14,7 +16,7 @@
 
 ## Бэкап
 
-Расписание — сутки города, не хранимый cron. Срок хранения дампа берётся из `economy.params.payroll_daily_divisor` (горизонт фонда, не окно фарма). Окно фарма — `fragments.params.fragment_window_city_days`. Команда — `deploy/restore.sh`: прогнать дамп в `DATABASE_URL`. Восстановление без реплея не считается: свидетель `restore_replay_matches_origin` требует, чтобы байты реплея из восстановленного `tick_inputs` совпали с оригиналом.
+Расписание — сутки города, не хранимый cron. Срок хранения дампа берётся из `economy.params.payroll_daily_divisor` (горизонт фонда, не окно фарма). Окно фарма — `fragments.params.fragment_window_city_days`. Команда снятия дампа — `deploy/dump.sh`: `pg_dump` в `DATABASE_URL`, stdout. Cron в репозитории нет; оператор ставит расписание сам. Команда восстановления — `deploy/restore.sh`: прогнать дамп в `DATABASE_URL`. Восстановление без реплея не считается: свидетель `restore_replay_matches_origin` требует, чтобы байты реплея из восстановленного `tick_inputs` совпали с оригиналом. Скрипт дампа этот свидетель не подменяет.
 
 ## Инциденты
 

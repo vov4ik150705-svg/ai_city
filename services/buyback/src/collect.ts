@@ -2,6 +2,7 @@ import { fetchPoster } from "@corporator/chainport"
 import { fromUtf8, parseJson, type Json } from "@corporator/contentpack"
 import { codes } from "@corporator/protocol"
 import { emptyBasketState, planFarmHops, stepLeaderboardBasket, type BasketHop } from "./basket.js"
+import { emptyBuybackState, stepBuyback } from "./step.js"
 import { executorHopFill, posterFromEnv, type ExecutorHop } from "./hop.js"
 import type { BuybackPack } from "./pack.js"
 import { buybackBelowMin } from "./policy.js"
@@ -9,6 +10,7 @@ import { createMockConveyorSource, type ConveyorPull, type ConveyorSource } from
 import type { ConveyorBatch, ConveyorSlice, ConveyorState } from "./conveyor.js"
 import { asBig, asObj, asText } from "./values.js"
 import { receiptOrSend } from "./swap.js"
+import { sendStudioEth } from "./studio.js"
 import { liveRpcReady } from "./worker.js"
 
 const ADDR_RE = /^0x[0-9a-fA-F]{40}$/
@@ -17,6 +19,7 @@ export type CollectorHop = (ticker: string, wei: bigint) => Promise<ExecutorHop>
 
 export type CollectorDeps = {
   readonly hop: CollectorHop
+  readonly sendEth?: (to: string, wei: bigint) => Promise<boolean>
 }
 
 const DEGRADED: ConveyorPull = { ok: false, code: codes.SERVICE_DEGRADED }
@@ -30,6 +33,7 @@ type Frame = {
   readonly farmWei: bigint
   readonly depths: { readonly [key: string]: bigint }
   readonly demand: { readonly [key: string]: bigint }
+  readonly studioWei: bigint
 }
 
 function present(value: Json | undefined): boolean {
@@ -70,6 +74,8 @@ function readFrame(row: { readonly [key: string]: Json }): Frame | undefined {
   const farmWei = mustBig(row["farm_wei"])
   const depths = mustMap(row["depths_wei"])
   const demand = mustMap(row["fragment_demand"])
+  const studioRaw = row["studio_wei"]
+  const studioWei = !present(studioRaw) ? 0n : mustBig(studioRaw)
   if (
     cityTime === undefined ||
     turnover === undefined ||
@@ -77,11 +83,12 @@ function readFrame(row: { readonly [key: string]: Json }): Frame | undefined {
     leaderboardWei === undefined ||
     farmWei === undefined ||
     depths === undefined ||
-    demand === undefined
+    demand === undefined ||
+    studioWei === undefined
   ) {
     return undefined
   }
-  return { cityTime, turnover, fundWei, leaderboardWei, farmWei, depths, demand }
+  return { cityTime, turnover, fundWei, leaderboardWei, farmWei, depths, demand, studioWei }
 }
 
 function slicesOf(value: Json): readonly ConveyorSlice[] {
@@ -190,6 +197,7 @@ function idle(
     fragmentDemand: frame.demand,
     hopOk: 0n,
     callerService: pack.executorService,
+    studioWei: frame.studioWei,
     ...(tokens === undefined ? {} : { tokenByTicker: tokens }),
     ...(slices === undefined ? {} : { slices }),
   }
@@ -246,7 +254,7 @@ async function collect(
     1n,
   )
   if (!anySend(farm.hops) && !anySend(month.hops)) {
-    return { ok: true, batch: idle(pack, frame, slices, tokens) }
+    return { ok: true, batch: await withFund(pack, deps, frame, state, idle(pack, frame, slices, tokens)) }
   }
   const farmFills = zeros(pack)
   const monthFills = zeros(pack)
@@ -255,12 +263,47 @@ async function collect(
   if (!anyFill(farmFills) && !anyFill(monthFills)) return DEGRADED
   return {
     ok: true,
-    batch: {
+    batch: await withFund(pack, deps, frame, state, {
       ...idle(pack, frame, slices, tokens),
       hopOk: 1n,
       farmFills,
       monthFills,
-    },
+    }),
+  }
+}
+
+async function withFund(
+  pack: BuybackPack,
+  deps: CollectorDeps,
+  frame: Frame,
+  state: ConveyorState | undefined,
+  batch: ConveyorBatch,
+): Promise<ConveyorBatch> {
+  let studioWei = frame.studioWei
+  if (pack.studioRecipient.length > 0 && studioWei > 0n && deps.sendEth !== undefined) {
+    const sent = await deps.sendEth(pack.studioRecipient, studioWei)
+    if (sent) studioWei = 0n
+  }
+  const preview = stepBuyback(
+    pack,
+    state === undefined ? emptyBuybackState() : state.buyback,
+    frame.cityTime,
+    frame.fundWei,
+    0n,
+  )
+  let fundCorpOut = 0n
+  if (preview.sendWei > 0n) {
+    try {
+      const got = await deps.hop("CORP", preview.sendWei)
+      if (got.hopOk === 1n && got.stockOut > 0n) fundCorpOut = got.stockOut
+    } catch {
+      fundCorpOut = 0n
+    }
+  }
+  return {
+    ...batch,
+    studioWei,
+    ...(fundCorpOut > 0n ? { fundCorpOut } : {}),
   }
 }
 
@@ -293,6 +336,15 @@ function stockToken(env: { readonly [key: string]: string | undefined }, ticker:
   return raw
 }
 
+export function hopToken(env: { readonly [key: string]: string | undefined }, ticker: string): string {
+  if (ticker === "CORP") {
+    const corp = env["CORPORATOR_CORP_TOKEN"]
+    if (corp !== undefined && ADDR_RE.test(corp)) return corp
+    return ""
+  }
+  return stockToken(env, ticker)
+}
+
 function envBig(raw: string | undefined): bigint {
   if (raw === undefined || raw.length === 0) return 0n
   try {
@@ -321,6 +373,19 @@ export function collectorDepsFromEnv(
   const url = env["CORPORATOR_RPC_URL"]
   const post = url !== undefined && url.length > 0 && timeout > 0n ? fetchPoster(url, timeout) : undefined
   return {
+    ...(post === undefined || chainId <= 0n
+      ? {}
+      : {
+          sendEth: (to: string, wei: bigint) =>
+            sendStudioEth({
+              post,
+              chainId,
+              bps: pack.bps,
+              gasHeadroomBps: pack.gasHeadroomBps,
+              to,
+              wei,
+            }),
+        }),
     hop: (ticker, wei) => {
       const broadcast =
         post === undefined || chainId <= 0n
@@ -339,7 +404,7 @@ export function collectorDepsFromEnv(
                 gasHeadroomBps: pack.gasHeadroomBps,
                 privateKey: key,
                 executor,
-                token: stockToken(env, ticker),
+                token: hopToken(env, ticker),
                 to: tx.to,
                 data: tx.data,
                 value,
@@ -352,7 +417,7 @@ export function collectorDepsFromEnv(
         hopQuality: 0n,
         executor,
         executorKey: key,
-        token: stockToken(env, ticker),
+        token: hopToken(env, ticker),
         logs: [],
         sign: (signingKey, tx) =>
           signingKey.length > 0 && tx.to.length > 0 && tx.data.length > 0 && tx.value.length > 0,

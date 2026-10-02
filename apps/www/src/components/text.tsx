@@ -100,7 +100,7 @@ export function PhraseLink({ text, phrase, to }: { text: string; phrase: string;
   return (
     <>
       {text.slice(0, at)}
-      <Link to={to} className="site-link">
+      <Link to={to} className="site-phrase-link">
         {phrase}
       </Link>
       {text.slice(at + phrase.length)}

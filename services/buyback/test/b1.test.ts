@@ -54,7 +54,7 @@ describe("B1 turnover split", () => {
     const root = loadPack(bytes).pack
     const pack = loadBuybackPack(bytes)
     const fee = feeOf(root)
-    expect(asBig(atPath(root, ["sections", "meta", "pack_version"]))).toBe(195n)
+    expect(asBig(atPath(root, ["sections", "meta", "pack_version"]))).toBe(204n)
     expect(pack.bps).toBe(10_000n)
     expect(pack.creatorTaxBps).toBe(200n)
     expect(fee.fund).toBe(100n)

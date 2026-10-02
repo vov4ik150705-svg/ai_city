@@ -381,3 +381,19 @@ CI (`.github/workflows/ci.yml`): на push есть lint, build, codegen `--chec
 | [Нагрузка и восстановление](7adf78d9-6f04-4977-888b-4ee3e3802a02) | p50 тика 117 мс на 1000 городах — цифра прохода, мной не повторена. Простой часов — F-21 как P2 |
 
 Механика, баланс и production-код в этом проходе не менялись. `launchToken` не подписывался.
+
+## 12. Прогон PL16, 2026-10-02
+
+Вердикт §1 не меняется. Это не GO. PL16 не закрыт: `forge` на машине проверки нет, коммита этого дерева нет, CI с forge на нём не зелёный. Полный `npx vitest run` не вышел с кодом 0.
+
+Локально на рабочей копии, пак 204, hash `16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d`:
+
+- `lint.py`: 396 правил, 0 ошибок.
+- `build.py`: круг 1445, вход 200, выход 910. Ставки не сдвинулись.
+- `codegen.py --check`: 24 артефакта совпали.
+- `attack.py --jobs 8`: exit 0, 396 правил, 312 проб, 33.0 с.
+- `sim.py`: exit 0, `SIM.md` 180749 байт, hash `ee6c8fddf5c693f6ad8f260512d6139774a25eca640d9c5c460c4a06648d4db9`.
+- Повтор атак PL4 (`rpc_silence_does_not_pay`), PL5 (половина `pending` в `w8`) и PL8 (молчаливый депозит) — exit 0.
+- Vitest на полном прогоне: 843 прошли, 1 упал на `no_key_material_in_repo` (`apps/www/src/blocks/Rating.tsx`, полный адрес в превью). Превью укорочено до `0x4c1a…11d2`. Повтор `no_key_material_in_repo` после этого — exit 0. Полный `npx vitest run` после укорачивания заново не гонялся.
+
+Чеклист §10 по коду, без подписи `launchToken`: флаг без годного vault не слушает; самплер пишет `price_samples`; URL байбека не собирается из bind `0.0.0.0`; депозит котла идёт `broadcastRoleTx` роли `buyback_executor`. Present кладёт `voucher_id`, claim unstaked кладёт `district_id`. Игроковский `vault.deposit` по-прежнему `eth_sendTransaction`. Vault.sol не менялся.

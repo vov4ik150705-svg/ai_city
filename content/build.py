@@ -471,20 +471,23 @@ def compound_days(start: int, step_bps: int, target: int) -> int:
 
 
 def apply_ratchet(
-    prev_rate: int, target: int, rise_max_bps: int, elapsed_city_hours: int
+    prev_rate: int,
+    target: int,
+    rise_max_bps: int,
+    elapsed_city_hours: int,
+    ticks_day: int,
 ) -> int:
     """Asymmetric ratchet: down follows immediately, up is capped per city day.
 
-    Applied in whole city days (24 city hours), same cadence as §4.6 efficiency.
-    Sub-day leftovers do not raise: the engine carries hours. A truncating step
-    that does not move `prev_rate` stays put — no +1 bump, that would exceed bps
-    at tiny rates.
+    Whole days are elapsed // ticks_day, the same order as engine arith.ts.
+    Sub-day leftovers do not raise. A truncating step that does not move
+    `prev_rate` stays put — no +1 bump, that would exceed bps at tiny rates.
     """
     if target <= prev_rate:
         return target
     if prev_rate <= 0 or rise_max_bps <= 0:
         return prev_rate if prev_rate > 0 else target
-    days = elapsed_city_hours // CITY_HOURS_PER_DAY
+    days = elapsed_city_hours // ticks_day if ticks_day > 0 else 0
     if days <= 0:
         return prev_rate
     rate = prev_rate
@@ -506,6 +509,7 @@ def mint_rate(
     prev_rate: int | None = None,
     rise_max_bps: int = 0,
     elapsed_city_hours: int = 0,
+    ticks_day: int = CITY_HOURS_PER_DAY,
 ) -> int:
     """Floating mint rate: band, asymmetric ratchet, hard arithmetic ceiling.
 
@@ -521,7 +525,7 @@ def mint_rate(
     if prev_rate is None or prev_rate <= 0:
         rate = target
     else:
-        rate = apply_ratchet(prev_rate, target, rise_max_bps, elapsed_city_hours)
+        rate = apply_ratchet(prev_rate, target, rise_max_bps, elapsed_city_hours, ticks_day)
     return min(rate, ceiling)
 
 
@@ -531,17 +535,18 @@ def stale_decay_rate(
     band_bps: int,
     decay_bps_per_city_day: int,
     stale_city_hours: int,
+    ticks_day: int = CITY_HOURS_PER_DAY,
 ) -> int:
     """Dead feed: working rate decays down toward the lower band, never up.
 
-    `stale_city_hours` is time spent past the live window, in city hours.
-    Whole city days only, same as the ratchet. A rate already at or below the
-    floor stays: pulling it up to the floor would be an upward move.
+    Whole days are stale_city_hours // ticks_day, the same order as engine arith.ts.
+    A rate already at or below the floor stays: pulling it up to the floor would
+    be an upward move.
     """
     floor = 0 if rate_ref <= 0 else rate_ref * max(0, BPS - band_bps) // BPS
     if rate <= floor:
         return rate
-    days = stale_city_hours // CITY_HOURS_PER_DAY
+    days = stale_city_hours // ticks_day if ticks_day > 0 else 0
     if days <= 0 or decay_bps_per_city_day <= 0:
         return rate
     if decay_bps_per_city_day >= BPS:

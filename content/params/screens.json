@@ -2558,6 +2558,10 @@
     "LEDGER_NOT_EMPTY_LIVE": [
       "bank"
     ],
+    "CHAIN_REORG": [
+      "bank",
+      "exchange"
+    ],
     "ORACLE_STALE": [
       "stock_bar",
       "districts_panel"

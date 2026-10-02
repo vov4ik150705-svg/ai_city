@@ -1,4 +1,4 @@
-import markUrl from "../../../../website/industries-cut/mark.png"
+import markUrl from "../assets/mark.png"
 import { Link } from "../site"
 
 export function Logo() {

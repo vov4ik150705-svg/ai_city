@@ -5,6 +5,7 @@ import { codes } from "@corporator/protocol"
 import { withWorldLock } from "./city_lock.js"
 import { cityKind, errResult, okResult, type HttpResult } from "./envelope.js"
 import { type PackCtx } from "./pack_ctx.js"
+import { incrementCommandRate } from "./rates.js"
 import { persistLiveState, restoreMemory } from "./tick_host.js"
 import { recoverAddress, normalizeAddress } from "./recover.js"
 import { getBytes, putJson, type Store } from "./store.js"
@@ -23,6 +24,41 @@ function opaqueId(): string {
 
 function nonceKey(nonce: string): string {
   return "n:" + nonce
+}
+
+const demoSeen = new WeakMap<Store, Map<string, bigint>>()
+const nonceSeen = new WeakMap<Store, Map<string, bigint>>()
+
+function windowCount(map: WeakMap<Store, Map<string, bigint>>, store: Store, key: string): bigint {
+  return map.get(store)?.get(key) ?? 0n
+}
+
+function rememberWindow(
+  map: WeakMap<Store, Map<string, bigint>>,
+  store: Store,
+  key: string,
+  n: bigint,
+): void {
+  let row = map.get(store)
+  if (row === undefined) {
+    row = new Map()
+    map.set(store, row)
+  }
+  row.set(key, n)
+}
+
+function demoLimit(ctx: PackCtx): bigint {
+  return asBigint(walk(ctx.pack, ["sections", "api", "params", "demo_new_per_window", "v"]))
+}
+
+function parseObject(body: Uint8Array): { readonly [key: string]: Json } | undefined {
+  try {
+    const parsed = parseJson(fromUtf8(body))
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return undefined
+    return asObj(parsed)
+  } catch {
+    return undefined
+  }
 }
 
 function asPayload(bytes: Uint8Array | undefined): { readonly [key: string]: Json } | undefined {
@@ -97,27 +133,32 @@ export async function handleAuthNonce(
   state: Dict,
   body: Uint8Array,
 ): Promise<HttpResult> {
-  return withWorldLock(() => authNonce(ctx, store, state, body))
+  const obj = parseObject(body)
+  if (obj === undefined) return errResult(ctx, state, codes.API_MALFORMED)
+  const address = normalizeAddress(asText(obj["address"]))
+  if (address.length === 0) return errResult(ctx, state, codes.API_MALFORMED)
+  const tick = asBigint(state["tick_index"])
+  const key = address + ":" + tick.toString()
+  if (windowCount(nonceSeen, store, key) >= ctx.rateLimit) {
+    return errResult(ctx, state, codes.API_RATE_LIMITED)
+  }
+  return withWorldLock(() => authNonce(ctx, store, state, address, key, tick))
 }
 
 async function authNonce(
   ctx: PackCtx,
   store: Store,
   state: Dict,
-  body: Uint8Array,
+  address: string,
+  key: string,
+  tick: bigint,
 ): Promise<HttpResult> {
-  let parsed
-  try {
-    parsed = parseJson(fromUtf8(body))
-  } catch {
-    return errResult(ctx, state, codes.API_MALFORMED)
+  const rate = await incrementCommandRate(store, "nonce:" + address, tick, ctx.rateLimit)
+  if (rate === "limited") {
+    rememberWindow(nonceSeen, store, key, ctx.rateLimit)
+    return errResult(ctx, state, codes.API_RATE_LIMITED)
   }
-  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return errResult(ctx, state, codes.API_MALFORMED)
-  }
-  const obj = asObj(parsed)
-  const address = normalizeAddress(asText(obj["address"]))
-  if (address.length === 0) return errResult(ctx, state, codes.API_MALFORMED)
+  rememberWindow(nonceSeen, store, key, windowCount(nonceSeen, store, key) + 1n)
   const now = asBigint(state["city_time"])
   const expires = now + ctx.nonceTtlCity
   const nonce = opaqueId()
@@ -131,33 +172,42 @@ async function authNonce(
   return okResult(ctx, state, { nonce, expires_city_time: expires })
 }
 
+async function gateDemo(ctx: PackCtx, store: Store, state: Dict): Promise<HttpResult> {
+  const tick = asBigint(state["tick_index"])
+  const limit = demoLimit(ctx)
+  const key = tick.toString()
+  if (windowCount(demoSeen, store, key) >= limit) {
+    return errResult(ctx, state, codes.API_RATE_LIMITED)
+  }
+  return withWorldLock(async () => {
+    const rate = await incrementCommandRate(store, "demo-window", tick, limit)
+    if (rate === "limited") {
+      rememberWindow(demoSeen, store, key, limit)
+      return errResult(ctx, state, codes.API_RATE_LIMITED)
+    }
+    rememberWindow(demoSeen, store, key, windowCount(demoSeen, store, key) + 1n)
+    return issueDemoSession(ctx, store, state)
+  })
+}
+
 export async function handleAuthSession(
   ctx: PackCtx,
   store: Store,
   state: Dict,
   body: Uint8Array,
 ): Promise<HttpResult> {
-  return withWorldLock(() => authSession(ctx, store, state, body))
+  const obj = parseObject(body)
+  if (obj === undefined) return errResult(ctx, state, codes.API_MALFORMED)
+  if (asText(obj["account_kind"]) === "demo") return gateDemo(ctx, store, state)
+  return withWorldLock(() => authSession(ctx, store, state, obj))
 }
 
 async function authSession(
   ctx: PackCtx,
   store: Store,
   state: Dict,
-  body: Uint8Array,
+  obj: { readonly [key: string]: Json },
 ): Promise<HttpResult> {
-  let parsed
-  try {
-    parsed = parseJson(fromUtf8(body))
-  } catch {
-    return errResult(ctx, state, codes.API_MALFORMED)
-  }
-  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return errResult(ctx, state, codes.API_MALFORMED)
-  }
-  const obj = asObj(parsed)
-  const kind = asText(obj["account_kind"])
-  if (kind === "demo") return issueDemoSession(ctx, store, state)
   const address = normalizeAddress(asText(obj["address"]))
   const nonce = asText(obj["nonce"])
   const signature = asText(obj["signature"])

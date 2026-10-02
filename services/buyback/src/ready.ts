@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
 import { canonical } from "@corporator/contentpack"
 import { listenBindOrEnv, readyTemplate, transportHttp } from "@corporator/protocol"
+import { liveRpcReady } from "./worker.js"
 
 export type ReadyListen = {
   readonly port: bigint
@@ -30,8 +31,18 @@ export function listenReady(hash: string, port: bigint, submit?: ConveyorSubmit)
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     const url = req.url ?? ""
     if (req.method === "GET" && url === readyTemplate) {
+      const hop = process.env.CORPORATOR_HOP_URL
+      const live = hop !== undefined && hop.length > 0 && liveRpcReady(process.env)
       res.statusCode = Number(transportHttp.API_INTENT_REPLAY)
-      res.end(Buffer.from(canonical({ pack_hash: hash, ready: 1n })))
+      res.end(
+        Buffer.from(
+          canonical({
+            pack_hash: hash,
+            ready: live ? 1n : 0n,
+            source: live ? "live" : "mock",
+          }),
+        ),
+      )
       return
     }
     if (req.method === "POST" && url === readyTemplate && submit !== undefined) {

@@ -511,20 +511,39 @@
   }
 
   .agents__selector {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     width: auto;
     max-width: none;
     margin-left: 0;
-    padding-left: var(--site-gutter);
-    overflow-x: auto;
-    overflow-y: clip;
-    overflow-anchor: none;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline-start: var(--site-gutter);
+    padding-inline: var(--site-gutter);
+    overflow: visible;
   }
 
   .agents__card {
-    flex-basis: calc((100vw - var(--site-gutter) - 3 * var(--site-space-3)) / 4.3);
-    width: calc((100vw - var(--site-gutter) - 3 * var(--site-space-3)) / 4.3);
-    scroll-snap-align: start;
+    box-sizing: border-box;
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .agents__card:nth-child(1) {
+    grid-column: 2 / span 2;
+  }
+
+  .agents__card:nth-child(2) {
+    grid-column: 4 / span 2;
+  }
+
+  .agents__card:nth-child(3) {
+    grid-column: 1 / span 2;
+  }
+
+  .agents__card:nth-child(4) {
+    grid-column: 3 / span 2;
+  }
+
+  .agents__card:nth-child(5) {
+    grid-column: 5 / span 2;
   }
 }

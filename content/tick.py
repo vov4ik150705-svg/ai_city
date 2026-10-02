@@ -1086,6 +1086,7 @@ def _update_mint_rate(cfg: dict, state: dict, inputs: dict, day: int, hour: int)
             prev,
             cfg["rise_max_bps"],
             elapsed,
+            cfg["ticks_day"],
         )
         if elapsed > 0 and prev > 0 and new_rate < target:
             if new_rate < cfg["capital_anchor"]:
@@ -1115,6 +1116,7 @@ def _update_mint_rate(cfg: dict, state: dict, inputs: dict, day: int, hour: int)
             ref,
             cfg["anchor_band_bps"],
             cfg["stale_decay_bps"],
+            cfg["ticks_day"],
             cfg["ticks_day"],
         )
 

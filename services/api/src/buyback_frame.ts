@@ -1,7 +1,7 @@
 import { canonical, fromUtf8, parseJson, type Json } from "@corporator/contentpack"
 import { PRIZE_KETTLE_MONTH } from "@corporator/chainport"
-import { keccak256Hex, quoteAt } from "@corporator/engine"
-import { listenBindOrEnv, listenPorts, readyTemplate } from "@corporator/protocol"
+import { cityClock, keccak256Hex, quoteAt } from "@corporator/engine"
+import { buybackReadyUrl } from "./service_url.js"
 import { withWorldLock } from "./city_lock.js"
 import { cityKind } from "./envelope.js"
 import { prizeAssets, stockAddress } from "./commit_prize.js"
@@ -25,6 +25,7 @@ type Planned = {
 }
 
 const postedHour = new WeakMap<ApiHost, bigint>()
+const postedSlices = new WeakMap<ApiHost, Set<string>>()
 let injected: BuybackPoster | undefined
 
 export function useBuybackPoster(poster: BuybackPoster | undefined): void {
@@ -92,17 +93,54 @@ function demandOf(state: ApiHost["state"], tickers: readonly string[]): { [ticke
   return out
 }
 
-function monthBatchId(token: string, cityTime: bigint): string {
-  const text = "month\0" + token + "\0" + cityTime.toString()
+function closedPrizePeriod(host: ApiHost): bigint {
+  const cfg = asEngineDict(host.state["cfg"])
+  const length = asBigint(cfg["tick_length_city_hours"])
+  const anchor = asBigint(cfg["anchor_hour"])
+  const cityTime = asBigint(host.state["city_time"])
+  const tickIndex = length === 0n ? 0n : (cityTime - anchor) / length
+  const clock = cityClock(cfg, tickIndex)
+  const day = clock[0]
+  const hour = clock[1]
+  const season = asBigint(walk(host.ctx.pack, ["sections", "balance", "params", "season_city_days", "v"]))
+  const periods = asBigint(walk(host.ctx.pack, ["sections", "seasons", "params", "prize_periods_per_season", "v"]))
+  const settle = asBigint(walk(host.ctx.pack, ["sections", "time", "params", "efficiency_recalc_hour", "v"]))
+  if (periods <= 0n || season <= 0n || day <= 1n) return 0n
+  const span = season / periods
+  if (span <= 0n) return 0n
+  let index = (day - 1n) / span
+  if ((day - 1n) % span === 0n && hour < settle && index > 0n) index -= 1n
+  return index
+}
+
+function monthBatchId(period: bigint, token: string): string {
+  const text = "month\0" + period.toString() + "\0" + token
   return "0x" + keccak256Hex(new TextEncoder().encode(text))
 }
 
-function monthSlices(
-  state: ApiHost["state"],
-  tickers: readonly string[],
-  cityTime: bigint,
-  caller: string,
-): Json[] {
+function rememberSlices(host: ApiHost, body: Uint8Array): void {
+  let known = postedSlices.get(host)
+  if (known === undefined) {
+    known = new Set()
+    postedSlices.set(host, known)
+  }
+  try {
+    const row = asObj(parseJson(fromUtf8(body)))
+    const slices = row["slices"]
+    if (!Array.isArray(slices)) return
+    for (const raw of slices) {
+      const rec = asObj(raw)
+      const id = asText(rec["batch_id"])
+      if (id.length > 0) known.add(id)
+    }
+  } catch {
+    return
+  }
+}
+
+function monthSlices(host: ApiHost, tickers: readonly string[], caller: string): Json[] {
+  const state = host.state
+  const posted = postedSlices.get(host)
   const settle = state["season_settlement"]
   if (settle === undefined || settle === null) return []
   const byAsset = asEngineDict(asEngineDict(settle)["by_asset"])
@@ -121,8 +159,10 @@ function monthSlices(
       amounts.push(payout)
     }
     if (players.length === 0) continue
+    const batchId = monthBatchId(closedPrizePeriod(host), token)
+    if (posted !== undefined && posted.has(batchId)) continue
     out.push({
-      batch_id: monthBatchId(token, cityTime),
+      batch_id: batchId,
       kettle: PRIZE_KETTLE_MONTH,
       token,
       players,
@@ -190,7 +230,7 @@ async function plan(host: ApiHost): Promise<Planned | undefined> {
   const depths = zeros(tickers)
   for (const ticker of tickers) depths[ticker] = depth
   const caller = portCfgFromPack(ctx.pack).voucherSignerService
-  const slices = monthSlices(host.state, tickers, cityTime, caller)
+  const slices = monthSlices(host, tickers, caller)
   const body: { [key: string]: Json } = {
     city_time: cityTime,
     turnover_wei: turnoverWei,
@@ -225,12 +265,8 @@ function accepted(raw: Uint8Array): boolean {
 }
 
 async function postDefault(body: Uint8Array): Promise<boolean> {
-  const url =
-    "http://" +
-    listenBindOrEnv(process.env.CORPORATOR_LISTEN_BIND) +
-    ":" +
-    listenPorts.buyback.toString() +
-    readyTemplate
+  const url = buybackReadyUrl()
+  if (url === undefined) return false
   const res = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -273,5 +309,6 @@ export async function publishBuybackFrame(host: ApiHost, poster?: BuybackPoster)
     await releaseHour(host, planned.bucket)
     return 0n
   }
+  rememberSlices(host, planned.body)
   return 1n
 }

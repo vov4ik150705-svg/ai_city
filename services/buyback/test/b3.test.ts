@@ -389,7 +389,7 @@ describe("B3 collector", () => {
     const handler = createConveyorSubmit(pack, port, createCollectorSource(pack, { hop }))
     const row = reply(await handler(fullBatch(pack)))
     expect(calls.length).toBe(0)
-    expect(asBig(row["calls"])).toBe(0n)
+    expect(asText(row["code"])).toBe(codes.SERVICE_DEGRADED)
     expect((await bags(port, pack)).farm).toBe(0n)
     const empty = reply(await handler(new Uint8Array()))
     expect(asText(empty["code"])).toBe(codes.SERVICE_DEGRADED)

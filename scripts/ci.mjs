@@ -1,4 +1,4 @@
-/* GENERATED from pack dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4; do not edit */
+/* GENERATED from pack 16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d; do not edit */
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -69,7 +69,7 @@ export const ciSteps = [
   },
   {
     "id": "image_smoke",
-    "cmd": "docker build -f deploy/Dockerfile --build-arg PACK_HASH=ci -t corporator:ci-smoke .",
+    "cmd": "HASH=$(tr -d '[:space:]' < content/out/pack.sha256) && docker build -f deploy/Dockerfile --build-arg PACK_HASH=$HASH -t corporator:$HASH . && docker run --rm -e EXPECT=$HASH corporator:$HASH node -e 'process.exit(process.env.PACK_HASH===process.env.EXPECT?0:1)'",
     "catches": "image without PACK_HASH, root user, python in runtime",
     "red_input": "drop USER node from deploy/Dockerfile",
     "track": "nightly"

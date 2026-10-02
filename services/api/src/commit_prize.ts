@@ -3,10 +3,10 @@ import { dataPrizeClaim, PRIZE_KETTLE_FARM, PRIZE_KETTLE_MONTH, type AssetPort, 
 import { fromUtf8, parseJson } from "@corporator/contentpack"
 import { codes } from "@corporator/protocol"
 import { outsideWorldLock } from "./city_lock.js"
-import { chainTxKey } from "./commit_bank.js"
+import { commitPrepared, takenChainTx } from "./commit_bank.js"
 import { type PackCtx } from "./pack_ctx.js"
 import { cityKind, errResult, okResult, statusFor, type HttpResult } from "./envelope.js"
-import { getBytes, putBytes, type Store } from "./store.js"
+import { getBytes, type Store } from "./store.js"
 import { asBigint, asEngineDict, asText, walk, type Json } from "./values.js"
 
 export type PrizeCustody = {
@@ -44,6 +44,7 @@ export async function applyClaimPrize(
   cityId: string,
   custody?: PrizeCustody,
 ): Promise<HttpResult> {
+  if (!launchDeployed(ctx)) return errResult(ctx, state, codes.DEMO_NO_PRIZE)
   const kind = cityKind(state, cityId)
   if (kind === "demo") return errResult(ctx, state, codes.DEMO_NO_PRIZE)
   const assets = prizeAssets(ctx)
@@ -221,7 +222,8 @@ export async function prepareClaimPrize(
     effect: "claim_prize",
     txs: txJson,
   })
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -245,10 +247,8 @@ export async function verifyPrizeConfirm(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) {
-      return { ok: false, result: { status: statusForStored(ctx, prior), body: prior, headers: {} } }
-    }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", cityId + ":" + ticket)
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }

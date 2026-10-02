@@ -226,6 +226,16 @@
   text-decoration-thickness: 2px;
 }
 
+.site-phrase-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-phrase-link:hover {
+  color: var(--site-text-primary);
+  text-decoration: none;
+}
+
 @property --arrow-weight {
   syntax: "<number>";
   inherits: true;

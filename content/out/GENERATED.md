@@ -1,7 +1,7 @@
 # Сгенерированные таблицы
 
 Артефакт сборки. Источник — `content/params/`, генератор — `content/build.py`,
-версия правил `0.24.0`, пак `195`, хеш `dce4eda1ce60fe04…`.
+версия правил `0.24.0`, пак `204`, хеш `16ed396bc2a98085…`.
 Руками не править: следующая сборка перезапишет.
 
 ## Соответствие роли и здания
@@ -1141,6 +1141,7 @@ kind=screen 14, kind=panel 11, kind=flow 2. Пятнадцать экранов 
 | `BANK_DAILY_LIMIT_REACHED` | `bank`, `topbar` |
 | `BANK_LIMIT_FROM_DEPTH` | `bank` |
 | `BANK_SUNDAY` | `topbar`, `bank` |
+| `CHAIN_REORG` | `bank`, `exchange` |
 | `DISTRICT_FREEZING` | `districts_panel`, `district_card` |
 | `DISTRICT_FROZEN` | `districts_panel`, `district_card`, `district_overview` |
 | `EXCHANGE_DELIVERY_UNVERIFIED` | `exchange` |
@@ -1582,6 +1583,7 @@ layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`
 | `compose_prod` | `arch.image` | `deploy/compose.prod.yaml` | `api` |
 | `env_example` | `arch.secrets, arch.env` | `deploy/.env.example` | `api` |
 | `restore_sh` | `arch.backup` | `deploy/restore.sh` | `api` |
+| `dump_sh` | `arch.backup` | `deploy/dump.sh` | `api` |
 | `ci_runner` | `arch.ci_steps` | `scripts/ci.mjs` | `api` |
 | `ci_workflow` | `arch.ci_steps` | `.github/workflows/ci.yml` | `api` |
 | `env_manifests` | `arch.environments` | `deploy/environments.json` | `api` |
@@ -1615,7 +1617,7 @@ layer_order: `engine`, `protocol`, `chainport`, `contentpack`, `api`, `attestor`
 | `sessions` | `session_id` | `none` | `canonical_bytes` | `0` | `1` |
 | `city_owners` | `subject` | `none` | `canonical_bytes` | `0` | `1` |
 | `command_rates` | `city_id, tick_index` | `none` | `canonical_bytes` | `0` | `0` |
-| `tick_locks` | `city_id` | `none` | `canonical_bytes` | `0` | `0` |
+| `tick_locks` | `world` | `none` | `canonical_bytes` | `0` | `0` |
 
 Field homes: `agent_id`→`records`, `building_id`→`records`, `city_id`→`tick_inputs`, `city_time`→`tick_inputs`, `companion_commands_hash`→`tick_inputs`, `corp_eth_wei_per_whole`→`tick_inputs`, `dex_turnover_usd_8dec`→`tick_inputs`, `district_efficiency_bps`→`records`, `eth_usd_8dec`→`tick_inputs`, `feed_live`→`tick_inputs`, `fragments_delta`→`records`, `inputs`→`records`, `layout_version`→`tick_inputs`, `objective`→`records`, `output`→`records`, `pack_hash`→`tick_inputs`, `payroll_ratio_bps`→`records`, `prev_state_hash`→`tick_inputs`, `price_sample_city_time`→`tick_inputs`, `reason`→`records`, `seed`→`records`, `stage_bps`→`records`, `stake_snapshot`→`tick_inputs`, `status`→`records`, `tick_index`→`tick_inputs`
 

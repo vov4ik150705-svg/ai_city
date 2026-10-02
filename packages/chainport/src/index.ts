@@ -3,6 +3,7 @@ import { createMockPort } from "./mock.js"
 import { createRpcPort } from "./rpc/index.js"
 import { isPortKind, type PortConfig, type PortKind, type RpcTransport } from "./values.js"
 
+export { isAddr } from "./rpc/abi.js"
 export type {
   AssetPort,
   CorpTokenPort,
@@ -13,6 +14,8 @@ export type {
   SnapshotOk,
   SnapshotResult,
   StakeRegistryPort,
+  TxViewOk,
+  TxViewResult,
   VaultPort,
 } from "./port.js"
 export type {
@@ -46,7 +49,7 @@ export { dataApprove, dataClaimUnstaked, dataDeposit, dataPresentVoucher, dataPr
 export { createLiveTransport, createRpcPort } from "./rpc/index.js"
 export type { LiveContracts, LiveRpcConfig } from "./rpc/index.js"
 export { fetchPoster, postEth } from "./rpc/jsonrpc.js"
-export { addressOfPrivateKey, gasLimitOf, signLegacyTx } from "./rpc/sign.js"
+export { addressOfPrivateKey, broadcastRoleTx, gasLimitOf, signLegacyTx, type InflightTx } from "./rpc/sign.js"
 export type { JsonRpcPost } from "./rpc/jsonrpc.js"
 export { launchIntent, postSignedRaw, readCreatorTaxBps, readPlayerReady } from "./rpc/index.js"
 export type { EnvMap, LaunchIntent, PlayerReady } from "./rpc/index.js"

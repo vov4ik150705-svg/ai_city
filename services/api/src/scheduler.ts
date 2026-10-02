@@ -1,9 +1,10 @@
 import { type AssetPort } from "@corporator/chainport"
-import { catchUp, clipOfflineHours, quoteAt, type Dict } from "@corporator/engine"
+import { catchUp, clipOfflineHours, mintFromBacking, quoteAt, type Dict } from "@corporator/engine"
 import { fromUtf8, parseJson } from "@corporator/contentpack"
 import { reconcileVouchers } from "./commit_bank.js"
+import { reconcileChainCredits } from "./reorg.js"
 import { sliceFarm } from "./slicer.js"
-import { portCfgFromPack, selectApiPort } from "./custody.js"
+import { portCfgFromPack, prizeCustodyLive, selectApiPort } from "./custody.js"
 import { type PackCtx } from "./pack_ctx.js"
 import { type ApiHost } from "./host.js"
 import { type TickLock } from "./tick_lock.js"
@@ -12,6 +13,25 @@ import { persistGapRecord, type Attestor } from "./tick_host.js"
 import { publishBuybackFrame } from "./buyback_frame.js"
 import { listBytes, type Store } from "./store.js"
 import { asBigint, asEngineDict, asObj, asText, walk } from "./values.js"
+
+const houseBackingSeen = new WeakMap<ApiHost, bigint>()
+
+async function creditHouseBacking(host: ApiHost, port: AssetPort): Promise<void> {
+  const house = process.env.CORPORATOR_VAULT_HOUSE
+  if (house === undefined || house.length === 0) return
+  let got: Awaited<ReturnType<AssetPort["vault"]["backingOf"]>>
+  try {
+    got = await port.vault.backingOf(house)
+  } catch {
+    return
+  }
+  if (!got.ok) return
+  const seen = houseBackingSeen.get(host) ?? 0n
+  if (got.amount <= seen) return
+  const cfg = asEngineDict(host.state["cfg"])
+  mintFromBacking(cfg, host.state, got.amount - seen, 0n, 1n, "fund")
+  houseBackingSeen.set(host, got.amount)
+}
 
 export function lastCityTimeOf(state: Dict): bigint {
   const cfg = asEngineDict(state["cfg"])
@@ -130,6 +150,7 @@ export function voucherReconcileDone(): Promise<void> {
 function scheduleVoucherReconcile(host: ApiHost, port: AssetPort): void {
   voucherReconcile = voucherReconcile
     .then(() => reconcileVouchers(host, port))
+    .then(() => reconcileChainCredits(host, port))
     .then(() => sliceFarm(host, port))
     .catch(() => undefined)
 }
@@ -144,6 +165,11 @@ export async function catchUpOnce(
   const cityId = firstCityId(host.state)
   const last = lastCityTimeOf(host.state)
   const inputsNow = await inputsAhead(host.ctx, host.state, cityId, ticks, host.store)
+  const chain = port ?? selectApiPort(portCfgFromPack(host.ctx.pack), process.env)
+  if (prizeCustodyLive(chain)) {
+    inputsNow["dex_turnover_usd_8dec"] = 0n
+    await creditHouseBacking(host, chain)
+  }
   const preview = catchUp(structuredClone(host.state), inputsNow, last)
   const cfg = asEngineDict(host.state["cfg"])
   const length = asBigint(cfg["tick_length_city_hours"])
@@ -177,7 +203,6 @@ export async function catchUpOnce(
     await host.stepTick(inp, attestor)
     i += 1n
   }
-  const chain = port ?? selectApiPort(portCfgFromPack(host.ctx.pack), process.env)
   scheduleVoucherReconcile(host, chain)
   void publishBuybackFrame(host).catch(() => undefined)
 }
@@ -193,7 +218,7 @@ export async function tickIfWriter(
   dueTicks: bigint = 1n,
 ): Promise<boolean> {
   const cityId = firstCityId(host.state)
-  const held = await lock.tryAcquire(cityId)
+  const held = await lock.tryAcquire()
   if (!held) return false
   await catchUpOnce(host, attestor, dueTicks)
   return true

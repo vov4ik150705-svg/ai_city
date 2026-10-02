@@ -1,4 +1,4 @@
-/* GENERATED from pack dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4; do not edit */
+/* GENERATED from pack 16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d; do not edit */
 
 export const codes = {
   IDLE_NO_ENERGY: "IDLE_NO_ENERGY",
@@ -82,6 +82,7 @@ export const codes = {
   PRIZE_NOTHING_OWED: "PRIZE_NOTHING_OWED",
   EXCHANGE_DELIVERY_UNVERIFIED: "EXCHANGE_DELIVERY_UNVERIFIED",
   LEDGER_NOT_EMPTY_LIVE: "LEDGER_NOT_EMPTY_LIVE",
+  CHAIN_REORG: "CHAIN_REORG",
 } as const;
 export type CodeId = keyof typeof codes;
 export const transportHttp = {

@@ -5,8 +5,9 @@ import { codes } from "@corporator/protocol"
 import { type PackCtx } from "./pack_ctx.js"
 import { cityKind, envelopeErr, errResult, okResult, statusFor, type HttpResult } from "./envelope.js"
 import { asBigint, asEngineDict, asObj, asText, walk, type Json } from "./values.js"
-import { getBytes, putBytes, type Store } from "./store.js"
-import { chainTxKey } from "./commit_bank.js"
+import { getBytes, type Store } from "./store.js"
+import { commitPrepared, takenChainTx } from "./commit_bank.js"
+import { receiptLanded } from "./reorg.js"
 import { prizeCustodyLive } from "./custody.js"
 
 function asList(value: unknown): unknown[] {
@@ -248,8 +249,10 @@ export async function applyStake(
     if (take < delta) return errResult(ctx, state, codes.STAKE_MULT_SHORT)
   }
   if (!fromWallet && tokensHeld(city, spec.ticker) < take) return errResult(ctx, state, codes.STAKE_MULT_SHORT)
-  if (fromWallet) creditStake(city, spec.ticker, take)
-  else moveStake(city, spec.ticker, take)
+  if (fromWallet) {
+    if (port === undefined || !prizeCustodyLive(port)) return errResult(ctx, state, codes.API_MALFORMED)
+    creditStake(city, spec.ticker, take)
+  } else moveStake(city, spec.ticker, take)
   settleStake(ctx, city, spec)
   const extra: { [key: string]: Json } = {
     effect: "stake",
@@ -559,7 +562,8 @@ export async function prepareStake(
     chain_before: chainBefore,
     txs,
   })
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -579,10 +583,8 @@ export async function verifyStakeConfirm(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) {
-      return { ok: false, result: { status: statusForStored(ctx, prior), body: prior, headers: {} } }
-    }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", cityId + ":" + ticket)
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
@@ -618,7 +620,7 @@ export async function verifyStakeConfirm(
       return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
     }
     const receipt = await port.chain.transactionReceipt(hash)
-    if (!receipt.ok || receipt.status !== 1n) {
+    if (!receiptLanded(ctx, receipt)) {
       return { ok: false, result: errResult(ctx, state, codes.CHAIN_TX_UNCONFIRMED) }
     }
     const seen = await port.chain.transactionByHash(hash)
@@ -766,7 +768,8 @@ export async function prepareUnstake(
     extra["ready_at_s"] = bucket.readyAtS
   }
   const result = okResult(ctx, state, extra)
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -786,10 +789,8 @@ export async function verifyUnstakeConfirm(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) {
-      return { ok: false, result: { status: statusForStored(ctx, prior), body: prior, headers: {} } }
-    }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", cityId + ":" + ticket)
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
@@ -937,7 +938,8 @@ export async function prepareClaimUnstake(
     ready_at_s: bucket.readyAtS,
     txs: [{ to: registry, data, value: "0", label: "claim_unstaked" }],
   })
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -957,10 +959,8 @@ export async function verifyClaimConfirm(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) {
-      return { ok: false, result: { status: statusForStored(ctx, prior), body: prior, headers: {} } }
-    }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", cityId + ":" + ticket)
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }

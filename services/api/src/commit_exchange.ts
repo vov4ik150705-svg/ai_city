@@ -3,13 +3,14 @@ import { fromUtf8, parseJson } from "@corporator/contentpack"
 import { bankOpen, cityClock, cpmmSellCorp, keccak256Hex, type Dict } from "@corporator/engine"
 import { codes } from "@corporator/protocol"
 import { outsideWorldLock } from "./city_lock.js"
-import { chainTxKey } from "./commit_bank.js"
+import { commitPrepared, takenChainTx } from "./commit_bank.js"
+import { receiptLanded } from "./reorg.js"
 import { districtByTicker, districtSpec, resolveDistrictId } from "./commit_districts.js"
 import { stockAddress } from "./commit_prize.js"
 import { prizeCustodyLive } from "./custody.js"
 import { type PackCtx } from "./pack_ctx.js"
 import { cityKind, errResult, okResult, statusFor, type HttpResult } from "./envelope.js"
-import { getBytes, putBytes, type Store } from "./store.js"
+import { getBytes, type Store } from "./store.js"
 import { asBigint, asEngineDict, asObj, asText, walk, type Json } from "./values.js"
 
 export type HopFill = (
@@ -409,7 +410,8 @@ export async function prepareBuyStock(
     stock_out: quoted.stockOut,
     txs: txJson,
   })
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -430,10 +432,8 @@ export async function verifyBuyConfirm(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) {
-      return { ok: false, result: { status: statusForStored(ctx, prior), body: prior, headers: {} } }
-    }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", cityId + ":" + ticket)
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
@@ -475,7 +475,7 @@ export async function verifyBuyConfirm(
       return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
     }
     const receipt = await port.chain.transactionReceipt(hash)
-    if (!receipt.ok || receipt.status !== 1n) {
+    if (!receipt.ok || !receiptLanded(ctx, receipt)) {
       return { ok: false, result: errResult(ctx, state, codes.CHAIN_TX_UNCONFIRMED) }
     }
     const seen = await port.chain.transactionByHash(hash)
@@ -486,7 +486,9 @@ export async function verifyBuyConfirm(
     if (live && tx.label === "buy") {
       sawBuy = true
       delivered = deliveredStock(receipt.logs, stock, wallet)
-      if (delivered <= 0n) return { ok: false, result: errResult(ctx, state, codes.EXCHANGE_DELIVERY_UNVERIFIED) }
+      if (delivered < stockOut || delivered <= 0n) {
+        return { ok: false, result: errResult(ctx, state, codes.EXCHANGE_DELIVERY_UNVERIFIED) }
+      }
     }
   }
   if (live && !sawBuy) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }

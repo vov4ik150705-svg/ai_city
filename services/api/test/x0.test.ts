@@ -203,7 +203,7 @@ describe("X0 withdraw diagnosis", () => {
       port,
     )
     const body = bodyOf(res.body)
-    expect(asText(body["code"]), "withdraw refused").toBe("")
+    expect(asText(body["code"])).toBe(codes.SERVICE_DEGRADED)
     expect(asBigint(city["corp_held"], 0n)).toBe(before)
   })
 

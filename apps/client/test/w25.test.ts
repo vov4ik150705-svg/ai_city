@@ -125,11 +125,14 @@ describe("W25 HUD sees the walk", () => {
     expect(locked.kind).toBe("failed")
     if (locked.kind === "failed") expect(locked.code).toBe(codes.DISTRICT_LOCKED)
     const need = asBigint(walk(host.ctx.pack, ["sections", "districts", "stake", "s_min", "TSLA", "v"]))
+    const held = asEngineDict(cityOf(host)["tokens_held"])
+    held["TSLA"] = need
+    cityOf(host)["tokens_held"] = held
     same(
       "stake",
       await adapter.dispatch(
         { kind: "stake", districtId: "energy", amount: need.toString() },
-        { source: "wallet" },
+        { source: "ledger" },
       ),
     )
     same("open", await adapter.dispatch({ kind: "open_district", districtId: "energy" }))

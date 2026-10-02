@@ -14,7 +14,7 @@ import { matchTemplate } from "./pack_ctx.js"
 import { errResult } from "./envelope.js"
 import { sessionFromHeaders } from "./session.js"
 import { bearerFromProtocol, handshake, pulseFrame, rejectUnauthorized, textFrame } from "./ws.js"
-import { asBigint, asObj, asText } from "./values.js"
+import { asBigint, asObj, asText, walk } from "./values.js"
 import { wsChannelClasses } from "./ws_patch.js"
 
 export type ApiListen = {
@@ -27,6 +27,7 @@ export type ApiListen = {
 type CitySocket = {
   readonly socket: Duplex
   readonly cityId: string
+  readonly expiresCityTime: bigint
 }
 
 function portNumber(port: bigint): number {
@@ -41,21 +42,37 @@ function envPort(fallback: bigint): bigint {
   return BigInt(raw)
 }
 
+function originAllowed(origin: string): boolean {
+  const raw = process.env.CORPORATOR_CORS_ORIGINS
+  if (raw === undefined || raw.length === 0) return false
+  for (const part of raw.split(",")) {
+    if (part.trim() === origin) return true
+  }
+  return false
+}
+
 function securityHeaders(req: IncomingMessage, res: ServerResponse): void {
   res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'")
   res.setHeader("X-Content-Type-Options", "nosniff")
   const origin = req.headers.origin
-  if (typeof origin === "string" && origin.length > 0) {
-    res.setHeader("Access-Control-Allow-Origin", origin)
-    res.setHeader("Vary", "Origin")
-    res.setHeader("Access-Control-Allow-Headers", "authorization, content-type")
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-  }
+  if (typeof origin !== "string" || origin.length === 0 || !originAllowed(origin)) return
+  res.setHeader("Access-Control-Allow-Origin", origin)
+  res.setHeader("Vary", "Origin")
+  res.setHeader("Access-Control-Allow-Headers", "authorization, content-type")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 }
 
 function pathOf(raw: string): string {
   const cut = raw.indexOf("?")
   return cut < 0 ? raw : raw.slice(0, cut)
+}
+
+function bodyCeiling(host: ApiHost): number {
+  const n = asBigint(walk(host.ctx.pack, ["sections", "api", "params", "http_body_max_bytes", "v"]))
+  if (n <= 0n) return 0
+  const asNum = Number(n)
+  if (!Number.isSafeInteger(asNum)) return 0
+  return asNum
 }
 
 export function listenApi(host: ApiHost, bindPort?: bigint): Promise<ApiListen> {
@@ -71,10 +88,26 @@ export function listenApi(host: ApiHost, bindPort?: bigint): Promise<ApiListen> 
       return
     }
     const chunks: Buffer[] = []
+    const ceiling = bodyCeiling(host)
+    let size = 0
+    let stopped = false
     req.on("data", (c: Buffer) => {
+      if (stopped) return
+      size += c.length
+      if (size > ceiling) {
+        stopped = true
+        chunks.length = 0
+        req.destroy()
+        res.destroy()
+        return
+      }
       chunks.push(c)
     })
+    req.on("error", () => {
+      stopped = true
+    })
     req.on("end", () => {
+      if (stopped) return
       const body = new Uint8Array(Buffer.concat(chunks))
       const headers: { [name: string]: string } = {}
       const auth = req.headers.authorization
@@ -97,7 +130,14 @@ export function listenApi(host: ApiHost, bindPort?: bigint): Promise<ApiListen> 
         })
     })
   })
+  function dropExpired(): void {
+    const now = asBigint(host.state["city_time"])
+    for (const row of [...sockets]) {
+      if (row.expiresCityTime < now) row.socket.destroy()
+    }
+  }
   function send(cityId: string, payload: Uint8Array): void {
+    dropExpired()
     const frame = textFrame(payload)
     for (const row of sockets) {
       if (row.cityId !== cityId) continue
@@ -147,7 +187,7 @@ export function listenApi(host: ApiHost, bindPort?: bigint): Promise<ApiListen> 
       return
     }
     if (!handshake(socket, req, fromProtocol.selected)) return
-    const row: CitySocket = { socket, cityId: session.cityId }
+    const row: CitySocket = { socket, cityId: session.cityId, expiresCityTime: session.expiresCityTime }
     sockets.push(row)
     socket.on("close", () => {
       const i = sockets.indexOf(row)
@@ -155,6 +195,7 @@ export function listenApi(host: ApiHost, bindPort?: bigint): Promise<ApiListen> 
     })
   }
   function pulse(): void {
+    dropExpired()
     const body = pulseFrame({
       city_time: asBigint(host.state["city_time"]),
       pack_hash: host.ctx.hash,

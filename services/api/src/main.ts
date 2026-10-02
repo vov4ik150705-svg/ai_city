@@ -8,11 +8,24 @@ import { liveStartRefusal } from "./tick_host.js"
 import { remoteAttestor } from "./attest_client.js"
 import { bootFromBytes, defaultPackPath, repoRootFrom } from "./boot.js"
 import { listenApi } from "./listen.js"
-import { firstCityId, tickIfWriter } from "./scheduler.js"
+import { tickIfWriter } from "./scheduler.js"
 import { openPg } from "./store.js"
 import type { ApiHost } from "./host.js"
 import type { AssetPort } from "@corporator/chainport"
-import { pgTickLock } from "./tick_lock.js"
+import { pgTickLock, replicaIdOf } from "./tick_lock.js"
+import { type Dict } from "./values.js"
+
+/** A dirty wallet ledger on a live port closes the database and exits. */
+export async function stopDirtyLedger(
+  state: Dict,
+  live: boolean,
+  store: { close(): Promise<void> },
+): Promise<boolean> {
+  if (liveStartRefusal(state, live).length === 0) return false
+  process.stderr.write(codes.LEDGER_NOT_EMPTY_LIVE + "\n")
+  await store.close()
+  process.exit(1)
+}
 
 export async function bindDeposits(host: ApiHost, env: { readonly [key: string]: string | undefined }): Promise<AssetPort | undefined> {
   const picked = pickApiPort(portCfgFromPack(host.ctx.pack), env)
@@ -51,14 +64,14 @@ export async function startMain(): Promise<void> {
     process.exit(1)
     return
   }
-  if (liveStartRefusal(host.state, prizeCustodyLive(port)).length > 0) {
-    process.stderr.write(codes.LEDGER_NOT_EMPTY_LIVE + "\n")
+  if (await stopDirtyLedger(host.state, prizeCustodyLive(port), host.store)) return
+  const replicaId = replicaIdOf(process.env.HOSTNAME)
+  if (replicaId === undefined) {
     process.exitCode = 1
+    await host.store.close()
     return
   }
   const listening = await listenApi(host)
-  const hostname = process.env.HOSTNAME
-  const replicaId = hostname !== undefined && hostname.length > 0 ? hostname : "api"
   const lock = pgTickLock(listening.host.store, replicaId)
   listening.host.commandLock = lock
   const delay = Number(tickLengthRealMs)
@@ -68,7 +81,7 @@ export async function startMain(): Promise<void> {
   }, delay)
   const stop = (): void => {
     clearInterval(timer)
-    void lock.release(firstCityId(listening.host.state)).then(() => listening.close())
+    void lock.release().then(() => listening.close())
   }
   process.on("SIGTERM", stop)
   process.on("SIGINT", stop)

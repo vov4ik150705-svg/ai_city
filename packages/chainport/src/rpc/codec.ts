@@ -302,17 +302,31 @@ export function encodeTxView(row: {
   readonly to: string
   readonly input: string
   readonly logs: readonly TxLog[]
+  readonly blockHash?: string
+  readonly blockNumber?: bigint
 }): string {
   const logs: { address: string; topics: string[]; data: string }[] = []
   for (const log of row.logs) logs.push({ address: log.address, topics: [...log.topics], data: log.data })
-  return JSON.stringify({
+  const body: {
+    ok: true
+    status: string
+    from: string
+    to: string
+    input: string
+    logs: { address: string; topics: string[]; data: string }[]
+    blockHash?: string
+    blockNumber?: string
+  } = {
     ok: true,
     status: dec(row.status),
     from: row.from,
     to: row.to,
     input: row.input,
     logs,
-  })
+  }
+  if (row.blockHash !== undefined && row.blockHash.length > 0) body.blockHash = row.blockHash
+  if (row.blockNumber !== undefined) body.blockNumber = dec(row.blockNumber)
+  return JSON.stringify(body)
 }
 
 export function decodeTxView(
@@ -325,6 +339,8 @@ export function decodeTxView(
       readonly to: string
       readonly input: string
       readonly logs: readonly TxLog[]
+      readonly blockHash?: string
+      readonly blockNumber?: bigint
     }
   | PortErr {
   const parsed = decodeOutcome(outcome)
@@ -348,6 +364,11 @@ export function decodeTxView(
   if (status === undefined || from.length === 0 || to.length === 0) return silence()
   const logs = logsOf(row["logs"])
   if (logs === undefined) return silence()
+  const blockHash = typeof row["blockHash"] === "string" && row["blockHash"].length > 0 ? row["blockHash"] : undefined
+  const blockNumber = typeof row["blockNumber"] === "string" ? parseDec(row["blockNumber"]) : undefined
+  if (blockHash !== undefined && blockNumber !== undefined) return { ok: true, status, from, to, input, logs, blockHash, blockNumber }
+  if (blockHash !== undefined) return { ok: true, status, from, to, input, logs, blockHash }
+  if (blockNumber !== undefined) return { ok: true, status, from, to, input, logs, blockNumber }
   return { ok: true, status, from, to, input, logs }
 }
 

@@ -394,16 +394,27 @@ def _compose_healthcheck(user: str) -> list[str]:
 
 
 def _compose_http_healthcheck(port: int, ready: str) -> list[str]:
+    script = (
+        "fetch('http://127.0.0.1:"
+        + str(port)
+        + ready
+        + "').then(r=>r.json().then(b=>process.exit(r.ok&&(b.ready===true||b.ready===1)&&b.source!=='mock'?0:1)).catch(()=>process.exit(1))).catch(()=>process.exit(1))"
+    )
     return [
         "    healthcheck:",
-        f'      test: ["CMD", "node", "-e", "fetch(\'http://127.0.0.1:{port}{ready}\').then(r=>process.exit(r.ok?0:1))"]',
+        '      test: ["CMD", "node", "-e", "' + script + '"]',
         "      interval: 5s",
         "      timeout: 5s",
         "      retries: 10",
     ]
 
 
-def _compose_postgres(pack: dict, env_names: list[str]) -> list[str]:
+def _compose_postgres(
+    pack: dict,
+    env_names: list[str],
+    host_port: str | None = None,
+    data_volume: str | None = None,
+) -> list[str]:
     arch_sec = ((pack.get("sections") or {}).get("arch") or {})
     postgres = arch_sec.get("postgres") or {}
     pg_major = str(((arch_sec.get("toolchain") or {}).get("postgres") or {}).get("version") or "0")
@@ -418,8 +429,12 @@ def _compose_postgres(pack: dict, env_names: list[str]) -> list[str]:
     for env in env_names:
         lines.append(f"      - {env}")
     lines.append(f"    image: {pg_image}")
-    lines.append("    ports:")
-    lines.append(f'      - "{pg_port}:{pg_port}"')
+    if host_port is not None:
+        lines.append("    ports:")
+        lines.append(f'      - "{host_port}"')
+    if data_volume is not None:
+        lines.append("    volumes:")
+        lines.append(f"      - {data_volume}:/var/lib/postgresql/data")
     lines.append("    environment:")
     lines.append(f"      POSTGRES_USER: {user}")
     lines.append(f"      POSTGRES_DB: {database}")
@@ -427,6 +442,38 @@ def _compose_postgres(pack: dict, env_names: list[str]) -> list[str]:
     lines.append("    restart: unless-stopped")
     lines.extend(_compose_healthcheck(user))
     return lines
+
+
+def _service_ready_env(pack: dict) -> list[tuple[str, str]]:
+    arch_sec = ((pack.get("sections") or {}).get("arch") or {})
+    env_vars = ((arch_sec.get("env") or {}).get("vars") or {})
+    ports = ((arch_sec.get("listen") or {}).get("ports") or {})
+    ready = str(
+        ((((pack.get("sections") or {}).get("api") or {}).get("path_rules") or {}).get("ready") or {}).get("template")
+        or ""
+    )
+    prefix = "arch.listen.service."
+    out: list[tuple[str, str]] = []
+    if not isinstance(env_vars, dict) or not ready.startswith("/"):
+        return out
+    for env_name in sorted(env_vars):
+        spec = env_vars.get(env_name) or {}
+        src = str(spec.get("value_src") or "")
+        if not src.startswith(prefix):
+            continue
+        sid = src[len(prefix) :]
+        port = int(ports.get(sid) or 0)
+        if port <= 0:
+            continue
+        out.append((env_name, f"http://{sid}:{port}{ready}"))
+    return out
+
+
+def _append_service_ready_env(lines: list[str], pack: dict, sid: str) -> None:
+    if sid != "api":
+        return
+    for env_name, url in _service_ready_env(pack):
+        lines.append(f"      {env_name}: {json.dumps(url)}")
 
 
 def emit_compose(pack: dict) -> str:
@@ -447,7 +494,7 @@ def emit_compose(pack: dict) -> str:
     node_image = f"node:{node_major}-bookworm-slim"
     dsn = f"postgres://{user}:${{{password_env}}}@{pg_name}:{pg_port}/{database}"
     lines = [banner(pack["hash"], "hash").rstrip("\n"), "services:"]
-    lines.extend(_compose_postgres(pack, env_names))
+    lines.extend(_compose_postgres(pack, env_names, f"127.0.0.1:{pg_port}:{pg_port}"))
     for sid in services:
         port = int(ports.get(sid) or 0)
         lines.append(f"  {sid}:")
@@ -464,6 +511,7 @@ def emit_compose(pack: dict) -> str:
         lines.append("      PACK_PATH: /app/content/out/pack.json")
         lines.append(f"      CORPORATOR_LISTEN_BIND: {json.dumps(container_bind)}")
         lines.append(f"      CORPORATOR_LISTEN_PORT: {json.dumps(str(port))}")
+        _append_service_ready_env(lines, pack, sid)
         if sid == "api" or sid == "sampler":
             lines.append(f"      DATABASE_URL: {dsn}")
         lines.append("    ports:")
@@ -492,7 +540,7 @@ def emit_compose_prod(pack: dict) -> str:
     ready_rule = (((pack.get("sections") or {}).get("api") or {}).get("path_rules") or {}).get("ready") or {}
     ready = str(ready_rule.get("template") or "/ready")
     lines = [banner(pack["hash"], "hash").rstrip("\n"), "services:"]
-    lines.extend(_compose_postgres(pack, ["prod"]))
+    lines.extend(_compose_postgres(pack, ["prod"], None, "corporator_pg"))
     lines.append("  migrate:")
     lines.append("    profiles:")
     lines.append("      - prod")
@@ -521,16 +569,20 @@ def emit_compose_prod(pack: dict) -> str:
         lines.append(f"      PACK_PATH: /app/{pack_rt}")
         lines.append(f"      CORPORATOR_LISTEN_BIND: {json.dumps(container_bind)}")
         lines.append(f"      CORPORATOR_LISTEN_PORT: {json.dumps(str(port))}")
+        _append_service_ready_env(lines, pack, sid)
         if sid == "api" or sid == "sampler":
             lines.append(f"      DATABASE_URL: {dsn}")
         lines.append(f'    command: ["node", "services/{sid}/dist/main.js"]')
-        lines.append("    ports:")
-        lines.append(f'      - "{port}:{port}"')
+        if sid == "api":
+            lines.append("    ports:")
+            lines.append(f'      - "127.0.0.1:{port}:{port}"')
         lines.append("    restart: unless-stopped")
         lines.extend(_compose_http_healthcheck(port, ready))
         lines.append("    depends_on:")
         lines.append("      migrate:")
         lines.append("        condition: service_completed_successfully")
+    lines.append("volumes:")
+    lines.append("  corporator_pg:")
     lines.append("")
     return "\n".join(lines)
 
@@ -557,6 +609,19 @@ def emit_env_example(pack: dict) -> str:
         else:
             lines.append(f"{env_name}=")
     lines.append("")
+    return "\n".join(lines)
+
+
+def emit_dump_sh(pack: dict) -> str:
+    lines = [
+        banner(pack["hash"], "hash").rstrip("\n"),
+        "#!/bin/sh",
+        "set -e",
+        "# Dump DATABASE_URL to stdout. The operator schedules this; the pack has no cron.",
+        "# restore_replay_matches_origin stays on deploy/restore.sh and is not replaced here.",
+        'pg_dump "$DATABASE_URL"',
+        "",
+    ]
     return "\n".join(lines)
 
 
@@ -789,6 +854,7 @@ EMITTERS = {
     "compose_prod": emit_compose_prod,
     "env_example": emit_env_example,
     "restore_sh": emit_restore_sh,
+    "dump_sh": emit_dump_sh,
     "ci_runner": emit_ci_runner,
     "ci_workflow": emit_ci_workflow,
     "env_manifests": emit_env_manifests,

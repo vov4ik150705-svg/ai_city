@@ -42,3 +42,10 @@ content/out/heroes/*.tmp
 
 # Accidental nested checkout path
 /ai_city/
+
+# Local env. Example files stay tracked.
+.env
+.env.*
+!.env.example
+deploy/.env
+!deploy/.env.example

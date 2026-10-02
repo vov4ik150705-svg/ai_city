@@ -62,12 +62,6 @@ export function HandbookFooter() {
               <Link to="/leaderboard">
                 <LinkInk seed="footer-leaderboard">Leaderboard</LinkInk>
               </Link>
-              <Link to="/docs">
-                <LinkInk seed="footer-docs-link">Docs</LinkInk>
-              </Link>
-              <Destination kind="x">
-                <LinkInk seed="footer-x-link">X</LinkInk>
-              </Destination>
             </nav>
             <p className="hb-footer__contract">
               <span>$CORP</span>

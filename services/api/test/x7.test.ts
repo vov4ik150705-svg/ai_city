@@ -200,9 +200,11 @@ describe("X7 live withdraw voucher", () => {
       undefined,
       port,
     )
-    const body = bodyOf(once.body)
-    expect(asText(body["code"])).toBe("")
-    expect(asText(asObj(body["voucher"])["status"])).toBe("signing")
+    expect(asText(bodyOf(once.body)["code"])).toBe(codes.SERVICE_DEGRADED)
+    const signed = cityOf(host, cityId)["vouchers"]
+    expect(Array.isArray(signed)).toBe(true)
+    if (!Array.isArray(signed)) return
+    expect(asText(asObj(signed[0])["status"])).toBe("signing")
     const mid = books(host, cityId)
     expect(mid.capital).toBe(before.capital - 10n)
     expect(mid.corp).toBe(before.corp)
@@ -218,10 +220,10 @@ describe("X7 live withdraw voucher", () => {
       undefined,
       port,
     )
-    expect(asText(asObj(bodyOf(again.body)["voucher"])["status"])).toBe("signing")
+    expect(asText(bodyOf(again.body)["code"])).toBe(codes.SERVICE_DEGRADED)
     expect(books(host, cityId).capital).toBe(mid.capital)
     expect(books(host, cityId).reserved).toBe(mid.reserved)
-    expect(issues.n).toBe(1)
+    expect(issues.n).toBe(2)
     await host.store.query("DELETE FROM intents WHERE id = $1", [cityId + ":x7-silence"])
     await handleCommand(
       host.ctx,

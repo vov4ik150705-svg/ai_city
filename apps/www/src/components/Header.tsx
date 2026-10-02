@@ -6,9 +6,11 @@ import { Link, SiteContext } from "../site"
 import { HandRule } from "../docs/sketch/Sketch"
 import { Button } from "./Button"
 import { Logo } from "./Logo"
+import heroMobileUrl from "../assets/opt/hero-mobile-bg.webp"
 
 const headerEase = [0.22, 1, 0.36, 1] as [number, number, number, number]
 const HEADER_S = 0.45
+const MENU_S = 0.34
 
 function currentNav(path: string, id: string): boolean {
   if (id === "game") return path === "/"
@@ -52,6 +54,11 @@ function HeaderFace({
       exit={{ opacity: 0 }}
       transition={{ duration: instant ? 0 : HEADER_S, ease: headerEase }}
     >
+      {docs ? null : (
+        <span className="site-header__sky" aria-hidden="true">
+          <img src={heroMobileUrl} alt="" width={887} height={1774} decoding="async" />
+        </span>
+      )}
       <div className="site-container site-header__inner">
         <Logo />
         <nav className="site-nav" aria-label="Main">
@@ -85,7 +92,19 @@ function HeaderFace({
             aria-controls="site-menu"
             onClick={() => setMenu((open) => !open)}
           >
-            {menu ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
+            <span className="site-header__menu-icon">
+              <AnimatePresence initial={false}>
+                <motion.span
+                  key={menu ? "close" : "open"}
+                  initial={instant ? false : { opacity: 0, rotate: menu ? -70 : 70, scale: 0.7 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: menu ? 70 : -70, scale: 0.7 }}
+                  transition={{ duration: instant ? 0 : 0.22, ease: headerEase }}
+                >
+                  {menu ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
+                </motion.span>
+              </AnimatePresence>
+            </span>
           </button>
         </div>
       </div>
@@ -101,24 +120,36 @@ function HeaderFace({
           />
         </svg>
       ) : null}
-      {present && menu ? (
-        <nav ref={menuRef} id="site-menu" className="site-menu" aria-label="Main">
-          {navItems.map((item) => (
-            <Link
-              key={item.id}
-              to={item.href}
-              className="type-heading-4"
-              aria-current={currentNav(path, item.id) ? "page" : undefined}
-              onClick={() => setMenu(false)}
-            >
-              {item.label}
+      <AnimatePresence initial={false}>
+        {present && menu ? (
+          <motion.nav
+            ref={menuRef}
+            id="site-menu"
+            className="site-menu"
+            aria-label="Main"
+            initial={instant ? false : docs ? { opacity: 0, y: -10 } : { opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={docs ? { opacity: 0, y: -8 } : { opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: instant ? 0 : MENU_S, ease: headerEase }}
+            style={{ transformOrigin: docs ? "top center" : "top right" }}
+          >
+            {navItems.map((item) => (
+              <Link
+                key={item.id}
+                to={item.href}
+                className="site-nav__link type-nav"
+                aria-current={currentNav(path, item.id) ? "page" : undefined}
+                onClick={() => setMenu(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link to="/docs" className="site-nav__link type-nav" aria-current={docs ? "page" : undefined} onClick={() => setMenu(false)}>
+              Docs
             </Link>
-          ))}
-          <Link to="/docs" className="type-heading-4" aria-current={docs ? "page" : undefined} onClick={() => setMenu(false)}>
-            Docs
-          </Link>
-        </nav>
-      ) : null}
+          </motion.nav>
+        ) : null}
+      </AnimatePresence>
     </motion.header>
   )
 }
@@ -147,12 +178,14 @@ export function Header({ path }: { path: string }) {
     let acc = 0
     const edge = 8
     const trip = 24
+    const root = document.documentElement
+    root.style.removeProperty("--site-header-shift")
     const onScroll = () => {
-      if (document.documentElement.dataset.scrollLock === "1") return
+      if (root.dataset.scrollLock === "1") return
       const y = window.scrollY
       const delta = y - last
       last = y
-      document.documentElement.dataset.headerSolid = y > edge ? "1" : "0"
+      root.dataset.headerSolid = y > edge ? "1" : "0"
       if (y <= edge) {
         acc = 0
         setConcealed(false)

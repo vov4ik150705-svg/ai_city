@@ -109,8 +109,9 @@ describe("W25 acceptance walk", () => {
     )
     const need = stakeMin(host, "TSLA")
     expect(need > 0n).toBe(true)
+    cityOf(host)["tokens_held"] = { TSLA: need }
     expect(
-      await post("stake", "stake", "w25-stake", { district_id: "energy", source: "wallet", amount: need }),
+      await post("stake", "stake", "w25-stake", { district_id: "energy", source: "ledger", amount: need }),
     ).toBe("")
     expect(await post("open", "open_district", "w25-open", { district_id: "energy" })).toBe("")
     expect(await post("build-energy", "build", "w25-energy", { building_id: "energy_plant" })).toBe("")

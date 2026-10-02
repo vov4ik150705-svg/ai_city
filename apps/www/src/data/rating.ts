@@ -4,13 +4,22 @@ export const ratingCopy = {
   intro:
     "Every wallet city, ranked by Influence. It's a scoreboard, not a payout. Prizes live on the Leaderboard.",
   searchPlaceholder: "Find a wallet",
+  findRank: "Find my rank",
+  rowsLabel: "Rows",
+  pageSizes: [10, 25, 50] as const,
+  range: "{from}–{to} of {total} wallets",
+  previous: "Previous",
+  next: "Next",
+  example: "Example data",
+  copyLabel: "Copy wallet address",
+  copied: "Copied",
+  copyFailed: "Couldn't copy the address.",
   empty: "No wallet cities yet.",
   noMatch: "No wallet matches.",
   unavailable: "Unavailable",
   columns: ["#", "Wallet", "Influence", "Day GDP"] as const,
   dayGdpTip: "Day GDP: Payroll this city received today, by city time.",
   rowTip: "A row is a score. It is not a payout.",
-  docsLink: "The full rules are in the Docs.",
 } as const
 
 export const ratingSections = [

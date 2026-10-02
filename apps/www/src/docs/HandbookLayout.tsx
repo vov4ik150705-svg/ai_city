@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react"
 import { useEffect, useState, type ReactNode } from "react"
 import { Link } from "../site"
 import type { Chapter, Heading } from "./md/chapter"
@@ -20,19 +21,23 @@ function useReadingSection(ids: readonly string[]): string {
 
   useEffect(() => {
     const idList = key === "" ? [] : key.split("\n")
-    const nodes = idList
-      .map((id) => document.getElementById(id))
-      .filter((node): node is HTMLElement => node !== null)
-    const first = nodes[0]
-    if (first === undefined) {
-      setActive("")
-      return
-    }
     let frame = 0
+    let stopped = false
+    // Chapter swap waits out the exit animation before the next headings exist.
+    // A one-shot query at effect time misses them and then never listens again.
     const pick = () => {
-      if (frame !== 0) return
+      if (stopped || frame !== 0) return
       frame = window.requestAnimationFrame(() => {
         frame = 0
+        if (stopped) return
+        const nodes = idList
+          .map((id) => document.getElementById(id))
+          .filter((node): node is HTMLElement => node !== null)
+        const first = nodes[0]
+        if (first === undefined) {
+          setActive((prev) => (prev === "" ? prev : ""))
+          return
+        }
         const line = Math.min(window.innerHeight * 0.32, 220)
         let current = first.id
         for (const node of nodes) {
@@ -44,10 +49,15 @@ function useReadingSection(ids: readonly string[]): string {
     pick()
     window.addEventListener("scroll", pick, { passive: true })
     window.addEventListener("resize", pick)
+    const stage = document.querySelector(".hb-stage")
+    const observer = new MutationObserver(pick)
+    if (stage !== null) observer.observe(stage, { childList: true, subtree: true })
     return () => {
+      stopped = true
       if (frame !== 0) window.cancelAnimationFrame(frame)
       window.removeEventListener("scroll", pick)
       window.removeEventListener("resize", pick)
+      observer.disconnect()
     }
   }, [key])
 
@@ -79,8 +89,6 @@ export function HandbookLayout({ chapter, children }: { chapter: Chapter | undef
   const sections = chapter === undefined ? [] : sectionsOf(chapter)
   const reading = useReadingSection(sections.map((heading) => heading.id))
 
-  useEffect(() => setOpen(false), [slug])
-
   useEffect(() => {
     if (!open) return
     const onKey = (event: KeyboardEvent) => {
@@ -103,9 +111,14 @@ export function HandbookLayout({ chapter, children }: { chapter: Chapter | undef
               aria-controls="hb-nav-list"
               onClick={() => setOpen((value) => !value)}
             >
-              <span className="hb-nav__label">{HANDBOOK_NAME}</span>
-              <span className="hb-nav__current">
-                {chapter === undefined ? "Chapters" : `${chapterNumber(chapter)} — ${chapter.title}`}
+              <span className="hb-nav__copy">
+                <span className="hb-nav__label">{HANDBOOK_NAME}</span>
+                <span className="hb-nav__current">
+                  {chapter === undefined ? "Chapters" : `${chapterNumber(chapter)} — ${chapter.title}`}
+                </span>
+              </span>
+              <span className={open ? "hb-nav__chevron is-open" : "hb-nav__chevron"} aria-hidden="true">
+                <ChevronDown size={18} strokeWidth={2.25} />
               </span>
             </button>
             <p className="hb-nav__label hb-nav__heading">{HANDBOOK_NAME}</p>
@@ -120,7 +133,6 @@ export function HandbookLayout({ chapter, children }: { chapter: Chapter | undef
                       className="hb-nav__link"
                       data-chapter={item.slug}
                       aria-current={selected ? "page" : undefined}
-                      onClick={() => setOpen(false)}
                     >
                       <span className="hb-nav__num">{chapterNumber(item)}</span>
                       <span className="hb-nav__title">
@@ -150,16 +162,8 @@ export function HandbookLayout({ chapter, children }: { chapter: Chapter | undef
                                     to={`${chapterHref(item.slug)}#${heading.id}`}
                                     className="hb-nav__section"
                                     aria-current={here ? "location" : undefined}
-                                    onClick={() => setOpen(false)}
                                   >
-                                    <span className="hb-nav__section-text">
-                                      {heading.text}
-                                      {here ? (
-                                        <span className="hb-nav__section-rule">
-                                          <HandRule seed={`nav-sec:${heading.id}`} />
-                                        </span>
-                                      ) : null}
-                                    </span>
+                                    <span className="hb-nav__section-text">{heading.text}</span>
                                   </Link>
                                 </li>
                               )

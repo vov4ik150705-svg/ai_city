@@ -32,6 +32,8 @@ export type TxViewOk = PortOk & {
   readonly to: string
   readonly input: string
   readonly logs: readonly TxLog[]
+  readonly blockHash?: string
+  readonly blockNumber?: bigint
 }
 export type TxViewResult = TxViewOk | PortErr
 

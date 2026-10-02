@@ -12,6 +12,7 @@ import {
   resetDayCounters,
   bytesToHex,
   keccak256,
+  keccak256Hex,
   TickError,
   mintFromBacking,
   type Dict,
@@ -26,9 +27,10 @@ import {
   type PortResult,
   type Voucher,
 } from "@corporator/chainport"
-import { fromUtf8, parseJson } from "@corporator/contentpack"
+import { fromUtf8, parseJson, utf8 } from "@corporator/contentpack"
 import { codes } from "@corporator/protocol"
 import { type PackCtx } from "./pack_ctx.js"
+import { chainCreditGate, receiptLanded } from "./reorg.js"
 import { cityKind, errResult, okResult, statusFor, type HttpResult } from "./envelope.js"
 import { asBigint, asEngineDict, asObj, asText, walk, type Json } from "./values.js"
 import {
@@ -573,7 +575,7 @@ export function finishLiveWithdraw(ctx: PackCtx, state: Dict, city: Dict, vid: s
     row["status"] = REJECTED
     return errResult(ctx, state, fate.code.length > 0 ? fate.code : codes.VOUCHER_REJECTED)
   }
-  return voucherCard(ctx, state, row)
+  return errResult(ctx, state, codes.SERVICE_DEGRADED)
 }
 
 function storedStatus(ctx: PackCtx, body: Uint8Array): bigint {
@@ -660,7 +662,30 @@ async function classifyIssue(port: AssetPort, voucher: Voucher): Promise<Voucher
     const code = sent.code === codes.VAULT_EXIT_UNCOVERED ? codes.VAULT_EXIT_UNCOVERED : codes.VOUCHER_REJECTED
     return { kind: "empty", code }
   }
+  if (sent !== undefined && sent.ok) {
+    const hash = sent.txHash ?? ""
+    if (hash.length > 0) {
+      const landed = await voucherOnReceipt(port, hash)
+      if (landed === "yes") return { kind: "open" }
+    }
+  }
   return { kind: "silence" }
+}
+
+async function voucherOnReceipt(port: AssetPort, hash: string): Promise<"yes" | "no" | "unknown"> {
+  if (hash.length === 0 || port.chain === undefined) return "unknown"
+  let receipt
+  try {
+    receipt = await port.chain.transactionReceipt(hash)
+  } catch {
+    return "unknown"
+  }
+  if (!receipt.ok) return "unknown"
+  for (const log of receipt.logs) {
+    const topic = log.topics[0]
+    if (topic !== undefined && topic.toLowerCase() === VOUCHER_ISSUED_TOPIC) return "yes"
+  }
+  return "no"
 }
 
 async function readIssue(ctx: PackCtx, port: AssetPort, voucher: Voucher): Promise<VoucherFate> {
@@ -685,7 +710,7 @@ export async function applyLiveWithdraw(
   const prior = await getBytes(store, "intents", cityId + ":" + intentId)
   if (prior !== undefined) return { status: storedStatus(ctx, prior), body: prior, headers: {} }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   if (expected !== asBigint(state["city_time"])) return errResult(ctx, state, ctx.staleCode)
@@ -737,6 +762,7 @@ export async function applyLiveWithdraw(
     if (cityNow === undefined) return errResult(ctx, state, codes.API_MALFORMED)
     const beforeFinish = structuredClone(state)
     const result = finishLiveWithdraw(ctx, state, cityNow, begun.vid, fate)
+    if (fate.kind === "silence") return result
     const blockedFinish = await refuseCustodial(ctx, store, state, cityId, beforeFinish, true)
     if (blockedFinish !== undefined) return blockedFinish
     try {
@@ -1023,7 +1049,8 @@ export async function preparePresentVoucher(
     issued_at_s: issuedAtS,
     txs: [{ to: vault, data, value: "0", label: "present_voucher" }],
   })
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -1047,8 +1074,8 @@ export async function verifyPresentConfirm(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { ok: false, result: { status: storedStatus(ctx, prior), body: prior, headers: {} } }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", cityId + ":" + ticket)
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
@@ -1075,7 +1102,7 @@ export async function verifyPresentConfirm(
       return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
     }
     const receipt = await port.chain.transactionReceipt(hash)
-    if (!receipt.ok || receipt.status !== 1n) {
+    if (!receiptLanded(ctx, receipt)) {
       return { ok: false, result: errResult(ctx, state, codes.CHAIN_TX_UNCONFIRMED) }
     }
     const seen = await port.chain.transactionByHash(hash)
@@ -1110,8 +1137,75 @@ type DepositTx = {
   readonly label: string
 }
 
+const VOUCHER_ISSUED_TOPIC = "0x" + keccak256Hex(new TextEncoder().encode("VoucherIssued(string,address,uint256,uint256)"))
+
 export function chainTxKey(hash: string): string {
   return "chain_tx:" + hash.toLowerCase()
+}
+
+export function chainTxOwnerKey(hash: string): string {
+  return "chain_tx_city:" + hash.toLowerCase()
+}
+
+/** The stored body is returned only to the city that wrote it. */
+export async function takenChainTx(
+  ctx: PackCtx,
+  store: Store,
+  state: Dict,
+  cityId: string,
+  hash: string,
+): Promise<HttpResult | undefined> {
+  const prior = await getBytes(store, "intents", chainTxKey(hash))
+  if (prior === undefined) return undefined
+  const owner = await getBytes(store, "intents", chainTxOwnerKey(hash))
+  const city = owner === undefined ? "" : fromUtf8(owner)
+  if (city !== cityId) return errResult(ctx, state, codes.API_UNAUTHORIZED)
+  const gated = await chainCreditGate(ctx, store, state, hash)
+  if (gated !== undefined) return gated
+  return { status: statusForStored(ctx, prior), body: prior, headers: {} }
+}
+
+export async function rememberChainTx(
+  store: Store,
+  state: Dict,
+  cityId: string,
+  hash: string,
+  body: Uint8Array,
+): Promise<void> {
+  const kind = cityKind(state, cityId)
+  await putBytes(store, "intents", chainTxKey(hash), body, kind)
+  await putBytes(store, "intents", chainTxOwnerKey(hash), utf8(cityId), kind)
+}
+
+/** Prepare writes its ticket in its own transaction, under the world lock, and counts the rate. */
+export async function commitPrepared(
+  ctx: PackCtx,
+  store: Store,
+  state: Dict,
+  cityId: string,
+  key: string,
+  body: Uint8Array,
+): Promise<HttpResult | undefined> {
+  let limited = false
+  await withWorldLock(async () => {
+    const rate = await incrementCommandRate(store, cityId, asBigint(state["tick_index"]), ctx.rateLimit)
+    if (rate === "limited") {
+      limited = true
+      return
+    }
+    let opened = false
+    try {
+      await store.exec("BEGIN")
+      opened = true
+      await putBytes(store, "intents", key, body, cityKind(state, cityId))
+      await store.exec("COMMIT")
+    } catch (err) {
+      if (opened) await rollback(store)
+      throw err
+    }
+  })
+  if (limited) return errResult(ctx, state, codes.API_RATE_LIMITED)
+  return undefined
 }
 
 function envAddr(name: string): string {
@@ -1219,7 +1313,8 @@ export async function prepareDeposit(
     amount,
     txs: txJson,
   })
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -1239,10 +1334,8 @@ export async function verifyDepositConfirm(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) {
-      return { ok: false, result: { status: statusForStored(ctx, prior), body: prior, headers: {} } }
-    }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", cityId + ":" + ticket)
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
@@ -1277,7 +1370,7 @@ export async function verifyDepositConfirm(
       return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
     }
     const receipt = await port.chain.transactionReceipt(hash)
-    if (!receipt.ok || receipt.status !== 1n) {
+    if (!receiptLanded(ctx, receipt)) {
       return { ok: false, result: errResult(ctx, state, codes.CHAIN_TX_UNCONFIRMED) }
     }
     const seen = await port.chain.transactionByHash(hash)

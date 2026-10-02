@@ -7,7 +7,8 @@ import type { BuyStockHop } from "./commit_exchange.js"
 import {
   applyDeposit,
   applyLiveWithdraw,
-  chainTxKey,
+  rememberChainTx,
+  takenChainTx,
   finalizePresentedVoucher,
   advanceChainMint,
   prepareDeposit,
@@ -16,6 +17,7 @@ import {
   verifyDepositConfirm,
   verifyPresentConfirm,
 } from "./commit_bank.js"
+import { creditBlockHash, noteChainCredit, type ChainEffect } from "./reorg.js"
 import {
   claimConfirmResult,
   prepareClaimUnstake,
@@ -296,6 +298,9 @@ export async function handleCommand(
         executeBuyConfirm(ctx, store, state, cityId, intentId, expected, checked.ticker, checked.amount, checked.stockOut, checked.hashes, lock),
       )
     }
+    if (effect === "claim_prize" && !launchDeployed(ctx)) {
+      return errResult(ctx, state, codes.DEMO_NO_PRIZE)
+    }
     if (effect === "claim_prize" && launchDeployed(ctx)) {
       const city = cityRow(state, cityId)
       if (city === undefined) return errResult(ctx, state, codes.API_MALFORMED)
@@ -375,7 +380,7 @@ async function executeCommand(
     return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   const now = asBigint(state["city_time"])
@@ -431,6 +436,34 @@ async function executeCommand(
   }
 }
 
+async function creditAnchor(
+  ctx: PackCtx,
+  port: AssetPort | undefined,
+  hashes: readonly string[],
+  status: bigint,
+): Promise<{ readonly hash: string; readonly blockHash: string }> {
+  const last = hashes.at(hashes.length - 1)
+  if (last === undefined || status !== ctx.httpOk || port === undefined || !prizeCustodyLive(port)) {
+    return { hash: "", blockHash: "" }
+  }
+  return { hash: last, blockHash: await creditBlockHash(port, last) }
+}
+
+async function rememberCredit(
+  ctx: PackCtx,
+  store: Store,
+  before: Dict,
+  after: Dict,
+  cityId: string,
+  hashes: readonly string[],
+  hash: string,
+  blockHash: string,
+  effect: ChainEffect,
+): Promise<void> {
+  if (hash.length === 0) return
+  await noteChainCredit(ctx, store, before, after, cityId, hash, effect, blockHash, hashes)
+}
+
 async function executeDepositConfirm(
   ctx: PackCtx,
   store: Store,
@@ -444,11 +477,11 @@ async function executeDepositConfirm(
   port: AssetPort,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   const now = asBigint(state["city_time"])
@@ -489,6 +522,7 @@ async function executeDepositConfirm(
       port !== undefined && prizeCustodyLive(port),
     )
     if (blocked !== undefined) return blocked
+    const anchor = await creditAnchor(ctx, port, hashes, result.status)
     let opened = false
     try {
       await store.exec("BEGIN")
@@ -496,8 +530,9 @@ async function executeDepositConfirm(
       await putBytes(store, "intents", intentKey(cityId, intentId), result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
+        await rememberCredit(ctx, store, snapshot, state, cityId, hashes, anchor.hash, anchor.blockHash, "deposit")
       }
       await persistLiveState(store, state, cityId)
       await store.exec("COMMIT")
@@ -526,11 +561,11 @@ async function executeStakeConfirm(
   port: AssetPort,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   const now = asBigint(state["city_time"])
@@ -565,6 +600,7 @@ async function executeStakeConfirm(
       port !== undefined && prizeCustodyLive(port),
     )
     if (blocked !== undefined) return blocked
+    const anchor = await creditAnchor(ctx, port, hashes, result.status)
     let opened = false
     try {
       await store.exec("BEGIN")
@@ -572,8 +608,9 @@ async function executeStakeConfirm(
       await putBytes(store, "intents", intentKey(cityId, intentId), result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
+        await rememberCredit(ctx, store, snapshot, state, cityId, hashes, anchor.hash, anchor.blockHash, "stake")
       }
       await persistLiveState(store, state, cityId)
       await store.exec("COMMIT")
@@ -606,11 +643,11 @@ async function executeUnstakeConfirm(
   port: AssetPort,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   const now = asBigint(state["city_time"])
@@ -652,7 +689,7 @@ async function executeUnstakeConfirm(
       await putBytes(store, "intents", intentKey(cityId, intentId), result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
       }
       await persistLiveState(store, state, cityId)
@@ -681,11 +718,11 @@ async function executePresentConfirm(
   port: AssetPort,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   if (expected !== asBigint(state["city_time"])) return errResult(ctx, state, ctx.staleCode)
@@ -718,6 +755,7 @@ async function executePresentConfirm(
     })
     const blocked = await refuseCustodial(ctx, store, state, cityId, snapshot, prizeCustodyLive(port))
     if (blocked !== undefined) return blocked
+    const anchor = await creditAnchor(ctx, port, hashes, result.status)
     let opened = false
     try {
       await store.exec("BEGIN")
@@ -726,8 +764,9 @@ async function executePresentConfirm(
       await putBytes(store, "intents", "voucher:" + voucherId, result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
+        await rememberCredit(ctx, store, snapshot, state, cityId, hashes, anchor.hash, anchor.blockHash, "present")
       }
       await persistLiveState(store, state, cityId)
       await store.exec("COMMIT")
@@ -758,11 +797,11 @@ async function executeClaimConfirm(
   port: AssetPort,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   const now = asBigint(state["city_time"])
@@ -804,7 +843,7 @@ async function executeClaimConfirm(
       await putBytes(store, "intents", intentKey(cityId, intentId), result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
       }
       await persistLiveState(store, state, cityId)
@@ -836,11 +875,11 @@ async function executeBuyConfirm(
   port?: AssetPort,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   if (asBigint(state["city_time"]) !== expected) return errResult(ctx, state, ctx.staleCode)
@@ -857,10 +896,14 @@ async function executeBuyConfirm(
   try {
     let result: HttpResult
     try {
-      result =
-        delivered === undefined
-          ? creditBuyStock(ctx, state, city, ticker, amount, stockOut)
-          : applyLiveBuy(ctx, state, city, ticker, amount, delivered)
+      if (delivered !== undefined && (stockOut <= 0n || delivered < stockOut)) {
+        result = errResult(ctx, state, codes.EXCHANGE_DELIVERY_UNVERIFIED)
+      } else {
+        result =
+          delivered === undefined
+            ? creditBuyStock(ctx, state, city, ticker, amount, stockOut)
+            : applyLiveBuy(ctx, state, city, ticker, amount, delivered)
+      }
     } catch (err) {
       restoreMemory(state, snapshot)
       if (err instanceof WorldMoved) return errResult(ctx, state, ctx.staleCode)
@@ -875,6 +918,7 @@ async function executeBuyConfirm(
       port !== undefined && prizeCustodyLive(port),
     )
     if (blocked !== undefined) return blocked
+    const anchor = await creditAnchor(ctx, port, hashes, result.status)
     let opened = false
     try {
       await store.exec("BEGIN")
@@ -882,8 +926,9 @@ async function executeBuyConfirm(
       await putBytes(store, "intents", intentKey(cityId, intentId), result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
+        await rememberCredit(ctx, store, snapshot, state, cityId, hashes, anchor.hash, anchor.blockHash, "buy")
       }
       await persistLiveState(store, state, cityId)
       await store.exec("COMMIT")
@@ -910,11 +955,11 @@ async function executePrizeConfirm(
   port: AssetPort,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusOfStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   if (asBigint(state["city_time"]) !== expected) return errResult(ctx, state, ctx.staleCode)
@@ -958,7 +1003,7 @@ async function executePrizeConfirm(
       await putBytes(store, "intents", intentKey(cityId, intentId), result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
       }
       await persistLiveState(store, state, cityId)

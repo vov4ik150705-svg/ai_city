@@ -46,11 +46,13 @@ body:has(.book) {
   position: fixed;
   top: var(--site-header-h);
   left: 0;
+  right: auto;
   z-index: 15;
   align-self: flex-start;
   width: max-content;
-  max-width: 100%;
+  max-width: none;
   padding-left: var(--hb-shell-pad);
+  padding-right: 16px;
   background: var(--hb-paper);
   color: #0b1236;
 }
@@ -412,22 +414,37 @@ body:has(.book) {
 }
 
 @media (max-width: 900px) {
-  body:has(.book) {
-    overflow: visible;
+  .book > .book-modes,
+  .hb > .book-modes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 15;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: calc(var(--site-header-h) + 12px) 20px 10px;
+    background: #ffffff;
+  }
+
+  .book-modes.is-concealed {
+    pointer-events: none;
   }
 
   .book {
     height: auto;
     min-height: 0;
+    padding-top: 54px;
     overflow: visible;
   }
 
-  .book-modes {
-    padding: 16px 20px 8px;
+  .hb-shell {
+    margin-top: 54px;
   }
 
-  .book > .book-modes {
-    top: var(--site-header-h);
+  body:has(.book) {
+    overflow: visible;
   }
 
   .book-fit {

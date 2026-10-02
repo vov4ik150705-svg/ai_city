@@ -82,7 +82,8 @@
     "FRAGMENT_SLICE_PENDING": "начисление Farm ещё не передано в казну",
     "PRIZE_NOTHING_OWED": "в казне нет начисления",
     "EXCHANGE_DELIVERY_UNVERIFIED": "в чеке нет перевода токена на кошелёк",
-    "LEDGER_NOT_EMPTY_LIVE": "на живой сети внутренний баланс города должен быть пуст"
+    "LEDGER_NOT_EMPTY_LIVE": "на живой сети внутренний баланс города должен быть пуст",
+    "CHAIN_REORG": "цепь убрала эту транзакцию; кредит снят"
   },
   "ui": {
     "UI_EMPTY_NO_ENTITIES": "пока пусто",

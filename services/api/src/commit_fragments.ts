@@ -7,7 +7,7 @@ import { fromUtf8, parseJson } from "@corporator/contentpack"
 import { cityClock, settleCities, windowSettleDue, type Dict } from "@corporator/engine"
 import { codes } from "@corporator/protocol"
 import { armChainClock, deferServerMint, watchSnapshot, WorldMoved } from "./city_lock.js"
-import { chainTxKey } from "./commit_bank.js"
+import { commitPrepared, rememberChainTx, takenChainTx } from "./commit_bank.js"
 import { prizeAssets, prizeChainId, prizeTreasuryAddress, stockAddress } from "./commit_prize.js"
 import { cityKind, errResult, okResult, statusFor, type HttpResult } from "./envelope.js"
 import { type PackCtx } from "./pack_ctx.js"
@@ -236,7 +236,8 @@ export async function prepareClaimFragment(
     effect: "claim_fragment",
     txs: txJson,
   })
-  await putBytes(store, "intents", key, result.body, cityKind(state, cityId))
+  const blocked = await commitPrepared(ctx, store, state, cityId, key, result.body)
+  if (blocked !== undefined) return blocked
   return result
 }
 
@@ -255,10 +256,8 @@ export async function verifyClaimFragment(
     return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
   }
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) {
-      return { ok: false, result: { status: statusForStored(ctx, prior), body: prior, headers: {} } }
-    }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return { ok: false, result: taken }
   }
   const raw = await getBytes(store, "intents", intentKey(cityId, ticket))
   if (raw === undefined) return { ok: false, result: errResult(ctx, state, codes.API_MALFORMED) }
@@ -324,11 +323,11 @@ export async function confirmClaimFragment(
   live = false,
 ): Promise<HttpResult> {
   for (const hash of hashes) {
-    const prior = await getBytes(store, "intents", chainTxKey(hash))
-    if (prior !== undefined) return { status: statusForStored(ctx, prior), body: prior, headers: {} }
+    const taken = await takenChainTx(ctx, store, state, cityId, hash)
+    if (taken !== undefined) return taken
   }
   if (lock !== undefined) {
-    const writer = await lock.tryAcquire(cityId)
+    const writer = await lock.tryAcquire()
     if (!writer) return errResult(ctx, state, codes.SERVICE_DEGRADED)
   }
   if (asBigint(state["city_time"]) !== expected) return errResult(ctx, state, ctx.staleCode)
@@ -344,6 +343,10 @@ export async function confirmClaimFragment(
   armChainClock(expected)
   deferServerMint(true)
   try {
+    for (const move of moves) {
+      const have = asBigint(asEngineDict(city["fragment_sliced"])[move.ticker], 0n)
+      if (move.amount <= 0n || have < move.amount) return errResult(ctx, state, codes.FRAGMENT_SLICE_PENDING)
+    }
     const listed: Json[] = []
     for (const move of moves) {
       listed.push({ ticker: move.ticker, claimed: moveClaimed(city, move.ticker, move.amount).toString() })
@@ -358,7 +361,7 @@ export async function confirmClaimFragment(
       await putBytes(store, "intents", intentKey(cityId, intentId), result.body, cityKind(state, cityId))
       if (result.status === ctx.httpOk) {
         for (const hash of hashes) {
-          await putBytes(store, "intents", chainTxKey(hash), result.body, cityKind(state, cityId))
+          await rememberChainTx(store, state, cityId, hash, result.body)
         }
       }
       await persistLiveState(store, state, cityId)

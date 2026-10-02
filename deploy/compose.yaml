@@ -1,4 +1,4 @@
-# GENERATED from pack dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4; do not edit
+# GENERATED from pack 16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d; do not edit
 services:
   postgres:
     profiles:
@@ -7,7 +7,7 @@ services:
       - staging
     image: postgres:16
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: corporator
       POSTGRES_DB: corporator
@@ -32,6 +32,8 @@ services:
       PACK_PATH: /app/content/out/pack.json
       CORPORATOR_LISTEN_BIND: "0.0.0.0"
       CORPORATOR_LISTEN_PORT: "7460"
+      CORPORATOR_ATTESTOR_URL: "http://attestor:7463/ready"
+      CORPORATOR_BUYBACK_URL: "http://buyback:7462/ready"
       DATABASE_URL: postgres://corporator:${POSTGRES_PASSWORD}@postgres:5432/corporator
     ports:
       - "7460:7460"

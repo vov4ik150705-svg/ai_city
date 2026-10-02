@@ -83,6 +83,8 @@ function baseBatch(pack: BuybackPack, hopOk: bigint): ConveyorBatch {
     fragmentDemand: fatDemand(pack.tickers, 1n),
     hopOk,
     callerService: pack.executorService,
+    farmFills: fatDemand(pack.tickers, 1n),
+    monthFills: fatDemand(pack.tickers, 1n),
   }
 }
 

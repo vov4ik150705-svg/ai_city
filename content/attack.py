@@ -2939,8 +2939,8 @@ def a_l322_no_migrate(d: dict) -> None:
 def a_l323_dup_secret(d: dict) -> None:
     d["_compose_prod"] = (
         "services:\n  api:\n    environment:\n"
-        "      CORPORATOR_VOUCHER_SIGNER: ${CORPORATOR_VOUCHER_SIGNER}\n"
-        "      CORPORATOR_VOUCHER_SIGNER: ${CORPORATOR_VOUCHER_SIGNER}\n"
+        "      CORPORATOR_VOUCHER_SIGNER_KEY: ${CORPORATOR_VOUCHER_SIGNER_KEY}\n"
+        "      CORPORATOR_VOUCHER_SIGNER_KEY: ${CORPORATOR_VOUCHER_SIGNER_KEY}\n"
     )
 
 

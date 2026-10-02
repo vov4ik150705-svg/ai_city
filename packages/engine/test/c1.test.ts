@@ -1,4 +1,5 @@
-import { readdirSync } from "node:fs"
+import { spawnSync } from "node:child_process"
+import { readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import * as fc from "fast-check"
 import { describe, expect, it } from "vitest"
@@ -18,6 +19,7 @@ import {
   tick,
   agentLevelMultBps,
 } from "../src/index.ts"
+import { applyRatchet, staleDecayRate } from "../src/arith.ts"
 import { asBig, asDict, asStr, bytesEq } from "../src/values.ts"
 import type { Dict } from "../src/values.ts"
 import {
@@ -526,5 +528,65 @@ describe.sequential("C1 construction", () => {
     expect(bytesEq(merkleRoot(one, prefixes[0], prefixes[1]), leafHash(one[0] ?? new Uint8Array(), prefixes[0]))).toBe(
       true,
     )
+  })
+
+  it("ratchet and decay step on ticks_day", () => {
+    const bps = 10000n
+    const prev = 1000n
+    const target = 5000n
+    const rise = 1000n
+    const one = (prev * (bps + rise)) / bps
+    const decayPrev = 10000n
+    const decayStep = 1000n
+    const band = 2000n
+    const decayed = (decayPrev * (bps - decayStep)) / bps
+
+    function py(code: string): bigint {
+      const res = spawnSync("python", ["-c", code], { cwd: join(repo, "content"), encoding: "utf8" })
+      expect(res.status, res.stderr ?? "").toBe(0)
+      return BigInt((res.stdout ?? "").trim())
+    }
+
+    function ratchet(elapsed: bigint, ticksDay: bigint): void {
+      const want = elapsed / ticksDay > 0n ? one : prev
+      expect(applyRatchet(prev, target, rise, elapsed, ticksDay, bps)).toBe(want)
+      const got = py(
+        "import build; print(build.apply_ratchet(1000, 5000, 1000, " +
+          elapsed.toString() +
+          ", " +
+          ticksDay.toString() +
+          "))",
+      )
+      expect(got).toBe(want)
+    }
+
+    function decay(elapsed: bigint, ticksDay: bigint): void {
+      const want = elapsed / ticksDay > 0n ? decayed : decayPrev
+      expect(staleDecayRate(decayPrev, decayPrev, band, decayStep, elapsed, ticksDay, bps)).toBe(want)
+      const got = py(
+        "import build; print(build.stale_decay_rate(10000, 10000, 2000, 1000, " +
+          elapsed.toString() +
+          ", " +
+          ticksDay.toString() +
+          "))",
+      )
+      expect(got).toBe(want)
+    }
+
+    ratchet(12n, 24n)
+    ratchet(12n, 12n)
+    ratchet(24n, 24n)
+    decay(12n, 24n)
+    decay(12n, 12n)
+    decay(24n, 24n)
+
+    const twin = readFileSync(join(repo, "content/tick.py"), "utf8")
+    const mintAt = twin.indexOf("new_rate = build.mint_rate(")
+    const mintEnd = twin.indexOf(")", mintAt)
+    expect(twin.slice(mintAt, mintEnd)).toContain('cfg["ticks_day"]')
+    const decayAt = twin.indexOf("state[\"mint_rate\"] = build.stale_decay_rate(")
+    const decayEnd = twin.indexOf(")", decayAt)
+    const decayCall = twin.slice(decayAt, decayEnd)
+    expect(decayCall.split('cfg["ticks_day"]').length - 1).toBe(2)
   })
 })

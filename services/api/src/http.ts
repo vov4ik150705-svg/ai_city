@@ -1,8 +1,8 @@
 import { canonical, getPack, type Json, type PackRegistry } from "@corporator/contentpack"
-import { codes } from "@corporator/protocol"
+import { codes, transportHttp } from "@corporator/protocol"
 import { matchTemplate, type PackCtx } from "./pack_ctx.js"
 import { handleCommand } from "./commands.js"
-import { errResult, okResult, type HttpResult } from "./envelope.js"
+import { envelopeOk, errResult, okResult, type HttpResult } from "./envelope.js"
 import { projectState, syncStakeSnapshot } from "./project.js"
 import { publicRatingRows } from "./project_rank.js"
 import { portCfgFromPack, selectApiPort } from "./custody.js"
@@ -81,12 +81,18 @@ export async function route(
     }
     const readyHit = matchTemplate(ctx.readyTemplate, path)
     if (readyHit !== undefined) {
-      return okResult(ctx, state, {
-        ready: live.ready,
-        migration_version: live.migrationVersion,
-        attest_lag: live.attestLag,
-        metrics: live.metrics,
-      })
+      return {
+        status: live.ready ? ctx.httpOk : transportHttp.API_PACK_STALE,
+        body: canonical(
+          envelopeOk(ctx, state, {
+            ready: live.ready,
+            migration_version: live.migrationVersion,
+            attest_lag: live.attestLag,
+            metrics: live.metrics,
+          }),
+        ),
+        headers: {},
+      }
     }
     return errResult(ctx, state, codes.API_MALFORMED)
   }

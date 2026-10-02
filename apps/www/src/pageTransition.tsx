@@ -118,8 +118,8 @@ export function PageTransition({
         key={routeKey}
         className="site-page"
         data-route={routeKey}
-        initial={{ opacity: 0, y: docsPage ? 0 : 10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={docsPage ? { opacity: 0 } : { opacity: 0, y: 10 }}
+        animate={docsPage ? { opacity: 1 } : { opacity: 1, y: 0 }}
         exit={{ opacity: 0, transition: { duration: SITE_PAGE_EXIT_S, ease: sitePageExitEase } }}
         transition={{ duration: SITE_PAGE_ENTER_S, ease: sitePageEase }}
       >

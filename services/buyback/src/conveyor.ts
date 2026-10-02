@@ -52,6 +52,16 @@ export type ConveyorBatch = {
   readonly slices?: readonly ConveyorSlice[]
   readonly returns?: readonly ConveyorReturn[]
   readonly farmWindows?: { readonly [windowId: string]: string }
+  readonly fundCorpOut?: bigint
+  readonly studioWei?: bigint
+}
+
+export type PendingDeposit = {
+  readonly kettle: bigint
+  readonly token: string
+  readonly ticker: string
+  readonly stockOut: bigint
+  readonly sendWei: bigint
 }
 
 export type PrizeCall = {
@@ -67,6 +77,7 @@ export type ConveyorState = {
   readonly farmRemainderWei: bigint
   readonly sliced: { readonly [key: string]: bigint }
   readonly basketStamps: BasketStamps
+  readonly pendingDeposits: readonly PendingDeposit[]
 }
 
 export type ConveyorResult = {
@@ -101,15 +112,16 @@ function keptCarry(
   hops: readonly BasketHop[],
   fills: { readonly [ticker: string]: bigint } | undefined,
   nextCarry: { readonly [ticker: string]: bigint },
+  failed: ReadonlySet<string>,
 ): { [ticker: string]: bigint } {
   const out: { [ticker: string]: bigint } = {}
   for (const ticker of Object.keys(nextCarry)) {
     const prev = nextCarry[ticker]
     if (prev !== undefined) out[ticker] = prev
   }
-  if (fills === undefined) return out
   for (const hop of hops) {
-    const got = fills[hop.ticker]
+    if (failed.has(hop.ticker)) continue
+    const got = fills === undefined ? undefined : fills[hop.ticker]
     if (got !== undefined && got > 0n) continue
     out[hop.ticker] = (out[hop.ticker] ?? 0n) + hop.sendWei
   }
@@ -120,11 +132,10 @@ function fillOf(
   fills: { readonly [ticker: string]: bigint } | undefined,
   hop: BasketHop,
 ): bigint {
-  if (fills !== undefined) {
-    const got = fills[hop.ticker]
-    if (got !== undefined) return got
-  }
-  return hop.sendWei
+  if (fills === undefined) return 0n
+  const got = fills[hop.ticker]
+  if (got === undefined) return 0n
+  return got
 }
 
 function isBasketStamp(name: string): name is BasketStampField {
@@ -195,6 +206,7 @@ export function emptyConveyorState(tickers: readonly string[]): ConveyorState {
     farmRemainderWei: 0n,
     sliced: {},
     basketStamps: {},
+    pendingDeposits: [],
   }
 }
 
@@ -210,10 +222,14 @@ async function depositHop(
     return { ok: false, code: codes.API_MALFORMED }
   }
   try {
+    const before = await port.prizeTreasury.unsliced(kettle, token)
+    const beforeAmt = before.ok ? before.amount : 0n
     calls.push({ op: "deposit", kettle, token })
     const out = await port.prizeTreasury.deposit(caller, token, kettle, amount)
-    if (out.ok) return { ok: true, code: "" }
-    return { ok: false, code: out.code }
+    if (!out.ok) return { ok: false, code: out.code.length > 0 ? out.code : codes.SERVICE_DEGRADED }
+    const after = await port.prizeTreasury.unsliced(kettle, token)
+    if (!after.ok || after.amount < beforeAmt + amount) return { ok: false, code: codes.SERVICE_DEGRADED }
+    return { ok: true, code: "" }
   } catch {
     return { ok: false, code: codes.SERVICE_DEGRADED }
   }
@@ -242,29 +258,54 @@ export async function runStockConveyor(
     }
     const sliced: { [key: string]: bigint } = { ...state.sliced }
     const bot = batch.callerService === pack.executorService && port.buybackExecutorService === pack.executorService
+    const failed = new Set<string>()
+    const pending: PendingDeposit[] = []
+    if (bot) {
+      for (const row of state.pendingDeposits) {
+        const dep = await depositHop(port, pack.executorService, row.kettle, row.token, row.stockOut, calls)
+        if (!dep.ok) pending.push(row)
+      }
+      const house = process.env.CORPORATOR_VAULT_HOUSE
+      const fundCorp = batch.fundCorpOut ?? 0n
+      if (house !== undefined && house.length > 0 && fundCorp > 0n) {
+        const deposited = await port.vault.deposit(house, fundCorp)
+        if (!deposited.ok) {
+          degraded = 1n
+          code = deposited.code.length > 0 ? deposited.code : codes.SERVICE_DEGRADED
+        }
+      }
+    } else {
+      for (const row of state.pendingDeposits) pending.push(row)
+    }
     if (hopOk && bot) {
       let custody = 1n
       for (const hop of month.hops) {
         const amt = fillOf(batch.monthFills, hop)
         if (hop.sendWei <= 0n || amt <= 0n) continue
-        const dep = await depositHop(port, pack.executorService, 1n, tokenOf(batch, hop.ticker), amt, calls)
+        const token = tokenOf(batch, hop.ticker)
+        const dep = await depositHop(port, pack.executorService, 1n, token, amt, calls)
         if (!dep.ok) {
           custody = 0n
           degraded = 1n
           code = dep.code.length > 0 ? dep.code : codes.SERVICE_DEGRADED
+          failed.add(hop.ticker)
+          pending.push({ kettle: 1n, token, ticker: hop.ticker, stockOut: amt, sendWei: hop.sendWei })
         }
       }
       for (const hop of farm.hops) {
         const amt = fillOf(batch.farmFills, hop)
         if (hop.sendWei <= 0n || amt <= 0n) continue
-        const dep = await depositHop(port, pack.executorService, 0n, tokenOf(batch, hop.ticker), amt, calls)
+        const token = tokenOf(batch, hop.ticker)
+        const dep = await depositHop(port, pack.executorService, 0n, token, amt, calls)
         if (!dep.ok) {
           custody = 0n
           degraded = 1n
           code = dep.code.length > 0 ? dep.code : codes.SERVICE_DEGRADED
+          failed.add(hop.ticker)
+          pending.push({ kettle: 0n, token, ticker: hop.ticker, stockOut: amt, sendWei: hop.sendWei })
         }
       }
-      if (custody === 1n) {
+      if (custody === 1n && pending.length === 0) {
         stamps = applyBasketStamp(pack.basketOrder, stamps, "custody_confirmed", batch.cityTime)
       }
     } else if (hopOk && !bot) {
@@ -319,14 +360,26 @@ export async function runStockConveyor(
         code = codes.SERVICE_DEGRADED
       }
     }
+    const studioWei = batch.studioWei ?? 0n
+    let monthState: BasketState = {
+      ...month.next,
+      carryWei: keptCarry(month.hops, batch.monthFills, month.next.carryWei, failed),
+    }
+    if (studioWei > 0n && pack.studioRecipient.length === 0) {
+      monthState = { ...monthState, studioHeldWei: monthState.studioHeldWei + studioWei }
+    }
+    if (studioWei > 0n && pack.studioRecipient.length > 0) {
+      monthState = { ...monthState, studioHeldWei: monthState.studioHeldWei + studioWei }
+    }
     return {
       next: {
         buyback: buyback.next,
-        month: { ...month.next, carryWei: keptCarry(month.hops, batch.monthFills, month.next.carryWei) },
-        farmCarry: keptCarry(farm.hops, batch.farmFills, farm.nextCarry),
+        month: monthState,
+        farmCarry: keptCarry(farm.hops, batch.farmFills, farm.nextCarry, failed),
         farmRemainderWei: farm.remainderWei,
         sliced,
         basketStamps: stamps,
+        pendingDeposits: pending,
       },
       buyback,
       month,

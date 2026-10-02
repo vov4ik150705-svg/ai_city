@@ -79,7 +79,6 @@ export const leaderboardCopy = {
     "your city's economy",
     "prizes already earned and waiting for claim",
   ],
-  docsLink: "The full rules are in the Docs.",
 } as const
 
 export const leaderboardRows = [

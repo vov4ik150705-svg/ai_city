@@ -3,6 +3,7 @@ import {
   createLiveTransport,
   createMockPort,
   createRpcPort,
+  isAddr,
   type AssetPort,
   type LiveRpcConfig,
   type PortConfig,
@@ -115,6 +116,17 @@ function nonNegativeMap(value: { readonly [key: string]: bigint }): boolean {
   return true
 }
 
+function frameKeyOk(raw: Uint8Array): boolean {
+  const expect = process.env.CORPORATOR_BUYBACK_FRAME_KEY
+  if (expect === undefined || expect.length === 0) return false
+  try {
+    const row = asObj(parseJson(fromUtf8(raw)))
+    return asText(row["frame_key"]) === expect
+  } catch {
+    return false
+  }
+}
+
 function parseBatch(raw: Uint8Array): ConveyorBatch | undefined {
   if (raw.length === 0) return undefined
   try {
@@ -174,6 +186,9 @@ export function createConveyorSubmit(
   return async (body: Uint8Array): Promise<Uint8Array> => {
     try {
       let batch = parseBatch(body)
+      if (batch !== undefined && !frameKeyOk(body)) {
+        return canonical({ ok: 0n, code: codes.SERVICE_DEGRADED, degraded: 1n })
+      }
       if (batch === undefined) {
         const pulled = await source.pull(body, state)
         if (!pulled.ok) {
@@ -198,7 +213,7 @@ export function createConveyorSubmit(
 export function createBuybackPort(bytes: Uint8Array, pack: BuybackPack): AssetPort {
   const loaded = loadPack(bytes)
   const cfg = portCfg(loaded.pack)
-  const live = liveRpcConfig()
+  const live = liveRpcConfig(pack)
   if (live !== undefined) {
     return createRpcPort(cfg, createLiveTransport(live))
   }
@@ -217,11 +232,14 @@ export function liveRpcReady(env: { readonly [key: string]: string | undefined }
   return readLiveRpc(env) !== undefined
 }
 
-function liveRpcConfig(): LiveRpcConfig | undefined {
-  return readLiveRpc(process.env)
+function liveRpcConfig(pack: BuybackPack): LiveRpcConfig | undefined {
+  return readLiveRpc(process.env, pack)
 }
 
-function readLiveRpc(env: { readonly [key: string]: string | undefined }): LiveRpcConfig | undefined {
+function readLiveRpc(
+  env: { readonly [key: string]: string | undefined },
+  packBps?: BuybackPack,
+): LiveRpcConfig | undefined {
   const url = env.CORPORATOR_RPC_URL
   const chainIdRaw = env.CORPORATOR_CHAIN_ID
   const timeoutRaw = env.CORPORATOR_RPC_TIMEOUT_MS
@@ -247,12 +265,26 @@ function readLiveRpc(env: { readonly [key: string]: string | undefined }): LiveR
   ) {
     return undefined
   }
+  if (
+    !isAddr(corpToken) ||
+    !isAddr(vault) ||
+    !isAddr(stakeRegistry) ||
+    !isAddr(merkleRoots) ||
+    !isAddr(prizeTreasury) ||
+    !isAddr(prizeDepositor) ||
+    !isAddr(prizeSigner)
+  ) {
+    return undefined
+  }
   try {
     return {
       url,
       chainId: BigInt(chainIdRaw),
       timeoutMs: BigInt(timeoutRaw),
       contracts: { corpToken, vault, stakeRegistry, merkleRoots, prizeTreasury },
+      ...(packBps === undefined
+        ? {}
+        : { bps: packBps.bps, gasHeadroomBps: packBps.gasHeadroomBps }),
       callers: {
         depositorService: "buyback",
         depositorAddress: prizeDepositor,

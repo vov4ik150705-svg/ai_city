@@ -638,7 +638,9 @@ export function projectState(
   }
   const rows: Json[] = []
   let logError = 0n
+  const prefix = cityId + ":"
   for (const row of attestLog) {
+    if (!row.id.startsWith(prefix)) continue
     rows.push({ id: row.id, key: row.key, badge: row.badge, root: row.root, cid: row.cid })
     if (row.badge === "degraded") logError = 1n
   }
@@ -835,6 +837,48 @@ export function applyChainRows(
   return changed
 }
 
+function cityOfState(state: Dict, cityId: string): Dict | undefined {
+  const cities = asEngineDict(state["cities"])
+  if (!(cityId in cities)) return undefined
+  return asEngineDict(cities[cityId])
+}
+
+function stakeStamp(state: Dict, city: Dict): string {
+  const chain = asEngineDict(city["stake_chain"])
+  const settled = asEngineDict(city["stake_settled"])
+  const cool = asEngineDict(city["unstake_cooldown"])
+  const keys = [...new Set([...Object.keys(chain), ...Object.keys(settled), ...Object.keys(cool)])].sort()
+  const parts = [asBigint(state["city_time"], 0n).toString()]
+  for (const key of keys) {
+    const bag = asEngineDict(cool[key])
+    parts.push(
+      key,
+      asBigint(chain[key], 0n).toString(),
+      asBigint(settled[key], 0n).toString(),
+      asBigint(bag["amount"], 0n).toString(),
+      asBigint(bag["ready_at_s"], 0n).toString(),
+    )
+  }
+  return parts.join("\0")
+}
+
+async function readStakeFresh(
+  port: AssetPort,
+  account: string,
+): Promise<
+  | {
+      readonly rows: readonly { readonly ticker: string; readonly amount: bigint }[]
+      readonly coolOk: boolean
+      readonly coolRows: readonly { readonly ticker: string; readonly amount: bigint; readonly readyAtS: bigint }[]
+    }
+  | undefined
+> {
+  const snap = await port.stakeRegistry.snapshot(account)
+  if (!snap.ok) return undefined
+  const cool = await port.stakeRegistry.coolingSnapshot(account)
+  return { rows: snap.rows, coolOk: cool.ok, coolRows: cool.ok ? cool.rows : [] }
+}
+
 /** Chain stake snapshot on a state read. Not part of the tick. */
 export async function syncStakeSnapshot(
   ctx: PackCtx,
@@ -844,18 +888,29 @@ export async function syncStakeSnapshot(
   port: AssetPort,
 ): Promise<void> {
   if (!prizeCustodyLive(port)) return
-  const cities = asEngineDict(state["cities"])
-  if (!(cityId in cities)) return
-  const city = asEngineDict(cities[cityId])
-  const account = asText(city["wallet"])
-  if (account.length === 0) return
-  const snap = await port.stakeRegistry.snapshot(account)
-  if (!snap.ok) return
-  const cool = await port.stakeRegistry.coolingSnapshot(account)
   await withWorldLock(async () => {
+    const city = cityOfState(state, cityId)
+    if (city === undefined) return
+    const account = asText(city["wallet"])
+    if (account.length === 0) return
+    let stamp = stakeStamp(state, city)
+    let read = await readStakeFresh(port, account)
+    if (read === undefined) return
+    let current = cityOfState(state, cityId)
+    if (current === undefined) return
+    if (stakeStamp(state, current) !== stamp) {
+      stamp = stakeStamp(state, current)
+      read = await readStakeFresh(port, account)
+      if (read === undefined) return
+      current = cityOfState(state, cityId)
+      if (current === undefined) return
+      if (stakeStamp(state, current) !== stamp) return
+    }
+    const applyCity = cityOfState(state, cityId)
+    if (applyCity === undefined) return
     const before = structuredClone(state)
-    let changed = applyChainRows(ctx, state, city, snap.rows, true)
-    if (cool.ok && applyCoolingRows(ctx, city, cool.rows)) changed = true
+    let changed = applyChainRows(ctx, state, applyCity, read.rows, true)
+    if (read.coolOk && applyCoolingRows(ctx, applyCity, read.coolRows)) changed = true
     if (!changed) return
     let opened = false
     try {

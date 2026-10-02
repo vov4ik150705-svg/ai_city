@@ -38,6 +38,24 @@
       "src": "docs/reports/TZ_PLAYABLE.md W18",
       "why": "How long the client waits for a receipt, then shows an honest refusal"
     },
+    "chain_min_confirmations": {
+      "v": 1,
+      "u": "count",
+      "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL11",
+      "why": "How many receipts deep a live credit waits. One is a successful receipt. More than one delays the deposit, and this task does not raise it"
+    },
+    "demo_new_per_window": {
+      "v": 8,
+      "u": "count",
+      "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL14",
+      "why": "New demo sessions one process accepts during a single city tick. The tick walks every city, so an open faucet has to stop. Past this count the session is refused and no city is spawned"
+    },
+    "http_body_max_bytes": {
+      "v": 65536,
+      "u": "bytes",
+      "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL14",
+      "why": "Largest request body the API keeps. A signed transaction recipe fits. Anything larger closes the socket before the command handler runs"
+    },
     "server_gas_headroom_bps": {
       "v": 2000,
       "u": "bps",

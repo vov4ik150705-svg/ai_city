@@ -594,18 +594,8 @@
   padding: var(--site-space-4);
 }
 
-.industries__info .site-tabs__stage {
-  display: grid;
-}
-
-.industries__info .site-tabs__stage > .site-tabs__panel {
-  grid-area: 1 / 1;
-  align-self: start;
-}
-
 .industries__info .site-tabs__panel.is-inactive {
-  visibility: hidden;
-  pointer-events: none;
+  display: none;
 }
 
 .industries__opens {

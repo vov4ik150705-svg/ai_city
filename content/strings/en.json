@@ -82,7 +82,8 @@
     "FRAGMENT_SLICE_PENDING": "the Farm accrual has not been handed to the treasury yet",
     "PRIZE_NOTHING_OWED": "the treasury has nothing owed",
     "EXCHANGE_DELIVERY_UNVERIFIED": "the receipt has no token transfer to the wallet",
-    "LEDGER_NOT_EMPTY_LIVE": "on the live chain the city ledger must be empty"
+    "LEDGER_NOT_EMPTY_LIVE": "on the live chain the city ledger must be empty",
+    "CHAIN_REORG": "the chain dropped this transaction; the credit was removed"
   },
   "ui": {
     "UI_EMPTY_NO_ENTITIES": "nothing here yet",

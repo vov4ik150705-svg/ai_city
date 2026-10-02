@@ -363,9 +363,11 @@ export function signLegacyTx(args: {
 }
 
 export const ROLE_ENV = {
-  minter: "CORPORATOR_VAULT_MINTER",
-  voucher: "CORPORATOR_VOUCHER_SIGNER",
-  signer: "CORPORATOR_SIGNER",
+  minter: "CORPORATOR_VAULT_MINTER_KEY",
+  voucher: "CORPORATOR_VOUCHER_SIGNER_KEY",
+  signer: "CORPORATOR_SIGNER_KEY",
+  buyback_executor: "CORPORATOR_BUYBACK_EXECUTOR_KEY",
+  attestor: "CORPORATOR_ATTESTOR_KEY",
 } as const
 
 export type RoleName = keyof typeof ROLE_ENV
@@ -411,10 +413,12 @@ export async function broadcastRoleTx(args: {
   readonly data: string
   readonly inflight: Map<string, InflightTx>
   readonly signOnly?: boolean
+  readonly value?: bigint
 }): Promise<RpcOutcome> {
   const key = roleKey(args.role)
   const from = key.length === 0 ? undefined : addressOfPrivateKey(key)
-  if (from === undefined || args.bps === undefined || args.gasHeadroomBps === undefined) {
+  const value = args.value ?? 0n
+  if (from === undefined || args.bps === undefined || args.gasHeadroomBps === undefined || value < 0n) {
     return { status: "silence" }
   }
   const chain = await postEth(args.post, "eth_chainId", [])
@@ -435,7 +439,8 @@ export async function broadcastRoleTx(args: {
   if (priceRaw.status !== "ok") return { status: "silence" }
   const gasPrice = parseHexUint(priceRaw.body)
   if (gasPrice === undefined) return { status: "silence" }
-  const estimateRaw = await postEth(args.post, "eth_estimateGas", [{ from, to: args.to, data: args.data, value: "0x0" }])
+  const valueHex = "0x" + value.toString(16)
+  const estimateRaw = await postEth(args.post, "eth_estimateGas", [{ from, to: args.to, data: args.data, value: valueHex }])
   if (estimateRaw.status !== "ok") return { status: "silence" }
   const estimate = parseHexUint(estimateRaw.body)
   if (estimate === undefined) return { status: "silence" }
@@ -449,6 +454,7 @@ export async function broadcastRoleTx(args: {
     gasLimit,
     to: args.to,
     data: args.data,
+    value,
   })
   if (signed === undefined) return { status: "silence" }
   const hash = "0x" + bytesToHex(keccak256(hexToBytes(strip0x(signed.raw))))

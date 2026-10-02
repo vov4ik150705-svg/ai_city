@@ -1,4 +1,4 @@
-/* GENERATED from pack dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4; do not edit */
+/* GENERATED from pack 16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d; do not edit */
 
 export const commandRoutes = ["/command/assign", "/command/build", "/command/buy_stock", "/command/claim_fragment", "/command/claim_prize", "/command/claim_unstaked", "/command/deposit", "/command/hire", "/command/merge", "/command/noop", "/command/open_district", "/command/pick_node", "/command/present_voucher", "/command/research_start", "/command/set_objective", "/command/stake", "/command/unlock_tier", "/command/unstake", "/command/upgrade", "/command/withdraw"] as const;
 export const transportHttp = {

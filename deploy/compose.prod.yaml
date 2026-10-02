@@ -1,11 +1,11 @@
-# GENERATED from pack dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4; do not edit
+# GENERATED from pack 16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d; do not edit
 services:
   postgres:
     profiles:
       - prod
     image: postgres:16
-    ports:
-      - "5432:5432"
+    volumes:
+      - corporator_pg:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: corporator
       POSTGRES_DB: corporator
@@ -42,13 +42,15 @@ services:
       PACK_PATH: /app/pack.json
       CORPORATOR_LISTEN_BIND: "0.0.0.0"
       CORPORATOR_LISTEN_PORT: "7460"
+      CORPORATOR_ATTESTOR_URL: "http://attestor:7463/ready"
+      CORPORATOR_BUYBACK_URL: "http://buyback:7462/ready"
       DATABASE_URL: postgres://corporator:${POSTGRES_PASSWORD}@postgres:5432/corporator
     command: ["node", "services/api/dist/main.js"]
     ports:
-      - "7460:7460"
+      - "127.0.0.1:7460:7460"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7460/ready').then(r=>process.exit(r.ok?0:1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7460/ready').then(r=>r.json().then(b=>process.exit(r.ok&&(b.ready===true||b.ready===1)&&b.source!=='mock'?0:1)).catch(()=>process.exit(1))).catch(()=>process.exit(1))"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -67,11 +69,9 @@ services:
       CORPORATOR_LISTEN_BIND: "0.0.0.0"
       CORPORATOR_LISTEN_PORT: "7463"
     command: ["node", "services/attestor/dist/main.js"]
-    ports:
-      - "7463:7463"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7463/ready').then(r=>process.exit(r.ok?0:1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7463/ready').then(r=>r.json().then(b=>process.exit(r.ok&&(b.ready===true||b.ready===1)&&b.source!=='mock'?0:1)).catch(()=>process.exit(1))).catch(()=>process.exit(1))"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -90,11 +90,9 @@ services:
       CORPORATOR_LISTEN_BIND: "0.0.0.0"
       CORPORATOR_LISTEN_PORT: "7462"
     command: ["node", "services/buyback/dist/main.js"]
-    ports:
-      - "7462:7462"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7462/ready').then(r=>process.exit(r.ok?0:1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7462/ready').then(r=>r.json().then(b=>process.exit(r.ok&&(b.ready===true||b.ready===1)&&b.source!=='mock'?0:1)).catch(()=>process.exit(1))).catch(()=>process.exit(1))"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -114,14 +112,14 @@ services:
       CORPORATOR_LISTEN_PORT: "7461"
       DATABASE_URL: postgres://corporator:${POSTGRES_PASSWORD}@postgres:5432/corporator
     command: ["node", "services/sampler/dist/main.js"]
-    ports:
-      - "7461:7461"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7461/ready').then(r=>process.exit(r.ok?0:1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7461/ready').then(r=>r.json().then(b=>process.exit(r.ok&&(b.ready===true||b.ready===1)&&b.source!=='mock'?0:1)).catch(()=>process.exit(1))).catch(()=>process.exit(1))"]
       interval: 5s
       timeout: 5s
       retries: 10
     depends_on:
       migrate:
         condition: service_completed_successfully
+volumes:
+  corporator_pg:

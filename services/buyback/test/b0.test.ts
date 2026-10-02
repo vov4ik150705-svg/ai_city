@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { describe, expect, it } from "vitest"
+import { afterAll, describe, expect, it } from "vitest"
 import { atPath, canonical, fromUtf8, loadPack, parseJson, utf8, type Json } from "@corporator/contentpack"
 import {
   PRIZE_KETTLE_FARM,
@@ -96,8 +96,11 @@ function jsonMap(row: { readonly [key: string]: bigint }): { [key: string]: Json
   return out
 }
 
+const FRAME_KEY = "b0-frame-key"
+
 function batchBody(batch: ConveyorBatch): Uint8Array {
   const body: { [key: string]: Json } = {
+    frame_key: FRAME_KEY,
     city_time: batch.cityTime,
     fund_wei: batch.fundWei,
     leaderboard_wei: batch.leaderboardWei,
@@ -144,6 +147,13 @@ async function farmUnsliced(port: AssetPort, pack: BuybackPack, ticker: string):
 }
 
 describe("B0 buyback hole", () => {
+  const previousKey = process.env.CORPORATOR_BUYBACK_FRAME_KEY
+  process.env.CORPORATOR_BUYBACK_FRAME_KEY = FRAME_KEY
+  afterAll(() => {
+    if (previousKey === undefined) delete process.env.CORPORATOR_BUYBACK_FRAME_KEY
+    else process.env.CORPORATOR_BUYBACK_FRAME_KEY = previousKey
+  })
+
   it("empty and non-batch bodies degrade and deposit nothing", async () => {
     const bytes = packBytes()
     const pack = loadBuybackPack(bytes)

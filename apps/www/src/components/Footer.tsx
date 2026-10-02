@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import futerUrl from "../assets/opt/footer.webp"
+import footerMobileUrl from "../assets/opt/footer-mobile.webp"
 import { docsLinks } from "../data/docsLinks"
 import { contractStatus, footerCopy } from "../data/shell"
 import { Destination, Link, SiteContext } from "../site"
@@ -42,6 +43,16 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <img className="site-footer__art" src={futerUrl} alt="" width={2170} height={342} loading="lazy" decoding="async" />
+      <picture className="site-footer__plate">
+        <source media="(max-width: 700px)" srcSet={footerMobileUrl} width={1080} height={1280} />
+        <img
+          alt=""
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          width={1080}
+          height={1280}
+          decoding="async"
+        />
+      </picture>
       <div className="site-container site-footer__stage">
         <div className="site-footer__copy">
           <h2 className="type-display-2">{footerCopy.heading}</h2>
