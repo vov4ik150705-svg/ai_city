@@ -6595,6 +6595,7 @@ def construction_tick_payroll(data: dict) -> str | None:
     div = cfg["payroll_daily_divisor"]
     state["fund"] = 200 * div * ticks
     state["day_budget_day"] = None
+    _cover_cashbox(cfg, state)
     inp = {
         "tick_index": 0,
         "eth_usd_8dec": cfg["eth_usd_8dec"],
@@ -8130,6 +8131,24 @@ def _t11_pack() -> dict:
     return cached
 
 
+def _cover_cashbox(cfg: dict, state: dict) -> None:
+    """Fund and city Capital in a probe must sit on vault backing or I1 fires at tick 0."""
+    bags = int(state.get("fund") or 0)
+    for city in (state.get("cities") or {}).values():
+        if isinstance(city, dict):
+            bags += int(city.get("capital") or 0)
+    anchor = int(cfg["capital_anchor"])
+    need = bags if anchor <= 0 else (bags + anchor - 1) // anchor
+    if int(state.get("vault_corp") or 0) < need:
+        add = need - int(state.get("vault_corp") or 0)
+        state["vault_corp"] = need
+        state["corp_deposited_total"] = int(state.get("corp_deposited_total") or 0) + add
+    if int(state.get("capital_outstanding") or 0) < bags:
+        gap = bags - int(state.get("capital_outstanding") or 0)
+        state["capital_outstanding"] = int(state.get("capital_outstanding") or 0) + gap
+        state["capital_minted_total"] = int(state.get("capital_minted_total") or 0) + gap
+
+
 def _t11_live(login_period: int = 1):
     import tick as t
     import sim as s
@@ -8145,6 +8164,7 @@ def _t11_live(login_period: int = 1):
     div = cfg["payroll_daily_divisor"]
     state["fund"] = 2000 * div * ticks
     state["day_budget_day"] = None
+    _cover_cashbox(cfg, state)
     return t, cfg, state
 
 
@@ -9085,6 +9105,8 @@ FEE_SPLIT_CONSTRUCTION = (
     "round_trip_after_tax_two_percent",
     "fund_tax_floor_holds",
     "dex_visible_fee_under_ceiling",
+    "creator tax split is 100/20/60/20 of tax atoms on turnover",
+    "spend amount 1 with protocol 0 does not take CORP from vault",
 )
 
 PRIZE_PERIOD_CONSTRUCTION = (
@@ -9222,6 +9244,12 @@ TIME_REHEARSAL_CONSTRUCTION = (
     "rehearsal_pack_hash_equals_prod",
     "farm_window_settles_at_fourteen",
     "prize_period_settles_at_thirty",
+    "tick_settle_copies_city_wallet_and_merges",
+    "tick_settle_empty_wallet_does_not_collide_with_address",
+    "tick_settle_seeded_row_copies_city_wallet",
+    "tick_settle_slot_keys_hex_space_prefix_and_stake",
+    "tick_settle_demo_account_kind_does_not_take_prize",
+    "tick_settle_nbsp_hex_and_padded_stake",
     "chain_silence_does_not_block_tick",
 )
 
@@ -9373,6 +9401,13 @@ HUD_SCREENS_CONSTRUCTION = (
     "shows unavailable live industry fields and keeps progression/merge off the overview cards",
     "renders five research items with pack cost/duration and unavailable artwork/start/detail",
     "keeps journal timestamp/entity/unread unavailable and seasons/farm/claims on existing overlays",
+    "raises a building level instead of calling the feature missing",
+    "records the research axis instead of calling the feature missing",
+    "cuts an unfilled refusal slot instead of printing the code",
+    "overview tabs other than summary keep a back step",
+    "answers without a session and hides the demo city",
+    "lists wallet cities in board order, one row per wallet, self stays 0",
+    "does not treat a longer path as the board",
 )
 
 COMPANION_SCREEN_CONSTRUCTION = (
@@ -9958,7 +9993,7 @@ def _hud_txn_check(files: dict[str, str]) -> str | None:
         return "stale/missing quotes can still execute"
     if "exchangeLevelGate" not in exchange or "data-city-level-gate" not in exchange:
         return "Exchange City Level gate is missing"
-    if "MARKET_CLOSED" in exchange or "CITY_LEVEL_TOO_LOW" in exchange:
+    if "MARKET_CLOSED" in exchange or "CITY_LEVEL_TOO_LOW" in exchange.replace("codes.CITY_LEVEL_TOO_LOW", ""):
         return "Exchange invented a refusal code"
     if "marketWindowOpen" not in exchange:
         return "Exchange market schedule is not gated"

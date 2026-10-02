@@ -32,7 +32,8 @@ export function liveQuoteKind(live: boolean | undefined, ageMs: bigint | undefin
 }
 
 export function liveQuoteExecutable(live: boolean | undefined, ageMs: bigint | undefined): boolean {
-  return liveQuoteKind(live, ageMs) === "ready"
+  if (liveQuoteKind(live, ageMs) !== "ready") return false
+  return true
 }
 
 /** Prize-asset order. Object-key order of the districts section is not the canon row. */
