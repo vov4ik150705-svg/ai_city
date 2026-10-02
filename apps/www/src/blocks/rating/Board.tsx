@@ -5,6 +5,30 @@ import { filterRatingRows, ratingCopy, shortenWallet, type RatingRow } from "../
 type BoardStatus = "loading" | "error" | "ready"
 type PageSize = (typeof ratingCopy.pageSizes)[number]
 type Notice = { readonly wallet: string; readonly kind: "copied" | "failed" }
+type InfluenceDir = "desc" | "asc"
+
+function cmpDigits(a: string, b: string): number {
+  const aNeg = a.startsWith("-")
+  const bNeg = b.startsWith("-")
+  if (aNeg !== bNeg) return aNeg ? -1 : 1
+  const aDigits = aNeg ? a.slice(1) : a
+  const bDigits = bNeg ? b.slice(1) : b
+  if (aDigits.length !== bDigits.length) return aDigits.length - bDigits.length
+  if (aDigits < bDigits) return -1
+  if (aDigits > bDigits) return 1
+  return 0
+}
+
+function byInfluence(dir: InfluenceDir): (a: RatingRow, b: RatingRow) => number {
+  const sign = dir === "asc" ? 1 : -1
+  return (a, b) => {
+    const influence = cmpDigits(a.influence, b.influence)
+    if (influence !== 0) return influence * sign
+    const gdp = cmpDigits(a.dayGdp, b.dayGdp)
+    if (gdp !== 0) return gdp * sign
+    return cmpDigits(a.rank, b.rank) * (dir === "desc" ? 1 : -1)
+  }
+}
 
 const turnMs = 140
 
@@ -167,20 +191,13 @@ function SearchField({ query, onQuery }: { query: string; onQuery: (next: string
   )
 }
 
-export function RatingBoard({
-  status,
-  rows,
-  example = false,
-}: {
-  status: BoardStatus
-  rows: readonly RatingRow[]
-  example?: boolean
-}) {
+export function RatingBoard({ status, rows }: { status: BoardStatus; rows: readonly RatingRow[] }) {
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<PageSize>(ratingCopy.pageSizes[0])
   const [turning, setTurning] = useState(false)
   const [notice, setNotice] = useState<Notice | null>(null)
+  const [influenceDir, setInfluenceDir] = useState<InfluenceDir>("desc")
   const turnTimer = useRef<number | null>(null)
   const pendingWallet = useRef<string | null>(null)
   const noticeTimer = useRef<number | null>(null)
@@ -193,7 +210,7 @@ export function RatingBoard({
     [],
   )
 
-  const filtered = status === "ready" ? filterRatingRows(rows, query) : []
+  const filtered = status === "ready" ? [...filterRatingRows(rows, query)].sort(byInfluence(influenceDir)) : []
   const pageCount = filtered.length === 0 ? 1 : Math.ceil(filtered.length / pageSize)
   const safePage = Math.min(page, pageCount)
   const start = (safePage - 1) * pageSize
@@ -238,6 +255,11 @@ export function RatingBoard({
     setPage(1)
   }
 
+  function toggleInfluence() {
+    setInfluenceDir((dir) => (dir === "desc" ? "asc" : "desc"))
+    setPage(1)
+  }
+
   function findRank() {
     if (youIndex < 0) return
     const row = filtered[youIndex]
@@ -275,17 +297,7 @@ export function RatingBoard({
 
   return (
     <div className="rating-board-wrap">
-      <header className="rating-stand">
-        <div className="rating-stand__copy">
-          <p className="rating-stand__eyebrow">{ratingCopy.standEyebrow}</p>
-          <h2 id="rating-board-title" className="rating-stand__title">
-            {ratingCopy.standTitle}
-          </h2>
-          <p className="rating-stand__lead">{ratingCopy.standLead}</p>
-        </div>
-        {example && showRows ? <p className="rating-stand__example">{ratingCopy.example}</p> : null}
-      </header>
-      <section className="rating-board" aria-labelledby="rating-board-title">
+      <section className="rating-board" aria-label={ratingCopy.crumb}>
         <form
           className="rating-board__bar"
           role="search"
@@ -318,11 +330,19 @@ export function RatingBoard({
                 <th scope="col" className="type-label">
                   {ratingCopy.columns[1]}
                 </th>
-                <th scope="col" className="type-label rating-table__num" aria-sort="descending">
-                  <span className="rating-table__head">
+                <th
+                  scope="col"
+                  className="type-label rating-table__num"
+                  aria-sort={influenceDir === "desc" ? "descending" : "ascending"}
+                >
+                  <button
+                    type="button"
+                    className={influenceDir === "asc" ? "rating-table__head rating-sort is-asc" : "rating-table__head rating-sort"}
+                    onClick={toggleInfluence}
+                  >
                     {ratingCopy.columns[2]}
                     <ChevronDown size={12} aria-hidden="true" />
-                  </span>
+                  </button>
                 </th>
                 <th scope="col" className="type-label rating-table__num">
                   <span className="rating-table__head">

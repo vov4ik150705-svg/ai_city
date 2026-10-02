@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
@@ -93,8 +93,7 @@ describe.sequential("V3-4 construction", () => {
     expect(selectSrc.includes("mat.dispose()")).toBe(true)
     expect(selectSrc.includes("ffb54a")).toBe(false)
     expect(selectSrc.includes("EdgesGeometry")).toBe(true)
-    const pixiSrc = readFileSync(join(repo, "packages/render/src/pixi.ts"), "utf8")
-    expect(pixiSrc.includes("applyBuildingSelection")).toBe(false)
+    expect(existsSync(join(repo, "packages/render/src/pixi.ts"))).toBe(false)
     const app = readFileSync(join(repo, "apps/client/src/hud/App.tsx"), "utf8")
     expect(app.includes('setRoute("build")')).toBe(false)
     expect(app.includes("sceneClickOpensWorkspace")).toBe(true)

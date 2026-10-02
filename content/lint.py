@@ -11458,7 +11458,7 @@ def l362_water_plane(data: dict) -> None:
     try:
         files = _render_src_files(data)
         blob = "\n".join(body for _rel, body in files)
-        if "placeWaterPlane" not in blob:
+        if "placeWaterPlane" not in blob and "plantWater" not in blob:
             fail("L362", "placeWaterPlane is missing: the sea would be a cube grid")
             return
         if "isShoreWater" not in blob:
@@ -11503,8 +11503,8 @@ def l363_lot_pad_under_building(data: dict) -> None:
         if "groundTopId" not in blob:
             fail("L363", "groundTopId is missing")
             return
-        if "drawContact" not in blob:
-            fail("L363", "drawContact is missing: contact is still a hard diamond")
+        if "drawContact" not in blob and "buildContactOcclusion" not in blob:
+            fail("L363", "contact painter is missing: contact is still a hard diamond")
             return
         pixi = ""
         for rel, body in _render_src_files(data):

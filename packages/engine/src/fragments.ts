@@ -233,12 +233,3 @@ export function settleCities(data: Dict, cities: Dict, pools: Dict | bigint): Di
   }
   return { tickers: byTicker, codes }
 }
-
-export function stabilityBps(validTicks: bigint, data: Dict, ticksDay: bigint): bigint {
-  if (ticksDay <= 0n) return 0n
-  const bps =
-    asBig(asDict(asDict(asDict(data["economy"])["params"])["spend_burn_bps"])["v"]) +
-    asBig(asDict(asDict(asDict(data["economy"])["params"])["spend_fund_bps"])["v"]) +
-    asBig(asDict(asDict(asDict(data["economy"])["params"])["spend_protocol_bps"])["v"])
-  return (validTicks * bps) / ticksDay
-}

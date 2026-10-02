@@ -1263,6 +1263,8 @@
         "e1_cashbox_100_ticks",
         "e1_under_budget_publishes_launch_boost",
         "e2_window_days_left_follows_tick_index",
+        "ac2_fragments_does_not_export_stability",
+        "ac2_season_stability_is_share_of_the_day",
         "e4_plant_raises_workshop_output",
         "e4_node_yields_to_plant",
         "e4_hall_without_manager_is_dark"

@@ -230,7 +230,5 @@ export {
   lerpIso,
 } from "./motion.js"
 export type { Dir, VehicleStart, DroneStart, BlockRect, VehiclePose, DronePose } from "./motion.js"
-export type { GlyphMetric } from "./glyphs.js"
-export { snapLutFilter } from "./lut.js"
 export { popupPose, glowGainWithTick } from "./fx.js"
 export type { PopupEvent, PopupPose } from "./fx.js"

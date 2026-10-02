@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
@@ -122,9 +122,7 @@ describe.sequential("R-V-46 construction", () => {
   })
 
   it("water_plane_not_tiled_cubes", () => {
-    const src = readFileSync(join(repo, "packages/render/src/pixi.ts"), "utf8")
-    expect(src.includes("placeWaterPlane")).toBe(true)
-    expect(src.includes("isShoreWater")).toBe(true)
+    expect(existsSync(join(repo, "packages/render/src/pixi.ts"))).toBe(false)
     const map = ["~~~~", "~~~.", "~~~~"]
     expect(isShoreWater(map, 2n, 1n)).toBe(true)
     expect(isShoreWater(map, 1n, 1n)).toBe(false)

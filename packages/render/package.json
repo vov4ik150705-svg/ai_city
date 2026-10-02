@@ -15,10 +15,6 @@
       "types": "./src/ground.ts",
       "default": "./src/ground.ts"
     },
-    "./pixi": {
-      "types": "./src/pixi.ts",
-      "default": "./src/pixi.ts"
-    },
     "./three": {
       "types": "./src/three.ts",
       "default": "./src/three.ts"
@@ -27,7 +23,6 @@
   "dependencies": {
     "@corporator/contentpack": "workspace:*",
     "@corporator/protocol": "workspace:*",
-    "pixi.js": "8.20.1",
     "three": "0.185.1"
   },
   "devDependencies": {

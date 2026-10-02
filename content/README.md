@@ -4,7 +4,7 @@
 
 ```
 python content/build.py      собрать пак, сверить матрицу ролей с §5.8, скоуп v1 с §11 и кривую с KOTS
-python content/lint.py       прогнать 272 правил линтера
+python content/lint.py       прогнать 396 правил линтера
 python content/attack.py     сломать контент: каждое правило обязано поймать своё; плюс пробы конструкции
 python content/world.py      генератор планировки T10: счётчики, хеш сцены
 python content/studio.py     студия владельца: сразу показывает art/preview/scene.png, фикстура authored_layout.json

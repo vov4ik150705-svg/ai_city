@@ -1,4 +1,3 @@
-import { Graphics } from "pixi.js"
 import { tileCenter, type IsoPoint } from "./iso.js"
 
 const CLIP = "rc~bdw"
@@ -192,7 +191,7 @@ function diamondVerts(tx: bigint, ty: bigint, tileW: bigint): readonly IsoPoint[
   ]
 }
 
-/** Graphics covering keep diamonds extruded upward by `lift` (sprite height). */
+/** Keep diamonds extruded upward by `lift`. Buildings are not masked. */
 export function keepMaskGraphics(
   map: MaskMap,
   tx: bigint,
@@ -202,8 +201,8 @@ export function keepMaskGraphics(
   tileW: bigint,
   lift: bigint,
   occupied: readonly IsoPoint[] = [],
-): Graphics {
-  const g = new Graphics()
+): readonly (readonly number[])[] {
+  const polys: number[][] = []
   const keep = keepTiles(map, tx, ty, cols, rows, occupied)
   for (const t of keep) {
     const v = diamondVerts(t.x, t.y, tileW)
@@ -214,7 +213,7 @@ export function keepMaskGraphics(
     const right = v[i2]
     const bot = v[i3]
     if (left === undefined || top === undefined || right === undefined || bot === undefined) continue
-    const nums: number[] = [
+    polys.push([
       Number(bot.x),
       Number(bot.y),
       Number(left.x),
@@ -227,11 +226,21 @@ export function keepMaskGraphics(
       Number(right.y - lift),
       Number(right.x),
       Number(right.y),
-    ]
-    g.poly(nums, true)
-    g.fill({ color: 0, alpha: 1 })
+    ])
   }
-  return g
+  return polys
+}
+
+export function maskColumn(
+  mapped: { readonly kind: string },
+  map: MaskMap,
+  tx: bigint,
+  ty: bigint,
+  cols: bigint,
+  rows: bigint,
+  occupied: readonly IsoPoint[] = [],
+): boolean {
+  return mapped.kind !== "building" && needsColumnMask(map, tx, ty, cols, rows, occupied)
 }
 
 export function needsColumnMask(

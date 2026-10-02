@@ -16,24 +16,21 @@ game system.
 ### Audit basis
 
 - Repository: `C:\Users\sk640\ai_city`
-- Audit date: 2026-09-20 (version facts re-verified against disk on this date)
-- Prior audit in this file: 2026-09-09/10/11/13
+- Audit date of the body below: 2026-09-20. Current pack facts re-read
+  from disk on 2026-10-02.
+- Prior audit in this file: 2026-09-09/10/11/13/20
 - Current pack hash:
-  `7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c`
-- Current vectors hash:
-  `dcf5e9fa6428557230e17ac25724fedd809f658f92f864188fb2d10d4c407449`
+  `16ed396bc2a980853a03c3f96783c892b9ec4974b464c47e35e307fdd406698d`
 - Current `rules_version`: `0.24.0`
-- Current `pack_version`: `176`
+- Current `pack_version`: `204`
 - Current `layout_version`: `1`
-- Current canonical bytes: `672869` (`content/out/pack.json` size equals
-  `content/build.py` “canonical bytes”)
-- Version facts agree across four places, all re-read on 2026-09-20:
-  `content/out/pack.json`, `content/out/pack.sha256`,
-  `content/params/meta.json` (`pack_version` 176), and
-  `packages/protocol/src/versions.ts` (`packVersion = 176n`).
-- Earlier revisions of this file quoted packs 138, 150, 162, 171, 172 and 173
-  as "current" in different chapters. Those are superseded. If you find a pack
-  id other than 176 anywhere below, it is stale text, not a second truth.
+- Current canonical bytes: `726824` (`content/out/pack.json`)
+- Version facts agree across `content/out/pack.json`, `content/out/pack.sha256`,
+  `content/params/meta.json` (`pack_version` 204), and
+  `packages/protocol/src/versions.ts` (`packVersion = 204n`).
+- Pack 176 and hash `7bbdc470…` are the 2026-09-20 snapshot in the chapters
+  below, not the current pack. A later chapter that still says "current pack
+  176" is that snapshot. The header of this file is the current pack.
 - Primary current-canon index: `docs/CANON.md`
 - These are current local generator outputs. No mainnet publication, launch
   signature, or deployment was performed.
@@ -76,7 +73,7 @@ against live files. This documentation pass adds no content parameters. It
 does **not** claim production deployment, DEX execution, or mainnet
 publication. It does **not** silently resolve C-20.
 
-**CANONICAL FACT — current local generated pack (not a mainnet publication):**
+**SNAPSHOT 2026-09-20 — local generated pack at that audit, not the header pack:**
 
 - `content/out/pack.sha256` =
   `7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c`
@@ -91,7 +88,7 @@ publication. It does **not** silently resolve C-20.
 
 - `python content/codegen.py --check`: 23 artifacts match the generated pack
   (the hash quoted in an earlier revision, `9e4a5ca1132872`, belonged to a
-  superseded pack; the current one is `7bbdc470…`)
+  superseded pack; the 2026-09-20 snapshot is `7bbdc470…`)
 - `python content/build.py`: succeeded; fee split `100/20/60/20` (fund / leaderboard / farm / studio, in bps of DEX turnover), spend split `40/60/0`
 - `python content/builds.py`: completed in 1182 seconds; `131777` evaluated,
   `92622` justified, `uncovered=0`, `dominating=0`, `dead=0`, `mandatory=0`
@@ -112,8 +109,8 @@ publication. It does **not** silently resolve C-20.
 
 - `python content/lint.py` (2026-09-20): **386** rules, `ERRORS: none`; one
   L174 warning and **four** explicit pending owner/T3 items.
-- `python content/build.py` ran clean on 2026-09-20. The documented pack
-  values are pack **176** / hash `7bbdc470…` above. An earlier pass could not
+- `python content/build.py` ran clean on 2026-09-20. The pack recorded
+  for that run is **176** / hash `7bbdc470…` above. An earlier pass could not
   overwrite a memory-mapped `content/out/pack.json` and therefore quoted pack
   `138`; that blocker is gone and that number is superseded.
 
@@ -231,7 +228,7 @@ bullets as current.
 - These are current local generator outputs. No mainnet publication, launch
   signature, or deployment was performed.
 
-**CANONICAL FACT — current local generated pack (not a mainnet publication):**
+**SNAPSHOT 2026-09-19 — local generated pack at that audit, not the header pack:**
 
 - `content/out/pack.sha256` =
   `7bbdc470c0b3d4d188f5c16d0de9df227f1baad270f2b4aac6f2a26e895ca44c`
@@ -4942,7 +4939,7 @@ current **partially**. D1–D5 closed 2026-09-21.
 
 | id | status | what the plan asked |
 |---|---|---|
-| D1 | **closed 2026-09-21** | Pack number/hash. Current reference is **176** / `7bbdc470c0b3d4d1…`. `DESIGN.md`, `PUBLIC_DOC.md`, `docs/CONTENT.md`, `docs/LAUNCH.md`, `docs/SIMULATION.md` (current-reference lines), `docs/TICK.md` now stamp 176. `GATE_PERF.md` kept the pack-21 measurement hash and added 176 as current. `I0_diet_report.md` and `TZ_ISLAND_LOOK.md` have no pack id (I0's four "143" hits are triangle counts 143 982). Historical sim run pack 171 left as a run label. |
+| D1 | **closed 2026-09-21** | Pack number/hash. Reference at that closeout was **176** / `7bbdc470c0b3d4d1…`. `DESIGN.md`, `PUBLIC_DOC.md`, `docs/CONTENT.md`, `docs/LAUNCH.md`, `docs/SIMULATION.md` (current-reference lines), `docs/TICK.md` then stamped 176. `GATE_PERF.md` kept the pack-21 measurement hash and added 176 as the then-current pack. `I0_diet_report.md` and `TZ_ISLAND_LOOK.md` have no pack id (I0's four "143" hits are triangle counts 143 982). Historical sim run pack 171 left as a run label. The header of this file is the pack to use now. |
 | D2 | **closed 2026-09-21** | `HUD.md` stays deleted. Named live docs already pointed at `docs/reports/HUD_DESIGN_SYSTEM.md` / `docs/SCREENS.md`. Remaining live pointers retargeted: `content/README.md`, `clock.ts`, `preview.ts`, `badge.ts`. Archive and pack `src` strings left as historical justification. |
 | D3 | **closed 2026-09-21** | Part B (tile legend, diamonds, pixelize, LUT/snap) lives in `docs/archive/WORLD_PACK_GRID.md`. Live `docs/WORLD.md` is Part A plus the economic-bridge counters and a pointer. Date literals removed from the live file. `L194` still keys off a BRIEF coverage line in `WORLD.md`. |
 | D4 | **closed 2026-09-21** | `docs/archive/reports/hud_prompt.md` and `docs/archive/reports/TZ_HUD.md` (`R-V-102`). Live look lock is `hud/design-reference/`. `docs/reports/HUD_DESIGN_SYSTEM.md` is errata only (no Settings, no bottom nav, ≤3 activity; IBM Plex Sans + JetBrains Mono). Source Serif 4 is archive-only. `HUD.md` not restored. |

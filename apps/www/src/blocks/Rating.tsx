@@ -111,7 +111,7 @@ export function Rating() {
           <SectionNav />
         </header>
         <div className="rating__table-block">
-          <RatingBoard status={status} rows={rows} example={example} />
+          <RatingBoard status={status} rows={rows} />
         </div>
         <Order />
         <Influence />

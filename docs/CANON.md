@@ -37,9 +37,11 @@ Corporator — браузерный 3D-город с орбитальной ка
 | `.cursor/rules/tz-buyback.mdc` | как исполнять `TZ_BUYBACK.md`: одна задача, мок на пустом теле, филл только с логом Transfer | любой чат по котлам |
 | `docs/reports/TZ_PRELAUNCH_FIX.md` | ТЗ на закрытие NO-GO ревью 2026-10-01: задачи `PL1`…`PL16`, источник `docs/reports/FINAL_PRELAUNCH_REVIEW.md` | владелец назвал `PL1`…`PL16` |
 | `.cursor/rules/tz-prelaunch.mdc` | как исполнять `TZ_PRELAUNCH_FIX.md`: одна задача, без `launchToken`, круг не двигать | любой чат по этому ТЗ |
+| `docs/reports/TZ_AUDIT_CLOSE.md` | ТЗ на хвост аудита 2026-10-02: документы, Pixi, `stabilityBps`, `settle`, example env, bloom, клиент в compose; задачи `AC1`…`AC7` | владелец назвал `AC1`…`AC7` |
+| `.cursor/rules/tz-audit-close.mdc` | как исполнять `TZ_AUDIT_CLOSE.md`: одна задача, без pause и без HSM | любой чат по этому ТЗ |
 | `docs/reports/ISLAND_STUDIO.md` | паспорт source/runtime острова | посадка острова |
 | `docs/reports/AUDIT_ISLAND_VISUAL.md` | доказательный аудит отклонённого вида | почему старый кадр снят |
-| `art/island_v3/reviews/LOOK-00/refs/` | locked owner mockups и антиэталон | сверка принятого кадра |
+| `art/island_v3/reviews/LOOK-00/refs/` | каталог отсутствует на диске; не восстанавливать и не считать источником кадра | не открывать |
 | `docs/reports/ASSETS_ISLAND.md` | библиотека декора | закупка и приём GLB |
 | `.cursor/rules/code-phase.mdc` | законы фазы: канон, гейт, запреты | любой чат по коду |
 | `.cursor/rules/plan-launch.mdc` | как исполнять `PLAN_LAUNCH.md` | любой чат до запуска |
@@ -193,7 +195,7 @@ Packed day-sign / L387 не канон принятого вида. Остров
 без отдельной просьбы владельца.
 
 Живой рендер — Three.js. Pixi, ромбы, изометрия и pixelize — снятый 2D-стек:
-архив в `packages/render/src/pixi.ts`, не задание.
+исходники убраны из `packages/render` (AC3) и не возвращаются.
 
 Очередь `docs/reports/PLAN_LAUNCH.md` закрыта; как исполняли — `.cursor/rules/plan-launch.mdc`. Живое ТЗ заработка — `docs/reports/TZ_EARNINGS.md`, правило `.cursor/rules/tz-earnings.mdc`. Живое ТЗ играбельности — `docs/reports/TZ_PLAYABLE.md`, правило `.cursor/rules/tz-playable.mdc`: оно и есть текущая работа. Смысл живых документов этот файл не подменяет.
 

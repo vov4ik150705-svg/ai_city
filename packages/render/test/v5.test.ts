@@ -14,8 +14,6 @@ import {
   type PhaseRow,
   type Rgb,
 } from "../src/light.ts"
-import { snapLutFilter } from "../src/lut.ts"
-
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..")
 
 type PackFile = {
@@ -165,7 +163,5 @@ describe("v5", () => {
       )
       expect(phaseBlendBps(leftN * minutes, window, bps)).toBe(0n)
     }
-    expect(snapLutFilter({} as ImageBitmap, 0n)).toBeUndefined()
-    expect(snapLutFilter({} as ImageBitmap, 1n)).toBeUndefined()
   })
 })
