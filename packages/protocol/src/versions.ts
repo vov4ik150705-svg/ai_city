@@ -1,5 +1,5 @@
-/* GENERATED from pack e8e837109fb0f34e3f125f86dd2195f60e491c86d5e24e2efb65d8aa39ff58fa; do not edit */
+/* GENERATED from pack dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4; do not edit */
 export const rulesVersion = "0.24.0";
-export const packVersion = 194n;
-export const packHash = "e8e837109fb0f34e3f125f86dd2195f60e491c86d5e24e2efb65d8aa39ff58fa";
+export const packVersion = 195n;
+export const packHash = "dce4eda1ce60fe048dab7a299c70af2aee892e8ca8928d482d5c6e59d30613c4";
 export const layoutVersion = 1n;

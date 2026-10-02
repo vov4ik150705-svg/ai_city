@@ -117,14 +117,16 @@
   margin-top: var(--site-body-to-cta);
   color: color-mix(in srgb, var(--ind-ink) calc(var(--ind-link) * 100%), var(--site-text-primary));
   transition:
-    --ind-link var(--ind-swap) var(--ind-swap-ease),
-    color var(--ind-swap) var(--ind-swap-ease);
+    --arrow-weight var(--site-dur-state) var(--site-ease),
+    --ind-link var(--docs-link-dur) var(--docs-link-ease),
+    color var(--docs-link-dur) var(--docs-link-ease);
 }
 
 .industries__intro > .site-arrow-link:hover,
 .industries__intro > .site-arrow-link:focus-visible {
   --ind-link: 1;
-  --arrow-weight: 400;
+  --arrow-weight: 700;
+  color: var(--ind-ink);
 }
 
 .industries__lead span {
@@ -592,6 +594,20 @@
   padding: var(--site-space-4);
 }
 
+.industries__info .site-tabs__stage {
+  display: grid;
+}
+
+.industries__info .site-tabs__stage > .site-tabs__panel {
+  grid-area: 1 / 1;
+  align-self: start;
+}
+
+.industries__info .site-tabs__panel.is-inactive {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .industries__opens {
   align-self: flex-start;
   padding: 0;
@@ -816,11 +832,20 @@
   .industries__scroller {
     flex: 1 1 auto;
     min-width: 0;
+    container-type: inline-size;
     overflow-x: auto;
-    overflow-y: clip;
+    overflow-y: hidden;
     overflow-anchor: none;
     scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
     scrollbar-width: none;
+  }
+
+  .industries__scroller .ind-tile {
+    touch-action: pan-x;
   }
 
   .industries__scroller::-webkit-scrollbar {
@@ -833,9 +858,12 @@
   }
 
   .ind-tile {
-    flex: 0 0 auto;
-    min-width: calc(84px * var(--site-scale));
+    flex: 0 0 calc(100cqw / 3);
+    width: calc(100cqw / 3);
+    min-width: 0;
+    max-width: calc(100cqw / 3);
     scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .ind-chip:not(.ind-chip--pair) {

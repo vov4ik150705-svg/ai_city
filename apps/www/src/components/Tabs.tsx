@@ -12,11 +12,13 @@ export function Tabs({
   tabs,
   variant = "underline",
   preload = false,
+  stable = false,
 }: {
   label: string
   tabs: readonly TabItem[]
   variant?: "underline" | "underline-dark"
   preload?: boolean
+  stable?: boolean
 }) {
   const first = tabs[0]
   const [active, setActive] = useState(first?.id ?? "")
@@ -47,6 +49,7 @@ export function Tabs({
   }, [active, preload])
 
   useLayoutEffect(() => {
+    if (stable) return
     const stage = stageRef.current
     const y = scrollRef.current
     if (stage === null) return
@@ -85,7 +88,7 @@ export function Tabs({
       if (finish !== undefined) stage.removeEventListener("transitionend", finish)
       stage.classList.remove("is-sizing")
     }
-  }, [active, motion])
+  }, [active, motion, stable])
 
   if (selected === undefined) return null
 
@@ -142,7 +145,7 @@ export function Tabs({
           />
         ) : null}
       </div>
-      {preload ? (
+      {preload || stable ? (
         <div ref={stageRef} className="site-tabs__stage" data-motion={motion ? "1" : "0"}>
           {tabs.map((tab) => {
             const on = tab.id === selected.id

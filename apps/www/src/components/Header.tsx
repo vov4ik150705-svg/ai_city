@@ -152,6 +152,7 @@ export function Header({ path }: { path: string }) {
       const y = window.scrollY
       const delta = y - last
       last = y
+      document.documentElement.dataset.headerSolid = y > edge ? "1" : "0"
       if (y <= edge) {
         acc = 0
         setConcealed(false)

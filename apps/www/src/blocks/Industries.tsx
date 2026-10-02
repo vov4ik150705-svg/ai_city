@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react"
-import { ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Card } from "../components/Card"
 import { ArrowLink } from "../components/text"
 import { docsLinks } from "../data/docsLinks"
@@ -465,6 +465,18 @@ export function Industries() {
         </div>
         <div className="industries__selector">
           <div className="industries__bar">
+          <button
+            type="button"
+            className="industries__chevron site-icon-button"
+            aria-label="Show previous industries"
+            onClick={() => {
+              const scroller = scrollerRef.current
+              if (scroller === null) return
+              scroller.scrollBy({ left: -scroller.clientWidth / 2, behavior: "smooth" })
+            }}
+          >
+            <ChevronLeft size={20} aria-hidden="true" />
+          </button>
           <div ref={scrollerRef} className="industries__scroller">
             <div ref={tilesRef} role="tablist" aria-label="Industries" className="industries__tiles">
               {industries.map((row, index) => {
@@ -553,6 +565,7 @@ export function Industries() {
         </div>
         <div className="industries__info">
           <Tabs
+            stable
             label="Industry details"
             tabs={industriesInfoTabs.map((tab) => ({
               id: tab.id,

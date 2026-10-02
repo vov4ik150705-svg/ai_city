@@ -41,6 +41,10 @@
   color: var(--site-dark-text-primary);
 }
 
+.agents.site-section {
+  padding-top: var(--site-space-7);
+}
+
 .agents[data-role="engineer"] {
   --block-accent: var(--site-role-engineer);
   --agents-ring: var(--site-role-engineer);
@@ -111,20 +115,26 @@
 }
 
 .agents.site-section .agents__copy .site-arrow-link {
+  --agents-link: 0;
+  --arrow-weight: 400;
   margin-top: var(--site-body-to-cta);
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
   text-align: left;
-  --agents-link: 0;
   color: color-mix(in srgb, var(--block-accent) calc(var(--agents-link) * 100%), var(--site-dark-text-primary));
-  transition: --agents-link var(--agents-color-dur) var(--agents-color-ease);
+  transition:
+    --arrow-weight var(--site-dur-state) var(--site-ease),
+    --agents-link var(--docs-link-dur) var(--docs-link-ease),
+    color var(--docs-link-dur) var(--docs-link-ease);
 }
 
 .agents.site-section .agents__copy .site-arrow-link:hover,
 .agents.site-section .agents__copy .site-arrow-link:focus-visible {
   --agents-link: 1;
+  --arrow-weight: 700;
+  color: var(--block-accent);
 }
 
 .agents__stage {

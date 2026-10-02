@@ -1958,6 +1958,7 @@
         "attestor_putroot_retries",
         "client_bundle_has_no_keys",
         "selectors match keccak of the signature",
+        "chainport keccak matches the engine copy",
         "parses receipt logs and treats a missing logs field as an empty list",
         "balanceOf with a token calls that token",
         "slice without the signer key is silence and posts no transaction",

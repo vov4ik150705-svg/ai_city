@@ -1,6 +1,6 @@
 import { useContext, type CSSProperties } from "react"
 import heroUrl from "../assets/opt/hero.webp"
-import heroMobileUrl from "../assets/opt/hero-mobile.webp"
+import heroMobileBgUrl from "../assets/opt/hero-mobile-bg.webp"
 import robinhoodUrl from "../../../../website/brand/robinhood-chain/robinhood-chain-brand-assets-v1/Robinhood Chain Brand Assets - V1/Robinhood Chain Logo/Robinhood_Chain_Logo_Black.svg"
 import { Button } from "../components/Button"
 import { heroCopy } from "../data/hero"
@@ -18,7 +18,7 @@ export function Hero() {
     >
       <div className="hero__stage">
         <picture className="hero__frame">
-          <source media="(max-width: 700px)" srcSet={heroMobileUrl} width={1400} height={1600} />
+          <source media="(min-width: 701px)" srcSet={heroUrl} width={1671} height={941} />
           <img
             className="hero__art"
             src={heroUrl}
@@ -63,6 +63,17 @@ export function Hero() {
           </div>
         </div>
       </div>
+      <picture className="hero__plate">
+        <source media="(max-width: 700px)" srcSet={heroMobileBgUrl} width={887} height={1774} />
+        <img
+          alt=""
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          width={887}
+          height={1774}
+          decoding="async"
+          fetchPriority="high"
+        />
+      </picture>
     </section>
   )
 }

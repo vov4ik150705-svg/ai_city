@@ -234,6 +234,8 @@
 
 .site-arrow-link {
   --arrow-weight: 400;
+  --docs-link-dur: calc((var(--site-dur-state) + var(--site-dur-hover)) * 1.6);
+  --docs-link-ease: cubic-bezier(0.4, 0, 0.6, 1);
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -244,7 +246,7 @@
   text-decoration: none;
   transition:
     --arrow-weight var(--site-dur-state) var(--site-ease),
-    color var(--site-dur-state) var(--site-ease);
+    color var(--docs-link-dur) var(--docs-link-ease);
 }
 
 .site-arrow-link:hover,
