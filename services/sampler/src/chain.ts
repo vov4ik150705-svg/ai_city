@@ -118,6 +118,7 @@ export async function readChainQuote(
   }
   if (corpWei === undefined || corpWei <= 0n) return undefined
   const turnover = await swapTurnover(post, pool, ethUsd, wei, windowS)
+  if (turnover === undefined) return undefined
   return { ethUsd8dec: ethUsd, corpEthWeiPerWhole: corpWei, turnoverUsd8dec: turnover }
 }
 
@@ -127,9 +128,9 @@ async function swapTurnover(
   ethUsd: bigint,
   wei: bigint,
   windowS: bigint,
-): Promise<bigint> {
+): Promise<bigint | undefined> {
   const latest = await postEth(post, "eth_blockNumber", [])
-  if (latest.status !== "ok") return 0n
+  if (latest.status !== "ok") return undefined
   const tip = BigInt(latest.body)
   const nowS = BigInt(Math.floor(Date.now() / 1000))
   let from = tip
@@ -159,14 +160,14 @@ async function swapTurnover(
   const raw = await postEth(post, "eth_getLogs", [
     { address: pool, fromBlock: "0x" + from.toString(16), toBlock: "latest", topics: [SWAP_V2] },
   ])
-  if (raw.status !== "ok") return 0n
+  if (raw.status !== "ok") return undefined
   let rows: unknown
   try {
     rows = JSON.parse(raw.body) as unknown
   } catch {
-    return 0n
+    return undefined
   }
-  if (!Array.isArray(rows)) return 0n
+  if (!Array.isArray(rows)) return undefined
   let usd = 0n
   for (const row of rows) {
     if (row === null || typeof row !== "object") continue

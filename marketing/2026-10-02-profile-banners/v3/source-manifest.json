@@ -1,0 +1,174 @@
+{
+  "media/VISUAL_DESIGN_SYSTEM.md": {
+    "bytes": 86122,
+    "sha256": "247a8d4d17408bc8eebad1299cae5fe388f8bb2c0c6fc295c2d9047b010a38af"
+  },
+  "media/MEDIA_GENERATION_RULE.md": {
+    "bytes": 33189,
+    "sha256": "577e6a132c55b29c2a7048d086a30641231a0d3b0b7350b9db3edf97658e7992"
+  },
+  "media/REFERENCE_MANIFEST.md": {
+    "bytes": 16742,
+    "sha256": "d32fbdff8b8481c3bd43cc861adb4165d9c0efd56b2250b18e1a1d13e2f0122f"
+  },
+  "art/island_v3/maps/terra-look.json": {
+    "bytes": 39523,
+    "sha256": "c438745963abaa789b227070836fda020426e1986a94e0e53eef0191d743b263"
+  },
+  "art/island_v3/runtime_terra19/island_mass.glb": {
+    "bytes": 1708532,
+    "sha256": "a834340aadc6b14acdbb7047482ecf201d90c4fe1df5c21c6627d3f1dc1863bc"
+  },
+  "media/kit/island_map.png": {
+    "bytes": 2889033,
+    "sha256": "2f706680b483c1eaee8769c2c69e6b671088f673d65f566ea4820aa1cedebd64"
+  },
+  "media/kit/signs_all.png": {
+    "bytes": 2860168,
+    "sha256": "340b8fe9e3222c017301802d0881a9704a6b1c77320090e5cf9e178a6c89895f"
+  },
+  "media/kit/overview_buildings.png": {
+    "bytes": 2151796,
+    "sha256": "c9e9b14abf3625b75ad38495c87ddb83b14c443605addf6f272542c53ac10973"
+  },
+  "media/arts/economy-sky-art.png": {
+    "bytes": 1433458,
+    "sha256": "02a43e60bd08947ef0dfabeee6e4cf55a587ea7fd0141eee04a5fe62ea2db0e7"
+  },
+  "media/corporator_logo/logo solo.png": {
+    "bytes": 822011,
+    "sha256": "58395b6846eb9e60bea4edc4e0bee3f50ac94e5b4c2a73ca8dae40dc02beef57"
+  },
+  "media/corporator_logo/logo token.png": {
+    "bytes": 703106,
+    "sha256": "19288af558af3db670078d269c11a38c27763b6da4521671294808dd044ae9e0"
+  },
+  "media/island/island_03_tight.png": {
+    "bytes": 2614253,
+    "sha256": "8ba3437e4d27b7c49d07517f71baf24693bf3ad89b90397b9c25dd59797a0521"
+  },
+  "media/island/island_04_hero_walk_left.png": {
+    "bytes": 1884264,
+    "sha256": "baf3a38633f2f0bbf0d737ab7ef4dce8f21795d1ff4898b940f041db0fd953df"
+  },
+  "media/island/island_06_lowest_fill.png": {
+    "bytes": 3243138,
+    "sha256": "22882f4bd8c86b3013fa377a5fb2d3aa85adc378efaa3c601625942e53e04c87"
+  },
+  "media/units/Engineer.png": {
+    "bytes": 1615600,
+    "sha256": "6e3625fdb58ee1d6379c61ddc3f30eec02e7d00b2a2af3cd77811de6ffa94574"
+  },
+  "media/kit/roles/engineer.png": {
+    "bytes": 1389977,
+    "sha256": "ff70b94dbca23cd0cc9a432da596ecbe3a21520ae9665d57f673f69691a66ab2"
+  },
+  "media/units/Logistician.png": {
+    "bytes": 1437308,
+    "sha256": "d4a39d583cce7a80a7a6718c8569cabf151f7d1aca7c03fc2811f959e0673240"
+  },
+  "media/kit/roles/logistician.png": {
+    "bytes": 1220034,
+    "sha256": "e00b6591dd1d95fd0541724e99e97bb7398d42ae5439e95b842f88b12b6bf1e4"
+  },
+  "media/units/scientist.png": {
+    "bytes": 1409212,
+    "sha256": "f1663f55508f137ac442b1586e4f1d540e7ca361675ad11bf0eb97fc571db045"
+  },
+  "media/kit/roles/scientist.png": {
+    "bytes": 1171642,
+    "sha256": "cee69b8704e1d890c213f8ce46fcfd2769b199cf9a2470deaebd31d49cd70c48"
+  },
+  "media/units/manager.png": {
+    "bytes": 719348,
+    "sha256": "2efee968f3dc2f4348941d19b483338c60ae0f3bc036c38c7b250590f1ccbc09"
+  },
+  "media/kit/roles/manager.png": {
+    "bytes": 1188260,
+    "sha256": "42df56891e0d119c4afbbb46880ebe540448a70aa38abf43ab0c71a0dc1b3ef9"
+  },
+  "media/units/trader.png": {
+    "bytes": 385319,
+    "sha256": "9a0d278167b9fe2940c0b7f154c414ed30028bba7ee6eccbd96e1ff2aabf9f2f"
+  },
+  "media/kit/roles/trader.png": {
+    "bytes": 1234208,
+    "sha256": "7a688a04c500288a1edb78fd556841601850eaae35d0104efa52f8732dc575d8"
+  },
+  "models/City Hall.glb": {
+    "bytes": 837144,
+    "sha256": "58fa04b7a6cf185d4cb32c4df4c3e2082f32890d8b114197afde5a684a1e63e3"
+  },
+  "models/AI Research Center.glb": {
+    "bytes": 2519228,
+    "sha256": "5418819d829e0f8dd83f4a16087043bf03cf6863ea96de602d530e670d08700e"
+  },
+  "models/Cloud Campus.glb": {
+    "bytes": 1678896,
+    "sha256": "e738c230d9d0c8e382c94e0f5f4ada25c0bc626e2e397896a51f0c5103205220"
+  },
+  "models/Finance Tower.glb": {
+    "bytes": 662692,
+    "sha256": "df936cb2b1bad934f5c0ca75f3c329d59298fc1d4408af6af559941cae7b6d01"
+  },
+  "models/Bank.glb": {
+    "bytes": 1794096,
+    "sha256": "1319d5b68f036539e5e0da90f7e458328b94425e311a51187b9e167e7bc193cc"
+  },
+  "models/Exchange.glb": {
+    "bytes": 1379908,
+    "sha256": "0673185a111b81a5a9c710b079673b91927862c1626a9a6e363d71402e0eecaf"
+  },
+  "models/Power Node.glb": {
+    "bytes": 1860884,
+    "sha256": "5b5c580bade4a9ce3335280f42513819f68ae16c11782fd16d40160d35004413"
+  },
+  "models/Agent Hub.glb": {
+    "bytes": 1333224,
+    "sha256": "1bc54d26d5f6ad7370a1365e155e94f450f0ade8880341f691e4a0c29feb79d3"
+  },
+  "models/Workshop.glb": {
+    "bytes": 1398796,
+    "sha256": "e1b839a1e34693249bddaad8a04748a401e4a9cfa5a4dad591e15f0a7c2093f6"
+  },
+  "models/Energy Plant.glb": {
+    "bytes": 639104,
+    "sha256": "b3ea60dbb584270bffd0ba6a41a0e59bb5b53b13aa0a4748cfce1a794c24383f"
+  },
+  "models/Logistics Hub.glb": {
+    "bytes": 1218156,
+    "sha256": "a41d00df8036c4a4c1bc0db77b7408418f8d0797cce0b5718b486bd1ad04b6fb"
+  },
+  "models/Flagship Store.glb": {
+    "bytes": 281564,
+    "sha256": "5b7c6aa4a4a99fc3d74a1a2b0f4406ce19e47b8cf0e1252e141441eafaed48d1"
+  },
+  "models/Drone Depot.glb": {
+    "bytes": 1412248,
+    "sha256": "bdc29efdd0e3ce118b9d46503d99521a641bcaf1c1ef69266ec75a4b61a1af2a"
+  },
+  "models/Data Center.glb": {
+    "bytes": 1140692,
+    "sha256": "b0d88d3aab48a779089dbee041c622e294bf9af0eea4d0f9906d456ddd56126d"
+  },
+  "models/Retail_complex.glb": {
+    "bytes": 1387764,
+    "sha256": "407cb59de8c8ffe201dcef0bdc4d63051a042ce8b1e09ddfa5f420dc85eeca86"
+  },
+  "models/Robotics Lab.glb": {
+    "bytes": 145500,
+    "sha256": "b016a4e4780c3d33e691c7cfb8b83455a339986e789c4edb657d255a451aadca"
+  },
+  "models/Clearing House.glb": {
+    "bytes": 608868,
+    "sha256": "bbf42c860e0a56d144c8997d9111778a6f2e02992f6f79887380fe83feb511c0"
+  },
+  "models/Fleet Yard.glb": {
+    "bytes": 865224,
+    "sha256": "2952e1f8a96413577b42ca073f6deb244d9533cb5433fc9227061d1c76bdd31a"
+  },
+  "models/neon-residence.glb": {
+    "bytes": 670856,
+    "sha256": "52e1444671f353bd7cb322ea71f8bd4fab20110d489f434729fec1efab18325d"
+  }
+}

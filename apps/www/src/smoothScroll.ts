@@ -1,7 +1,52 @@
 const SMOOTH_MS = 200
-const MAX_FRAME_MS = 250
+const MAX_FRAME_MS = 48
 const SETTLE_PX = 0.5
+const SNAP_PX = 1
 const LINE_HEIGHT_PX = 16
+
+// A late frame must not spend the whole stall as one ease step: that leap is
+// the picture jumping. A missed vsync still counts in full.
+export function easeScroll(current: number, aim: number, dtMs: number): number {
+  const dt = dtMs > MAX_FRAME_MS ? MAX_FRAME_MS : dtMs
+  const blend = 1 - Math.exp(-dt / SMOOTH_MS)
+  return current + (aim - current) * blend
+}
+
+// Chrome snaps scrollY to device pixels. Copying that snap back into the
+// animation every frame eats any step smaller than a pixel, so the page
+// sticks and then jumps. Keep a sub-pixel lead. A full pixel or more means
+// the browser actually rejected the position (end of the page, or something
+// else moved it) — follow that, or the stored gap becomes a teleport.
+// A fast flick reaches the page edge in the target before the eased position
+// does. The rest of that flick is the speed dying off. Those events must still
+// be taken: if they fall through, the browser scrolls natively and the next
+// eased frame yanks the picture back.
+export function pageWheel(
+  scrolling: boolean,
+  scrollY: number,
+  target: number,
+  limit: number,
+  delta: number,
+): { readonly prevent: true; readonly moved: boolean; readonly target: number } {
+  const origin = scrolling ? clamp(target, 0, limit) : scrollY
+  const next = Math.max(0, origin + delta)
+  const moved = Math.abs(clamp(next, 0, limit) - origin) >= SETTLE_PX
+  return { prevent: true, moved, target: moved ? next : target }
+}
+
+export function followScroll(
+  animated: number,
+  applied: number,
+  target: number,
+  limit: number,
+): { readonly current: number; readonly target: number } {
+  const ahead = animated - applied
+  if (ahead > SETTLE_PX && limit <= applied + SETTLE_PX) {
+    return { current: applied, target: Math.min(target, limit) }
+  }
+  if (applied > animated || ahead >= SNAP_PX) return { current: applied, target }
+  return { current: animated, target }
+}
 
 let started = false
 
@@ -74,15 +119,9 @@ export function startSmoothScroll(): void {
 
   const write = (y: number): void => {
     window.scrollTo(0, y)
-    const applied = window.scrollY
-    limit = readLimit()
-    // Stay on the position the page actually has. Running ahead of it and
-    // applying the gap later is the teleport. A shortfall is the end of the
-    // page only when the document really ends there.
-    current = applied
-    if (applied + SETTLE_PX < y && limit <= applied + SETTLE_PX) {
-      target = Math.min(target, limit)
-    }
+    const next = followScroll(y, window.scrollY, target, limit)
+    current = next.current
+    target = next.target
   }
 
   const halt = (): void => {
@@ -101,12 +140,11 @@ export function startSmoothScroll(): void {
       halt()
       return
     }
-    const dt = last === 0 ? 16 : Math.min(MAX_FRAME_MS, now - last)
+    const dt = last === 0 ? 16 : now - last
     last = now
     limit = readLimit()
-    const blend = 1 - Math.exp(-dt / SMOOTH_MS)
     const aim = clamp(target, 0, limit)
-    current += (aim - current) * blend
+    current = easeScroll(current, aim, dt)
     if (Math.abs(aim - current) < SETTLE_PX) {
       current = aim
       write(current)
@@ -145,15 +183,11 @@ export function startSmoothScroll(): void {
     if (Math.abs(event.deltaX) > Math.abs(event.deltaY) && nestedScrolls(event, "x")) return
     if (nestedScrolls(event, "y")) return
     if (frame === 0) limit = readLimit()
-    const origin = frame === 0 ? window.scrollY : clamp(target, 0, limit)
-    const next = Math.max(0, origin + wheelPixels(event))
-    if (Math.abs(clamp(next, 0, limit) - origin) < SETTLE_PX) return
+    const step = pageWheel(frame !== 0, window.scrollY, target, limit, wheelPixels(event))
     event.preventDefault()
-    if (frame === 0) {
-      current = window.scrollY
-      target = current
-    }
-    target = next
+    if (!step.moved) return
+    if (frame === 0) current = window.scrollY
+    target = step.target
     if (frame === 0) frame = requestAnimationFrame(tick)
   }
 

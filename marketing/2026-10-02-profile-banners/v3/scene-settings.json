@@ -1,0 +1,17 @@
+{
+  "renderEngine": "Blender Cycles CPU",
+  "samples": 128,
+  "resolution": [
+    3000,
+    1000
+  ],
+  "cameraElevation": 12,
+  "cameraAzimuth": -13,
+  "subjectCenterFraction": 0.67,
+  "buildingSources": "models/*.glb",
+  "massSource": "art/island_v3/runtime_terra19/island_mass.glb",
+  "mapSource": "art/island_v3/maps/terra-look.json",
+  "buildingCount": 19,
+  "geometryModified": false,
+  "waterfallsShortened": false
+}

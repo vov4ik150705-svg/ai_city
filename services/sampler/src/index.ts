@@ -16,4 +16,6 @@ export type { Observation, Sample, TickPriceInputs, SamplerState, StepOut } from
 export { samplerSource } from "./source.js"
 export type { SamplerSource } from "./source.js"
 export { publishOnce, memoryPriceStore, startPriceLoop } from "./loop.js"
+export { openPriceSampleStore, priceSamplePayload, priceSampleStore, sampleCityTime } from "./pg_store.js"
+export type { SampleClock, SqlRunner } from "./pg_store.js"
 export { stepWalletPrice } from "./wallet.js"

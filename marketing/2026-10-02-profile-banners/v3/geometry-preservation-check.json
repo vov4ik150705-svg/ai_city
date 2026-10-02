@@ -1,0 +1,31 @@
+{
+  "meshCount": 4146,
+  "buildingCount": 19,
+  "meshesByBuilding": {
+    "agent_hub": 9,
+    "ai_research_center": 17,
+    "bank": 29,
+    "city_hall": 7,
+    "clearing_house": 186,
+    "cloud_campus": 16,
+    "data_center": 22,
+    "drone_depot": 8,
+    "energy_plant": 224,
+    "exchange": 17,
+    "finance_tower": 6,
+    "flagship_store": 408,
+    "fleet_yard": 974,
+    "logistics_hub": 27,
+    "neon_residence": 15,
+    "power_node": 30,
+    "retail_complex": 25,
+    "robotics_lab": 448,
+    "workshop": 10
+  },
+  "changedVertexTopologyUVOrWorldTransform": [],
+  "addedMeshes": [],
+  "all19Present": true,
+  "unchanged": true,
+  "includesOriginalIslandMassAndAllWaterfallGroups": true,
+  "note": "Compares every original island, building, decor and water mesh against the assembly made directly from original GLBs and accepted terra-look coordinates; checks exact vertices, topology, UVs and world transforms."
+}

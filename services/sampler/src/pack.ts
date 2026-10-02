@@ -15,6 +15,8 @@ export type SamplerPack = {
   readonly wei: bigint
   readonly periodMs: bigint
   readonly ticksPerCityDay: bigint
+  readonly anchorHour: bigint
+  readonly tickLengthCityHours: bigint
   readonly inputFields: readonly string[]
   readonly priceDayPublished: bigint
   readonly blocksTick: bigint
@@ -35,6 +37,7 @@ export function loadSamplerPack(bytes: Uint8Array): SamplerPack {
   const timeGen = asObj(atPath(pack, ["generated", "time"]))
   const arch = asObj(atPath(pack, ["sections", "arch"]))
   const economy = asObj(atPath(pack, ["sections", "economy"]))
+  const time = asObj(atPath(pack, ["sections", "time"]))
   const sampler = asObj(asObj(arch["services"])["sampler"])
   return {
     hash: loaded.hash,
@@ -50,6 +53,8 @@ export function loadSamplerPack(bytes: Uint8Array): SamplerPack {
     wei: 10n ** paramV(asObj(atPath(pack, ["sections", "sim"])), "wei_decimals"),
     periodMs: asBig(apiGen["sampler_period_ms"]),
     ticksPerCityDay: asBig(timeGen["ticks_per_city_day"]),
+    anchorHour: paramV(time, "anchor_hour"),
+    tickLengthCityHours: paramV(time, "tick_length_city_hours"),
     inputFields: strList(arch["sampler_input_fields"]),
     priceDayPublished: asBig(archGen["price_day_published"]),
     blocksTick: asBig(sampler["blocks_tick"]),

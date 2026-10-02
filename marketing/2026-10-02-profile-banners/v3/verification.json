@@ -1,0 +1,92 @@
+{
+  "geometry": {
+    "meshCount": 4146,
+    "buildingCount": 19,
+    "meshesByBuilding": {
+      "agent_hub": 9,
+      "ai_research_center": 17,
+      "bank": 29,
+      "city_hall": 7,
+      "clearing_house": 186,
+      "cloud_campus": 16,
+      "data_center": 22,
+      "drone_depot": 8,
+      "energy_plant": 224,
+      "exchange": 17,
+      "finance_tower": 6,
+      "flagship_store": 408,
+      "fleet_yard": 974,
+      "logistics_hub": 27,
+      "neon_residence": 15,
+      "power_node": 30,
+      "retail_complex": 25,
+      "robotics_lab": 448,
+      "workshop": 10
+    },
+    "changedVertexTopologyUVOrWorldTransform": [],
+    "addedMeshes": [],
+    "all19Present": true,
+    "unchanged": true,
+    "includesOriginalIslandMassAndAllWaterfallGroups": true,
+    "note": "Compares every original island, building, decor and water mesh against the assembly made directly from original GLBs and accepted terra-look coordinates; checks exact vertices, topology, UVs and world transforms."
+  },
+  "pngs": {
+    "scene-clean-3000x1000.png": {
+      "width": 3000,
+      "height": 1000,
+      "bytes": 5319138
+    },
+    "scene-clean-1500x500.png": {
+      "width": 1500,
+      "height": 500,
+      "bytes": 1599215
+    },
+    "x-3000x1000.png": {
+      "width": 3000,
+      "height": 1000,
+      "bytes": 5137981
+    },
+    "x-1500x500.png": {
+      "width": 1500,
+      "height": 500,
+      "bytes": 1546664
+    },
+    "dexscreener-3000x1000.png": {
+      "width": 3000,
+      "height": 1000,
+      "bytes": 5148757
+    },
+    "dexscreener-1500x500.png": {
+      "width": 1500,
+      "height": 500,
+      "bytes": 1549415
+    }
+  },
+  "masters": {
+    "x": {
+      "embeddedFonts": true,
+      "embeddedImages": true,
+      "editableTitle": true,
+      "layerCount": 6,
+      "openRasterValid": true
+    },
+    "dexscreener": {
+      "embeddedFonts": true,
+      "embeddedImages": true,
+      "editableTitle": true,
+      "layerCount": 6,
+      "openRasterValid": true
+    }
+  },
+  "team": {
+    "count": 5,
+    "identityCheckedVisually": true,
+    "source3DModelsUnavailable": true,
+    "generated": true
+  },
+  "lettering": {
+    "title": "CORPORATOR",
+    "xTagline": "A city worth running.",
+    "dexWordmark": "original $CORP artwork"
+  }
+}

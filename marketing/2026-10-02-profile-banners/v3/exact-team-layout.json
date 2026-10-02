@@ -1,0 +1,57 @@
+[
+  {
+    "id": "engineer",
+    "src": "Engineer",
+    "crop": 1080,
+    "w": 350,
+    "x": 430,
+    "y": 275,
+    "h": 548,
+    "file": "layers/role-engineer.png",
+    "alphaOnlyCleanup": true
+  },
+  {
+    "id": "logistician",
+    "src": "Logistician",
+    "crop": 1040,
+    "w": 325,
+    "x": 735,
+    "y": 330,
+    "h": 617,
+    "file": "layers/role-logistician.png",
+    "alphaOnlyCleanup": true
+  },
+  {
+    "id": "scientist",
+    "src": "scientist",
+    "crop": 1080,
+    "w": 285,
+    "x": 1030,
+    "y": 290,
+    "h": 557,
+    "file": "layers/role-scientist.png",
+    "alphaOnlyCleanup": true
+  },
+  {
+    "id": "manager",
+    "src": "manager",
+    "crop": 960,
+    "w": 330,
+    "x": 1265,
+    "y": 250,
+    "h": 577,
+    "file": "layers/role-manager.png",
+    "alphaOnlyCleanup": true
+  },
+  {
+    "id": "trader",
+    "src": "trader",
+    "crop": 740,
+    "w": 330,
+    "x": 1560,
+    "y": 335,
+    "h": 611,
+    "file": "layers/role-trader.png",
+    "alphaOnlyCleanup": true
+  }
+]

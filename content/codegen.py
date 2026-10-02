@@ -464,7 +464,7 @@ def emit_compose(pack: dict) -> str:
         lines.append("      PACK_PATH: /app/content/out/pack.json")
         lines.append(f"      CORPORATOR_LISTEN_BIND: {json.dumps(container_bind)}")
         lines.append(f"      CORPORATOR_LISTEN_PORT: {json.dumps(str(port))}")
-        if sid == "api":
+        if sid == "api" or sid == "sampler":
             lines.append(f"      DATABASE_URL: {dsn}")
         lines.append("    ports:")
         lines.append(f'      - "{port}:{port}"')
@@ -521,7 +521,7 @@ def emit_compose_prod(pack: dict) -> str:
         lines.append(f"      PACK_PATH: /app/{pack_rt}")
         lines.append(f"      CORPORATOR_LISTEN_BIND: {json.dumps(container_bind)}")
         lines.append(f"      CORPORATOR_LISTEN_PORT: {json.dumps(str(port))}")
-        if sid == "api":
+        if sid == "api" or sid == "sampler":
             lines.append(f"      DATABASE_URL: {dsn}")
         lines.append(f'    command: ["node", "services/{sid}/dist/main.js"]')
         lines.append("    ports:")
@@ -669,6 +669,8 @@ def emit_ci_workflow(pack: dict) -> str:
         "      - uses: actions/setup-node@v4",
         "        with:",
         f'          node-version: "{node_ver}"',
+        "      - name: pip_install",
+        "        run: python -m pip install -r requirements.txt",
     ]
     for sid, cmd in push_cmds:
         lines.append(f"      - name: {sid}")
@@ -689,6 +691,8 @@ def emit_ci_workflow(pack: dict) -> str:
             "      - uses: foundry-rs/foundry-toolchain@v1",
             "        with:",
             f'          version: "{foundry_ver}"',
+            "      - name: pip_install",
+            "        run: python -m pip install -r requirements.txt",
         ]
     )
     for sid, cmd in nightly_cmds:

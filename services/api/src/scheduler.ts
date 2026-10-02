@@ -34,12 +34,7 @@ type PriceSample = {
 }
 
 async function readPriceSamples(store: Store): Promise<readonly PriceSample[]> {
-  let rows: readonly { readonly id: string; readonly payload: Uint8Array }[]
-  try {
-    rows = await listBytes(store, "price_samples", "")
-  } catch {
-    return []
-  }
+  const rows = await listBytes(store, "price_samples", "")
   const out: PriceSample[] = []
   for (const row of rows) {
     try {
@@ -82,20 +77,25 @@ export async function inputsAhead(
   const tickIndex = length === 0n ? 0n : (cityTime - anchor) / length
   let ethUsd = asBigint(cfg["eth_usd_8dec"])
   let corpWei = asBigint(cfg["seed_corp_wei"])
-  let feedLive = 1n
+  let feedLive = 0n
   let turnover = 0n
   if (store !== undefined) {
-    const samples = await readPriceSamples(store)
-    let latest: PriceSample | undefined
-    for (const row of samples) {
-      if (latest === undefined || row.cityTime >= latest.cityTime) latest = row
-    }
-    if (latest !== undefined) {
-      const quote = quoteAt(cityTime, latest.cityTime, stalenessOf(ctx), latest.ethUsd, latest.corpWei, ethUsd, corpWei)
-      ethUsd = quote.ethUsd8dec
-      corpWei = quote.corpEthWeiPerWhole
-      feedLive = quote.feedLive
-      turnover = quote.feedLive === 1n ? latest.turnover : 0n
+    try {
+      const samples = await readPriceSamples(store)
+      let latest: PriceSample | undefined
+      for (const row of samples) {
+        if (latest === undefined || row.cityTime >= latest.cityTime) latest = row
+      }
+      if (latest !== undefined) {
+        const quote = quoteAt(cityTime, latest.cityTime, stalenessOf(ctx), latest.ethUsd, latest.corpWei, ethUsd, corpWei)
+        ethUsd = quote.ethUsd8dec
+        corpWei = quote.corpEthWeiPerWhole
+        feedLive = quote.feedLive
+        turnover = quote.feedLive === 1n ? latest.turnover : 0n
+      }
+    } catch {
+      feedLive = 0n
+      turnover = 0n
     }
   }
   return {

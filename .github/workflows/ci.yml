@@ -1,4 +1,4 @@
-# GENERATED from pack 8f0dc753eeee37c59e38184159db4b118eebe107f24af48a996695dafaad01a1; do not edit
+# GENERATED from pack 4555d9a00ba1bfdbd4c6fba6e3a0e20f2c623eb16d718b866ce56498ae71a26e; do not edit
 name: ci
 on:
   push:
@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24.13.1"
+      - name: pip_install
+        run: python -m pip install -r requirements.txt
       - name: pack_lint
         run: python content/lint.py
       - name: pack_build
@@ -44,6 +46,8 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: "1.8.1"
+      - name: pip_install
+        run: python -m pip install -r requirements.txt
       - name: pack_lint
         run: python content/lint.py
       - name: pack_build

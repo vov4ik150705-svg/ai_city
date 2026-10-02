@@ -6,7 +6,8 @@ import { listenPorts } from "@corporator/protocol"
 import { loadSamplerPack } from "./pack.js"
 import { listenReady } from "./ready.js"
 import { samplerSource } from "./source.js"
-import { memoryPriceStore, startPriceLoop } from "./loop.js"
+import { startPriceLoop } from "./loop.js"
+import { openPriceSampleStore } from "./pg_store.js"
 import { fetchPoster } from "@corporator/chainport"
 
 function packPath(): string {
@@ -32,12 +33,26 @@ export async function startMain(): Promise<void> {
     process.exitCode = 1
     return
   }
+  const url = process.env.DATABASE_URL
+  if (url === undefined || url.length === 0) {
+    process.stderr.write("sampler: DATABASE_URL missing\n")
+    process.exitCode = 1
+    return
+  }
   const pack = loadSamplerPack(bytes)
+  let samples
+  try {
+    samples = await openPriceSampleStore(process.env, pack)
+  } catch {
+    process.stderr.write("sampler: price store unavailable\n")
+    process.exitCode = 1
+    return
+  }
   const post =
     source === "chain" && process.env.CORPORATOR_RPC_URL !== undefined
       ? fetchPoster(process.env.CORPORATOR_RPC_URL, pack.periodMs)
       : undefined
-  const loop = startPriceLoop(pack, source, memoryPriceStore(), post, process.env)
+  const loop = startPriceLoop(pack, source, samples, post, process.env)
   const ready = await listenReady(loaded.hash, listenPorts.sampler)
   const stop = (): void => {
     loop.stop()

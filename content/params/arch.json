@@ -1538,7 +1538,19 @@
         "keeps each listed control live or blocked with a reason",
         "treats a button whose handler was removed as dead",
         "hud walk matches the city capital after each command",
-        "an unwired present control stays disabled"
+        "an unwired present control stays disabled",
+        "projects mint_rate from state and not the anchor",
+        "buy below the exchange level is CITY_LEVEL_TOO_LOW on prepare and on the direct post",
+        "buy outside bank hours is BANK_CLOSED and Sunday is BANK_SUNDAY",
+        "a second hire when capital pays for one agent is refused",
+        "tick patch carries chain time and vouchers and keeps city time",
+        "pulse does not postpone resync after chain fields stay empty past the pack window",
+        "exchange button code matches hours, level, then the quote",
+        "offline return shows this city's hours or the caught-up fact, not the pack catalog",
+        "bank mint line uses the snapshot rate and does not label the anchor as the live rate",
+        "a changed account or chain drops the session and the same account does not",
+        "a second click does not enter while the first intent is in flight",
+        "a stale confirm retries the same ticket and does not prepare or sign again"
       ]
     },
     "sampler": {
@@ -1559,7 +1571,18 @@
         "sampler_twap_recompute",
         "sampler_twap_sensitive",
         "sampler_silence_keeps_age",
-        "sampler_period_divides_tick"
+        "sampler_period_divides_tick",
+        "empty price_samples is not a live feed",
+        "a read error is not a live feed",
+        "the tick takes the latest sample by city time, not the sum or the client body",
+        "a sampler row is visible to inputsAhead",
+        "a sample stamped with an old city clock is not a live feed",
+        "eth_getLogs silence does not write a live zero-turnover sample",
+        "an empty swap list writes turnover 0",
+        "city time is the last tick or the pack anchor",
+        "the store stamps the world clock and writes the sample row",
+        "a corrupt world clock does not write a sample",
+        "startMain without DATABASE_URL does not listen"
       ]
     },
     "buyback": {

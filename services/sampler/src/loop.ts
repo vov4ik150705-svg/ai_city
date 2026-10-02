@@ -42,19 +42,24 @@ export async function publishOnce(
   post: JsonRpcPost | undefined,
   env: SamplerEnv,
 ): Promise<SamplerState> {
-  const cityTime = await store.cityTime()
-  let observation: { readonly corpEthWeiPerWhole: bigint; readonly ethUsd8dec: bigint } | undefined
-  let turnover = 0n
-  if (source === "chain" && post !== undefined) {
-    const quote = await readChainQuote(post, env, pack.wei, pack.samplerPeriodMaxS)
-    if (quote !== undefined) {
-      observation = { corpEthWeiPerWhole: quote.corpEthWeiPerWhole, ethUsd8dec: quote.ethUsd8dec }
-      turnover = quote.turnoverUsd8dec
-    }
-  } else if (source === "pack") {
-    observation = { corpEthWeiPerWhole: pack.seedCorpWei, ethUsd8dec: pack.seedEthUsd8dec }
+  if (source !== "chain" || post === undefined) return state
+  let quote: Awaited<ReturnType<typeof readChainQuote>>
+  try {
+    quote = await readChainQuote(post, env, pack.wei, pack.samplerPeriodMaxS)
+  } catch {
+    return state
   }
-  const stepped = stepSampler(pack, state, cityTime, observation)
+  if (quote === undefined) return state
+  let cityTime: bigint
+  try {
+    cityTime = await store.cityTime()
+  } catch {
+    return state
+  }
+  const stepped = stepSampler(pack, state, cityTime, {
+    corpEthWeiPerWhole: quote.corpEthWeiPerWhole,
+    ethUsd8dec: quote.ethUsd8dec,
+  })
   const quoted = quoteAt(
     cityTime,
     stepped.inputs.price_sample_city_time,
@@ -68,7 +73,7 @@ export async function publishOnce(
     cityTime,
     ethUsd8dec: quoted.ethUsd8dec,
     corpEthWeiPerWhole: quoted.corpEthWeiPerWhole,
-    dexTurnoverUsd8dec: quoted.feedLive === 1n ? turnover : 0n,
+    dexTurnoverUsd8dec: quoted.feedLive === 1n ? quote.turnoverUsd8dec : 0n,
     feedLive: quoted.feedLive,
   })
   return stepped.next
@@ -90,6 +95,7 @@ export function startPriceLoop(
       .then((next) => {
         state = next
       })
+      .catch(() => undefined)
       .finally(() => {
         running = false
       })
