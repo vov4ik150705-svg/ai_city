@@ -16,10 +16,6 @@ function groupInt(value: string): string {
   return neg ? `-${grouped}` : grouped
 }
 
-function isPageSize(value: number): value is PageSize {
-  return ratingCopy.pageSizes.some((size) => size === value)
-}
-
 function pageItems(current: number, total: number): readonly (number | "gap")[] {
   if (total <= 1) return [1]
   const wanted = new Set<number>([1, total, current])
@@ -46,6 +42,92 @@ function pageItems(current: number, total: number): readonly (number | "gap")[] 
 
 function reduceMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+}
+
+function RowsMenu({ value, onChange }: { value: PageSize; onChange: (next: PageSize) => void }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [place, setPlace] = useState({ top: 0, left: 0, minWidth: 0 })
+
+  function placeMenu() {
+    const node = btnRef.current
+    if (node === null) return
+    const rect = node.getBoundingClientRect()
+    const menuHeight = 124
+    const below = window.innerHeight - rect.bottom
+    const top = below < menuHeight + 12 ? rect.top - menuHeight - 6 : rect.bottom + 6
+    setPlace({ top, left: rect.left, minWidth: Math.max(rect.width, 88) })
+  }
+
+  useEffect(() => {
+    if (!open) return
+    placeMenu()
+    function onPointer(event: PointerEvent) {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (rootRef.current?.contains(target) === true) return
+      if (menuRef.current?.contains(target) === true) return
+      setOpen(false)
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false)
+    }
+    window.addEventListener("pointerdown", onPointer)
+    window.addEventListener("keydown", onKey)
+    window.addEventListener("resize", placeMenu)
+    window.addEventListener("scroll", placeMenu, true)
+    return () => {
+      window.removeEventListener("pointerdown", onPointer)
+      window.removeEventListener("keydown", onKey)
+      window.removeEventListener("resize", placeMenu)
+      window.removeEventListener("scroll", placeMenu, true)
+    }
+  }, [open])
+
+  return (
+    <div className="rating-rows" ref={rootRef}>
+      <span>{ratingCopy.rowsLabel}</span>
+      <button
+        ref={btnRef}
+        type="button"
+        className={open ? "rating-rows__box is-open" : "rating-rows__box"}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`${ratingCopy.rowsLabel} ${String(value)}`}
+        onClick={() => setOpen((next) => !next)}
+      >
+        {value}
+        <ChevronDown size={14} aria-hidden="true" />
+      </button>
+      {open ? (
+        <div
+          ref={menuRef}
+          className="rating-rows__menu"
+          role="listbox"
+          aria-label={ratingCopy.rowsLabel}
+          style={{ top: place.top, left: place.left, minWidth: place.minWidth }}
+        >
+          {ratingCopy.pageSizes.map((size) => (
+            <button
+              key={size}
+              type="button"
+              role="option"
+              className="rating-rows__opt"
+              aria-selected={size === value}
+              onClick={() => {
+                onChange(size)
+                setOpen(false)
+              }}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
 }
 
 function Tip({ text }: { text: string }) {
@@ -320,25 +402,7 @@ export function RatingBoard({
         {showPager ? (
           <div className="rating-board__foot">
             <p className="rating-board__range type-body-sm">{range}</p>
-            <label className="rating-rows">
-              <span>{ratingCopy.rowsLabel}</span>
-              <span className="rating-rows__box">
-                <select
-                  value={pageSize}
-                  onChange={(event) => {
-                    const next = Number(event.target.value)
-                    if (isPageSize(next)) changeSize(next)
-                  }}
-                >
-                  {ratingCopy.pageSizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={14} aria-hidden="true" />
-              </span>
-            </label>
+            <RowsMenu value={pageSize} onChange={changeSize} />
             <nav className="rating-pager" aria-label="Pages">
               <button type="button" className="rating-pager__step" disabled={safePage <= 1} onClick={() => go(safePage - 1)}>
                 <ChevronLeft size={16} aria-hidden="true" />
