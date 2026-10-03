@@ -28,6 +28,7 @@
     "WALLET_NOT_CONNECTED": "кошелёк не подключён",
     "DEMO_NO_WITHDRAW": "демо-город: вывод недоступен, прогресс не переносится",
     "PAYROLL_TRIMMED": "фонд зарплат тонкий, выплаты урезаны пропорционально у всех: {ratio}",
+    "ORACLE_NO_SAMPLE": "нет котировки района, эффективность нейтральна",
     "ORACLE_STALE": "цена {ticker} устарела, держим последнее значение",
     "ORACLE_DECAYING": "цена {ticker} мертва больше двух суток, efficiency тянется к нейтрали",
     "DISTRICT_FREEZING": "район {district} замерзает через {hours_left} ч",

@@ -239,6 +239,12 @@ def _entrypoint_service_ids(arch: dict) -> list[str]:
     )
 
 
+def _render_param_v(pack: dict, key: str) -> int:
+    params = (((pack.get("sections") or {}).get("render") or {}).get("params") or {})
+    row = params.get(key) or {}
+    return int(row.get("v") or 0)
+
+
 def emit_listen(pack: dict) -> str:
     listen = ((pack.get("sections") or {}).get("arch") or {}).get("listen") or {}
     paths = ((pack.get("sections") or {}).get("api") or {}).get("path_rules") or {}
@@ -299,6 +305,9 @@ def emit_listen(pack: dict) -> str:
             f"export const wsHeartbeatMs = {int(gen_api.get('ws_heartbeat_ms') or 0)}n;",
             f"export const samplerPeriodMs = {int(gen_api.get('sampler_period_ms') or 0)}n;",
             f"export const tickLengthRealMs = {int(gen_api.get('tick_length_real_ms') or 0)}n;",
+            f"export const bloomStrengthBps = {_render_param_v(pack, 'bloom_strength_bps')}n;",
+            f"export const bloomRadiusBps = {_render_param_v(pack, 'bloom_radius_bps')}n;",
+            f"export const bloomThresholdBps = {_render_param_v(pack, 'bloom_threshold_bps')}n;",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -348,6 +357,8 @@ def emit_dockerfile(pack: dict) -> str:
         for sid in services
     ]
     exposes = [f"EXPOSE {int((listen.get('ports') or {}).get(sid) or 0)}" for sid in services]
+    client_port = int((listen.get("ports") or {}).get("client") or 0)
+    exposes.append(f"EXPOSE {client_port}")
     lines = [
         banner(pack["hash"], "hash").rstrip("\n"),
         "ARG PACK_HASH",
@@ -360,9 +371,15 @@ def emit_dockerfile(pack: dict) -> str:
         "COPY packages ./packages",
         "COPY services ./services",
         "COPY apps ./apps",
+        "COPY content ./content",
+        "COPY art ./art",
+        "COPY assets ./assets",
+        "COPY hud ./hud",
         f"COPY content/out/pack.json /app/{pack_rt}",
         "RUN pnpm install --frozen-lockfile",
         "RUN pnpm exec tsc -b",
+        "RUN pnpm exec tsc -p services/web/tsconfig.json",
+        "RUN pnpm --filter @corporator/client build",
         f"FROM {tag}",
         "ARG PACK_HASH",
         "ENV PACK_HASH=$PACK_HASH",
@@ -375,6 +392,8 @@ def emit_dockerfile(pack: dict) -> str:
         "COPY --from=build --chown=node:node /app/packages ./packages",
         "COPY --from=build --chown=node:node /app/node_modules ./node_modules",
         "COPY --from=build --chown=node:node /app/services/api/migrations ./services/api/migrations",
+        "COPY --from=build --chown=node:node /app/services/web/dist ./services/web/dist",
+        "COPY --from=build --chown=node:node /app/apps/client/dist-web ./client",
         "USER node",
         *exposes,
         'CMD ["node", "services/api/dist/main.js"]',
@@ -476,6 +495,70 @@ def _append_service_ready_env(lines: list[str], pack: dict, sid: str) -> None:
         lines.append(f"      {env_name}: {json.dumps(url)}")
 
 
+def _compose_static_healthcheck(port: int) -> list[str]:
+    script = (
+        "fetch('http://127.0.0.1:"
+        + str(port)
+        + "/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+    )
+    return [
+        "    healthcheck:",
+        '      test: ["CMD", "node", "-e", "' + script + '"]',
+        "      interval: 5s",
+        "      timeout: 5s",
+        "      retries: 10",
+    ]
+
+
+def _append_client_dev(lines: list[str], pack: dict) -> None:
+    arch_sec = ((pack.get("sections") or {}).get("arch") or {})
+    listen = arch_sec.get("listen") or {}
+    ports = listen.get("ports") or {}
+    port = int(ports.get("client") or 0)
+    container_bind = str(listen.get("container_bind") or "")
+    env_names = sorted((arch_sec.get("environments") or {}).keys())
+    mount_envs = [e for e in env_names if e != "prod"]
+    node_major = _node_major(pack)
+    lines.append("  client:")
+    lines.append("    profiles:")
+    for env in mount_envs:
+        lines.append(f"      - {env}")
+    lines.append(f"    image: node:{node_major}-bookworm-slim")
+    lines.append("    working_dir: /app")
+    lines.append("    volumes:")
+    lines.append("      - ..:/app")
+    lines.append('    command: ["node", "--experimental-strip-types", "services/web/src/main.ts"]')
+    lines.append("    environment:")
+    lines.append(f"      CORPORATOR_LISTEN_BIND: {json.dumps(container_bind)}")
+    lines.append(f"      CORPORATOR_LISTEN_PORT: {json.dumps(str(port))}")
+    lines.append("      CORPORATOR_STATIC_ROOT: /app/apps/client/dist-web")
+    lines.append("    ports:")
+    lines.append(f'      - "127.0.0.1:{port}:{port}"')
+
+
+def _append_client_prod(lines: list[str], pack: dict) -> None:
+    arch_sec = ((pack.get("sections") or {}).get("arch") or {})
+    listen = arch_sec.get("listen") or {}
+    ports = listen.get("ports") or {}
+    port = int(ports.get("client") or 0)
+    container_bind = str(listen.get("container_bind") or "")
+    lines.append("  client:")
+    lines.append("    profiles:")
+    lines.append("      - prod")
+    lines.append("    image: corporator:${PACK_HASH}")
+    lines.append("    env_file:")
+    lines.append("      - .env")
+    lines.append("    environment:")
+    lines.append(f"      CORPORATOR_LISTEN_BIND: {json.dumps(container_bind)}")
+    lines.append(f"      CORPORATOR_LISTEN_PORT: {json.dumps(str(port))}")
+    lines.append("      CORPORATOR_STATIC_ROOT: /app/client")
+    lines.append('    command: ["node", "services/web/dist/main.js"]')
+    lines.append("    ports:")
+    lines.append(f'      - "127.0.0.1:{port}:{port}"')
+    lines.append("    restart: unless-stopped")
+    lines.extend(_compose_static_healthcheck(port))
+
+
 def emit_compose(pack: dict) -> str:
     arch_sec = ((pack.get("sections") or {}).get("arch") or {})
     listen = arch_sec.get("listen") or {}
@@ -519,6 +602,7 @@ def emit_compose(pack: dict) -> str:
         lines.append("    depends_on:")
         lines.append(f"      {pg_name}:")
         lines.append("        condition: service_healthy")
+    _append_client_dev(lines, pack)
     lines.append("")
     return "\n".join(lines)
 
@@ -581,6 +665,7 @@ def emit_compose_prod(pack: dict) -> str:
         lines.append("    depends_on:")
         lines.append("      migrate:")
         lines.append("        condition: service_completed_successfully")
+    _append_client_prod(lines, pack)
     lines.append("volumes:")
     lines.append("  corporator_pg:")
     lines.append("")

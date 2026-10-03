@@ -1,7 +1,7 @@
 # Сгенерированные таблицы
 
 Артефакт сборки. Источник — `content/params/`, генератор — `content/build.py`,
-версия правил `0.24.0`, пак `205`, хеш `40351bca10048b7c…`.
+версия правил `0.24.0`, пак `209`, хеш `1053fda2283e116c…`.
 Руками не править: следующая сборка перезапишет.
 
 ## Соответствие роли и здания
@@ -1125,6 +1125,7 @@ kind=screen 14, kind=panel 11, kind=flow 2. Пятнадцать экранов 
 | `mint_cap` | 80 | warning | `MINT_RATE_CAPPED` |
 | `oracle_alive` | 80 | warning | `ORACLE_DECAYING` |
 | `oracle_fresh` | 80 | warning | `ORACLE_STALE` |
+| `oracle_sampled` | 80 | warning | `ORACLE_NO_SAMPLE` |
 | `price_fresh` | 80 | warning | `STALE_PRICE` |
 | `prize_hop` | 80 | warning | `PRIZE_HOP_STALE` |
 | `vault_cover` | 80 | warning | `VAULT_EXIT_UNCOVERED` |
@@ -1169,6 +1170,7 @@ kind=screen 14, kind=panel 11, kind=flow 2. Пятнадцать экранов 
 | `MINT_RATE_CAPPED` | `bank` |
 | `MODIFIER_CAP_CLAMPED` | `building_card`, `log_panel` |
 | `ORACLE_DECAYING` | `stock_bar`, `districts_panel` |
+| `ORACLE_NO_SAMPLE` | `stock_bar`, `districts_panel` |
 | `ORACLE_STALE` | `stock_bar`, `districts_panel` |
 | `PAYROLL_TRIMMED` | `overview`, `agents_panel` |
 | `PRIZE_CLAIM_UNCOVERED` | `leaderboard` |
@@ -1369,7 +1371,7 @@ safe_rect 504×432 px; iso 4032×2016; min 1/8.
 | `_buyback` | `3` | ETH tax to CORP to vault | below buyback_min stays in treasury |
 | `_check_term_clamp` | `1` | jobs / park_capacity fixture | test remainder, not a payout |
 | `_collect_requests` | `6` | output chain x bps / BPS | per-step floor, not redistributed |
-| `collect_slot_requests` | `17` | slot output and draw x bps / BPS | per-step floor, not redistributed |
+| `collect_slot_requests` | `19` | slot output and draw x bps / BPS | per-step floor, not redistributed |
 | `_cork_return` | `1` | cork extra to CORP | wei remainder unconverted |
 | `_equal_weights` | `1` | BPS / 4 | test helper; pack holds the four params |
 | `_fix_day_budget` | `2` | max(horizon, inflow) then / ticks_day | remainder stays in the day budget |
@@ -1380,7 +1382,9 @@ safe_rect 504×432 px; iso 4032×2016; min 1/8.
 | `_note_virgin_week_drain` | `1` | drained / week_start | remainder of the week share |
 | `_pay` | `5` | boost pool, ratio, fund-share claim, and payout | unpaid remainder stays in the fund; nobody zero while fund > 0 |
 | `_payroll_boost_days_left` | `1` | ceil remaining window ticks / ticks_day | partial city day still counts as one day left |
+| `_fold_ema` | `1` | EMA (prev × (N+1−α) + price × α) / (N+1) | seed is the first price; later dust stays in the average |
 | `_recalc_efficiency` | `2` | `ema_24h` / `ema_30d` then k x delta | clamp eats the overshoot |
+| `building_weather_bps` | `1` | sum of the building districts / count | a missing district counts as neutral; remainder stays unapplied |
 | `_reserve_drip` | `2` | virgin x drain_bps / BPS | unused room waits for next week |
 | `_resolve_city_time` | `1` | tick_index from city_time | sub-tick hours refused as CITY_TIME |
 | `_update_mint_rate` | `2` | ema mean and mint_rate_limit ceiling | over-ceiling mint is dropped, not banked |
@@ -1876,7 +1880,6 @@ domain_conflict_http `409`. envelope error: `code`, `slots`, `city_time`
 | `eslint_js` | `9.39.5` | `package` | `@eslint/js` | `—` |
 | `typescript_eslint` | `8.68.0` | `package` | `typescript-eslint` | `—` |
 | `vite` | `8.2.2` | `package` | `vite` | `—` |
-| `pixijs` | `8.20.1` | `package` | `pixi.js` | `—` |
 | `threejs` | `0.185.1` | `package` | `three` | `—` |
 | `gltf_transform_cli` | `4.4.2` | `package` | `@gltf-transform/cli` | `—` |
 | `react` | `19.2.8` | `package` | `react` | `—` |

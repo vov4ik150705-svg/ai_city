@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Corporator — game entry design preview</title>
+  <style>
+    @font-face{font-family:Plex;src:url('../../../../art/fonts/ibm_plex_sans.woff2') format('woff2');font-display:swap}
+    @font-face{font-family:Mono;src:url('../../../../art/fonts/jetbrains_mono.woff2') format('woff2');font-display:swap}
+    @font-face{font-family:Octo;src:url('../../../../website/fonts/tt-octosquares/TT-Octosquares-Trial-Condensed-Black.ttf') format('truetype');font-display:swap}
+    :root{--ink:#0B1236;--muted:#3F4E70;--line:#D3E2F4;--sky:#80c7f3;--blue:#0A5CF8;--green:#0E9F5A;--ease:cubic-bezier(.22,1,.36,1)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Plex,Arial,sans-serif;color:var(--ink);background:var(--sky)}
+    button,a,input,select{font:inherit}
+    button{cursor:pointer}
+    button:disabled{cursor:default;opacity:.45}
+    a{color:inherit;text-decoration:none}
+    button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(--blue);outline-offset:4px}
+    button:active:not(:disabled){transform:translateY(1px)}
+    .page{position:relative;min-height:100svh;overflow:hidden;background:linear-gradient(180deg,#80c7f3 0%,#79c2f0 100%)}
+    .scene{position:absolute;inset:0;pointer-events:none}
+    .scene img{position:absolute;width:100%;height:100%;max-width:none;inset:0;object-fit:cover;object-position:center}
+    .veil{position:absolute;inset:0;background:linear-gradient(90deg,rgba(224,243,254,.15),transparent 43%);pointer-events:none}
+    .header{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:32px 5.7vw}
+    .brand{display:flex;align-items:center;gap:13px;font-weight:600;font-size:19px;letter-spacing:.025em}
+    .brand img{width:34px;height:36px;object-fit:contain}
+    .back{display:inline-flex;align-items:center;gap:8px;font-size:14px;padding:10px 0}
+    svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+    main{position:relative;z-index:1;min-height:calc(100svh - 110px);display:flex;align-items:center;padding:28px 5.7vw 112px}
+    .card{width:448px;max-width:100%;padding:34px 34px 29px;border:1px solid rgba(255,255,255,.85);border-radius:22px;background:#fff;box-shadow:0 16px 48px rgba(14,49,82,.09),0 2px 8px rgba(14,49,82,.03)}
+    .surface{animation:appear 220ms var(--ease) both}
+    .eyebrow{font-size:11px;line-height:1.4;font-weight:600;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;margin:0 0 14px}
+    h1{font-size:39px;line-height:1.08;font-weight:600;letter-spacing:-.035em;margin:0 0 15px}
+    .lead{font-size:16px;line-height:1.55;color:var(--muted);margin:0 0 26px}
+    .steps{display:flex;align-items:center;gap:13px;margin:0 0 29px;color:#83919d;font-size:12px}
+    .step{display:flex;gap:7px;align-items:center;white-space:nowrap}
+    .step i{font-style:normal;width:22px;height:22px;display:grid;place-items:center;border:1px solid #dce4ea;border-radius:50%;font-size:10px}
+    .step.current{color:var(--ink)}
+    .step.current i{background:var(--ink);color:#fff;border-color:var(--ink)}
+    .step.done{color:var(--green)}
+    .step.done i{background:#edf8f0;border-color:#d5ebdb}
+    .step-line{height:1px;background:var(--line);flex:1;max-width:44px}
+    .actions{display:grid;gap:10px}
+    .btn{display:flex;justify-content:center;align-items:center;gap:10px;min-height:52px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font-size:15px;font-weight:600;transition:background 140ms,color 140ms,border-color 140ms}
+    .btn:hover{background:#f6f8fa;border-color:#bac7d2}
+    .btn.primary{background:var(--ink);border-color:var(--ink);color:white}
+    .btn.primary:hover{background:#24323f}
+    .btn .arrow{margin-left:auto;width:17px}
+    .btn .label{flex:1;text-align:center}
+    .trust{display:flex;align-items:flex-start;gap:10px;margin-top:24px;padding-top:21px;border-top:1px solid #e8edf1;color:var(--muted);font-size:12px;line-height:1.65}
+    .trust svg{width:16px;height:16px;margin-top:3px;color:#536c80}
+    .chain{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:14px}
+    .chain span{width:5px;height:5px;background:#768c9d;border-radius:50%}
+    .help{margin:19px 0 0;text-align:center;color:var(--muted);font-size:12px}
+    .text-button{border:0;background:none;padding:4px 2px;min-height:30px;text-decoration:underline;text-underline-offset:3px;color:var(--ink);font-size:inherit}
+    .waiting-mark{height:58px;width:58px;border-radius:16px;background:#f0f6fd;color:var(--blue);display:grid;place-items:center;margin-bottom:22px}
+    .waiting-mark svg{width:28px;height:28px}
+    .status-box{border:1px solid #e0e8ef;background:#f7f9fc;border-radius:12px;padding:15px 16px;display:flex;align-items:center;gap:11px;margin:22px 0;font-size:13px;color:#526679;line-height:1.5}
+    .spinner{display:inline-block;flex-shrink:0;width:16px;height:16px;border:1.5px solid #d5e1ed;border-top-color:var(--blue);border-radius:50%;animation:spin 1100ms linear infinite}
+    .cancel-row{text-align:center;color:var(--muted);font-size:13px;margin-top:17px}
+    .wallet{display:inline-flex;align-items:center;gap:9px;border:1px solid #dde8e0;background:#f5faf6;border-radius:9px;padding:9px 11px;font-family:Mono,monospace;font-size:12px;color:#355a41;margin-bottom:18px}
+    .wallet svg{width:14px;height:14px;color:var(--green)}
+    .load-list{list-style:none;margin:5px 0 0;padding:0;display:grid;gap:0}
+    .load-list li{display:flex;align-items:center;gap:12px;min-height:47px;font-size:14px;color:#8d9aa5;border-bottom:1px solid #edf1f4}
+    .load-list li:last-child{border:0}
+    .load-list li.active{color:var(--ink)}
+    .load-list li.complete{color:#4c6555}
+    .load-dot{width:19px;height:19px;border:1px solid #dbe3e9;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:10px}
+    .complete .load-dot{background:#eff8f1;color:var(--green);border-color:#d6e9dc}
+    .complete .load-dot svg{width:12px;height:12px;stroke-width:2}
+    .active .load-dot{border:0}
+    .track{height:3px;border-radius:4px;background:#eaf0f5;margin:25px 0 17px;overflow:hidden;position:relative}
+    .track::after{content:'';display:block;width:30%;height:100%;border-radius:4px;background:var(--blue);animation:travel 1800ms var(--ease) infinite}
+    .small-note{font-size:12px;line-height:1.6;color:var(--muted);margin:0}
+    .error-box{border:1px solid #eddcc7;background:#fffbf5;border-radius:12px;padding:14px;margin:0 0 22px;color:#836341;font-size:13px;line-height:1.55}
+    .success-mark{color:var(--green);background:#edf7f0}
+    .preview-bar{position:relative;z-index:4;display:flex;align-items:center;justify-content:center;gap:14px;width:max-content;margin:16px auto 20px;max-width:calc(100% - 32px);padding:10px 14px;border-radius:13px;border:1px solid rgba(255,255,255,.8);background:#ffffffed;box-shadow:0 4px 18px #12395114;font-size:12px;white-space:nowrap}
+    .preview-label{display:flex;align-items:center;gap:6px;color:#697a88;font-size:10px;letter-spacing:.045em;text-transform:uppercase}
+    .preview-label::before{content:'';width:5px;height:5px;border-radius:50%;background:#9bacb8}
+    .preview-bar select{background:#f6f8fa;border:1px solid #dce4eb;border-radius:7px;padding:8px 24px 8px 9px;color:var(--ink);min-height:34px;max-width:190px}
+    .preview-next{border:0;border-radius:7px;background:#eaf2fa;color:#295f8f;padding:8px 12px;min-height:34px;font-size:12px}
+    .preview-next:hover{background:#dcebf8}
+    .preview-bar label{display:flex;align-items:center;gap:9px}
+    .page-footer{position:absolute;z-index:2;left:5.7vw;bottom:29px;color:#345e7c;font-size:11px}
+    .page-footer button{border:0;background:none;padding:4px 0;color:inherit;font-size:inherit}
+    .help-dialog{max-width:460px;width:calc(100% - 32px);padding:28px;border:1px solid var(--line);border-radius:18px;color:var(--ink);box-shadow:0 18px 80px #10334833}
+    .help-dialog::backdrop{background:#10273866}
+    .help-dialog h2{margin:0 0 14px;font-size:24px;letter-spacing:-.02em}
+    .help-dialog p{font-size:14px;line-height:1.65;color:var(--muted)}
+    .help-dialog .btn{margin-top:22px;width:100%}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes travel{0%{transform:translateX(-110%)}100%{transform:translateX(440%)}}
+    @keyframes appear{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .capture-mode .surface{animation:none}
+    @media(min-width:1800px){.card{width:484px;padding:40px}h1{font-size:44px}}
+    @media(max-width:1000px) and (min-width:681px){.header{padding-inline:36px}main{padding-inline:36px}.card{width:414px;padding:29px}.scene img{object-position:68% center}.page-footer{left:36px}h1{font-size:36px}}
+    @media(max-height:800px) and (min-width:681px){main{padding-top:20px;padding-bottom:78px}.card{padding:28px 30px 24px}h1{font-size:34px}.lead{margin-bottom:22px}.steps{margin-bottom:24px}.trust{margin-top:20px;padding-top:16px}.help{margin-top:15px}}
+    @media(max-width:680px){
+      .page{min-height:100svh}.header{padding:22px 22px 0;align-items:center}.brand{font-size:16px;gap:9px}.brand img{width:26px;height:29px}.back{font-size:12px;gap:5px}.back svg{width:15px}
+      .scene{height:390px;inset:0 0 auto}.scene img{width:auto;height:320px;inset:56px 0 auto auto;object-fit:contain;mask-image:linear-gradient(180deg,transparent,#000 10%,#000 65%,transparent 100%)}
+      .veil{background:linear-gradient(180deg,transparent 80px,rgba(228,246,255,.08) 160px,rgba(228,246,255,.4) 340px)}
+      main{min-height:auto;padding:224px 16px 124px;align-items:flex-start;justify-content:center}
+      .card{width:448px;padding:27px 25px 25px;border-radius:19px}h1{font-size:34px}.lead{font-size:15px;margin-bottom:22px}.steps{margin-bottom:24px}.help{margin-top:15px}.trust{margin-top:21px;padding-top:18px}.text-button{min-height:44px}
+      .preview-bar{gap:9px;padding:9px 10px;max-width:calc(100% - 24px);flex-wrap:wrap;justify-content:center;width:370px}.preview-label{flex-basis:100%;justify-content:center;font-size:9px}.preview-bar select{max-width:186px;font-size:12px}.preview-bar label>span{display:none}.page-footer{position:relative;left:auto;bottom:auto;padding:0 22px 36px;text-align:center;margin-top:-80px}
+    }
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.track::after{width:35%;transform:translateX(95%)}.spinner{border-color:var(--blue)}}
+    /* Entry mockup v2: game panel, grounded in the existing light HUD. */
+    .card{width:424px;padding:0;border:1px solid #B9CFEA;border-radius:12px;background:rgba(242,247,254,.96);box-shadow:0 18px 48px rgba(11,30,80,.18),inset 0 1px 0 #fff;backdrop-filter:blur(8px);position:relative}
+    .card::before,.card::after{content:'';position:absolute;top:-1px;width:22px;height:22px;border-top:3px solid var(--blue);pointer-events:none}
+    .card::before{left:-1px;border-left:3px solid var(--blue);border-radius:12px 0 0 0}.card::after{right:-1px;border-right:3px solid var(--blue);border-radius:0 12px 0 0}
+    .panel-top{height:49px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--line);color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.06em}
+    .panel-label{display:flex;align-items:center;gap:8px}.panel-label svg{width:17px;height:17px;color:var(--blue)}
+    .panel-chain{font-size:10px;font-weight:500;letter-spacing:0;color:#6F7D9C;border:1px solid var(--line);border-radius:4px;padding:4px 7px;background:#fff8}
+    .surface{padding:25px 26px 23px}
+    h1{font-family:Octo,Plex,sans-serif;font-size:40px;font-weight:900;line-height:1.02;letter-spacing:.01em;text-transform:uppercase;margin-bottom:16px}
+    .entry-title{display:flex;align-items:center;gap:12px;margin:0 0 12px;min-height:103px}.entry-title h1{flex:1;margin:0;font-size:43px}.entry-title img{width:80px;height:108px;object-fit:contain;filter:drop-shadow(0 5px 4px #0b1e501a)}
+    .eyebrow{color:#6F7D9C;font-size:10px;margin-bottom:12px}.lead{font-size:14px;line-height:1.5;margin-bottom:21px;color:var(--muted)}
+    .steps{gap:9px;margin-bottom:22px;font-size:11px;color:#6F7D9C;padding:12px 11px;background:#E6F0FF;border:1px solid #D3E2F4;border-radius:6px}
+    .step{font-weight:600}.step i{width:23px;height:23px;border-radius:4px;background:#F2F7FE;border-color:#B9CFEA}.step.current{color:var(--blue)}.step.current i{background:var(--blue);border-color:var(--blue)}.step-line{background:#B9CFEA;max-width:28px}
+    .btn{border-radius:6px;min-height:49px;color:var(--blue);border-color:#B9CFEA;background:#fff9;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+    .btn:hover{background:#E6F0FF;border-color:#0A5CF8}.btn.primary{min-height:56px;background:var(--blue);border-color:var(--blue);border-bottom:3px solid #0642BA;box-shadow:0 4px 12px #0a5cf826;color:#fff}.btn.primary:hover{background:#0850DE;border-color:#0850DE;border-bottom-color:#0642BA}.btn.primary:active{box-shadow:none}
+    .trust{margin-top:21px;padding-top:17px;border-color:var(--line);font-size:11px;line-height:1.6}.trust svg{color:var(--blue)}.help{margin-top:12px;color:#6F7D9C;font-size:11px}.text-button{color:var(--blue)}.chain{display:none}
+    .waiting-mark{background:#E6F0FF;border:1px solid #D3E2F4;border-radius:8px;width:48px;height:48px;margin-bottom:17px}.status-box{background:#E6F0FF;border-color:#D3E2F4;border-radius:6px;color:var(--muted)}
+    .wallet{border-radius:5px;background:#E1F5EA;border-color:#c8e8d7}.load-list li{border-color:#D3E2F4;min-height:43px}.load-list li.active{color:var(--blue);font-weight:600}.load-dot{border-radius:4px;border-color:#B9CFEA}.track{background:#D9E6F5;height:5px;margin-top:21px}.cancel-row{margin-top:13px}.small-note{font-size:11px}.error-box{border-radius:6px}
+    .page-footer{color:#0F1E4A}.brand{color:var(--ink);font-weight:700;letter-spacing:.06em}.back{color:var(--ink)}
+    @media(min-width:1800px){.card{width:450px;padding:0}.surface{padding:30px}.entry-title h1{font-size:48px}}
+    @media(max-width:1000px) and (min-width:681px){.card{width:400px;padding:0}.surface{padding:24px}.entry-title h1{font-size:40px}}
+    @media(max-height:800px) and (min-width:681px){.card{padding:0}.surface{padding:24px 26px 21px}.lead{margin-bottom:20px}.trust{margin-top:20px;padding-top:16px}.steps{margin-bottom:20px}}
+    @media(max-width:680px){.card{padding:0;border-radius:12px}.surface{padding:23px 22px 21px}.panel-top{padding-inline:22px;height:45px}.entry-title{min-height:96px}.entry-title h1{font-size:39px}.entry-title img{width:69px;height:99px}h1{font-size:35px}.lead{font-size:14px}.steps{padding:11px 9px;gap:7px;font-size:10px}.step-line{max-width:16px}.trust{margin-top:19px;padding-top:15px}.help{margin-top:8px}}
+    @media(max-width:380px){.entry-title h1{font-size:34px}.entry-title img{width:61px}}
+    /* Alternative v3: title screen and a compact, inverted HUD play menu. */
+    .header{justify-content:flex-end}.header .brand{display:none}
+    .card{width:386px;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none}.card::before,.card::after,.panel-top{display:none}.surface{padding:0}
+    .menu-brand{display:flex;align-items:center;gap:12px;margin:0 0 9px;font-family:Octo,Plex,sans-serif;font-size:47px;font-weight:900;letter-spacing:.01em;line-height:1.1;text-transform:uppercase}
+    .menu-brand img{width:48px;height:54px;object-fit:contain}.menu-subtitle{margin:0 0 33px 61px;color:#0F1E4A;font-size:13px;letter-spacing:.02em}
+    .play-menu{padding:24px;border-radius:18px;border:1px solid #c4ddff55;background:rgba(11,18,54,.94);box-shadow:0 18px 50px #0b123633,inset 0 1px 0 #ffffff14;color:#fff;backdrop-filter:blur(12px)}
+    .menu-caption{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#B9CFEA;margin:0 0 19px;display:flex;align-items:center;gap:9px}.menu-caption svg{color:#8ab3ff;width:17px;height:17px}
+    .menu-button{width:100%;justify-content:flex-start;min-height:62px;background:var(--blue);border:1px solid #609bff;border-bottom:3px solid #0642BA;border-radius:9px;box-shadow:0 5px 16px #0a5cf833;padding:14px 18px;color:#fff;font-size:16px;text-transform:none;letter-spacing:0}
+    .menu-button:hover{background:#1769ff;border-color:#91baff;border-bottom-color:#0642BA}.menu-button .menu-button-text{flex:1;text-align:left}.menu-button svg{width:21px;height:21px}
+    .demo-button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:51px;padding:12px 18px;background:#ffffff08;border:1px solid #b9cfea38;border-radius:9px;font-size:14px;font-weight:500;color:#e4f0fd;margin-top:11px;text-align:left;transition:background 160ms}
+    .demo-button:hover{background:#ffffff15}.demo-button svg{width:17px;height:17px;color:#8ca9d1}
+    .menu-note{font-size:11px;line-height:1.55;color:#B9CFEA;margin:17px 0 0;display:flex;gap:8px;align-items:flex-start}.menu-note svg{width:14px;height:14px;margin-top:2px;color:#8ab3ff}
+    .menu-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #b9cfea24;margin-top:20px;padding-top:15px;font-size:10px;color:#B9CFEA}.menu-meta .text-button{font-size:10px;min-height:30px;padding:0;color:#B9CFEA;text-decoration:none}.menu-meta .text-button:hover{color:#fff}
+    .card[data-mode]:not([data-mode="entry"]){padding:25px;border-radius:18px;background:rgba(11,18,54,.94);border:1px solid #c4ddff55;box-shadow:0 18px 50px #0b123633;color:#fff}
+    .card[data-mode]:not([data-mode="entry"]) h1{color:#fff;font-size:35px}.card[data-mode]:not([data-mode="entry"]) .lead,.card[data-mode]:not([data-mode="entry"]) .small-note,.card[data-mode]:not([data-mode="entry"]) .eyebrow{color:#B9CFEA}
+    .card[data-mode]:not([data-mode="entry"]) .steps,.card[data-mode]:not([data-mode="entry"]) .status-box{background:#E6F0FF12;border-color:#B9CFEA30;color:#d4e4ff}.card[data-mode]:not([data-mode="entry"]) .step.current{color:#fff}.card[data-mode]:not([data-mode="entry"]) .text-button{color:#B9CFEA}.card[data-mode]:not([data-mode="entry"]) .load-list li{border-color:#B9CFEA24;color:#8395b7}.card[data-mode]:not([data-mode="entry"]) .load-list li.active{color:#fff}.card[data-mode]:not([data-mode="entry"]) .load-list li.complete{color:#a9dfc2}.card[data-mode]:not([data-mode="entry"]) .track{background:#D9E6F522}
+    .page-footer{left:5.7vw;font-size:11px}.page-footer button{min-height:44px}
+    @media(min-width:1800px){.card{width:416px;padding:0}.menu-brand{font-size:51px}.surface{padding:0}}
+    @media(max-height:800px) and (min-width:681px){.card{padding:0}.surface{padding:0}main{padding-bottom:78px}}
+    @media(max-width:1000px) and (min-width:681px){.card{width:360px;padding:0}.surface{padding:0}.menu-brand{font-size:43px}.menu-subtitle{margin-left:61px}.page-footer{left:36px}}
+    @media(max-width:680px){.header{padding-top:22px;min-height:66px}.card{padding:0;width:386px}.surface{padding:0}.menu-brand{font-size:40px;gap:10px;justify-content:center}.menu-brand img{width:40px;height:46px}.menu-subtitle{margin:8px 0 23px;text-align:center;font-size:12px}.play-menu{padding:22px}.page-footer{left:auto}.card[data-mode]:not([data-mode="entry"]){padding:22px}.menu-meta{gap:8px}}
+    @media(max-width:380px){.menu-brand{font-size:36px}.menu-brand img{width:37px;height:42px}.play-menu{padding:20px}.menu-meta{font-size:9px}.menu-meta .text-button{font-size:9px}}
+    @media print{.preview-bar,.page-footer{display:none}.page{min-height:900px}main{min-height:790px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="scene" aria-hidden="true"><img src="../../../../website/reference/mockups/entry/entry-island-render-v1.png" alt="" fetchpriority="high" width="1672" height="941"></div>
+    <div class="veil"></div>
+    <header class="header">
+      <div class="brand"><img src="../../../../apps/client/assets/hud/brand/mark.png" alt=""><span>CORPORATOR</span></div>
+      <button class="back text-button" id="back-site" style="text-decoration:none"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 5-7 7 7 7M5 12h14"/></svg>Back to site</button>
+    </header>
+    <main><section class="card" id="card" aria-label="Game access"></section></main>
+    <footer class="page-footer"><button id="help-footer">Need help getting in?</button></footer>
+  </div>
+  <aside class="preview-bar" aria-label="Design preview controls">
+    <span class="preview-label">Design preview · no wallet requests</span>
+    <label><span class="sr-only">State</span><select id="state" aria-label="Preview state">
+      <option value="entry">Connect wallet</option><option value="startup">Before sign-in is ready</option><option value="connect">Wallet confirmation</option><option value="sign">Sign-in signature</option><option value="load-city">Loading city data</option><option value="load-scene">Preparing the island</option><option value="load-interface">Finishing up</option><option value="ready">Game handoff</option><option value="missing">No wallet</option><option value="network">Wrong network</option><option value="cancelled">Sign-in cancelled</option><option value="error">City load error</option><option value="gpu">3D unavailable</option>
+    </select></label>
+    <button class="preview-next" id="next">Advance preview →</button>
+  </aside>
+  <dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title"><h2 id="help-title">Getting into your city</h2><p>Connect your browser wallet, then sign the login message in its own window. Signing in does not send a transaction.</p><p>You can also explore the demo without connecting a wallet.</p><p>This is a design preview. All confirmations, addresses and loading states shown here are simulated.</p><button class="btn primary" id="close-help">Got it</button></dialog>
+  <dialog class="help-dialog" id="capture-dialog" aria-labelledby="capture-title"><h2 id="capture-title">Export review capture</h2><form id="capture-form"><label>Capture filename<input id="capture-name" aria-label="Capture filename" value="entry-desktop.jpg" style="display:block;width:100%;padding:10px;margin:8px 0 18px"></label><label>Screenshot JPEG data<textarea id="capture-data" aria-label="Screenshot JPEG data" style="display:block;width:100%;height:100px;padding:10px;margin:8px 0"></textarea></label><button class="btn primary" type="submit">Download capture</button></form></dialog>
+  <script>
+    const icons={
+      wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M4 6V5a2 2 0 0 1 2-2h12v3M16 12h5v5h-5a2.5 2.5 0 0 1 0-5Z"/>',
+      arrow:'<path d="M5 12h14m-6-6 6 6-6 6"/>',
+      shield:'<path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/>',
+      check:'<path d="m5 12 4 4L19 6"/>',
+      signature:'<path d="m4 20 4-1 12-12a2 2 0 0 0-4-4L4 15l-1 5Zm10-15 4 4M12 21h9"/>',
+      city:'<path d="M4 21V9h6V3h6v10h4v8H4Zm6 0V9m6 12v-8M7 12v1m0 3v1m6-11v1m0 3v1m0 3v1m0 3v1"/>',
+      warning:'<path d="m10 4-8 14a2 2 0 0 0 2 3h16a2 2 0 0 0 2-3L14 4a2 2 0 0 0-4 0Z"/><path d="M12 9v4m0 4h.01"/>'
+    };
+    const svg=(name,cls='')=>'<svg aria-hidden="true" class="'+cls+'" viewBox="0 0 24 24">'+icons[name]+'</svg>';
+    const card=document.getElementById('card'),stateSelect=document.getElementById('state');
+    let mode='entry',demo=false;
+    const address='0x2e7d…6f08';
+    const steps=(n)=>'<div class="steps" aria-label="'+(n===1?'Step 1 of 2: connect wallet':'Step 2 of 2: sign in')+'"><span class="step '+(n===1?'current':'done')+'"><i>'+(n===1?'1':'✓')+'</i>Connect wallet</span><span class="step-line"></span><span class="step '+(n===2?'current':'')+'"><i>2</i>Sign in</span></div>';
+    const primary=(text,action,icon='arrow')=>'<button class="btn primary" data-action="'+action+'">'+(icon==='wallet'?svg('wallet'):'')+'<span class="label">'+text+'</span>'+svg('arrow','arrow')+'</button>';
+    const secondary=(text,action)=>'<button class="btn" data-action="'+action+'">'+text+'</button>';
+    const trust=()=>'<div class="trust">'+svg('shield')+'<span>You’ll be asked to sign a login message.<br>Signing in does not send a transaction.</span></div><div class="chain"><span></span>Robinhood Chain</div>';
+    const help=()=>'<p class="help">New here? <button class="text-button" data-action="help">How signing in works</button></p>';
+    const wallet=()=>'<div class="wallet">'+svg('check')+(demo?'Demo session':address)+'</div>';
+    function render(next,focus=false){
+      mode=next;stateSelect.value=next;
+      let html='';
+      if(next==='startup'){
+        html='<p class="eyebrow">Starting Corporator</p><h1 tabindex="-1">Getting ready.</h1><p class="lead">We’re preparing sign-in.<br>This page will be ready in a moment.</p><div class="status-box" role="status"><span class="spinner" aria-hidden="true"></span><span>Preparing game access</span></div><p class="small-note">No wallet confirmation is needed yet.</p>';
+      }else if(next==='entry'){
+        html='<h1 class="menu-brand" tabindex="-1"><img src="../../../../apps/client/assets/hud/brand/mark.png" alt="" width="48" height="54"><span>Corporator</span></h1><p class="menu-subtitle">A city-building strategy game</p><div class="play-menu"><p class="menu-caption">'+svg('city')+'Start playing</p><button class="btn menu-button" data-action="connect">'+svg('wallet')+'<span class="menu-button-text">Connect wallet</span>'+svg('arrow')+'</button><button class="demo-button" data-action="demo"><span>Try the demo</span>'+svg('arrow')+'</button><p class="menu-note">'+svg('shield')+'<span>Sign a message to enter.<br>No transaction needed.</span></p><div class="menu-meta"><span>Robinhood Chain</span><button class="text-button" data-action="help">How does it work? ↗</button></div></div>';
+      }else if(next==='connect'||next==='sign'){
+        const sign=next==='sign';
+        html='<div class="waiting-mark">'+svg(sign?'signature':'wallet')+'</div><p class="eyebrow">'+(sign?'Sign in':'Wallet connection')+'</p><h1 tabindex="-1">'+(sign?'Confirm sign-in.':'Check your wallet.')+'</h1><p class="lead">'+(sign?'Sign the login message in your wallet<br>to confirm that this address is yours.':'Approve the connection in your wallet.<br>Its window may be behind your browser.')+'</p>'+steps(sign?2:1)+(sign?wallet():'')+'<div class="status-box" role="status"><span class="spinner" aria-hidden="true"></span><span>'+(sign?'Waiting for your signature':'Waiting for wallet confirmation')+'</span></div><p class="small-note">'+(sign?'Signing in does not send a transaction.':'Keep this page open while you confirm.')+'</p><div class="cancel-row"><button class="text-button" data-action="cancel">Cancel sign-in</button></div>';
+      }else if(next.startsWith('load-')){
+        const stage=['load-city','load-scene','load-interface'].indexOf(next);
+        const labels=['Loading city data','Preparing the island','Finishing up'];
+        html='<p class="eyebrow">'+(demo?'Demo session':'Signed in')+'</p><h1 tabindex="-1">Opening your city.</h1><p class="lead">We’re getting everything ready.<br>You’ll enter as soon as it’s ready.</p>'+wallet()+'<ol class="load-list">'+labels.map((label,i)=>'<li class="'+(i<stage?'complete':i===stage?'active':'')+'"><span class="load-dot">'+(i<stage?svg('check'):i===stage?'<span class="spinner" aria-hidden="true"></span>':String(i+1))+'</span><span>'+label+'</span></li>').join('')+'</ol><div class="track" aria-hidden="true"></div><p class="small-note" role="status">'+labels[stage]+'…</p><div class="cancel-row"><button class="text-button" data-action="leave">Back to sign-in</button></div>';
+      }else if(next==='ready'){
+        html='<div class="waiting-mark success-mark">'+svg('check')+'</div><p class="eyebrow">Preview boundary</p><h1 tabindex="-1">You’re in.</h1>'+wallet()+'<p class="lead">The game HUD takes over here.<br>No extra “Enter” click is needed.</p><p class="small-note">This card only marks the end of the entry prototype. It is not another screen in the finished game.</p><div class="actions" style="margin-top:25px">'+secondary('Review entry again','entry')+'</div>';
+      }else{
+        const errors={
+          missing:{title:'No wallet found.',lead:'Open the game in a browser with a wallet extension. You can try the demo meanwhile.',note:'A compatible wallet extension is needed to sign in from this browser.',button:'Check again',action:'entry',demo:true},
+          network:{title:'Check your network.',lead:'Switch to Robinhood Chain in your wallet, then come back here.',note:'Your wallet is connected, but the network needs to match the game.',button:'Check network',action:'sign',demo:false},
+          cancelled:{title:'Sign-in wasn’t completed.',lead:'You can try again when you’re ready, or explore the demo instead.',note:'No game session has been opened.',button:'Try again',action:'connect',demo:true},
+          error:{title:'Couldn’t load your city.',lead:'Your sign-in is complete. We couldn’t retrieve your city data.',note:'Try again. You do not need to sign in again while your session is valid.',button:'Try again',action:'load-city',demo:false},
+          gpu:{title:'3D couldn’t start.',lead:'Try again, or open the game in a browser that can run WebGL.',note:'The city screen is not ready. We won’t open an empty island.',button:'Try again',action:'load-scene',demo:false}
+        };
+        const e=errors[next];
+        html='<div class="waiting-mark" style="background:#fff6e9;color:#997043">'+svg('warning')+'</div><p class="eyebrow">'+(next==='error'||next==='gpu'?'Game loading':'Game access')+'</p><h1 tabindex="-1">'+e.title+'</h1><p class="lead">'+e.lead+'</p>'+(next==='error'||next==='gpu'?wallet():'')+'<div class="error-box" role="alert">'+e.note+'</div><div class="actions">'+primary(e.button,e.action)+(e.demo?secondary('Try the demo','demo'):secondary('Back to sign-in','entry'))+'</div>'+help();
+      }
+      card.dataset.mode=next;
+      card.innerHTML='<div class="panel-top"><span class="panel-label">'+svg('city')+'CITY ACCESS</span><span class="panel-chain">Robinhood Chain</span></div><div class="surface">'+html+'</div>';
+      if(focus) card.querySelector('h1').focus({preventScroll:true});
+      const nextBtn=document.getElementById('next');nextBtn.disabled=next==='ready';
+      nextBtn.textContent=next==='connect'||next==='sign'?'Simulate approval →':'Advance preview →';
+      document.title='Corporator — '+stateSelect.selectedOptions[0].textContent+' preview';
+    }
+    function action(name){
+      if(name==='help'){document.getElementById('help-dialog').showModal();return;}
+      if(name==='demo'){demo=true;render('load-city',true);return;}
+      if(name==='connect'){demo=false;render('connect',true);return;}
+      if(name==='cancel'||name==='leave'||name==='entry'){demo=false;render('entry',true);if(name==='cancel')card.querySelector('[data-action="connect"]').focus({preventScroll:true});return;}
+      render(name,true);
+    }
+    card.addEventListener('click',event=>{const target=event.target.closest('[data-action]');if(target)action(target.dataset.action);});
+    stateSelect.addEventListener('change',()=>{demo=false;render(stateSelect.value);});
+    document.getElementById('next').addEventListener('click',()=>{
+      const order=['entry','connect','sign','load-city','load-scene','load-interface','ready'];
+      const index=order.indexOf(mode);render(order[index<0?0:Math.min(index+1,order.length-1)],true);
+    });
+    document.getElementById('help-footer').addEventListener('click',()=>action('help'));
+    document.getElementById('close-help').addEventListener('click',()=>document.getElementById('help-dialog').close());
+    document.getElementById('back-site').addEventListener('click',()=>{demo=false;render('entry',true);});
+    document.getElementById('capture-form').addEventListener('submit',event=>{
+      event.preventDefault();const base64=document.getElementById('capture-data').value.trim();const data=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
+      const url=URL.createObjectURL(new Blob([data],{type:'image/jpeg'}));const link=document.createElement('a');link.href=url;link.download=document.getElementById('capture-name').value.replace(/[^a-zA-Z0-9_.-]/g,'');document.body.append(link);link.click();link.remove();document.getElementById('capture-dialog').close();document.getElementById('capture-data').value='';setTimeout(()=>URL.revokeObjectURL(url),10000);
+    });
+    if(new URLSearchParams(location.search).has('capture')){document.body.classList.add('capture-mode');const exportButton=document.createElement('button');exportButton.className='preview-next';exportButton.textContent='Export';exportButton.addEventListener('click',()=>document.getElementById('capture-dialog').showModal());document.querySelector('.preview-bar').append(exportButton);}
+    const initial=new URLSearchParams(location.search).get('state');
+    if([...stateSelect.options].some(option=>option.value===initial))render(initial);else render('entry');
+  </script>
+</body>
+</html>

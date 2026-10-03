@@ -1,0 +1,1445 @@
+{
+  "pack_version": 209,
+  "pack_hash": "1053fda2283e116cf4706ae3910b046f3a66594e8bf4bffc958e52a53b8d4bd8",
+  "warning": "Cohort simulator, not a wallet ROI forecast. Bank return is burned Capital divided by reference input; not ETH profit.",
+  "rows": [
+    {
+      "n": 20,
+      "monthly_volume_usd": 0,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 73.8,
+      "ratio_last_pct": 73.8,
+      "fund_nominal_usd": 488.221016,
+      "pool_eth": 3.9472910026578667,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 27.07,
+        "optimizer": 47.92
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.595768,
+        "optimizer": 99.1437
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 0,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 27.8,
+      "ratio_last_pct": 43.3,
+      "fund_nominal_usd": 255.077659,
+      "pool_eth": 3.8390187123912485,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 37.63,
+        "optimizer": 72.6
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 56.920584,
+        "optimizer": 137.987568
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 0,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 4.0,
+      "ratio_last_pct": 4.0,
+      "fund_nominal_usd": 61.647903,
+      "pool_eth": 3.738198490351444,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 47.57,
+        "optimizer": 97.77
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 71.58162,
+        "optimizer": 183.967152
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 5000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 73.82,
+      "ratio_last_pct": 73.82,
+      "fund_nominal_usd": 509.950405,
+      "pool_eth": 3.955217345740409,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 27.07,
+        "optimizer": 47.92
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.596104,
+        "optimizer": 99.144948
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 5000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 30.98,
+      "ratio_last_pct": 59.99,
+      "fund_nominal_usd": 287.121276,
+      "pool_eth": 3.8569482535141524,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 38.12,
+        "optimizer": 73.95
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.758208,
+        "optimizer": 141.06864
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 5000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 6.83,
+      "ratio_last_pct": 6.83,
+      "fund_nominal_usd": 78.948096,
+      "pool_eth": 3.7702102553188626,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 50.47,
+        "optimizer": 105.26
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 76.075968,
+        "optimizer": 198.410928
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 20000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 80.01,
+      "ratio_last_pct": 80.01,
+      "fund_nominal_usd": 520.345882,
+      "pool_eth": 3.9624539700975276,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 27.12,
+        "optimizer": 48.08
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.732148,
+        "optimizer": 99.716184
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 20000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 40.74,
+      "ratio_last_pct": 61.15,
+      "fund_nominal_usd": 347.282875,
+      "pool_eth": 3.8945796328208497,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 39.69,
+        "optimizer": 78.02
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 60.205032,
+        "optimizer": 148.918788
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 20000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 20.83,
+      "ratio_last_pct": 21.84,
+      "fund_nominal_usd": 192.790326,
+      "pool_eth": 3.8746082266184514,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 57.44,
+        "optimizer": 123.2
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 86.804256,
+        "optimizer": 233.070696
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 50000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 86.46,
+      "ratio_last_pct": 86.46,
+      "fund_nominal_usd": 567.936426,
+      "pool_eth": 3.9900851810395213,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 27.37,
+        "optimizer": 48.79
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 45.301788,
+        "optimizer": 101.680776
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 50000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 64.4,
+      "ratio_last_pct": 78.76,
+      "fund_nominal_usd": 485.932227,
+      "pool_eth": 3.9870065373907466,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 42.57,
+        "optimizer": 85.54
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 64.771212,
+        "optimizer": 163.942812
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 50000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 52.4,
+      "ratio_last_pct": 52.4,
+      "fund_nominal_usd": 374.951975,
+      "pool_eth": 4.07939619631786,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 70.69,
+        "optimizer": 157.34
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 107.288352,
+        "optimizer": 299.3655
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 46.18
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 300000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 180.88,
+      "ratio_last_pct": 266.14,
+      "fund_nominal_usd": 854.017263,
+      "pool_eth": 4.183272917590183,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 29.57,
+        "optimizer": 55.72
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 51.009828,
+        "optimizer": 123.96018
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 45.56
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 300000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 180.88,
+      "ratio_last_pct": 210.83,
+      "fund_nominal_usd": 839.820739,
+      "pool_eth": 4.60127828117385,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 70.79,
+        "optimizer": 157.82
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 108.832392,
+        "optimizer": 305.7147
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 45.56
+    },
+    {
+      "n": 20,
+      "monthly_volume_usd": 300000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 133.82,
+      "ratio_last_pct": 136.13,
+      "fund_nominal_usd": 782.667082,
+      "pool_eth": 5.755149389578494,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 143.36,
+        "optimizer": 343.03
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 218.125644,
+        "optimizer": 653.819004
+      },
+      "bank_cuts": 0,
+      "coverage_min_pct": 45.56
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 0,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 74.98,
+      "ratio_last_pct": 74.98,
+      "fund_nominal_usd": 1235.555156,
+      "pool_eth": 3.6375511607871154,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 26.49,
+        "optimizer": 47.0
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.619276,
+        "optimizer": 99.244824
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 0,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 28.11,
+      "ratio_last_pct": 43.37,
+      "fund_nominal_usd": 642.629678,
+      "pool_eth": 3.4041270410733624,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 37.73,
+        "optimizer": 72.85
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.067872,
+        "optimizer": 138.46026
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 0,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 4.64,
+      "ratio_last_pct": 4.64,
+      "fund_nominal_usd": 163.686262,
+      "pool_eth": 3.216235193278556,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 47.86,
+        "optimizer": 98.51
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 72.024312,
+        "optimizer": 185.397576
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 5000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 74.79,
+      "ratio_last_pct": 74.79,
+      "fund_nominal_usd": 1232.272251,
+      "pool_eth": 3.6369040579287075,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 26.49,
+        "optimizer": 47.01
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.631276,
+        "optimizer": 99.279
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 5000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 29.7,
+      "ratio_last_pct": 51.81,
+      "fund_nominal_usd": 682.860837,
+      "pool_eth": 3.421700981369632,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 37.96,
+        "optimizer": 73.49
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.467076,
+        "optimizer": 139.940316
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 5000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 6.04,
+      "ratio_last_pct": 6.04,
+      "fund_nominal_usd": 185.113909,
+      "pool_eth": 3.242655882409,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 49.15,
+        "optimizer": 101.85
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 74.005512,
+        "optimizer": 191.768256
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 20000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 76.43,
+      "ratio_last_pct": 76.43,
+      "fund_nominal_usd": 1276.263922,
+      "pool_eth": 3.6533063156288894,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 26.5,
+        "optimizer": 47.05
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.67,
+        "optimizer": 99.474696
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 20000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 34.89,
+      "ratio_last_pct": 60.4,
+      "fund_nominal_usd": 754.005021,
+      "pool_eth": 3.4581002093994995,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 38.73,
+        "optimizer": 75.49
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 58.705704,
+        "optimizer": 143.919372
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 20000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 12.9,
+      "ratio_last_pct": 13.37,
+      "fund_nominal_usd": 326.95758,
+      "pool_eth": 3.341948931738646,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 52.76,
+        "optimizer": 111.14
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 79.586088,
+        "optimizer": 209.786856
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 50000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 80.02,
+      "ratio_last_pct": 80.02,
+      "fund_nominal_usd": 1320.235731,
+      "pool_eth": 3.673270736494566,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 26.54,
+        "optimizer": 47.21
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.807268,
+        "optimizer": 99.99216
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 50000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 43.62,
+      "ratio_last_pct": 69.05,
+      "fund_nominal_usd": 892.686789,
+      "pool_eth": 3.5359335296996632,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 40.3,
+        "optimizer": 79.64
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 61.180224,
+        "optimizer": 152.2311
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 50000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 22.56,
+      "ratio_last_pct": 22.56,
+      "fund_nominal_usd": 492.086051,
+      "pool_eth": 3.526629178053501,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 60.14,
+        "optimizer": 130.15
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 90.939684,
+        "optimizer": 246.360168
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.22
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 300000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 134.09,
+      "ratio_last_pct": 134.09,
+      "fund_nominal_usd": 1626.983767,
+      "pool_eth": 3.861036869007799,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 27.28,
+        "optimizer": 49.58
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 46.950204,
+        "optimizer": 107.796216
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.02
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 300000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 100.17,
+      "ratio_last_pct": 131.81,
+      "fund_nominal_usd": 1694.249362,
+      "pool_eth": 4.188522579769591,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 50.51,
+        "optimizer": 106.29
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 77.24304,
+        "optimizer": 205.092396
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.02
+    },
+    {
+      "n": 50,
+      "monthly_volume_usd": 300000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 79.37,
+      "ratio_last_pct": 79.37,
+      "fund_nominal_usd": 1427.199291,
+      "pool_eth": 4.987721579041961,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 96.62,
+        "optimizer": 224.01
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 146.894556,
+        "optimizer": 426.731148
+      },
+      "bank_cuts": 2,
+      "coverage_min_pct": 46.02
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 0,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 74.21,
+      "ratio_last_pct": 74.21,
+      "fund_nominal_usd": 2450.693059,
+      "pool_eth": 3.542024214628484,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 16.01,
+        "optimizer": 29.48
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.6103,
+        "optimizer": 99.199044
+      },
+      "bank_cuts": 5,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 0,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 28.32,
+      "ratio_last_pct": 43.38,
+      "fund_nominal_usd": 1291.448672,
+      "pool_eth": 2.8632358245354563,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 37.75,
+        "optimizer": 72.9
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.096516,
+        "optimizer": 138.55206
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 0,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 4.24,
+      "ratio_last_pct": 4.24,
+      "fund_nominal_usd": 315.531741,
+      "pool_eth": 2.603896373987173,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 47.88,
+        "optimizer": 98.56
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 72.046392,
+        "optimizer": 185.4597
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 5000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 74.88,
+      "ratio_last_pct": 74.88,
+      "fund_nominal_usd": 2468.776392,
+      "pool_eth": 3.54882176582241,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 16.0,
+        "optimizer": 29.46
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.615436,
+        "optimizer": 99.230328
+      },
+      "bank_cuts": 5,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 5000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 29.83,
+      "ratio_last_pct": 43.56,
+      "fund_nominal_usd": 1337.903264,
+      "pool_eth": 2.8767093708653264,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 37.9,
+        "optimizer": 73.3
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.341208,
+        "optimizer": 139.338096
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 5000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 5.77,
+      "ratio_last_pct": 9.12,
+      "fund_nominal_usd": 378.227727,
+      "pool_eth": 2.634943037026308,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 48.74,
+        "optimizer": 100.8
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 73.425648,
+        "optimizer": 189.979716
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 20000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 75.6,
+      "ratio_last_pct": 75.6,
+      "fund_nominal_usd": 2485.948103,
+      "pool_eth": 3.557496421478523,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 15.97,
+        "optimizer": 29.42
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.63814,
+        "optimizer": 99.318612
+      },
+      "bank_cuts": 5,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 20000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 33.43,
+      "ratio_last_pct": 49.57,
+      "fund_nominal_usd": 1430.58538,
+      "pool_eth": 2.9102293643771286,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 38.37,
+        "optimizer": 74.53
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 58.090884,
+        "optimizer": 141.880728
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 20000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 11.0,
+      "ratio_last_pct": 11.71,
+      "fund_nominal_usd": 541.041335,
+      "pool_eth": 2.719447120172718,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 51.27,
+        "optimizer": 107.32
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 77.302368,
+        "optimizer": 202.44234
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 50000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 77.14,
+      "ratio_last_pct": 77.14,
+      "fund_nominal_usd": 2547.752005,
+      "pool_eth": 3.5845015267918914,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 15.9,
+        "optimizer": 29.31
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.68752,
+        "optimizer": 99.52848
+      },
+      "bank_cuts": 5,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 50000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 38.46,
+      "ratio_last_pct": 55.51,
+      "fund_nominal_usd": 1640.2994,
+      "pool_eth": 2.983197871116843,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 39.3,
+        "optimizer": 76.98
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 59.55846,
+        "optimizer": 146.847516
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 50000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 19.62,
+      "ratio_last_pct": 21.6,
+      "fund_nominal_usd": 840.067707,
+      "pool_eth": 2.8991437992409796,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 56.14,
+        "optimizer": 119.88
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 84.850716,
+        "optimizer": 226.783212
+      },
+      "bank_cuts": 8,
+      "coverage_min_pct": 46.23
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 300000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 88.44,
+      "ratio_last_pct": 88.44,
+      "fund_nominal_usd": 2956.793712,
+      "pool_eth": 3.80708693119385,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 15.32,
+        "optimizer": 28.5
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 45.38454,
+        "optimizer": 102.076344
+      },
+      "bank_cuts": 5,
+      "coverage_min_pct": 46.15
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 300000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 77.74,
+      "ratio_last_pct": 112.87,
+      "fund_nominal_usd": 2805.149899,
+      "pool_eth": 3.5636962256612876,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 45.37,
+        "optimizer": 92.94
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 69.260664,
+        "optimizer": 179.01486
+      },
+      "bank_cuts": 9,
+      "coverage_min_pct": 46.15
+    },
+    {
+      "n": 100,
+      "monthly_volume_usd": 300000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 57.71,
+      "ratio_last_pct": 57.71,
+      "fund_nominal_usd": 2087.902815,
+      "pool_eth": 4.208333046814287,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 80.71,
+        "optimizer": 183.07
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 122.49822,
+        "optimizer": 348.140328
+      },
+      "bank_cuts": 9,
+      "coverage_min_pct": 46.15
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 0,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 73.79,
+      "ratio_last_pct": 73.79,
+      "fund_nominal_usd": 4914.99296,
+      "pool_eth": 3.556757441415538,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 8.24,
+        "optimizer": 15.96
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.59536,
+        "optimizer": 99.14208
+      },
+      "bank_cuts": 6,
+      "coverage_min_pct": 46.26
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 0,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 28.63,
+      "ratio_last_pct": 43.39,
+      "fund_nominal_usd": 2601.943803,
+      "pool_eth": 2.174780010515007,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 37.75,
+        "optimizer": 72.91
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.125652,
+        "optimizer": 138.64548
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.26
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 0,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 4.11,
+      "ratio_last_pct": 4.11,
+      "fund_nominal_usd": 623.343675,
+      "pool_eth": 1.886766320460888,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 47.91,
+        "optimizer": 98.66
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 72.099996,
+        "optimizer": 185.628288
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.26
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 5000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 74.01,
+      "ratio_last_pct": 74.01,
+      "fund_nominal_usd": 4920.27015,
+      "pool_eth": 3.56071592326376,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 8.23,
+        "optimizer": 15.94
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.60322,
+        "optimizer": 99.17208
+      },
+      "bank_cuts": 6,
+      "coverage_min_pct": 46.25
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 5000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 29.62,
+      "ratio_last_pct": 47.95,
+      "fund_nominal_usd": 2634.249932,
+      "pool_eth": 2.184589516577627,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 37.88,
+        "optimizer": 73.28
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.35388,
+        "optimizer": 139.485972
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.25
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 5000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 5.7,
+      "ratio_last_pct": 5.7,
+      "fund_nominal_usd": 790.323871,
+      "pool_eth": 1.9164075155201001,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 48.57,
+        "optimizer": 100.34
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 73.109532,
+        "optimizer": 188.922
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.25
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 20000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 74.42,
+      "ratio_last_pct": 74.42,
+      "fund_nominal_usd": 4936.112802,
+      "pool_eth": 3.5695620356354274,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 8.21,
+        "optimizer": 15.91
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.61282,
+        "optimizer": 99.220812
+      },
+      "bank_cuts": 6,
+      "coverage_min_pct": 46.24
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 20000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 31.16,
+      "ratio_last_pct": 48.15,
+      "fund_nominal_usd": 2791.496008,
+      "pool_eth": 2.2098344900882494,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 38.1,
+        "optimizer": 73.84
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 57.699552,
+        "optimizer": 140.594736
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.24
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 20000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 9.81,
+      "ratio_last_pct": 9.81,
+      "fund_nominal_usd": 1033.471491,
+      "pool_eth": 1.9916233063466249,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 50.71,
+        "optimizer": 105.86
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 76.426284,
+        "optimizer": 199.658796
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.24
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 50000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 75.39,
+      "ratio_last_pct": 75.39,
+      "fund_nominal_usd": 5010.634454,
+      "pool_eth": 3.6004538589573833,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 8.18,
+        "optimizer": 15.86
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.637792,
+        "optimizer": 99.321768
+      },
+      "bank_cuts": 6,
+      "coverage_min_pct": 46.24
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 50000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 36.16,
+      "ratio_last_pct": 57.27,
+      "fund_nominal_usd": 3104.571165,
+      "pool_eth": 2.2700520934554214,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 38.65,
+        "optimizer": 75.33
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 58.622448,
+        "optimizer": 143.766432
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.24
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 50000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 18.44,
+      "ratio_last_pct": 18.44,
+      "fund_nominal_usd": 1618.264757,
+      "pool_eth": 2.155743041110928,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 54.48,
+        "optimizer": 115.58
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 82.274436,
+        "optimizer": 218.524224
+      },
+      "bank_cuts": 19,
+      "coverage_min_pct": 46.24
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 300000,
+      "city_days": 7,
+      "real_days": 7.291666666666667,
+      "ratio_min_pct": 81.69,
+      "ratio_last_pct": 81.69,
+      "fund_nominal_usd": 5443.005453,
+      "pool_eth": 3.815702864320221,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 7.91,
+        "optimizer": 15.41
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 44.878344,
+        "optimizer": 100.264452
+      },
+      "bank_cuts": 6,
+      "coverage_min_pct": 46.2
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 300000,
+      "city_days": 30,
+      "real_days": 31.25,
+      "ratio_min_pct": 59.41,
+      "ratio_last_pct": 95.81,
+      "fund_nominal_usd": 4592.183211,
+      "pool_eth": 2.7093187613030145,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 40.93,
+        "optimizer": 81.8
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 63.855948,
+        "optimizer": 161.444052
+      },
+      "bank_cuts": 25,
+      "coverage_min_pct": 46.2
+    },
+    {
+      "n": 200,
+      "monthly_volume_usd": 300000,
+      "city_days": 90,
+      "real_days": 93.75,
+      "ratio_min_pct": 47.71,
+      "ratio_last_pct": 47.71,
+      "fund_nominal_usd": 3545.233704,
+      "pool_eth": 3.280322584270123,
+      "mint_rate": 51,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 72.33,
+        "optimizer": 161.55
+      },
+      "payroll_earned_nominal_usd": {
+        "minimalist": 109.720452,
+        "optimizer": 307.034088
+      },
+      "bank_cuts": 25,
+      "coverage_min_pct": 46.2
+    }
+  ],
+  "stress": [
+    {
+      "n": 20,
+      "scenario": "turnover_collapse_10x",
+      "ratio_last_pct": 8.29,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 54.36,
+        "optimizer": 115.2
+      },
+      "pool_eth": 3.8082818789522284,
+      "bank_cuts": 0
+    },
+    {
+      "n": 20,
+      "scenario": "turnover_decay",
+      "ratio_last_pct": 5.13,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 51.22,
+        "optimizer": 107.14
+      },
+      "pool_eth": 3.7726381862171796,
+      "bank_cuts": 0
+    },
+    {
+      "n": 20,
+      "scenario": "mass_exit_band_floor",
+      "ratio_last_pct": 43.3,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 66.65,
+        "optimizer": 146.77
+      },
+      "pool_eth": 3.9987538748157023,
+      "bank_cuts": 0
+    },
+    {
+      "n": 20,
+      "scenario": "spend_stop",
+      "ratio_last_pct": 41.07,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 36.68,
+        "optimizer": 70.45
+      },
+      "pool_eth": 4.463732631156965,
+      "bank_cuts": 0
+    },
+    {
+      "n": 50,
+      "scenario": "turnover_collapse_10x",
+      "ratio_last_pct": 6.56,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 51.03,
+        "optimizer": 106.65
+      },
+      "pool_eth": 3.2756597276678523,
+      "bank_cuts": 2
+    },
+    {
+      "n": 50,
+      "scenario": "turnover_decay",
+      "ratio_last_pct": 5.03,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 49.57,
+        "optimizer": 102.91
+      },
+      "pool_eth": 3.2455457950604396,
+      "bank_cuts": 2
+    },
+    {
+      "n": 50,
+      "scenario": "mass_exit_band_floor",
+      "ratio_last_pct": 24.73,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 57.01,
+        "optimizer": 121.98
+      },
+      "pool_eth": 3.4001649776285716,
+      "bank_cuts": 4
+    },
+    {
+      "n": 50,
+      "scenario": "spend_stop",
+      "ratio_last_pct": 15.94,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 35.63,
+        "optimizer": 67.63
+      },
+      "pool_eth": 4.058804438074833,
+      "bank_cuts": 2
+    },
+    {
+      "n": 100,
+      "scenario": "turnover_collapse_10x",
+      "ratio_last_pct": 6.02,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 49.82,
+        "optimizer": 103.56
+      },
+      "pool_eth": 2.6550149769554987,
+      "bank_cuts": 8
+    },
+    {
+      "n": 100,
+      "scenario": "turnover_decay",
+      "ratio_last_pct": 4.52,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 48.89,
+        "optimizer": 101.15
+      },
+      "pool_eth": 2.626499567422154,
+      "bank_cuts": 8
+    },
+    {
+      "n": 100,
+      "scenario": "mass_exit_band_floor",
+      "ratio_last_pct": 19.7,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 53.99,
+        "optimizer": 114.22
+      },
+      "pool_eth": 2.73228537273055,
+      "bank_cuts": 78
+    },
+    {
+      "n": 100,
+      "scenario": "spend_stop",
+      "ratio_last_pct": 11.39,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 35.11,
+        "optimizer": 66.27
+      },
+      "pool_eth": 3.537677224785734,
+      "bank_cuts": 8
+    },
+    {
+      "n": 200,
+      "scenario": "turnover_collapse_10x",
+      "ratio_last_pct": 5.97,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 49.1,
+        "optimizer": 101.71
+      },
+      "pool_eth": 1.9238713722311012,
+      "bank_cuts": 19
+    },
+    {
+      "n": 200,
+      "scenario": "turnover_decay",
+      "ratio_last_pct": 4.63,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 48.46,
+        "optimizer": 100.05
+      },
+      "pool_eth": 1.9016490450591206,
+      "bank_cuts": 19
+    },
+    {
+      "n": 200,
+      "scenario": "mass_exit_band_floor",
+      "ratio_last_pct": 19.73,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 52.81,
+        "optimizer": 111.21
+      },
+      "pool_eth": 1.9790689258887748,
+      "bank_cuts": 216
+    },
+    {
+      "n": 200,
+      "scenario": "spend_stop",
+      "ratio_last_pct": 9.21,
+      "capital_sent_to_bank_pct": {
+        "minimalist": 28.36,
+        "optimizer": 53.06
+      },
+      "pool_eth": 3.0643265507818085,
+      "bank_cuts": 17
+    }
+  ]
+}

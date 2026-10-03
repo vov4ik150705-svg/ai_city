@@ -1,10 +1,11 @@
-/* GENERATED from pack 40351bca10048b7cb46ef95adff689a4210ff36ce3b9716f453515c83d8d9eae; do not edit */
+/* GENERATED from pack 1053fda2283e116cf4706ae3910b046f3a66594e8bf4bffc958e52a53b8d4bd8; do not edit */
 export const listenBind = "127.0.0.1";
 export const listenContainerBind = "0.0.0.0";
 export const listenPorts = {
   api: 7460n,
   attestor: 7463n,
   buyback: 7462n,
+  client: 7464n,
   sampler: 7461n,
 } as const;
 export const postgresPort = 5432n;
@@ -32,3 +33,6 @@ export const wsTemplate = "/city/{city_id}/ws";
 export const wsHeartbeatMs = 15000n;
 export const samplerPeriodMs = 50000n;
 export const tickLengthRealMs = 3750000n;
+export const bloomStrengthBps = 3500n;
+export const bloomRadiusBps = 4000n;
+export const bloomThresholdBps = 8500n;

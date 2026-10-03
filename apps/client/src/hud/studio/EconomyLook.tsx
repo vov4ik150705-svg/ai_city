@@ -2,7 +2,6 @@ import type { ReactElement } from "react"
 import { lookup, type StringTable } from "../../strings.js"
 import { exactBigint, type FieldView, type ResourceView } from "../fields.js"
 import type { HudView } from "../model.js"
-import { UnavailableState } from "../parts/Empty.js"
 import { groupThousands } from "../parts/groupThousands.js"
 import { HudIcon, type HudGlyph } from "../parts/HudIcon.js"
 import { Progress } from "../parts/ProgressMeter.js"
@@ -44,7 +43,6 @@ export function EconomyLook(props: {
   const shell = props.view.shell
   const pay = shell.payrollPanel
   const capital = shell.capital
-  void props.onManageFunds
   return (
     <section data-id="capital" data-surface="left_panel" className="hud-economy" aria-label={title}>
       <header className="hud-economy__h">
@@ -55,12 +53,12 @@ export function EconomyLook(props: {
           {title}
         </h2>
       </header>
-      <div className="hud-economy__capital">
-        <div className="hud-economy__capital-top">
+      <button type="button" className="hud-economy__capital" aria-label={capital.label} onClick={props.onManageFunds}>
+        <span className="hud-economy__capital-top">
           <span className="hud-economy__plus" aria-hidden="true">
             <HudIcon glyph="coin" size="md" />
           </span>
-          <div className="hud-economy__capital-copy">
+          <span className="hud-economy__capital-copy">
             <span data-key={capital.key} className="hud-economy__k">
               {capital.label}
             </span>
@@ -73,12 +71,14 @@ export function EconomyLook(props: {
                 {groupThousands(capital.exact)}
               </span>
             )}
-          </div>
-        </div>
+          </span>
+        </span>
         {pay.kind === "unavailable" ? (
-          <UnavailableState textKey="UI_UNAVAILABLE" text={pay.text} />
+          <span data-key="UI_UNAVAILABLE" data-state="unavailable" className="hud-unavailable" role="status">
+            {pay.text}
+          </span>
         ) : (
-          <p className="hud-economy__paid">
+          <span className="hud-economy__paid">
             <ReadyGrouped field={pay.paid} className="hud-economy__paid-amt" prefix="+" />
             <span aria-hidden="true" className="hud-economy__dot">
               ·
@@ -86,9 +86,9 @@ export function EconomyLook(props: {
             <span data-key="UI_PAYROLL_PAID" className="hud-economy__paid-lbl">
               {pay.paidLabel}
             </span>
-          </p>
+          </span>
         )}
-      </div>
+      </button>
       <div className="hud-economy__rule" />
       {pay.kind === "unavailable" ? null : (
         <button type="button" className="hud-economy__payroll" aria-label={pay.label} onClick={props.onPayroll}>

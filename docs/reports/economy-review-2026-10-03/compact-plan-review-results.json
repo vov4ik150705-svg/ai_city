@@ -1,0 +1,684 @@
+{
+  "status": "Independent conditional arithmetic; no executed Pons route or engine progression",
+  "pack_version": 209,
+  "eth_usd_historical_fixture": 2500.87,
+  "assumptions": [
+    "2% actually received creator tax; 60% salary; 90% intraday release",
+    "0.75 conversion is a sensitivity, not a measured live fill",
+    "Fully built profiles and unchanged Capital quote except in the explicitly labelled CPMM experiment",
+    "Bank numbers are CORP-release value estimates, before sale impact/gas"
+  ],
+  "cohort_rows": [
+    {
+      "audience": 7,
+      "composition": "mixed",
+      "counts": [
+        4,
+        2,
+        1
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 596.0,
+      "payout_scale": 1.0,
+      "capital_accrued_reference": [
+        52.0,
+        104.0,
+        180.0
+      ],
+      "accrued_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "first_day_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "total_accrued_reference_usd": 525.5636363636363,
+      "total_first_day_reference_usd": 525.5636363636363,
+      "remaining_backed_reference_usd": 0.0
+    },
+    {
+      "audience": 7,
+      "composition": "all_active",
+      "counts": [
+        0,
+        7,
+        0
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 728.0,
+      "payout_scale": 1.0,
+      "capital_accrued_reference": [
+        52.0,
+        104.0,
+        180.0
+      ],
+      "accrued_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "first_day_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "total_accrued_reference_usd": 641.9636363636363,
+      "total_first_day_reference_usd": 641.9636363636363,
+      "remaining_backed_reference_usd": 0.0
+    },
+    {
+      "audience": 7,
+      "composition": "all_strong",
+      "counts": [
+        0,
+        0,
+        7
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 1260.0,
+      "payout_scale": 1.0,
+      "capital_accrued_reference": [
+        52.0,
+        104.0,
+        180.0
+      ],
+      "accrued_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "first_day_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "total_accrued_reference_usd": 1111.090909090909,
+      "total_first_day_reference_usd": 1111.090909090909,
+      "remaining_backed_reference_usd": 0.0
+    },
+    {
+      "audience": 20,
+      "composition": "mixed",
+      "counts": [
+        10,
+        7,
+        3
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 1788.0,
+      "payout_scale": 1.0,
+      "capital_accrued_reference": [
+        52.0,
+        104.0,
+        180.0
+      ],
+      "accrued_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "first_day_wallet_reference_usd": [
+        45.82130939597315,
+        91.6426187919463,
+        158.61222483221476
+      ],
+      "total_accrued_reference_usd": 1576.690909090909,
+      "total_first_day_reference_usd": 1575.5481,
+      "remaining_backed_reference_usd": 1.1428090909089406
+    },
+    {
+      "audience": 20,
+      "composition": "all_active",
+      "counts": [
+        0,
+        20,
+        0
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 2080.0,
+      "payout_scale": 1.0,
+      "capital_accrued_reference": [
+        52.0,
+        104.0,
+        180.0
+      ],
+      "accrued_wallet_reference_usd": [
+        45.85454545454545,
+        91.7090909090909,
+        158.72727272727272
+      ],
+      "first_day_wallet_reference_usd": [
+        39.3887025,
+        78.777405,
+        136.34550865384614
+      ],
+      "total_accrued_reference_usd": 1834.181818181818,
+      "total_first_day_reference_usd": 1575.5481,
+      "remaining_backed_reference_usd": 258.63371818181804
+    },
+    {
+      "audience": 20,
+      "composition": "all_strong",
+      "counts": [
+        0,
+        0,
+        20
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 3600.0,
+      "payout_scale": 0.675,
+      "capital_accrued_reference": [
+        35.1,
+        70.2,
+        121.50000000000001
+      ],
+      "accrued_wallet_reference_usd": [
+        30.95181818181818,
+        61.90363636363636,
+        107.14090909090909
+      ],
+      "first_day_wallet_reference_usd": [
+        22.757916999999996,
+        45.51583399999999,
+        78.77740499999999
+      ],
+      "total_accrued_reference_usd": 2142.818181818182,
+      "total_first_day_reference_usd": 1575.5480999999997,
+      "remaining_backed_reference_usd": 567.2700818181822
+    },
+    {
+      "audience": 50,
+      "composition": "mixed",
+      "counts": [
+        25,
+        17,
+        8
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 4508.0,
+      "payout_scale": 0.5390417036379769,
+      "capital_accrued_reference": [
+        28.0301685891748,
+        56.0603371783496,
+        97.02750665483583
+      ],
+      "accrued_wallet_reference_usd": [
+        24.71751230136323,
+        49.43502460272646,
+        85.56061950471886
+      ],
+      "first_day_wallet_reference_usd": [
+        18.174024223602487,
+        36.348048447204974,
+        62.91008385093168
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 50,
+      "composition": "all_active",
+      "counts": [
+        0,
+        50,
+        0
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 5200.0,
+      "payout_scale": 0.4673076923076923,
+      "capital_accrued_reference": [
+        24.3,
+        48.6,
+        84.11538461538461
+      ],
+      "accrued_wallet_reference_usd": [
+        21.428181818181816,
+        42.85636363636363,
+        74.17447552447551
+      ],
+      "first_day_wallet_reference_usd": [
+        15.755481000000001,
+        31.510962000000003,
+        54.53820346153846
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 50,
+      "composition": "all_strong",
+      "counts": [
+        0,
+        0,
+        50
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 9000.0,
+      "payout_scale": 0.27,
+      "capital_accrued_reference": [
+        14.040000000000001,
+        28.080000000000002,
+        48.6
+      ],
+      "accrued_wallet_reference_usd": [
+        12.380727272727272,
+        24.761454545454544,
+        42.85636363636363
+      ],
+      "first_day_wallet_reference_usd": [
+        9.1031668,
+        18.2063336,
+        31.510962000000003
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 100,
+      "composition": "mixed",
+      "counts": [
+        50,
+        34,
+        16
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 9016.0,
+      "payout_scale": 0.26952085181898844,
+      "capital_accrued_reference": [
+        14.0150842945874,
+        28.0301685891748,
+        48.513753327417916
+      ],
+      "accrued_wallet_reference_usd": [
+        12.358756150681614,
+        24.71751230136323,
+        42.78030975235943
+      ],
+      "first_day_wallet_reference_usd": [
+        9.087012111801243,
+        18.174024223602487,
+        31.45504192546584
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 100,
+      "composition": "all_active",
+      "counts": [
+        0,
+        100,
+        0
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 10400.0,
+      "payout_scale": 0.23365384615384616,
+      "capital_accrued_reference": [
+        12.15,
+        24.3,
+        42.05769230769231
+      ],
+      "accrued_wallet_reference_usd": [
+        10.714090909090908,
+        21.428181818181816,
+        37.087237762237756
+      ],
+      "first_day_wallet_reference_usd": [
+        7.877740500000001,
+        15.755481000000001,
+        27.26910173076923
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 100,
+      "composition": "all_strong",
+      "counts": [
+        0,
+        0,
+        100
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 18000.0,
+      "payout_scale": 0.135,
+      "capital_accrued_reference": [
+        7.0200000000000005,
+        14.040000000000001,
+        24.3
+      ],
+      "accrued_wallet_reference_usd": [
+        6.190363636363636,
+        12.380727272727272,
+        21.428181818181816
+      ],
+      "first_day_wallet_reference_usd": [
+        4.5515834,
+        9.1031668,
+        15.755481000000001
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 200,
+      "composition": "mixed",
+      "counts": [
+        100,
+        68,
+        32
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 18032.0,
+      "payout_scale": 0.13476042590949422,
+      "capital_accrued_reference": [
+        7.0075421472937,
+        14.0150842945874,
+        24.256876663708958
+      ],
+      "accrued_wallet_reference_usd": [
+        6.179378075340807,
+        12.358756150681614,
+        21.390154876179714
+      ],
+      "first_day_wallet_reference_usd": [
+        4.543506055900622,
+        9.087012111801243,
+        15.72752096273292
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 200,
+      "composition": "all_active",
+      "counts": [
+        0,
+        200,
+        0
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 20800.0,
+      "payout_scale": 0.11682692307692308,
+      "capital_accrued_reference": [
+        6.075,
+        12.15,
+        21.028846153846153
+      ],
+      "accrued_wallet_reference_usd": [
+        5.357045454545454,
+        10.714090909090908,
+        18.543618881118878
+      ],
+      "first_day_wallet_reference_usd": [
+        3.9388702500000004,
+        7.877740500000001,
+        13.634550865384615
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    },
+    {
+      "audience": 200,
+      "composition": "all_strong",
+      "counts": [
+        0,
+        0,
+        200
+      ],
+      "volume_usd": 300000.0,
+      "receipt_fraction": 1.0,
+      "mature_fraction": 1.0,
+      "quote_depth_reference_usd": 10503.654,
+      "conversion_reference": 0.75,
+      "salary_receipts_usd": 3600.0,
+      "funded_capital_reference": 2430.0,
+      "requested_capital_reference": 36000.0,
+      "payout_scale": 0.0675,
+      "capital_accrued_reference": [
+        3.5100000000000002,
+        7.0200000000000005,
+        12.15
+      ],
+      "accrued_wallet_reference_usd": [
+        3.095181818181818,
+        6.190363636363636,
+        10.714090909090908
+      ],
+      "first_day_wallet_reference_usd": [
+        2.2757917,
+        4.5515834,
+        7.877740500000001
+      ],
+      "total_accrued_reference_usd": 2142.8181818181815,
+      "total_first_day_reference_usd": 1575.5481000000002,
+      "remaining_backed_reference_usd": 567.2700818181813
+    }
+  ],
+  "buyback_capacity": [
+    {
+      "mean_verified_depth_eth": 4.2,
+      "max_gross_salary_buyback_usd_per_city_day": 831.8893968,
+      "fraction_of_3600_salary_receipts": 0.231080388
+    },
+    {
+      "mean_verified_depth_eth": 6.3,
+      "max_gross_salary_buyback_usd_per_city_day": 1247.8340951999999,
+      "fraction_of_3600_salary_receipts": 0.34662058199999995
+    },
+    {
+      "mean_verified_depth_eth": 8.4,
+      "max_gross_salary_buyback_usd_per_city_day": 1663.7787936,
+      "fraction_of_3600_salary_receipts": 0.462160776
+    },
+    {
+      "mean_verified_depth_eth": 12.6,
+      "max_gross_salary_buyback_usd_per_city_day": 2495.6681903999997,
+      "fraction_of_3600_salary_receipts": 0.6932411639999999
+    },
+    {
+      "mean_verified_depth_eth": 16.8,
+      "max_gross_salary_buyback_usd_per_city_day": 3327.5575872,
+      "fraction_of_3600_salary_receipts": 0.924321552
+    }
+  ],
+  "mean_depth_required_for_3600_gross_salary_buybacks_eth": 18.17549311021583,
+  "policy_only_cpmm_salary": {
+    "gross_salary_buyback_usd": 863.243576552817,
+    "end_depth_eth": 4.534821989650096,
+    "new_minted_capital_reference": 753.1021729685352,
+    "intraday_paid_capital_reference": 677.7919556716818,
+    "mixed50_cash_at_initial_reference_quote_usd": [
+      6.894374897975241,
+      13.788749795950482,
+      23.865143877606602
+    ],
+    "note": "All receipts ready before operation 1. 24 successful swaps/mints, no other trades/sells; initial reference-valued result, not sale proceeds."
+  },
+  "cap_order": {
+    "current_32_cash_reference_usd": [
+      18.174024223602487,
+      36.348048447204974,
+      62.91008385093168
+    ],
+    "current_16_cash_reference_usd": [
+      17.31371538461539,
+      34.62743076923078,
+      69.25486153846155
+    ],
+    "cap_after_coverage_accrued_reference_usd": [
+      23.547452547452547,
+      47.094905094905094,
+      94.18981018981019
+    ],
+    "cap_after_coverage_cash_reference_usd": [
+      17.31371538461538,
+      34.62743076923076,
+      69.25486153846153
+    ],
+    "note": "Candidate arithmetic, not an implemented payroll allocation. Same backing and Bank limits."
+  },
+  "direct_L2_financing_sanity": {
+    "capital_from_first_seed_80_reference": 74.80398826074867,
+    "starter_and_bank_reference": 39.747486,
+    "additional_workshop_and_power_L2_reference": 60.679701333333334,
+    "total_capital_needed_reference": 100.42718733333334,
+    "earnings_shortfall_reference": 25.62319907258467,
+    "minimum_earning_city_hours_at_fully_funded_active_104": 5.9130459398272315,
+    "minimum_earning_city_hours_at_mixed50_plan_coverage": 10.969551891663029,
+    "note": "Financing illustration of one route only. No build downtime, extra workers, districts or new modified upgrade prices. Not a best-route proof."
+  },
+  "post_launch_ceiling3_mixed50": {
+    "counts": [
+      25,
+      17,
+      8
+    ],
+    "volume_usd": 300000.0,
+    "receipt_fraction": 1.0,
+    "mature_fraction": 1.0,
+    "quote_depth_reference_usd": 10503.654,
+    "conversion_reference": 0.75,
+    "salary_receipts_usd": 3600.0,
+    "funded_capital_reference": 2430.0,
+    "requested_capital_reference": 443.625,
+    "payout_scale": 1.0,
+    "capital_accrued_reference": [
+      4.875,
+      9.75,
+      19.5
+    ],
+    "accrued_wallet_reference_usd": [
+      4.298863636363636,
+      8.597727272727273,
+      17.195454545454545
+    ],
+    "first_day_wallet_reference_usd": [
+      4.298863636363636,
+      8.597727272727273,
+      17.195454545454545
+    ],
+    "total_accrued_reference_usd": 391.19659090909084,
+    "total_first_day_reference_usd": 391.1965909090909,
+    "remaining_backed_reference_usd": -5.684341886080802e-14
+  },
+  "receipt_budget_bounds": {
+    "20": {
+      "10": 28000.509100165462,
+      "30": 84001.52730049638,
+      "50": 140002.5455008273
+    },
+    "50": {
+      "10": 70001.27275041366,
+      "30": 210003.81825124094,
+      "50": 350006.36375206825
+    },
+    "100": {
+      "10": 140002.5455008273,
+      "30": 420007.6365024819,
+      "50": 700012.7275041365
+    },
+    "200": {
+      "10": 280005.0910016546,
+      "30": 840015.2730049638,
+      "50": 1400025.455008273
+    }
+  },
+  "10_percent_day1_salary_buffer_reference_after_fixed_exit": 238.09090909090907,
+  "days_of_full_day1_mixed50_salary_in_that_buffer": 0.1111111111111111
+}

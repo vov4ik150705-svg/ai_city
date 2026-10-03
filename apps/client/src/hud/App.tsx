@@ -17,10 +17,10 @@ import type { ScreenProps } from "./parts/ScreenFrame.js"
 import type { HudView } from "./model.js"
 import type { OverviewTabId } from "./fields.js"
 import {
-  HUD_NAVIGATION,
   hudDestinationByShortcut,
   hudDestinationStep,
   hudPaneMotion,
+  hudRoutePushesParent,
   packWorkspaceId,
   resolveHudRoute,
   sceneClickOpensWorkspace,
@@ -40,7 +40,7 @@ import { IndustriesWorkspace } from "./workspace/IndustriesWorkspace.js"
 import { JournalFromLog } from "./workspace/JournalFromLog.js"
 import { CityLevelWorkspace } from "./workspace/CityLevelWorkspace.js"
 import { BuildingPopover } from "./BuildingPopover.js"
-import { resolveBuildingSelection } from "./selection.js"
+import { resolveBuildingSelection, scenePickSelects } from "./selection.js"
 import { isLocalReview, isTxnInFlight, type UiTxnState } from "./uiState.js"
 import type { BankVoucher } from "./screens/bank.js"
 import type { SceneProjection } from "./sceneProjection.js"
@@ -279,9 +279,9 @@ export const App = memo(function App(props: {
     setShellMotion("in")
     setPaneMotion(hudPaneMotion(route, dest.route, false))
     const agentChanges = agentId !== undefined && agentId.length > 0 && agentId !== focusedAgentId
-    const peer = HUD_NAVIGATION.some((row) => row.id === dest.route)
-    if (route.length === 0 || peer) setStack([])
-    else if (route !== dest.route || agentChanges) {
+    const tabChanges = dest.overviewTab !== undefined && dest.overviewTab !== overviewTab
+    if (route.length === 0) setStack([])
+    else if (hudRoutePushesParent(route, dest.route, agentChanges, tabChanges)) {
       const place: HudPlace = { route, overviewTab, lookId, selectedId, focusedAgentId }
       setStack((prev) => [...prev, place])
     }
@@ -558,6 +558,7 @@ export const App = memo(function App(props: {
     )
   const stubMode = props.sceneMode === "stub"
   const onSceneRoute = useCallback((screen: string, objectId: string, cell: string, tileX: bigint, tileY: bigint): void => {
+    if (objectId.length > 0 && !scenePickSelects(objectId)) return
     setPendingCell(cell)
     setPendingTileX(tileX)
     setPendingTileY(tileY)

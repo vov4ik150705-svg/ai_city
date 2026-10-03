@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { readFileSync } from "node:fs"
-import { orbitDelta, orbitFollowStep, lookCam, type CamPos } from "../src/hud/sceneInput.ts"
+import { advanceOrbitAz, orbitAzFollow, orbitDelta, orbitFollowStep, orbitGlideTauMs, rebaseOrbitAz, lookCam, type CamPos } from "../src/hud/sceneInput.ts"
 import type { ClientCamera } from "../src/packview.ts"
 
 describe("orbit follow", () => {
@@ -20,6 +20,26 @@ describe("orbit follow", () => {
     const next = orbitFollowStep(9800, 200, 16, 120, span)
     expect(next).toBeGreaterThan(9800)
     expect(next).toBeLessThan(9800 + 400)
+  })
+
+  it("keeps a fast drag that crosses half a turn", () => {
+    const span = 10000
+    const dragged = advanceOrbitAz(0, 6800)
+    expect(dragged).toBe(6800)
+    const wrapped = dragged % span
+    expect(orbitDelta(0, wrapped, span)).toBeLessThan(0)
+    const glideTau = orbitGlideTauMs(240)
+    expect(glideTau).toBe(240)
+    const coast = orbitAzFollow(0, dragged, 16, glideTau)
+    expect(coast).toBeGreaterThan(0)
+    expect(coast).toBeLessThan(dragged)
+    const quick = orbitFollowStep(0, 1000, 16, 120, 0)
+    const glide = orbitFollowStep(0, 1000, 16, glideTau, 0)
+    expect(glide).toBeGreaterThan(0)
+    expect(glide).toBeLessThan(quick)
+    const folded = rebaseOrbitAz(15000, 15600, span)
+    expect(folded.shown).toBe(5000)
+    expect(folded.target - folded.shown).toBe(600)
   })
 
   it("snaps when the coast time is zero", () => {
@@ -51,6 +71,19 @@ describe("orbit follow", () => {
     expect(next.tiltBps).toBe(200n)
     expect(next.tileX).toBe(40n)
     expect(next.tileY).toBe(50n)
+  })
+
+  it("a building click does not move the camera", () => {
+    const src = readFileSync(new URL("../src/hud/sceneInput.ts", import.meta.url), "utf8")
+    const start = src.indexOf("const clickAt")
+    const end = src.indexOf("const onPointerDown")
+    expect(start).toBeGreaterThan(0)
+    expect(end).toBeGreaterThan(start)
+    const body = src.slice(start, end)
+    expect(body.includes("onRoute")).toBe(true)
+    expect(body.includes("aimLook")).toBe(false)
+    expect(body.includes("pushCam")).toBe(false)
+    expect(body.includes("focusDistance")).toBe(false)
   })
 
   it("opening a district does not republish the orbit", () => {

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
+import { settle } from "../src/fragments.ts"
 import {
   accumulateDay,
   applyDexTurnover,
@@ -188,6 +189,34 @@ describe("economy owner rules", () => {
     expect(dust >= 0n).toBe(true)
     const paid = asBig(whale["sum_payout"])
     expect(paid + dust).toBe(100n)
+    const payouts = whale["payouts"]
+    if (!Array.isArray(payouts)) throw new Error("payouts")
+    expect(payouts[0]).toBe(50n)
+    expect(payouts[1]).toBe(10n)
+    expect(dust).toBe(40n)
+    const wiped = settle([0n, 0n], 50n, 5000n, 10000n, true)
+    expect(asBig(wiped["pool_left"])).toBe(0n)
+    const kept = settle([0n, 0n], 50n, 5000n, 10000n, false)
+    expect(asBig(kept["pool_left"])).toBe(50n)
+    const shared = settle([9n, 1n], 100n, 5000n, 10000n, false, true)
+    const sharedPay = shared["payouts"]
+    if (!Array.isArray(sharedPay)) throw new Error("payouts")
+    expect(sharedPay[0]).toBe(70n)
+    expect(sharedPay[1]).toBe(30n)
+    expect(asBig(shared["sum_payout"])).toBe(100n)
+    const capped = settle([9000n, 1000n], 100n, 10000n, 10000n, false, false, [1n, 99n], 10000n)
+    const cappedCodes = capped["codes"]
+    if (!Array.isArray(cappedCodes)) throw new Error("codes")
+    expect(cappedCodes.includes("PRIZE_SHARE_CAPPED")).toBe(true)
+    const cappedPay = capped["payouts"]
+    if (!Array.isArray(cappedPay)) throw new Error("payouts")
+    expect(cappedPay[0]).toBe(1n)
+    expect(cappedPay[1]).toBe(10n)
+    expect(asBig(capped["sum_payout"]) <= 100n).toBe(true)
+    const open = settle([9000n, 1000n], 100n, 10000n, 10000n, false, false, [9000n, 1000n], 10000n)
+    const openCodes = open["codes"]
+    if (!Array.isArray(openCodes)) throw new Error("codes")
+    expect(openCodes.includes("PRIZE_SHARE_CAPPED")).toBe(false)
   })
 
   it("fees canonical generated round-trip is 1445", () => {

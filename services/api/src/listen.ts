@@ -3,6 +3,7 @@ import type { Duplex } from "node:stream"
 import { fromUtf8, parseJson } from "@corporator/contentpack"
 import {
   codes,
+  listenBind,
   listenBindOrEnv,
   listenPorts,
   transportHttp,
@@ -42,9 +43,13 @@ function envPort(fallback: bigint): bigint {
   return BigInt(raw)
 }
 
+function packClientOrigin(): string {
+  return "http://" + listenBind + ":" + listenPorts.client.toString()
+}
+
 function originAllowed(origin: string): boolean {
   const raw = process.env.CORPORATOR_CORS_ORIGINS
-  if (raw === undefined || raw.length === 0) return false
+  if (raw === undefined || raw.length === 0) return origin === packClientOrigin()
   for (const part of raw.split(",")) {
     if (part.trim() === origin) return true
   }

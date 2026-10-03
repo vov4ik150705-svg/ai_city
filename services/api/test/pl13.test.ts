@@ -64,6 +64,9 @@ describe("PL13 deploy surface", () => {
       delete process.env.CORPORATOR_CORS_ORIGINS
       const open = await fetch(url, { headers: { origin: "https://evil.example" } })
       expect(open.headers.get("access-control-allow-origin")).toBeNull()
+      const clientOrigin = "http://" + listenBind + ":" + listenPorts.client.toString()
+      const client = await fetch(url, { headers: { origin: clientOrigin } })
+      expect(client.headers.get("access-control-allow-origin")).toBe(clientOrigin)
     } finally {
       if (prior === undefined) delete process.env.CORPORATOR_CORS_ORIGINS
       else process.env.CORPORATOR_CORS_ORIGINS = prior

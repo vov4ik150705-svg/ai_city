@@ -2,7 +2,6 @@ import {
   clampCamera,
   clampLookPoint,
   clampOrbit,
-  focusDistance,
   isDoubleTap,
   isPan,
   isSceneTap,
@@ -110,9 +109,9 @@ export function orbitDelta(shown: number, target: number, span: number): number 
 }
 
 /**
- * One step of the orbit follow. tau is the packed coast: half of pan_inertia_ms
- * for the turn, the full window while dragging the look point, and four windows
- * when a building takes the look. A late frame is capped so it cannot skip the trip.
+ * One step of the orbit follow. tau is the packed coast.
+ * Orbit and zoom pass one pan window. Look drag passes one.
+ * A late look frame is capped so it cannot skip the trip.
  * dt <= 0 holds the current pose so the first animation frame does not jump.
  */
 export function orbitFollowStep(shown: number, target: number, dtMs: number, tauMs: number, span: number): number {
@@ -120,6 +119,41 @@ export function orbitFollowStep(shown: number, target: number, dtMs: number, tau
   if (!(dtMs > 0)) return shown
   const alpha = 1 - Math.exp(-dtMs / tauMs)
   return shown + orbitDelta(shown, target, span) * alpha
+}
+
+/** Signed yaw delta, kept unwrapped. Wrapping first makes a fast drag reverse. */
+export function advanceOrbitAz(unwrapped: number, deltaBps: number): number {
+  if (!Number.isFinite(unwrapped)) return 0
+  if (!Number.isFinite(deltaBps)) return unwrapped
+  return unwrapped + deltaBps
+}
+
+/**
+ * Yaw follow. span is ignored: the short path around the circle reverses a drag
+ * that crosses half a turn in one frame. The pose eases toward the pointer
+ * instead of snapping to it.
+ */
+export function orbitAzFollow(shown: number, unwrappedTarget: number, dtMs: number, tauMs: number): number {
+  return orbitFollowStep(shown, unwrappedTarget, dtMs, tauMs, 0)
+}
+
+/** Orbit and zoom coast. One pan window: half the previous two-window glide. */
+export function orbitGlideTauMs(panInertiaMs: number): number {
+  if (!(panInertiaMs > 0)) return 0
+  return panInertiaMs
+}
+
+/** Fold a settled unwrapped pair back into one turn without changing the gap. */
+export function rebaseOrbitAz(
+  shown: number,
+  target: number,
+  span: number,
+): { readonly shown: number; readonly target: number } {
+  if (!(span > 0) || !Number.isFinite(shown) || !Number.isFinite(target)) return { shown, target }
+  let wrapped = shown % span
+  if (wrapped < 0) wrapped += span
+  const shift = shown - wrapped
+  return { shown: wrapped, target: target - shift }
 }
 
 export function bindSceneInput(opts: {
@@ -139,12 +173,12 @@ export function bindSceneInput(opts: {
   applyCam(handle, cam.current, camera)
 
   const two = 1 + 1
-  const tauMs = Number(camera.panInertiaMs) / two
   const panTauMs = Number(camera.panInertiaMs)
-  const focusTauMs = panTauMs * two * two
+  const glideTauMs = orbitGlideTauMs(panTauMs)
   const stepCapMs = panTauMs / two
   const span = Number(camera.orbit.spanBps)
   let shownAz = Number(cam.current.azimuthBps)
+  let targetAz = shownAz
   let shownTilt = Number(cam.current.tiltBps)
   let shownDist = Number(cam.current.distance)
   let shownLookX = cam.current.lookX
@@ -164,7 +198,7 @@ export function bindSceneInput(opts: {
 
   const followSettled = (): boolean => {
     const one = 1
-    const daz = Math.abs(orbitDelta(shownAz, Number(cam.current.azimuthBps), span))
+    const daz = Math.abs(shownAz - targetAz)
     const dtilt = Math.abs(orbitDelta(shownTilt, Number(cam.current.tiltBps), 0))
     const ddist = Math.abs(orbitDelta(shownDist, Number(cam.current.distance), 0))
     const lookEps = shownDist > 0 && span > 0 ? shownDist / span : one
@@ -176,13 +210,18 @@ export function bindSceneInput(opts: {
     const raw = followTs === 0 ? 0 : ts - followTs
     const dt = stepCapMs > 0 && raw > stepCapMs ? stepCapMs : raw
     followTs = ts
-    shownAz = orbitFollowStep(shownAz, Number(cam.current.azimuthBps), dt, tauMs, span)
-    shownTilt = orbitFollowStep(shownTilt, Number(cam.current.tiltBps), dt, tauMs, 0)
-    shownDist = orbitFollowStep(shownDist, Number(cam.current.distance), dt, tauMs, 0)
+    shownAz = orbitAzFollow(shownAz, targetAz, raw, glideTauMs)
+    shownTilt = orbitFollowStep(shownTilt, Number(cam.current.tiltBps), raw, glideTauMs, 0)
+    shownDist = orbitFollowStep(shownDist, Number(cam.current.distance), raw, glideTauMs, 0)
     shownLookX = orbitFollowStep(shownLookX, cam.current.lookX, dt, lookTauMs, 0)
     shownLookZ = orbitFollowStep(shownLookZ, cam.current.lookZ, dt, lookTauMs, 0)
     if (followSettled()) {
+      const folded = rebaseOrbitAz(shownAz, targetAz, span)
+      shownAz = folded.shown
+      targetAz = folded.target
+      cam.current.azimuthBps = wrapOrbit(BigInt(Math.round(targetAz)), camera.orbit.spanBps)
       shownAz = Number(cam.current.azimuthBps)
+      targetAz = shownAz
       shownTilt = Number(cam.current.tiltBps)
       shownDist = Number(cam.current.distance)
       shownLookX = cam.current.lookX
@@ -231,17 +270,6 @@ export function bindSceneInput(opts: {
     cam.current.lookZ = point.z
   }
 
-  const aimLook = (x: number, z: number): void => {
-    placeLook(x, z)
-    lookTauMs = focusTauMs
-    const next = focusDistance(
-      Number(cam.current.distance),
-      Number(camera.orbit.distanceMin),
-      Number(camera.orbit.distanceMax),
-    )
-    cam.current.distance = BigInt(Math.round(next))
-  }
-
   const slideLook = (dxPx: number, dyPx: number, viewW: number, viewH: number): void => {
     lookTauMs = panTauMs
     const fov = handle.captureMeta().camera.fovDeg
@@ -251,13 +279,6 @@ export function bindSceneInput(opts: {
 
   const clickAt = (sx: bigint, sy: bigint): void => {
     const hit: TileHit = handle.hitAt(sx, sy)
-    if (hit.objectId.length > 0) {
-      const ground = handle.objectGround(hit.objectId)
-      if (ground !== undefined) {
-        aimLook(ground.x, ground.z)
-        pushCam()
-      }
-    }
     const screen = routeSceneClick(hit, camera.beacons, opened)
     onRoute(screen, hit.objectId, hit.cell, hit.tileX, hit.tileY)
   }
@@ -331,9 +352,10 @@ export function bindSceneInput(opts: {
     const total = absBig(p.x - startX) + absBig(p.y - startY)
     if (!isPan(total, camera.panDeadzonePx)) return
     if (drag === "orbit") {
-      const sens = camera.orbit.dragBpsPerPx
-      cam.current.azimuthBps += movedX * sens
-      cam.current.tiltBps += movedY * sens
+      const sens = Number(camera.orbit.dragBpsPerPx)
+      targetAz = advanceOrbitAz(targetAz, Number(movedX) * sens)
+      cam.current.azimuthBps = wrapOrbit(BigInt(Math.round(targetAz)), camera.orbit.spanBps)
+      cam.current.tiltBps += movedY * camera.orbit.dragBpsPerPx
       pushCam()
       return
     }

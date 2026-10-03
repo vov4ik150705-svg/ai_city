@@ -10,7 +10,7 @@ import { Dialog } from "../parts/Dialog.js"
 import { BRAND_TOKEN_URL } from "../parts/hudArtUrls.js"
 import { HudIcon } from "../parts/HudIcon.js"
 import { Refusal } from "../parts/refusal.js"
-import { groupDigits, formatCorp, formatCorpField, moneyAtoms } from "../parts/si.js"
+import { amountFieldText, amountInsertAllowed, groupDigits, formatCorp, formatCorpField, moneyAtoms, type AmountFieldKind } from "../parts/si.js"
 import { ScreenFrame, type ScreenProps } from "../parts/ScreenFrame.js"
 import { TransactionStepper } from "../parts/TransactionStepper.js"
 import { WorkspaceTabs } from "../parts/WorkspaceTabs.js"
@@ -235,9 +235,15 @@ export function BankScreen(props: ScreenProps & { readonly startTab?: BankTab; r
   const tabRefusal = tab === "deposit" ? depositRefusal : withdrawRefusal
   const tabRefusalText =
     tabRefusal?.code === undefined ? "" : shortRefusal(lookup(props.strings, tabRefusal.code, used))
+  const amountKind: AmountFieldKind = tab === "deposit" ? "decimal" : "whole"
   function setAmountLive(next: string): void {
     if (isTxnInFlight(txn)) return
-    setAmount(next)
+    setAmount(amountFieldText(next, amountKind, props.pack.weiDecimals))
+  }
+  function pickTab(next: BankTab): void {
+    setTab(next)
+    const kind: AmountFieldKind = next === "deposit" ? "decimal" : "whole"
+    setAmount((cur) => amountFieldText(cur, kind, props.pack.weiDecimals))
   }
   function setMax(): void {
     if (maxField === undefined) return
@@ -254,7 +260,7 @@ export function BankScreen(props: ScreenProps & { readonly startTab?: BankTab; r
           id="hud-bank-amount"
           type="text"
           name="hud-bank-qty"
-          inputMode="decimal"
+          inputMode={amountKind === "decimal" ? "decimal" : "numeric"}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
@@ -268,6 +274,14 @@ export function BankScreen(props: ScreenProps & { readonly startTab?: BankTab; r
           value={amount}
           aria-label={`${t("UI_AMOUNT")} ${amountUnit}`}
           disabled={isTxnInFlight(txn)}
+          onBeforeInput={(event) => {
+            const native = event.nativeEvent
+            if (!(native instanceof InputEvent)) return
+            if (native.inputType === "insertFromPaste" || native.inputType === "insertFromDrop") return
+            const data = native.data
+            if (data === null) return
+            if (!amountInsertAllowed(data, amountKind, props.pack.weiDecimals)) event.preventDefault()
+          }}
           onChange={(e) => {
             setAmountLive(e.target.value)
           }}
@@ -365,7 +379,7 @@ export function BankScreen(props: ScreenProps & { readonly startTab?: BankTab; r
             { id: "withdraw", key: "UI_WITHDRAW", label: t("UI_WITHDRAW") },
           ]}
           active={tab}
-          onPick={setTab}
+          onPick={pickTab}
         />
         <div className="hud-bank__stats">
           <BankStat

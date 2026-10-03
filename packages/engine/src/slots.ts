@@ -43,6 +43,21 @@ export function buildingDistrictIds(cfg: Dict, bid: string): readonly string[] {
   return out
 }
 
+function buildingWeatherBps(cfg: Dict, city: Dict, bid: string, bps: bigint): bigint {
+  const ids = buildingDistrictIds(cfg, bid)
+  if (ids.length === 0) return bps
+  const slots = asDict(city["district_efficiency"])
+  let total = 0n
+  let n = 0n
+  for (const did of ids) {
+    const eff = asBig(asDict(slots[did])["efficiency_bps"])
+    total += eff > 0n ? eff : bps
+    n += 1n
+  }
+  if (n <= 1n) return total
+  return total / n
+}
+
 export function buildingDistrictFrozen(cfg: Dict, city: Dict, bid: string, cityTime: bigint): boolean {
   for (const did of buildingDistrictIds(cfg, bid)) {
     if (tickerFrozen(city, districtTickerOf(cfg, did), cityTime)) return true
@@ -814,7 +829,7 @@ export function collectSlotRequests(
           let aff = affinityBps(cfg, cell)
           if (agent === undefined && autonomous) aff = asBig(cfg["affinity_neighbour_bps"])
           const levelMult = agent === undefined ? bps : asBig(agent["level_mult_bps"], bps)
-          const dist = asBig(city["district_efficiency_bps"], bps)
+          const dist = buildingWeatherBps(cfg, city, bid, bps)
           const paysCapital =
             outputKind === "capital" && (agent === undefined || role === "engineer" || role === "trader")
           const paysRetail = outputKind === "capital_from_population" && agent !== undefined
@@ -853,10 +868,12 @@ export function collectSlotRequests(
           } else if (outputKind === "energy" && (agent === undefined || role === "engineer")) {
             let add = (((energyCurve * aff) / bps) * levelMult) / bps
             if (contourFocused(bdef, focuses)) add = focusScale(add, cfg, false)
+            add = (add * buildingWeatherBps(cfg, city, bid, bps)) / bps
             city["energy_stock"] = asBig(city["energy_stock"]) + add
           } else if (outputKind === "compute" && (agent === undefined || role === "engineer")) {
             let add = (((computeCurve * aff) / bps) * levelMult) / bps
             if (contourFocused(bdef, focuses)) add = focusScale(add, cfg, false)
+            add = (add * buildingWeatherBps(cfg, city, bid, bps)) / bps
             city["compute_stock"] = asBig(city["compute_stock"]) + add
           }
           if (agent !== undefined && role === "trader" && objective === "desk" && bid === "bank") {

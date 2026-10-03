@@ -25,6 +25,7 @@ import {
   applyBuildingSelection,
   clearBuildingSelection,
   emptyBuildingSelection,
+  releasePreparedSelection,
   findBuildingRoot,
   projectBuilding,
 } from "./islandSelect.js"
@@ -431,7 +432,7 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
     glowBase.push(mat.emissiveIntensity)
   }
 
-  const bloomStrength = look !== undefined ? 0 : Number(opts.bloomStrengthBps) / Number(span)
+  const bloomStrength = Number(opts.bloomStrengthBps) / Number(span)
   const bloom = new UnrealBloomPass(
     new Vector2(1, 1),
     bloomStrength,
@@ -768,6 +769,7 @@ export async function mountIsland3(opts: Island3Opts): Promise<IslandHandle> {
     destroy(): void {
       alive = false
       clearBuildingSelection(selection)
+      releasePreparedSelection()
       cancelPaint()
       ro.disconnect()
       if (skyRoot !== null) disposeEnvironment(skyRoot)

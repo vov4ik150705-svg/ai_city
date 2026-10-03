@@ -1998,13 +1998,14 @@
         "container_bind": { "type": "string", "minLength": 7, "maxLength": 15, "pattern": "^[0-9.]+$" },
         "ports": {
           "type": "object",
-          "required": ["api", "sampler", "buyback", "attestor"],
+          "required": ["api", "sampler", "buyback", "attestor", "client"],
           "additionalProperties": false,
           "properties": {
             "api": { "type": "integer", "minimum": 1024, "maximum": 65535 },
             "sampler": { "type": "integer", "minimum": 1024, "maximum": 65535 },
             "buyback": { "type": "integer", "minimum": 1024, "maximum": 65535 },
-            "attestor": { "type": "integer", "minimum": 1024, "maximum": 65535 }
+            "attestor": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+            "client": { "type": "integer", "minimum": 1024, "maximum": 65535 }
           }
         },
         "src": { "$ref": "#/$defs/src" },

@@ -28,6 +28,7 @@ const RIM_GAIN = "1.55"
 export type SelectionSlot = {
   readonly mesh: Mesh
   readonly original: Material | Material[]
+  readonly shown: Material | Material[]
   readonly clones: readonly Material[]
   readonly outline: LineSegments | undefined
 }
@@ -104,11 +105,11 @@ function paintSelect(clone: MeshStandardMaterial): void {
   clone.needsUpdate = true
 }
 
-function outlineOf(mesh: Mesh): LineSegments | undefined {
-  const geom = mesh.geometry
-  if (geom === undefined) return undefined
-  const edges = new EdgesGeometry(geom, EDGE_DEG)
-  const mat = new LineBasicMaterial({
+let lineMat: LineBasicMaterial | undefined
+
+function sharedLineMat(): LineBasicMaterial {
+  if (lineMat !== undefined) return lineMat
+  lineMat = new LineBasicMaterial({
     color: _white,
     transparent: true,
     opacity: 0.95,
@@ -117,17 +118,89 @@ function outlineOf(mesh: Mesh): LineSegments | undefined {
     fog: false,
     toneMapped: false,
   })
-  const line = new LineSegments(edges, mat)
+  return lineMat
+}
+
+function outlineOf(mesh: Mesh): LineSegments | undefined {
+  const geom = mesh.geometry
+  if (geom === undefined) return undefined
+  const edges = new EdgesGeometry(geom, EDGE_DEG)
+  const line = new LineSegments(edges, sharedLineMat())
   line.raycast = () => undefined
   mesh.add(line)
   return line
+}
+
+function hideSelection(slot: SelectionSlot): void {
+  slot.mesh.material = slot.original
+  if (slot.outline !== undefined) slot.outline.visible = false
 }
 
 function dropOutline(mesh: Mesh, outline: LineSegments | undefined): void {
   if (outline === undefined) return
   mesh.remove(outline)
   outline.geometry.dispose()
-  outline.material.dispose()
+}
+
+const prepared = new WeakMap<Mesh, SelectionSlot>()
+const tracked: Mesh[] = []
+
+function prepareMesh(obj: Mesh): SelectionSlot {
+  const hit = prepared.get(obj)
+  if (hit !== undefined) return hit
+  const raw = obj.material
+  const list = Array.isArray(raw) ? raw : [raw]
+  const next: Material[] = []
+  const clones: Material[] = []
+  let m = 0
+  while (m < list.length) {
+    const mat = list[m]
+    m += 1
+    if (mat === undefined) continue
+    if (!(mat instanceof MeshStandardMaterial)) {
+      next.push(mat)
+      continue
+    }
+    const clone = mat.clone()
+    paintSelect(clone)
+    clones.push(clone)
+    next.push(clone)
+  }
+  const first = next[0]
+  const shown = first === undefined ? raw : next.length === 1 ? first : next
+  const outline = outlineOf(obj)
+  if (outline !== undefined) outline.visible = false
+  const slot: SelectionSlot = { mesh: obj, original: raw, shown, clones, outline }
+  prepared.set(obj, slot)
+  tracked.push(obj)
+  return slot
+}
+
+/** Drop cached outlines when the island renderer is destroyed. */
+export function releasePreparedSelection(): void {
+  let i = 0
+  while (i < tracked.length) {
+    const mesh = tracked[i]
+    i += 1
+    if (mesh === undefined) continue
+    const slot = prepared.get(mesh)
+    if (slot === undefined) continue
+    hideSelection(slot)
+    dropOutline(mesh, slot.outline)
+    let c = 0
+    while (c < slot.clones.length) {
+      const mat = slot.clones[c]
+      c += 1
+      if (mat === undefined) continue
+      mat.dispose()
+    }
+    prepared.delete(mesh)
+  }
+  tracked.length = 0
+  if (lineMat !== undefined) {
+    lineMat.dispose()
+    lineMat = undefined
+  }
 }
 
 export function clearBuildingSelection(state: BuildingSelection): void {
@@ -136,18 +209,15 @@ export function clearBuildingSelection(state: BuildingSelection): void {
     const slot = state.slots[i]
     i += 1
     if (slot === undefined) continue
-    slot.mesh.material = slot.original
-    dropOutline(slot.mesh, slot.outline)
-    let c = 0
-    while (c < slot.clones.length) {
-      const mat = slot.clones[c]
-      c += 1
-      if (mat === undefined) continue
-      mat.dispose()
-    }
+    hideSelection(slot)
   }
   state.objectId = ""
   state.slots = []
+}
+
+function showSelection(slot: SelectionSlot): void {
+  if (slot.clones.length > 0) slot.mesh.material = slot.shown
+  if (slot.outline !== undefined) slot.outline.visible = true
 }
 
 export function applyBuildingSelection(state: BuildingSelection, root: Object3D, objectId: string): void {
@@ -156,28 +226,9 @@ export function applyBuildingSelection(state: BuildingSelection, root: Object3D,
   const slots: SelectionSlot[] = []
   root.traverse((obj) => {
     if (!(obj instanceof Mesh)) return
-    const raw = obj.material
-    const list = Array.isArray(raw) ? raw : [raw]
-    const next: Material[] = []
-    const clones: Material[] = []
-    let m = 0
-    while (m < list.length) {
-      const mat = list[m]
-      m += 1
-      if (mat === undefined) continue
-      if (!(mat instanceof MeshStandardMaterial)) {
-        next.push(mat)
-        continue
-      }
-      const clone = mat.clone()
-      paintSelect(clone)
-      clones.push(clone)
-      next.push(clone)
-    }
-    const first = next[0]
-    if (first === undefined) return
-    if (clones.length > 0) obj.material = next.length === 1 ? first : next
-    slots.push({ mesh: obj, original: raw, clones, outline: outlineOf(obj) })
+    const slot = prepareMesh(obj)
+    showSelection(slot)
+    slots.push(slot)
   })
   state.objectId = objectId
   state.slots = slots

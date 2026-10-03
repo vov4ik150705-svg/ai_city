@@ -6,9 +6,9 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 import { loadPack, parseJson, type Json } from "@corporator/contentpack"
 import { buildHud, emptySnapshot, loadClientPack, loadStringTable, type SnapshotDistrictLive } from "../src/index.ts"
-import { HUD_NAVIGATION, hudDestinationStep, hudPaneMotion, resolveHudRoute, workspaceDrawerWide } from "../src/hud/navigation.ts"
+import { HUD_NAVIGATION, hudDestinationStep, hudPaneMotion, hudRoutePushesParent, resolveHudRoute, workspaceDrawerWide } from "../src/hud/navigation.ts"
 import { PACK_SCREEN_IDS } from "../src/hud/screens/registry.ts"
-import { resolveBuildingSelection } from "../src/hud/selection.ts"
+import { resolveBuildingSelection, scenePickSelects } from "../src/hud/selection.ts"
 import { DECORATIVE_BUILDING_ID, buildingCardKind } from "../src/hud/parts/hudArt.ts"
 import { IndustryCard } from "../src/hud/parts/IndustryCard.tsx"
 import { OverviewWorkspace } from "../src/hud/workspace/OverviewWorkspace.tsx"
@@ -220,6 +220,15 @@ describe("HUD workspace constructor assembly", () => {
     expect(hudPaneMotion("overview", "bank", false)).toBe("forward")
     expect(hudPaneMotion("bank", "overview", false)).toBe("back")
     expect(hudPaneMotion("building_card", "overview", true)).toBe("back")
+    expect(hudRoutePushesParent("", "agents", false, false)).toBe(false)
+    expect(hudRoutePushesParent("overview", "agents", false, false)).toBe(true)
+    expect(hudRoutePushesParent("overview", "bank", false, false)).toBe(true)
+    expect(hudRoutePushesParent("industries", "district_card", false, false)).toBe(true)
+    expect(hudRoutePushesParent("building_card", "bank", false, false)).toBe(true)
+    expect(hudRoutePushesParent("agents", "agents", false, false)).toBe(false)
+    expect(hudRoutePushesParent("agents", "agents", true, false)).toBe(true)
+    expect(hudRoutePushesParent("overview", "overview", false, true)).toBe(true)
+    expect(hudRoutePushesParent("overview", "overview", false, false)).toBe(false)
     expect(resolveHudRoute("city_level")?.route).toBe("city_level")
     expect(workspaceDrawerWide("city_level")).toBe(true)
     const steps = cityLevelSteps(pack.populationThresholdByLevel, pack.slotsAtCityLevel)
@@ -246,6 +255,10 @@ describe("HUD workspace constructor assembly", () => {
     expect(pack.buildingIds.length).toBe(18)
     expect(pack.buildingIds.includes(DECORATIVE_BUILDING_ID)).toBe(false)
     expect(buildingCardKind(DECORATIVE_BUILDING_ID)).toBe("decorative")
+    expect(scenePickSelects(DECORATIVE_BUILDING_ID)).toBe(false)
+    expect(scenePickSelects("Neon Residence")).toBe(false)
+    expect(scenePickSelects("bank")).toBe(true)
+    expect(scenePickSelects("")).toBe(false)
     expect(resolveBuildingSelection(DECORATIVE_BUILDING_ID, pack).kind).toBe("unmapped")
     expect(resolveBuildingSelection(DECORATIVE_BUILDING_ID, pack).manage).toBeUndefined()
     expect(resolveBuildingSelection("amazon_warehouse", pack).kind).toBe("unmapped")

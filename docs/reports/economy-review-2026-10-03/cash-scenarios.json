@@ -1,0 +1,269 @@
+{
+  "pack": 209,
+  "hash": "1053fda2283e116cf4706ae3910b046f3a66594e8bf4bffc958e52a53b8d4bd8",
+  "eth_usd_historical_snapshot": 2500.87,
+  "assumptions": [
+    "4.2 ETH is quote-side liquidity, not reward cash.",
+    "Creator split uses current Corporator pack; live Pons configuration is not fetched.",
+    "Sequential purchases: fixed initial mint rate, no sells, no buybacks, no added LP, CPMM shadow pool.",
+    "Conversion estimate assumes same prices, no impact, full delivery; live integration is currently broken.",
+    "80 USD is a sensitivity input, not a confirmed required minimum."
+  ],
+  "round_trip_loss_pct": 16.174363636363644,
+  "first_buyer_cash_to_starter_usd": 78.59531249284184,
+  "turnover_budgets": [
+    {
+      "turnover_usd": 0,
+      "payroll_gross_usd": 0.0,
+      "farm_gross_usd": 0.0,
+      "month_gross_usd": 0.0,
+      "studio_gross_usd": 0.0,
+      "equal_payroll_gross_usd": {
+        "7": 0.0,
+        "20": 0.0,
+        "50": 0.0,
+        "100": 0.0,
+        "200": 0.0
+      },
+      "equal_payroll_conversion_only_usd": {
+        "7": 0.0,
+        "20": 0.0,
+        "50": 0.0,
+        "100": 0.0,
+        "200": 0.0
+      }
+    },
+    {
+      "turnover_usd": 5000,
+      "payroll_gross_usd": 50.0,
+      "farm_gross_usd": 30.0,
+      "month_gross_usd": 10.0,
+      "studio_gross_usd": 10.0,
+      "equal_payroll_gross_usd": {
+        "7": 7.142857142857143,
+        "20": 2.5,
+        "50": 1.0,
+        "100": 0.5,
+        "200": 0.25
+      },
+      "equal_payroll_conversion_only_usd": {
+        "7": 5.9875454545454545,
+        "20": 2.095640909090909,
+        "50": 0.8382563636363636,
+        "100": 0.4191281818181818,
+        "200": 0.2095640909090909
+      }
+    },
+    {
+      "turnover_usd": 20000,
+      "payroll_gross_usd": 200.0,
+      "farm_gross_usd": 120.0,
+      "month_gross_usd": 40.0,
+      "studio_gross_usd": 40.0,
+      "equal_payroll_gross_usd": {
+        "7": 28.571428571428573,
+        "20": 10.0,
+        "50": 4.0,
+        "100": 2.0,
+        "200": 1.0
+      },
+      "equal_payroll_conversion_only_usd": {
+        "7": 23.950181818181818,
+        "20": 8.382563636363637,
+        "50": 3.3530254545454543,
+        "100": 1.6765127272727272,
+        "200": 0.8382563636363636
+      }
+    },
+    {
+      "turnover_usd": 50000,
+      "payroll_gross_usd": 500.0,
+      "farm_gross_usd": 300.0,
+      "month_gross_usd": 100.0,
+      "studio_gross_usd": 100.0,
+      "equal_payroll_gross_usd": {
+        "7": 71.42857142857143,
+        "20": 25.0,
+        "50": 10.0,
+        "100": 5.0,
+        "200": 2.5
+      },
+      "equal_payroll_conversion_only_usd": {
+        "7": 59.875454545454545,
+        "20": 20.95640909090909,
+        "50": 8.382563636363637,
+        "100": 4.191281818181818,
+        "200": 2.095640909090909
+      }
+    },
+    {
+      "turnover_usd": 300000,
+      "payroll_gross_usd": 3000.0,
+      "farm_gross_usd": 1800.0,
+      "month_gross_usd": 600.0,
+      "studio_gross_usd": 600.0,
+      "equal_payroll_gross_usd": {
+        "7": 428.57142857142856,
+        "20": 150.0,
+        "50": 60.0,
+        "100": 30.0,
+        "200": 15.0
+      },
+      "equal_payroll_conversion_only_usd": {
+        "7": 359.2527272727272,
+        "20": 125.73845454545453,
+        "50": 50.295381818181816,
+        "100": 25.147690909090908,
+        "200": 12.573845454545454
+      }
+    }
+  ],
+  "sequential_buys": [
+    {
+      "cash_usd_each": 80,
+      "purchase_number": 1,
+      "eth_reserve": 4.23102920183776,
+      "price_multiple": 1.0148303915421697,
+      "this_buyer_capital": 74803988,
+      "can_buy_starter": true,
+      "previous_buyers_can_buy_starter": 1
+    },
+    {
+      "cash_usd_each": 80,
+      "purchase_number": 7,
+      "eth_reserve": 4.41720441286432,
+      "price_multiple": 1.1061051488111129,
+      "this_buyer_capital": 68609868,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 2
+    },
+    {
+      "cash_usd_each": 80,
+      "purchase_number": 20,
+      "eth_reserve": 4.820584036755201,
+      "price_multiple": 1.31734866527319,
+      "this_buyer_capital": 57573847,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 2
+    },
+    {
+      "cash_usd_each": 80,
+      "purchase_number": 50,
+      "eth_reserve": 5.751460091888002,
+      "price_multiple": 1.8752433780374358,
+      "this_buyer_capital": 40402961,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 2
+    },
+    {
+      "cash_usd_each": 80,
+      "purchase_number": 100,
+      "eth_reserve": 7.302920183776004,
+      "price_multiple": 3.0233924722564054,
+      "this_buyer_capital": 25030881,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 2
+    },
+    {
+      "cash_usd_each": 80,
+      "purchase_number": 200,
+      "eth_reserve": 10.405840367552075,
+      "price_multiple": 6.138407809239025,
+      "this_buyer_capital": 12312965,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 2
+    },
+    {
+      "cash_usd_each": 150,
+      "purchase_number": 1,
+      "eth_reserve": 4.258179753445801,
+      "price_multiple": 1.0278965313296906,
+      "this_buyer_capital": 139363182,
+      "can_buy_starter": true,
+      "previous_buyers_can_buy_starter": 1
+    },
+    {
+      "cash_usd_each": 150,
+      "purchase_number": 7,
+      "eth_reserve": 4.607258274120606,
+      "price_multiple": 1.2033349662388197,
+      "this_buyer_capital": 118920121,
+      "can_buy_starter": true,
+      "previous_buyers_can_buy_starter": 7
+    },
+    {
+      "cash_usd_each": 150,
+      "purchase_number": 20,
+      "eth_reserve": 5.363595068916017,
+      "price_multiple": 1.6308476226360664,
+      "this_buyer_capital": 87588273,
+      "can_buy_starter": true,
+      "previous_buyers_can_buy_starter": 20
+    },
+    {
+      "cash_usd_each": 150,
+      "purchase_number": 50,
+      "eth_reserve": 7.108987672290042,
+      "price_multiple": 2.864949304125385,
+      "this_buyer_capital": 49724988,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 28
+    },
+    {
+      "cash_usd_each": 150,
+      "purchase_number": 100,
+      "eth_reserve": 10.017975344580085,
+      "price_multiple": 5.689332766701502,
+      "this_buyer_capital": 24979914,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 28
+    },
+    {
+      "cash_usd_each": 150,
+      "purchase_number": 200,
+      "eth_reserve": 15.83595068916017,
+      "price_multiple": 14.216402167205928,
+      "this_buyer_capital": 9975427,
+      "can_buy_starter": false,
+      "previous_buyers_can_buy_starter": 28
+    }
+  ],
+  "sale_impact": [
+    {
+      "mark_eth": 0.1,
+      "eth_before_fees": 0.09767441860465118,
+      "mean_execution_loss_pct": 2.3255813953488302,
+      "price_fall_pct": 4.597079502433732
+    },
+    {
+      "mark_eth": 0.5,
+      "eth_before_fees": 0.44680851063829785,
+      "mean_execution_loss_pct": 10.63829787234043,
+      "price_fall_pct": 20.144861928474434
+    },
+    {
+      "mark_eth": 1,
+      "eth_before_fees": 0.8076923076923077,
+      "mean_execution_loss_pct": 19.23076923076923,
+      "price_fall_pct": 34.76331360946745
+    },
+    {
+      "mark_eth": 2,
+      "eth_before_fees": 1.3548387096774195,
+      "mean_execution_loss_pct": 32.258064516129025,
+      "price_fall_pct": 54.11030176899063
+    }
+  ],
+  "daily_volume_for_gross_salary_10_usd_each": {
+    "20": 20000.0,
+    "50": 50000.0,
+    "100": 100000.0,
+    "200": 200000.0
+  },
+  "daily_volume_for_conversion_only_salary_10_usd_each": {
+    "20": 23859.04941209133,
+    "50": 59647.62353022833,
+    "100": 119295.24706045666,
+    "200": 238590.49412091332
+  }
+}

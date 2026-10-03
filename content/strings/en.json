@@ -28,6 +28,7 @@
     "WALLET_NOT_CONNECTED": "wallet is not connected",
     "DEMO_NO_WITHDRAW": "demo city: withdrawal unavailable, progress does not carry over",
     "PAYROLL_TRIMMED": "Payroll is thin; payouts are cut proportionally for everyone: {ratio}",
+    "ORACLE_NO_SAMPLE": "district quote is missing; efficiency stays neutral",
     "ORACLE_STALE": "{ticker} price is stale; holding the last value",
     "ORACLE_DECAYING": "{ticker} price has been dead for more than two days; efficiency is drifting to neutral",
     "DISTRICT_FREEZING": "district {district} freezes in {hours_left} h",

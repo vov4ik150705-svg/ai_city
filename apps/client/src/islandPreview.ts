@@ -1,3 +1,4 @@
+import { bloomRadiusBps, bloomStrengthBps, bloomThresholdBps } from "@corporator/protocol"
 import { gpuCode, probeCanvas, bindIslandPreviewOrbit } from "@corporator/render"
 import {
   mountIsland3,
@@ -153,9 +154,9 @@ async function main(): Promise<void> {
     },
     fillSky: WORLD_HEMI_SKY,
     fillGround: WORLD_HEMI_GROUND,
-    bloomStrengthBps: 0n,
-    bloomRadiusBps: 4000n,
-    bloomThresholdBps: 8500n,
+    bloomStrengthBps,
+    bloomRadiusBps,
+    bloomThresholdBps,
     ...(exposure === undefined ? {} : { exposure }),
     ...(captureMode ? { canvasAntialias: true } : {}),
   })

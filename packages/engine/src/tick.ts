@@ -158,6 +158,55 @@ function applyCompanion(cfg: Dict, state: Dict, commands: unknown): void {
   }
 }
 
+function foldEma(prev: bigint, price: bigint, span: bigint, alphaNum: bigint): bigint {
+  if (price <= 0n) return prev
+  if (prev <= 0n || span <= 0n) return price
+  const den = span + 1n
+  let weight = den - alphaNum
+  if (weight < 0n) weight = 0n
+  return (prev * weight + price * alphaNum) / den
+}
+
+function noteDistrictQuotes(cfg: Dict, state: Dict, inputs: Dict): void {
+  const quotes = asDict(inputs["district_quotes"])
+  const length = asBig(cfg["tick_length_city_hours"])
+  const short = asBig(cfg["efficiency_ema_short_city_hours"])
+  const long = asBig(cfg["efficiency_ema_long_city_hours"])
+  const alpha = asBig(cfg["efficiency_ema_alpha_num"])
+  const cities = asDict(state["cities"])
+  for (const cid of sortedKeys(cities)) {
+    const city = asDict(cities[cid])
+    const opened = new Set<string>()
+    for (const item of asList(city["districts"])) {
+      if (typeof item === "string" && item.length > 0) opened.add(item)
+    }
+    const slots = asDict(city["district_efficiency"])
+    const next: Dict = { ...slots }
+    const touched = new Set<string>()
+    for (const did of sortedKeys(quotes)) {
+      if (!opened.has(did)) continue
+      const price = asBig(quotes[did])
+      if (price <= 0n) continue
+      const slot = asDict(next[did])
+      const row: Dict = { ...slot }
+      row["ema_24h"] = foldEma(asBig(slot["ema_24h"]), price, short, alpha)
+      row["ema_30d"] = foldEma(asBig(slot["ema_30d"]), price, long, alpha)
+      row["oracle_age_hours"] = 0n
+      row["price"] = price
+      next[did] = row
+      touched.add(did)
+    }
+    for (const did of Object.keys(next)) {
+      if (touched.has(did)) continue
+      const slot = asDict(next[did])
+      const row: Dict = { ...slot }
+      row["oracle_age_hours"] = asBig(slot["oracle_age_hours"]) + length
+      next[did] = row
+    }
+    if (Object.keys(next).length > 0) city["district_efficiency"] = next
+  }
+}
+
 function recalcEfficiency(cfg: Dict, state: Dict): void {
   const bps = asBig(cfg["bps"])
   const stale = asBig(cfg["oracle_stale_city_hours"])
@@ -176,6 +225,13 @@ function recalcEfficiency(cfg: Dict, state: Dict): void {
       const ema24 = asBig(slot["ema_24h"])
       const ema30 = asBig(slot["ema_30d"])
       const age = asBig(slot["oracle_age_hours"])
+      if (ema24 <= 0n || ema30 <= 0n) {
+        slot["efficiency_bps"] = bps
+        const codes = asList(city["codes"])
+        codes.push("ORACLE_NO_SAMPLE")
+        city["codes"] = codes
+        continue
+      }
       if (age > decayAge) {
         const cur = asBig(slot["efficiency_bps"], bps)
         if (cur > bps) {
@@ -548,6 +604,7 @@ export function tick(state: Dict, inputs: Dict): readonly [Dict, Dict[]] {
   }
   applyDexTurnover(cfg, state, asBig(inputs["dex_turnover_usd_8dec"]), asBig(inputs["eth_usd_8dec"]))
   accumulateInfluenceDay(cfg, state, clock[0], clock[1])
+  noteDistrictQuotes(cfg, state, inputs)
   hourSix(cfg, state, clock[0], clock[1])
   fixDayBudget(cfg, state, clock[0], clock[1])
   const rows = collectRequests(cfg, state, clock[1], clock[2])

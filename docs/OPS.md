@@ -6,7 +6,7 @@
 
 Прод поднимается из образа `corporator:${PACK_HASH}`, не из `volumes: ..:/app`. Пак вшит как `/app/pack.json`; дерево `content/` в runtime-стадии нет. Пользователь процесса — `node`. Миграции — одноразовый сервис `migrate`, затем api. `/ready` зелёный только при совпадении `pack_hash` и `migration_version`; иначе HTTP не 200. Откат — предыдущий образ с его хешем, не пересборка пака.
 
-`docker compose -f deploy/compose.prod.yaml up` без `--profile prod` не поднимает сервисы. Порт 7460 опубликован только на `127.0.0.1` и не выставляется в интернет напрямую; TLS-фронт ставит оператор. Postgres, байбек, самплер и аттестатор с хоста не публикуются. Данные Postgres лежат в томе `corporator_pg`.
+`docker compose -f deploy/compose.prod.yaml up` без `--profile prod` не поднимает сервисы. Порт 7460 опубликован только на `127.0.0.1` и не выставляется в интернет напрямую; TLS-фронт ставит оператор. Клиент публикуется так же, на loopback, порт из `arch.listen.ports.client`. Пустой `CORPORATOR_CORS_ORIGINS` пускает только этот origin; публичный хост оператор дописывает в тот же список. Dev-compose публикует клиент на loopback и выходит, пока в `apps/client/dist-web` нет `index.html`. Postgres, байбек, самплер и аттестатор с хоста не публикуются. Данные Postgres лежат в томе `corporator_pg`.
 
 Дев-профиль `deploy/compose.yaml` по-прежнему монтирует репозиторий. Это не прод.
 

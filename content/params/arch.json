@@ -769,7 +769,127 @@
       "CORPORATOR_CORS_ORIGINS": {
         "value_src": "arch.env.address",
         "src": "docs/reports/TZ_PRELAUNCH_FIX.md PL13",
-        "why": "Comma-separated browser origins. Empty means the API sets no Access-Control-Allow-Origin header"
+        "why": "Comma-separated browser origins. Empty allows only the pack client origin from listen.bind and listen.ports.client. A set value is the whole allow list"
+      },
+      "CORPORATOR_DEPOSITS_OPEN": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Empty keeps the mock port. The value 1 opens RPC only when the chain config is complete"
+      },
+      "CORPORATOR_RPC_URL": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Live RPC endpoint. The example stays empty so the operator fills the host URL"
+      },
+      "CORPORATOR_CHAIN_ID": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Chain id for live RPC. Empty example, the operator sets the network"
+      },
+      "CORPORATOR_RPC_TIMEOUT_MS": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "RPC timeout in milliseconds. Empty example, not a pack rate"
+      },
+      "CORPORATOR_CORP_TOKEN": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Deployed $CORP address. Empty until launch.deployed is filled by the owner"
+      },
+      "CORPORATOR_VAULT": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Vault contract address. Empty in the example, not a baked address"
+      },
+      "CORPORATOR_STAKE_REGISTRY": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "StakeRegistry address. Empty in the example"
+      },
+      "CORPORATOR_MERKLE_ROOTS": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "MerkleRoots address. Empty in the example"
+      },
+      "CORPORATOR_PRIZE_TREASURY": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "PrizeTreasury address. Empty in the example"
+      },
+      "CORPORATOR_HOP_URL": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "External hop quote URL. Empty means the hop is not called"
+      },
+      "CORPORATOR_FEED_ETH_USD": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "ETH/USD feed address for the sampler. Empty in the example"
+      },
+      "CORPORATOR_IPFS_PIN_URL": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Attestor pin endpoint. Empty leaves the attestor on the mock pin"
+      },
+      "CORPORATOR_IPFS_PIN_TOKEN": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Pin bearer token. The example value stays empty"
+      },
+      "CORPORATOR_VAULT_HOUSE": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "House account that receives fund CORP. Empty in the example"
+      },
+      "CORPORATOR_POOL_ADDRESS": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "CORP/ETH pool address the sampler reads. Empty in the example"
+      },
+      "CORPORATOR_POOL_KIND": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Pool kind the sampler reads, such as v2. Empty in the example"
+      },
+      "CORPORATOR_POOL_ID": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Pool id when the sampler kind needs one. Empty in the example"
+      },
+      "CORPORATOR_ATTESTOR_KEY": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "Attestor signing key. The example value stays empty"
+      },
+      "CORPORATOR_STOCK_NVDA": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "NVDA stock token address. Empty in the example"
+      },
+      "CORPORATOR_STOCK_TSLA": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "TSLA stock token address. Empty in the example"
+      },
+      "CORPORATOR_STOCK_AMZN": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "AMZN stock token address. Empty in the example"
+      },
+      "CORPORATOR_STOCK_AAPL": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "AAPL stock token address. Empty in the example"
+      },
+      "CORPORATOR_STOCK_MSFT": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "MSFT stock token address. Empty in the example"
+      },
+      "CORPORATOR_STOCK_COIN": {
+        "value_src": "arch.env.empty",
+        "src": "docs/reports/TZ_AUDIT_CLOSE.md AC5",
+        "why": "COIN stock token address. Empty in the example"
       }
     }
   },
@@ -965,7 +1085,8 @@
       "api": 7460,
       "sampler": 7461,
       "buyback": 7462,
-      "attestor": 7463
+      "attestor": 7463,
+      "client": 7464
     },
     "src": "D-L-3, PLAN_LIVE L2",
     "why": "One listen table for every entrypoint service. A port in src or Dockerfile would be a second number"
@@ -1265,6 +1386,8 @@
         "e2_window_days_left_follows_tick_index",
         "ac2_fragments_does_not_export_stability",
         "ac2_season_stability_is_share_of_the_day",
+        "district weather scales the beacon and not the workshop",
+        "a missing sample stays neutral and a quote does not floor it",
         "e4_plant_raises_workshop_output",
         "e4_node_yields_to_plant",
         "e4_hall_without_manager_is_dark"
@@ -1739,6 +1862,8 @@
         "an address in the old voucher name does not broadcast",
         "PlayerReady still reads address env names",
         "deploy/.env is gitignored",
+        "env example lists the live port names",
+        "static root does not serve a file outside",
         "ready with a foreign hash is not HTTP 200",
         "https://evil.example is not reflected",
         "prod compose does not publish 5432 on every interface",
@@ -3406,6 +3531,8 @@
         "moves part of the gap instead of snapping",
         "holds on a zero frame so the first tick does not jump",
         "takes the short way around a wrapped azimuth",
+        "keeps a fast drag that crosses half a turn",
+        "a building click does not move the camera",
         "snaps when the coast time is zero",
         "district look keeps the planted orbit",
         "opening a district does not republish the orbit"
@@ -3569,13 +3696,6 @@
       "npm": "vite",
       "src": "D-C-14, docs/reports/PLAN_CODE.md",
       "why": "Client bundler pin. Unused in C0 stubs, still authored so C5 cannot pick another"
-    },
-    "pixijs": {
-      "version": "8.20.1",
-      "kind": "package",
-      "npm": "pixi.js",
-      "src": "D-C-14, docs/reports/PLAN_CODE.md, R-V-77",
-      "why": "PixiJS v8 stays the V12 archive renderer. Version is pack data; it is not the v3 frame"
     },
     "threejs": {
       "version": "0.185.1",

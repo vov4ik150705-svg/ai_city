@@ -98,6 +98,48 @@ export function corpAtoms(text: string, decimals: bigint): bigint | undefined {
   return atoms
 }
 
+export type AmountFieldKind = "whole" | "decimal"
+
+/**
+ * Text an amount field may hold. Whole fields keep digits. Decimal fields keep
+ * digits and one dot, with at most `decimals` digits after it. Letters and
+ * other signs are dropped, including from a paste.
+ */
+export function amountFieldText(text: string, kind: AmountFieldKind, decimals: bigint): string {
+  if (kind === "whole") {
+    let out = ""
+    for (const ch of text) {
+      if (ch >= "0" && ch <= "9") out += ch
+    }
+    return out
+  }
+  const cap = decimals > 0n ? Number(decimals) : 0
+  let out = ""
+  let dotted = false
+  let frac = 0
+  for (const ch of text) {
+    if (ch >= "0" && ch <= "9") {
+      if (dotted) {
+        if (frac >= cap) continue
+        frac += 1
+      }
+      out += ch
+      continue
+    }
+    if (ch === "." && !dotted && cap > 0) {
+      dotted = true
+      out += ch
+    }
+  }
+  return out
+}
+
+/** A typed insert that is not itself a legal amount fragment. Paste is sanitized separately. */
+export function amountInsertAllowed(data: string, kind: AmountFieldKind, decimals: bigint): boolean {
+  if (data.length === 0) return true
+  return amountFieldText(data, kind, decimals) === data
+}
+
 /** Whole Capital units. Empty, zero, and non-numeric text do not produce an amount. */
 export function wholeAtoms(text: string): bigint | undefined {
   const trimmed = text.trim()

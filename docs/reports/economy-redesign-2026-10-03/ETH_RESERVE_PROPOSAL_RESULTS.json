@@ -1,0 +1,498 @@
+{
+  "status": "Candidate design arithmetic only. Fully working profiles, conversion .75 and fixed reference quote. First70 is matured reference value before Bank quota, gas, sale impact and competing principal claims; not an executed payout or demonstrated first-$80 route.",
+  "confirmed_creator_receipts_usd": 6000,
+  "salary_source_usd": 3600,
+  "first_window_salary_budget_usd": 2160,
+  "salary_source_first_window_max_fraction": 0.6,
+  "rows": [
+    {
+      "counts": [
+        1,
+        0,
+        0
+      ],
+      "work": 0.5,
+      "opened_salary_eth_cost_usd": 21.6,
+      "earned_exit_reference_usd": [
+        14.285454545454547,
+        28.570909090909094,
+        57.14181818181819
+      ],
+      "first70_reference_usd": [
+        9.999818181818183,
+        19.999636363636366,
+        39.99927272727273
+      ],
+      "allocated_total_first_reference_usd": 9.999818181818183,
+      "protected_from_opened_usd": 2138.4
+    },
+    {
+      "counts": [
+        0,
+        1,
+        0
+      ],
+      "work": 1,
+      "opened_salary_eth_cost_usd": 43.2,
+      "earned_exit_reference_usd": [
+        14.285454545454547,
+        28.570909090909094,
+        57.14181818181819
+      ],
+      "first70_reference_usd": [
+        9.999818181818183,
+        19.999636363636366,
+        39.99927272727273
+      ],
+      "allocated_total_first_reference_usd": 19.999636363636366,
+      "protected_from_opened_usd": 2116.8
+    },
+    {
+      "counts": [
+        0,
+        0,
+        1
+      ],
+      "work": 2,
+      "opened_salary_eth_cost_usd": 86.4,
+      "earned_exit_reference_usd": [
+        14.285454545454547,
+        28.570909090909094,
+        57.14181818181819
+      ],
+      "first70_reference_usd": [
+        9.999818181818183,
+        19.999636363636366,
+        39.99927272727273
+      ],
+      "allocated_total_first_reference_usd": 39.99927272727273,
+      "protected_from_opened_usd": 2073.6
+    },
+    {
+      "counts": [
+        0,
+        5,
+        0
+      ],
+      "work": 5,
+      "opened_salary_eth_cost_usd": 216,
+      "earned_exit_reference_usd": [
+        14.285454545454543,
+        28.570909090909087,
+        57.141818181818174
+      ],
+      "first70_reference_usd": [
+        9.99981818181818,
+        19.99963636363636,
+        39.99927272727272
+      ],
+      "allocated_total_first_reference_usd": 99.99818181818179,
+      "protected_from_opened_usd": 1944
+    },
+    {
+      "counts": [
+        0,
+        0,
+        5
+      ],
+      "work": 10,
+      "opened_salary_eth_cost_usd": 432,
+      "earned_exit_reference_usd": [
+        14.285454545454543,
+        28.570909090909087,
+        57.141818181818174
+      ],
+      "first70_reference_usd": [
+        9.99981818181818,
+        19.99963636363636,
+        39.99927272727272
+      ],
+      "allocated_total_first_reference_usd": 199.99636363636358,
+      "protected_from_opened_usd": 1728
+    },
+    {
+      "counts": [
+        10,
+        7,
+        3
+      ],
+      "work": 18,
+      "opened_salary_eth_cost_usd": 777.6,
+      "earned_exit_reference_usd": [
+        14.285454545454547,
+        28.570909090909094,
+        57.14181818181819
+      ],
+      "first70_reference_usd": [
+        9.999818181818183,
+        19.999636363636366,
+        39.99927272727273
+      ],
+      "allocated_total_first_reference_usd": 359.9934545454546,
+      "protected_from_opened_usd": 1382.4
+    },
+    {
+      "counts": [
+        25,
+        17,
+        8
+      ],
+      "work": 45.5,
+      "opened_salary_eth_cost_usd": 1965.6000000000001,
+      "earned_exit_reference_usd": [
+        14.285454545454543,
+        28.570909090909087,
+        57.141818181818174
+      ],
+      "first70_reference_usd": [
+        9.99981818181818,
+        19.99963636363636,
+        39.99927272727272
+      ],
+      "allocated_total_first_reference_usd": 909.9834545454544,
+      "protected_from_opened_usd": 194.39999999999986
+    },
+    {
+      "counts": [
+        50,
+        34,
+        16
+      ],
+      "work": 91,
+      "opened_salary_eth_cost_usd": 2160,
+      "earned_exit_reference_usd": [
+        7.849150849150849,
+        15.698301698301698,
+        31.396603396603396
+      ],
+      "first70_reference_usd": [
+        5.494405594405594,
+        10.988811188811187,
+        21.977622377622374
+      ],
+      "allocated_total_first_reference_usd": 999.9818181818181,
+      "protected_from_opened_usd": 0
+    },
+    {
+      "counts": [
+        100,
+        68,
+        32
+      ],
+      "work": 182,
+      "opened_salary_eth_cost_usd": 2160,
+      "earned_exit_reference_usd": [
+        3.9245754245754245,
+        7.849150849150849,
+        15.698301698301698
+      ],
+      "first70_reference_usd": [
+        2.747202797202797,
+        5.494405594405594,
+        10.988811188811187
+      ],
+      "allocated_total_first_reference_usd": 999.9818181818181,
+      "protected_from_opened_usd": 0
+    },
+    {
+      "counts": [
+        0,
+        0,
+        50
+      ],
+      "work": 100,
+      "opened_salary_eth_cost_usd": 2160,
+      "earned_exit_reference_usd": [
+        7.142727272727272,
+        14.285454545454543,
+        28.570909090909087
+      ],
+      "first70_reference_usd": [
+        4.99990909090909,
+        9.99981818181818,
+        19.99963636363636
+      ],
+      "allocated_total_first_reference_usd": 999.981818181818,
+      "protected_from_opened_usd": 0
+    }
+  ],
+  "five_max_3_normal_work": {
+    "first_salary_gross_buybacks_usd": 648,
+    "total_salary_source_gross_buyback_cap_usd": 1080,
+    "farm_max_reward_spend_reference_usd": 360,
+    "top10_max_reward_spend_reference_usd": 130.25795962606696,
+    "max_share_of_one_salary_source_per_wallet": 0.06,
+    "salary_source_first_day_unbought_usd": 2952
+  },
+  "new_buyback_policy_candidate": {
+    "every_real_minutes": 30,
+    "max_depth_fraction_per_swap": 0.005,
+    "initial_seed_24h_max_gross_usd": 2520.87696,
+    "old_cityday_max_gross_usd": 831.8893968
+  },
+  "allocation_checks": {
+    "no_more_than_opened": true,
+    "small_cohort_limit": true,
+    "total_fixed_rank_shares": 1.0000000000000002
+  },
+  "candidate_parameters": {
+    "first_salary_source_release_fraction": 0.6,
+    "tail_city_days": 6,
+    "city_day_real_hours": 25,
+    "reference_work_per_city_day": 50,
+    "maximum_work_per_wallet_per_city_day": 3,
+    "maximum_cumulative_salary_source_cost_share_per_wallet": 0.06,
+    "protected_reserve_daily_release_max_fraction": 0.1,
+    "protected_reserve_activation_work": 50,
+    "earned_release": [
+      0.7,
+      0.15,
+      0.15
+    ],
+    "earned_delay_real_hours": [
+      0,
+      25,
+      50
+    ],
+    "wallet_cap_display_capital_per_city_day": 180000
+  },
+  "multi_period_checks": {
+    "days": 30,
+    "source_salary_usd": 3600,
+    "checks": [
+      {
+        "wallets": 0,
+        "valid_work_per_wallet": 1,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 0,
+            "source_protected_usd": 2160,
+            "source_per_wallet_spent_usd": 0
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 0,
+            "source_protected_usd": 3600,
+            "source_per_wallet_spent_usd": 0
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 0,
+            "source_protected_usd": 3600,
+            "source_per_wallet_spent_usd": 0
+          }
+        ]
+      },
+      {
+        "wallets": 1,
+        "valid_work_per_wallet": 1,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 43.2,
+            "source_protected_usd": 2116.8,
+            "source_per_wallet_spent_usd": 43.2
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 71.99999999999999,
+            "source_protected_usd": 3527.999999999999,
+            "source_per_wallet_spent_usd": 71.99999999999999
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 71.99999999999999,
+            "source_protected_usd": 3527.999999999999,
+            "source_per_wallet_spent_usd": 71.99999999999999
+          }
+        ]
+      },
+      {
+        "wallets": 1,
+        "valid_work_per_wallet": 3,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 129.6,
+            "source_protected_usd": 2030.4,
+            "source_per_wallet_spent_usd": 129.6
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 216,
+            "source_protected_usd": 3383.9999999999995,
+            "source_per_wallet_spent_usd": 216
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 216,
+            "source_protected_usd": 3383.9999999999995,
+            "source_per_wallet_spent_usd": 216
+          }
+        ]
+      },
+      {
+        "wallets": 5,
+        "valid_work_per_wallet": 1,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 216,
+            "source_protected_usd": 1944,
+            "source_per_wallet_spent_usd": 43.2
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 360,
+            "source_protected_usd": 3240,
+            "source_per_wallet_spent_usd": 71.99999999999999
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 360,
+            "source_protected_usd": 3240,
+            "source_per_wallet_spent_usd": 71.99999999999999
+          }
+        ]
+      },
+      {
+        "wallets": 5,
+        "valid_work_per_wallet": 2,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 432,
+            "source_protected_usd": 1728,
+            "source_per_wallet_spent_usd": 86.4
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 720,
+            "source_protected_usd": 2880,
+            "source_per_wallet_spent_usd": 143.99999999999997
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 720,
+            "source_protected_usd": 2880,
+            "source_per_wallet_spent_usd": 143.99999999999997
+          }
+        ]
+      },
+      {
+        "wallets": 5,
+        "valid_work_per_wallet": 3,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 648,
+            "source_protected_usd": 1512,
+            "source_per_wallet_spent_usd": 129.6
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 1080,
+            "source_protected_usd": 2520,
+            "source_per_wallet_spent_usd": 216
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 1080,
+            "source_protected_usd": 2520,
+            "source_per_wallet_spent_usd": 216
+          }
+        ]
+      },
+      {
+        "wallets": 20,
+        "valid_work_per_wallet": 3,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 2160,
+            "source_protected_usd": 0,
+            "source_per_wallet_spent_usd": 108
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 3600,
+            "source_protected_usd": 0,
+            "source_per_wallet_spent_usd": 180
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 3600,
+            "source_protected_usd": 0,
+            "source_per_wallet_spent_usd": 180
+          }
+        ]
+      },
+      {
+        "wallets": 50,
+        "valid_work_per_wallet": 1,
+        "series": [
+          {
+            "day": 1,
+            "source_spent_usd": 2160,
+            "source_protected_usd": 0,
+            "source_per_wallet_spent_usd": 43.2
+          },
+          {
+            "day": 7,
+            "source_spent_usd": 3600,
+            "source_protected_usd": 0,
+            "source_per_wallet_spent_usd": 71.99999999999999
+          },
+          {
+            "day": 30,
+            "source_spent_usd": 3600,
+            "source_protected_usd": 0,
+            "source_per_wallet_spent_usd": 71.99999999999999
+          }
+        ]
+      }
+    ],
+    "note": "Arithmetic allowance test with a single original fee source, fixed daily power, no new fees, no costs/routes/market. Simulated protected release only at W>=50, with original cumulative wallet caps."
+  },
+  "farm_normalization_checks": {
+    "note": "Equal six-asset purchase-cost weights; aggregate wallet work cap, proportional per-asset reference; arithmetic only.",
+    "checks": [
+      {
+        "wallets": 1,
+        "work_per_wallet": 3,
+        "distribution": "one_asset",
+        "share_of_original_purchase_cost": 0.06,
+        "upper_bound": 0.06
+      },
+      {
+        "wallets": 5,
+        "work_per_wallet": 2,
+        "distribution": "one_asset",
+        "share_of_original_purchase_cost": 0.16666666666666666,
+        "upper_bound": 0.2
+      },
+      {
+        "wallets": 5,
+        "work_per_wallet": 3,
+        "distribution": "balanced",
+        "share_of_original_purchase_cost": 0.29999999999999993,
+        "upper_bound": 0.3
+      },
+      {
+        "wallets": 50,
+        "work_per_wallet": 1,
+        "distribution": "balanced",
+        "share_of_original_purchase_cost": 0.9999999999999998,
+        "upper_bound": 1
+      },
+      {
+        "wallets": 50,
+        "work_per_wallet": 1,
+        "distribution": "one_asset",
+        "share_of_original_purchase_cost": 0.16666666666666663,
+        "upper_bound": 1
+      }
+    ]
+  }
+}

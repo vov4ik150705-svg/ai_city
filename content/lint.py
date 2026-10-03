@@ -3746,6 +3746,7 @@ LAW_C_TOKEN_GROUP = {
     "hop_priced": "external",
     "price_fresh": "external",
     "oracle_fresh": "external",
+    "oracle_sampled": "external",
     "oracle_alive": "external",
     "mint_cap": "external",
     "bank_limit_depth": "external",
@@ -7633,9 +7634,15 @@ def l274_listen_from_pack(data: dict) -> None:
         for pid, spec in (arch_sec.get("packages") or {}).items()
         if spec.get("root") == "services" and int(spec.get("entrypoint") or 0) == 1
     )
-    got = sorted(str(k) for k in ports)
-    if got != want:
-        fail("L274", f"listen.ports keys {got} != entrypoint services {want}")
+    got = {str(k) for k in ports}
+    missing = sorted(set(want) - got)
+    if missing:
+        fail("L274", f"listen.ports missing entrypoint services {missing}")
+    extra = sorted(got - set(want) - {"client"})
+    if extra:
+        fail("L274", f"listen.ports extra keys {extra}")
+    if "client" not in got:
+        fail("L274", "listen.ports missing client")
     seen: dict[int, str] = {}
     for name, port in ports.items():
         n = int(port)

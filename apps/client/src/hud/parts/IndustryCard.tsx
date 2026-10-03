@@ -10,7 +10,7 @@ import { HudIcon } from "./HudIcon.js"
 import { Refusal, refusalFromIntent } from "./refusal.js"
 import { StatusChip, type StatusChipKind } from "./StatusChip.js"
 import type { ScreenProps } from "./ScreenFrame.js"
-import { wholeAtoms } from "./si.js"
+import { amountFieldText, amountInsertAllowed, wholeAtoms } from "./si.js"
 /** Gap between oracle stake and oracle stake_min. The client does not recompute S_min. */
 export function stakeShortfall(stake: bigint | undefined, stakeMin: bigint | undefined): bigint | undefined {
   if (stake === undefined || stakeMin === undefined) return undefined
@@ -74,28 +74,41 @@ export function DistrictStakeBox(props: {
   const [claimCode, setClaimCode] = useState("")
   return (
     <div className="hud-icard__stake" data-stake-form={props.open ? "open" : "fund"}>
-      <label className="hud-card__label" htmlFor={`hud-stake-${props.districtId}`}>
-        {props.hint}
-      </label>
-      <input
-        id={`hud-stake-${props.districtId}`}
-        type="text"
-        inputMode="decimal"
-        autoComplete="off"
-        data-stake-amount={props.districtId}
-        data-shortfall={props.shortfall === undefined ? "" : props.shortfall.toString()}
-        value={amount}
-        onChange={(ev) => {
-          setAmount(ev.target.value)
-        }}
-      />
-      <ActionButton
-        {...props.screen}
-        actionId="district_stake_more"
-        lookId={props.districtId}
-        locked={stake === undefined}
-        extra={stake === undefined ? { district_id: props.districtId, source: "wallet" } : stake}
-      />
+      <div className="hud-stake__amount">
+        <label className="hud-card__label hud-stake__k" htmlFor={`hud-stake-${props.districtId}`}>
+          {props.hint}
+        </label>
+        <div className="hud-stake__field">
+          <input
+            id={`hud-stake-${props.districtId}`}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            spellCheck={false}
+            data-stake-amount={props.districtId}
+            data-shortfall={props.shortfall === undefined ? "" : props.shortfall.toString()}
+            value={amount}
+            onBeforeInput={(event) => {
+              const native = event.nativeEvent
+              if (!(native instanceof InputEvent)) return
+              if (native.inputType === "insertFromPaste" || native.inputType === "insertFromDrop") return
+              const data = native.data
+              if (data === null) return
+              if (!amountInsertAllowed(data, "whole", 0n)) event.preventDefault()
+            }}
+            onChange={(ev) => {
+              setAmount(amountFieldText(ev.target.value, "whole", 0n))
+            }}
+          />
+          <ActionButton
+            {...props.screen}
+            actionId="district_stake_more"
+            lookId={props.districtId}
+            locked={stake === undefined}
+            extra={stake === undefined ? { district_id: props.districtId, source: "wallet" } : stake}
+          />
+        </div>
+      </div>
       {props.open ? (
         <>
           <ActionButton

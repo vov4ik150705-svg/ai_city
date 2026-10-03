@@ -171,6 +171,11 @@
       ],
       "src": "DESIGN.md §2.5, HUD.md §4.1"
     },
+    "ORACLE_NO_SAMPLE": {
+      "category": "state",
+      "slots": [],
+      "src": "DESIGN.md §4.6"
+    },
     "ORACLE_STALE": {
       "category": "state",
       "slots": [

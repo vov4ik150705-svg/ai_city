@@ -1,4 +1,4 @@
-# GENERATED from pack 40351bca10048b7cb46ef95adff689a4210ff36ce3b9716f453515c83d8d9eae; do not edit
+# GENERATED from pack 1053fda2283e116cf4706ae3910b046f3a66594e8bf4bffc958e52a53b8d4bd8; do not edit
 services:
   postgres:
     profiles:
@@ -98,3 +98,18 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  client:
+    profiles:
+      - dev
+      - staging
+    image: node:24-bookworm-slim
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: ["node", "--experimental-strip-types", "services/web/src/main.ts"]
+    environment:
+      CORPORATOR_LISTEN_BIND: "0.0.0.0"
+      CORPORATOR_LISTEN_PORT: "7464"
+      CORPORATOR_STATIC_ROOT: /app/apps/client/dist-web
+    ports:
+      - "127.0.0.1:7464:7464"

@@ -217,6 +217,9 @@ def load_config(pack: dict) -> dict:
         "research_time_ticks": dict((gen.get("balance") or {}).get("research_node_time_ticks") or {}),
         "efficiency_k_bps": _pv(econ, "efficiency_k_bps"),
         "efficiency_clamp_bps": _pv(econ, "efficiency_clamp_bps"),
+        "efficiency_ema_short_city_hours": _pv(econ, "efficiency_ema_short_city_hours"),
+        "efficiency_ema_long_city_hours": _pv(econ, "efficiency_ema_long_city_hours"),
+        "efficiency_ema_alpha_num": _pv(econ, "efficiency_ema_alpha_num"),
         "oracle_stale_city_hours": _pv(econ, "oracle_stale_city_hours"),
         "oracle_decay_city_hours": _pv(econ, "oracle_decay_city_hours"),
         "oracle_decay_bps_per_day": _pv(econ, "oracle_decay_bps_per_day"),
@@ -410,6 +413,56 @@ def _happiness_bps_of(cfg: dict, state: dict, city: dict) -> int:
     return total
 
 
+def _fold_ema(prev: int, price: int, span: int, alpha_num: int) -> int:
+    if price <= 0:
+        return prev
+    if prev <= 0 or span <= 0:
+        return price
+    den = span + 1
+    weight = den - alpha_num
+    if weight < 0:
+        weight = 0
+    return (prev * weight + price * alpha_num) // den
+
+
+def _note_district_quotes(cfg: dict, state: dict, inputs: dict) -> None:
+    raw = inputs.get("district_quotes")
+    quotes = raw if isinstance(raw, dict) else {}
+    length = int(cfg.get("tick_length_city_hours") or 0)
+    short = int(cfg.get("efficiency_ema_short_city_hours") or 0)
+    long = int(cfg.get("efficiency_ema_long_city_hours") or 0)
+    alpha = int(cfg.get("efficiency_ema_alpha_num") or 0)
+    for cid in sorted(state["cities"]):
+        city = state["cities"][cid]
+        opened = {str(x) for x in (city.get("districts") or []) if str(x)}
+        slots = city.get("district_efficiency")
+        if not isinstance(slots, dict):
+            slots = {}
+        touched: set[str] = set()
+        for did in sorted(quotes):
+            key = str(did)
+            if key not in opened:
+                continue
+            price = int(quotes[did] or 0)
+            if price <= 0:
+                continue
+            slot = slots.get(key)
+            if not isinstance(slot, dict):
+                slot = {}
+                slots[key] = slot
+            slot["ema_24h"] = _fold_ema(int(slot.get("ema_24h") or 0), price, short, alpha)
+            slot["ema_30d"] = _fold_ema(int(slot.get("ema_30d") or 0), price, long, alpha)
+            slot["oracle_age_hours"] = 0
+            slot["price"] = price
+            touched.add(key)
+        for key, slot in list(slots.items()):
+            if str(key) in touched or not isinstance(slot, dict):
+                continue
+            slot["oracle_age_hours"] = int(slot.get("oracle_age_hours") or 0) + length
+        if slots:
+            city["district_efficiency"] = slots
+
+
 def _recalc_efficiency(cfg: dict, state: dict) -> None:
     stale = cfg["oracle_stale_city_hours"]
     decay_age = cfg["oracle_decay_city_hours"]
@@ -425,6 +478,10 @@ def _recalc_efficiency(cfg: dict, state: dict) -> None:
             ema24 = int(slot.get("ema_24h") or 0)
             ema30 = int(slot.get("ema_30d") or 0)
             age = int(slot.get("oracle_age_hours") or 0)
+            if ema24 <= 0 or ema30 <= 0:
+                slot["efficiency_bps"] = BPS
+                city.setdefault("codes", []).append("ORACLE_NO_SAMPLE")
+                continue
             if age > decay_age:
                 cur = int(slot.get("efficiency_bps") or BPS)
                 if cur > BPS:
@@ -1928,6 +1985,7 @@ def tick(state: dict, inputs: dict) -> tuple[dict, list[dict]]:
         int(inputs.get("eth_usd_8dec") or 0),
     )
     _accumulate_influence_day(cfg, state, day, hour)
+    _note_district_quotes(cfg, state, inputs)
     _hour_six(cfg, state, day, hour)
 
     # 3. Freeze daily budget at the day boundary only.

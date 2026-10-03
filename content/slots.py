@@ -47,6 +47,25 @@ def building_district_ids(cfg: dict, bid: str) -> list[str]:
     return [str(x) for x in req if str(x)]
 
 
+def building_weather_bps(cfg: dict, city: dict, bid: str) -> int:
+    ids = building_district_ids(cfg, bid)
+    if not ids:
+        return BPS
+    slots = city.get("district_efficiency") or {}
+    if not isinstance(slots, dict):
+        slots = {}
+    total = 0
+    n = 0
+    for did in ids:
+        slot = slots.get(did)
+        eff = int(slot.get("efficiency_bps") or 0) if isinstance(slot, dict) else 0
+        total += eff if eff > 0 else BPS
+        n += 1
+    if n <= 1:
+        return total
+    return total // n
+
+
 def building_district_frozen(cfg: dict, city: dict, bid: str, city_time: int) -> bool:
     for did in building_district_ids(cfg, bid):
         if ticker_frozen(city, _district_ticker(cfg, did), city_time):
@@ -747,7 +766,7 @@ def collect_slot_requests(
                     if agent is None and autonomous:
                         aff = int(cfg["affinity_neighbour_bps"])
                     level_mult = int(agent.get("level_mult_bps") or BPS) if agent else BPS
-                    dist = int(city.get("district_efficiency_bps") or BPS)
+                    dist = building_weather_bps(cfg, city, bid)
                     pays_capital = output_kind == "capital" and (agent is None or role in ("engineer", "trader"))
                     pays_retail = output_kind == "capital_from_population" and agent is not None
                     if pays_capital or pays_retail:
@@ -784,11 +803,13 @@ def collect_slot_requests(
                         add = energy_curve * aff // BPS * level_mult // BPS
                         if _contour_focused(bdef, focuses):
                             add = _focus_scale(add, cfg, False)
+                        add = add * building_weather_bps(cfg, city, bid) // BPS
                         city["energy_stock"] = int(city.get("energy_stock") or 0) + add
                     elif output_kind == "compute" and (agent is None or role == "engineer"):
                         add = compute_curve * aff // BPS * level_mult // BPS
                         if _contour_focused(bdef, focuses):
                             add = _focus_scale(add, cfg, False)
+                        add = add * building_weather_bps(cfg, city, bid) // BPS
                         city["compute_stock"] = int(city.get("compute_stock") or 0) + add
                     if agent is not None and role == "trader" and objective == "desk" and bid == "bank":
                         desk_trader = True

@@ -1,0 +1,122 @@
+{
+  "canvas": {
+    "width": 1672,
+    "height": 941
+  },
+  "panel": {
+    "x": 1050,
+    "y": 95,
+    "w": 600,
+    "h": 780
+  },
+  "outerPolygon": "1114,100 1597,101 1642,142 1648,807 1600,862 1107,864 1063,819 1057,471 1072,452 1072,142",
+  "parts": {
+    "header-label": {
+      "x": 1175,
+      "y": 144,
+      "w": 193,
+      "h": 24,
+      "text": "CITY ACCESS"
+    },
+    "headline": {
+      "x": 1116,
+      "y": 224,
+      "w": 489,
+      "h": 189,
+      "text": "YOUR CITY IS WAITING"
+    },
+    "intro": {
+      "x": 1118,
+      "y": 429,
+      "w": 439,
+      "h": 57,
+      "text": "Welcome to Corporator.\nConnect your wallet. Your city awaits."
+    },
+    "steps-idle": {
+      "x": 1127,
+      "y": 527,
+      "w": 433,
+      "h": 58,
+      "text": "01 CONNECT → 02 SIGN IN"
+    },
+    "connect-idle": {
+      "x": 1099,
+      "y": 593,
+      "w": 518,
+      "h": 140,
+      "text": "CONNECT WALLET"
+    },
+    "trust-note": {
+      "x": 1111,
+      "y": 744,
+      "w": 281,
+      "h": 79,
+      "text": "Sign a message.\nNo transaction."
+    },
+    "demo-idle": {
+      "x": 1396,
+      "y": 744,
+      "w": 219,
+      "h": 82,
+      "text": "TRY DEMO"
+    }
+  },
+  "brand": {
+    "x": 45,
+    "y": 21,
+    "w": 316,
+    "h": 82
+  },
+  "chainBadge": {
+    "x": 1378,
+    "y": 21,
+    "w": 264,
+    "h": 73
+  },
+  "back": {
+    "x": 0,
+    "y": 872,
+    "w": 124,
+    "h": 69
+  },
+  "background": {
+    "generated": "assets/art-clean-generated.png",
+    "production": "assets/art-desktop.png",
+    "visibleOriginal": "assets/art-visible-original.png",
+    "restoredRegions": [
+      {
+        "x": 35,
+        "y": 15,
+        "w": 331,
+        "h": 90
+      },
+      {
+        "x": 1378,
+        "y": 21,
+        "w": 264,
+        "h": 73
+      },
+      {
+        "x": 0,
+        "y": 872,
+        "w": 124,
+        "h": 69
+      },
+      {
+        "x": 1048,
+        "y": 94,
+        "w": 608,
+        "h": 783
+      }
+    ]
+  },
+  "tokens": {
+    "ink": "#070d43",
+    "blue": "#0057ff",
+    "ivory": "#f7f4ed",
+    "inset": "#d4e5fc",
+    "muted": "#7986a6"
+  },
+  "sourceSha256": "ee9de1810742fefa4df8716498fe465fd20bb5c0560bbdaec72094f234d430d2",
+  "note": "Initial English artwork is preserved as separate sprites. Semantic DOM is independent. Native typography mode is provided for localization; fonts cannot reconstruct generated letterforms exactly."
+}

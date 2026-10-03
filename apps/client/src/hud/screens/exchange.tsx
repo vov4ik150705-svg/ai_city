@@ -10,7 +10,7 @@ import { BRAND_TOKEN_URL } from "../parts/hudArtUrls.js"
 import { TickerMark } from "../parts/TickerMark.js"
 import { HudIcon } from "../parts/HudIcon.js"
 import { Refusal } from "../parts/refusal.js"
-import { formatCorp, formatCorpField, groupDigits, moneyAtoms } from "../parts/si.js"
+import { amountFieldText, amountInsertAllowed, formatCorp, formatCorpField, groupDigits, moneyAtoms } from "../parts/si.js"
 import { ScreenFrame, type ScreenProps } from "../parts/ScreenFrame.js"
 import { TransactionStepper } from "../parts/TransactionStepper.js"
 import { isLocalReview, isTxnInFlight, reviewTxn } from "../uiState.js"
@@ -165,7 +165,7 @@ export function ExchangeScreen(props: ScreenProps): ReactElement {
   const buttonRefusal = buyButtonRefusal(buyGate, props.view.accountKind, props.view.gate?.chainWrong, hopText, t)
   function setAmountLive(next: string): void {
     if (!fieldsLive) return
-    setAmount(next)
+    setAmount(amountFieldText(next, "decimal", props.pack.weiDecimals))
   }
   function pickTicker(next: string): void {
     if (!fieldsLive) return
@@ -255,6 +255,14 @@ export function ExchangeScreen(props: ScreenProps): ReactElement {
                     value={amount}
                     aria-label={`${t("UI_AMOUNT")} ${t("UI_CORP")}`}
                     disabled={!fieldsLive}
+                    onBeforeInput={(event) => {
+                      const native = event.nativeEvent
+                      if (!(native instanceof InputEvent)) return
+                      if (native.inputType === "insertFromPaste" || native.inputType === "insertFromDrop") return
+                      const data = native.data
+                      if (data === null) return
+                      if (!amountInsertAllowed(data, "decimal", props.pack.weiDecimals)) event.preventDefault()
+                    }}
                     onChange={(e) => {
                       setAmountLive(e.target.value)
                     }}

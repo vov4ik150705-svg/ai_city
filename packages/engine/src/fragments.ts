@@ -7,6 +7,7 @@ const CODE_NO_CLAIMS = "FRAGMENT_NO_CLAIMS"
 const CODE_POOL_EMPTY = "FRAGMENT_POOL_EMPTY"
 const CODE_CITY_CAPPED = "FRAGMENT_CITY_CAPPED"
 const CODE_WINDOW_SETTLED = "FRAGMENT_WINDOW_SETTLED"
+const CODE_SHARE_CAPPED = "PRIZE_SHARE_CAPPED"
 
 function districtPlayable(data: Dict, did: string): boolean {
   if (!did) return false
@@ -99,7 +100,31 @@ export function fragmentGrossBase(
   return mulPow(out1, outputGrowthBps > 0n ? outputGrowthBps : bps, exp, bps)
 }
 
-export function settle(fragments: readonly bigint[], pool: bigint, capBps: bigint, bps: bigint): Dict {
+function flagOn(value: unknown): boolean {
+  if (value === true) return true
+  if (value === false || value === undefined || value === null) return false
+  return asBig(value) !== 0n
+}
+
+function payoutRaw(frag: bigint, pool: bigint, total: bigint, rounding: "floor" | "ceil"): bigint {
+  if (total <= 0n || frag <= 0n || pool <= 0n) return 0n
+  if (rounding === "ceil") return (frag * pool + total - 1n) / total
+  return (frag * pool) / total
+}
+
+export function settle(
+  fragments: readonly bigint[],
+  pool: bigint,
+  capBps: bigint,
+  bps: bigint,
+  wipePoolOnZero = false,
+  redistributeDust = false,
+  contributions?: readonly bigint[],
+  shareCapBps = 0n,
+  applyCap?: boolean,
+  applyShareCap?: boolean,
+  rounding: "floor" | "ceil" = "floor",
+): Dict {
   let nClaim = 0n
   let total = 0n
   for (const f of fragments) {
@@ -108,6 +133,18 @@ export function settle(fragments: readonly bigint[], pool: bigint, capBps: bigin
   }
   const codes: string[] = []
   if (total <= 0n) {
+    if (wipePoolOnZero) {
+      return {
+        payouts: fragments.map(() => 0n),
+        dust: 0n,
+        pool_left: 0n,
+        capped: fragments.map(() => 0n),
+        n_claiming: 0n,
+        codes: [CODE_NO_CLAIMS],
+        sum_payout: 0n,
+        cap_applied: 0n,
+      }
+    }
     return {
       payouts: fragments.map(() => 0n),
       dust: pool,
@@ -131,12 +168,12 @@ export function settle(fragments: readonly bigint[], pool: bigint, capBps: bigin
       cap_applied: 0n,
     }
   }
-  const useCap = nClaim >= bi2
+  const useCap = applyCap === undefined ? nClaim >= bi2 : applyCap
   const capAmt = useCap ? (pool * capBps) / bps : pool
   const payouts: bigint[] = []
   const capped: bigint[] = []
   for (const f of fragments) {
-    const raw = (f * pool) / total
+    const raw = payoutRaw(f, pool, total, rounding)
     if (useCap && raw > capAmt) {
       payouts.push(capAmt)
       capped.push(1n)
@@ -146,14 +183,42 @@ export function settle(fragments: readonly bigint[], pool: bigint, capBps: bigin
       capped.push(0n)
     }
   }
+  const useShare = applyShareCap === undefined ? nClaim > 1n : applyShareCap
+  if (contributions !== undefined && contributions.length === fragments.length && shareCapBps > 0n && useShare) {
+    let totalC = 0n
+    for (const c of contributions) totalC += c
+    for (let i = 0; i < fragments.length; i++) {
+      const contrib = contributions[i] ?? 0n
+      const maxI = totalC <= 0n || contrib <= 0n ? 0n : (pool * contrib * shareCapBps) / (totalC * bps)
+      const pay = payouts[i] ?? 0n
+      if (pay > maxI) {
+        payouts[i] = maxI
+        codes.push(CODE_SHARE_CAPPED)
+      }
+    }
+  }
   let paid = 0n
   for (const p of payouts) paid += p
-  const dust = pool - paid
+  let dust = pool - paid
+  if (redistributeDust && dust > 0n && nClaim > 0n) {
+    const extra = dust / nClaim
+    if (extra > 0n) {
+      for (let i = 0; i < fragments.length; i++) {
+        const frag = fragments[i] ?? 0n
+        if (frag > 0n) payouts[i] = (payouts[i] ?? 0n) + extra
+      }
+      paid = 0n
+      for (const p of payouts) paid += p
+      dust = pool - paid
+    }
+  }
+  if (paid > pool) codes.push("PAYOUT_EXCEEDS_POOL")
   codes.push(CODE_WINDOW_SETTLED)
+  const left = dust > 0n ? dust : 0n
   return {
     payouts,
-    dust: dust > 0n ? dust : 0n,
-    pool_left: dust > 0n ? dust : 0n,
+    dust: left,
+    pool_left: left,
     capped,
     n_claiming: nClaim,
     codes,
@@ -163,8 +228,22 @@ export function settle(fragments: readonly bigint[], pool: bigint, capBps: bigin
 }
 
 export function settleFromData(data: Dict, fragments: readonly bigint[], pool: bigint): Dict {
-  const cap = asBig(asDict(asDict(asDict(data["fragments"])["params"])["fragment_city_cap_bps"])["v"])
-  return settle(fragments, pool, cap, BPS)
+  const section = asDict(data["fragments"])
+  const cap = asBig(asDict(asDict(section["params"])["fragment_city_cap_bps"])["v"])
+  const rounding = asStr(section["rounding"]) === "ceil" ? "ceil" : "floor"
+  return settle(
+    fragments,
+    pool,
+    cap,
+    BPS,
+    flagOn(section["wipe_pool_on_zero_claims"]),
+    flagOn(section["redistribute_dust"]),
+    undefined,
+    0n,
+    flagOn(section["force_cap_n1"]) ? true : undefined,
+    undefined,
+    rounding,
+  )
 }
 
 export function settleCities(data: Dict, cities: Dict, pools: Dict | bigint): Dict {

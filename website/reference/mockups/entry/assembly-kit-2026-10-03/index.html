@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Corporator · Game entry assembly reference</title>
+  <link rel="stylesheet" href="entry.css">
+</head>
+<body class="entry-preview">
+  <main class="entry" data-phase="idle" aria-label="Enter Corporator">
+    <div class="entry__ambient" aria-hidden="true"></div>
+    <div class="entry__stage">
+      <img class="entry__art" src="assets/art-desktop.png" alt="" fetchpriority="high" draggable="false">
+      <a class="entry__brand" href="./index.html" aria-label="Corporator">
+        <img class="entry__brand-exact" src="assets/brand-lockup-exact.png" alt="" draggable="false">
+        <span class="entry__brand-fluid"><img src="assets/brand/corporator-mark.png" alt=""><span>CORPORATOR</span></span>
+      </a>
+      <div class="entry__chain" aria-label="Robinhood Chain">
+        <img class="entry__chain-exact" src="assets/robinhood-badge-exact.png" alt="" draggable="false">
+        <span class="entry__chain-fluid"><img src="assets/brand/robinhood-chain-black.svg" alt="Robinhood Chain"></span>
+      </div>
+      <div class="entry__panel-space">
+        <section class="entry__panel" aria-labelledby="entry-title" aria-describedby="entry-description">
+          <img class="entry__shell" src="assets/panel-shell.png" alt="" draggable="false">
+          <div class="entry__header entry__patch">
+            <img src="assets/header-label.png" alt="" draggable="false"><span class="entry__semantic">CITY ACCESS</span>
+          </div>
+          <h1 id="entry-title" class="entry__headline entry__patch">
+            <img src="assets/headline.png" alt="" draggable="false"><span class="entry__semantic">YOUR CITY <span>IS WAITING</span></span>
+          </h1>
+          <div class="entry__intro entry__patch">
+            <img src="assets/intro.png" alt="" draggable="false">
+            <div class="entry__semantic"><strong>Welcome to Corporator.</strong><p id="entry-description">Connect your wallet. Your city awaits.</p></div>
+          </div>
+          <ol class="entry__steps entry__patch" aria-label="Sign-in steps">
+            <img src="assets/steps-idle.png" alt="" draggable="false">
+            <li class="entry__semantic" data-step="connect" aria-current="step"><b>01</b><span>CONNECT</span></li>
+            <li class="entry__semantic" data-step="sign"><b>02</b><span>SIGN IN</span></li>
+          </ol>
+          <button type="button" class="entry__connect entry__patch" aria-label="Connect wallet">
+            <img src="assets/connect-idle.png" alt="" draggable="false">
+            <span class="entry__semantic"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 15l26-6v7H8zM7 17h34v25H7z" fill="currentColor"/><circle cx="33" cy="29" r="3" fill="#0057ff"/></svg><span class="entry__connect-text">CONNECT WALLET</span><span aria-hidden="true">→</span></span>
+          </button>
+          <div class="entry__trust entry__patch">
+            <img src="assets/trust-note.png" alt="" draggable="false"><span class="entry__semantic"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4L7 10v15c0 9 8 15 17 19 9-4 17-10 17-19V10z" fill="currentColor"/><path d="M17 24l5 5 10-12" fill="none" stroke="white" stroke-width="4"/></svg><span>Sign a message.<br>No transaction.</span></span>
+          </div>
+          <button type="button" class="entry__demo entry__patch" aria-label="Try demo">
+            <img src="assets/demo-idle.png" alt="" draggable="false"><span class="entry__semantic">TRY DEMO <span aria-hidden="true">→</span></span>
+          </button>
+          <div class="entry__status" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div class="entry__loading" hidden>
+            <h2>OPENING YOUR CITY</h2><p>Preparing the city…</p><div class="entry__progress" aria-label="Loading city" role="progressbar"></div>
+          </div>
+        </section>
+      </div>
+      <a class="entry__back entry__patch" href="../index.html" aria-label="Back to site">
+        <img src="assets/back-link-exact.png" alt="" draggable="false"><span class="entry__semantic">← &nbsp;Back to site</span>
+      </a>
+    </div>
+  </main>
+  <dialog class="entry-preview-dialog" id="preview-dialog" aria-labelledby="preview-dialog-title">
+    <h2 id="preview-dialog-title">Design preview</h2>
+    <p>This kit demonstrates screen states. It does not connect a wallet or create a game session.</p>
+    <div class="entry-preview-dialog__states">
+      <button data-preview-state="connecting">Wallet request</button><button data-preview-state="signing">Signature request</button>
+      <button data-preview-state="wrong_chain">Wrong network</button><button data-preview-state="rejected">Cancelled</button>
+      <button data-preview-state="error">Connection error</button><button data-preview-state="loading">City loading</button>
+      <button data-preview-state="idle">Initial screen</button>
+    </div>
+    <button class="entry-preview-dialog__close" type="button">Close</button>
+  </dialog>
+  <script src="preview.js"></script>
+</body>
+</html>

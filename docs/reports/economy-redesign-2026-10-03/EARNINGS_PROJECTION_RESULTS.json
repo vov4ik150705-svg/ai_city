@@ -1,0 +1,409 @@
+{
+  "assumptions": {
+    "creatorReceiptFraction": 0.02,
+    "salaryFraction": 0.6,
+    "capitalConversionAssumption": 0.75,
+    "referenceExitMultiplier": 0.8818181818181817,
+    "workFloor": 50,
+    "maxWorkPerWallet": 3,
+    "capitalMaturity": [
+      0.7,
+      0.15,
+      0.15
+    ],
+    "periodRealHours": 25,
+    "uniformGrantWithinPeriod": true,
+    "fullyProductiveProfiles": true,
+    "marketQuoteFixed": true
+  },
+  "firstPeriod": [
+    {
+      "cohort": "5 смешанных",
+      "work": 4.5,
+      "profiles": [
+        {
+          "work": 0.5,
+          "displayCapital": 16200,
+          "earnedReferenceUSD": 14.285454545454543,
+          "maturedReferenceUSD": 9.99981818181818
+        },
+        {
+          "work": 1,
+          "displayCapital": 32400,
+          "earnedReferenceUSD": 28.570909090909087,
+          "maturedReferenceUSD": 19.99963636363636
+        },
+        {
+          "work": 2,
+          "displayCapital": 64800,
+          "earnedReferenceUSD": 57.141818181818174,
+          "maturedReferenceUSD": 39.99927272727272
+        },
+        {
+          "work": 3,
+          "displayCapital": 97200,
+          "earnedReferenceUSD": 85.71272727272726,
+          "maturedReferenceUSD": 59.99890909090908
+        }
+      ]
+    },
+    {
+      "cohort": "20 смешанных",
+      "work": 18,
+      "profiles": [
+        {
+          "work": 0.5,
+          "displayCapital": 16200,
+          "earnedReferenceUSD": 14.285454545454543,
+          "maturedReferenceUSD": 9.99981818181818
+        },
+        {
+          "work": 1,
+          "displayCapital": 32400,
+          "earnedReferenceUSD": 28.570909090909087,
+          "maturedReferenceUSD": 19.99963636363636
+        },
+        {
+          "work": 2,
+          "displayCapital": 64800,
+          "earnedReferenceUSD": 57.141818181818174,
+          "maturedReferenceUSD": 39.99927272727272
+        },
+        {
+          "work": 3,
+          "displayCapital": 97200,
+          "earnedReferenceUSD": 85.71272727272726,
+          "maturedReferenceUSD": 59.99890909090908
+        }
+      ]
+    },
+    {
+      "cohort": "50 смешанных",
+      "work": 45.5,
+      "profiles": [
+        {
+          "work": 0.5,
+          "displayCapital": 16200,
+          "earnedReferenceUSD": 14.285454545454543,
+          "maturedReferenceUSD": 9.99981818181818
+        },
+        {
+          "work": 1,
+          "displayCapital": 32400,
+          "earnedReferenceUSD": 28.570909090909087,
+          "maturedReferenceUSD": 19.99963636363636
+        },
+        {
+          "work": 2,
+          "displayCapital": 64800,
+          "earnedReferenceUSD": 57.141818181818174,
+          "maturedReferenceUSD": 39.99927272727272
+        },
+        {
+          "work": 3,
+          "displayCapital": 97200,
+          "earnedReferenceUSD": 85.71272727272726,
+          "maturedReferenceUSD": 59.99890909090908
+        }
+      ]
+    },
+    {
+      "cohort": "100 смешанных",
+      "work": 91,
+      "profiles": [
+        {
+          "work": 0.5,
+          "displayCapital": 8901.098901098901,
+          "earnedReferenceUSD": 7.849150849150847,
+          "maturedReferenceUSD": 5.494405594405593
+        },
+        {
+          "work": 1,
+          "displayCapital": 17802.197802197803,
+          "earnedReferenceUSD": 15.698301698301695,
+          "maturedReferenceUSD": 10.988811188811185
+        },
+        {
+          "work": 2,
+          "displayCapital": 35604.395604395606,
+          "earnedReferenceUSD": 31.39660339660339,
+          "maturedReferenceUSD": 21.97762237762237
+        },
+        {
+          "work": 3,
+          "displayCapital": 53406.593406593405,
+          "earnedReferenceUSD": 47.09490509490509,
+          "maturedReferenceUSD": 32.96643356643356
+        }
+      ]
+    },
+    {
+      "cohort": "200 смешанных",
+      "work": 182,
+      "profiles": [
+        {
+          "work": 0.5,
+          "displayCapital": 4450.549450549451,
+          "earnedReferenceUSD": 3.9245754245754236,
+          "maturedReferenceUSD": 2.7472027972027964
+        },
+        {
+          "work": 1,
+          "displayCapital": 8901.098901098901,
+          "earnedReferenceUSD": 7.849150849150847,
+          "maturedReferenceUSD": 5.494405594405593
+        },
+        {
+          "work": 2,
+          "displayCapital": 17802.197802197803,
+          "earnedReferenceUSD": 15.698301698301695,
+          "maturedReferenceUSD": 10.988811188811185
+        },
+        {
+          "work": 3,
+          "displayCapital": 26703.296703296703,
+          "earnedReferenceUSD": 23.547452547452544,
+          "maturedReferenceUSD": 16.48321678321678
+        }
+      ]
+    },
+    {
+      "cohort": "50 сильных",
+      "work": 100,
+      "profiles": [
+        {
+          "work": 0.5,
+          "displayCapital": 8100,
+          "earnedReferenceUSD": 7.142727272727272,
+          "maturedReferenceUSD": 4.99990909090909
+        },
+        {
+          "work": 1,
+          "displayCapital": 16200,
+          "earnedReferenceUSD": 14.285454545454543,
+          "maturedReferenceUSD": 9.99981818181818
+        },
+        {
+          "work": 2,
+          "displayCapital": 32400,
+          "earnedReferenceUSD": 28.570909090909087,
+          "maturedReferenceUSD": 19.99963636363636
+        },
+        {
+          "work": 3,
+          "displayCapital": 48600,
+          "earnedReferenceUSD": 42.85636363636363,
+          "maturedReferenceUSD": 29.99945454545454
+        }
+      ]
+    }
+  ],
+  "firstSevenPeriods": [
+    {
+      "label": "300k, затем ноль",
+      "volume": [
+        300000,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "openedSalaryBudgets": [
+        2160,
+        240,
+        240,
+        240,
+        240,
+        240,
+        240
+      ],
+      "receivedSalaryBudget": 3600,
+      "openedSalaryBudget": 3600,
+      "maturedSalaryBudgetReference": 3492,
+      "profilesAtWorkFloor": [
+        {
+          "work": 0.5,
+          "earnedReferenceUSD": 23.809090909090905,
+          "maturedReferenceUSD": 23.094818181818177,
+          "displayCapital": 27000
+        },
+        {
+          "work": 1,
+          "earnedReferenceUSD": 47.61818181818181,
+          "maturedReferenceUSD": 46.18963636363635,
+          "displayCapital": 54000
+        },
+        {
+          "work": 2,
+          "earnedReferenceUSD": 95.23636363636362,
+          "maturedReferenceUSD": 92.3792727272727,
+          "displayCapital": 108000
+        },
+        {
+          "work": 3,
+          "earnedReferenceUSD": 142.85454545454544,
+          "maturedReferenceUSD": 138.56890909090907,
+          "displayCapital": 162000
+        }
+      ],
+      "profilesAt100Mixed": [
+        {
+          "work": 1,
+          "earnedReferenceUSD": 26.16383616383616,
+          "maturedReferenceUSD": 25.378921078921074
+        },
+        {
+          "work": 2,
+          "earnedReferenceUSD": 52.32767232767232,
+          "maturedReferenceUSD": 50.75784215784215
+        }
+      ]
+    },
+    {
+      "label": "300k, затем по 30k",
+      "volume": [
+        300000,
+        30000,
+        30000,
+        30000,
+        30000,
+        30000,
+        30000
+      ],
+      "openedSalaryBudgets": [
+        2160,
+        456,
+        480,
+        504,
+        528,
+        552,
+        576
+      ],
+      "receivedSalaryBudget": 5760,
+      "openedSalaryBudget": 5256,
+      "maturedSalaryBudgetReference": 5000.4,
+      "profilesAtWorkFloor": [
+        {
+          "work": 0.5,
+          "earnedReferenceUSD": 34.76127272727272,
+          "maturedReferenceUSD": 33.070827272727264,
+          "displayCapital": 39420
+        },
+        {
+          "work": 1,
+          "earnedReferenceUSD": 69.52254545454544,
+          "maturedReferenceUSD": 66.14165454545453,
+          "displayCapital": 78840
+        },
+        {
+          "work": 2,
+          "earnedReferenceUSD": 139.04509090909087,
+          "maturedReferenceUSD": 132.28330909090906,
+          "displayCapital": 157680
+        },
+        {
+          "work": 3,
+          "earnedReferenceUSD": 208.56763636363632,
+          "maturedReferenceUSD": 198.4249636363636,
+          "displayCapital": 236520
+        }
+      ],
+      "profilesAt100Mixed": [
+        {
+          "work": 1,
+          "earnedReferenceUSD": 38.199200799200796,
+          "maturedReferenceUSD": 36.341568431568426
+        },
+        {
+          "work": 2,
+          "earnedReferenceUSD": 76.39840159840159,
+          "maturedReferenceUSD": 72.68313686313685
+        }
+      ]
+    },
+    {
+      "label": "По 300k все семь периодов",
+      "volume": [
+        300000,
+        300000,
+        300000,
+        300000,
+        300000,
+        300000,
+        300000
+      ],
+      "openedSalaryBudgets": [
+        2160,
+        2400,
+        2640,
+        2880,
+        3120,
+        3360,
+        3600
+      ],
+      "receivedSalaryBudget": 25200,
+      "openedSalaryBudget": 20160,
+      "maturedSalaryBudgetReference": 18576,
+      "profilesAtWorkFloor": [
+        {
+          "work": 0.5,
+          "earnedReferenceUSD": 133.33090909090907,
+          "maturedReferenceUSD": 122.85490909090908,
+          "displayCapital": 151200
+        },
+        {
+          "work": 1,
+          "earnedReferenceUSD": 266.66181818181815,
+          "maturedReferenceUSD": 245.70981818181815,
+          "displayCapital": 302400
+        },
+        {
+          "work": 2,
+          "earnedReferenceUSD": 533.3236363636363,
+          "maturedReferenceUSD": 491.4196363636363,
+          "displayCapital": 604800
+        },
+        {
+          "work": 3,
+          "earnedReferenceUSD": 799.9854545454544,
+          "maturedReferenceUSD": 737.1294545454545,
+          "displayCapital": 907200
+        }
+      ],
+      "profilesAt100Mixed": [
+        {
+          "work": 1,
+          "earnedReferenceUSD": 146.51748251748248,
+          "maturedReferenceUSD": 135.0053946053946
+        },
+        {
+          "work": 2,
+          "earnedReferenceUSD": 293.03496503496496,
+          "maturedReferenceUSD": 270.0107892107892
+        }
+      ]
+    }
+  ],
+  "starterCostReference": {
+    "initialCapitalDisplay": 74804,
+    "starterAndBankDisplay": 39747,
+    "workshopAndPowerL2ExtraDisplay": 60680,
+    "totalDisplay": 100427,
+    "gapDisplay": 25623,
+    "activeFirstPeriodDisplay": 32400,
+    "activeHoursToGap": 18.98,
+    "remainingEarnedCapitalAfterGap": 6777,
+    "remainingEarnedExitReferenceUSD": 5.976081818181818
+  },
+  "executionLimitReference": {
+    "historicalETHUSD": 2500.87,
+    "constantETHDepth": 4.2,
+    "maxDepthFraction": 0.005,
+    "operationsPer25RealHours": 50,
+    "grossCapacityPer25RealHoursUSD": 2625.9135,
+    "note": "Historical fixed-depth arithmetic only. Sustained-300k seven-period income table assumes actual liquidity allows all opened eligible buybacks; constant seed depth can constrain the later periods."
+  },
+  "arithmeticBoundsChecked": true
+}

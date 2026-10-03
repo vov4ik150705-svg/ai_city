@@ -121,7 +121,7 @@ export function SceneHost(props: {
         },
         fillSky: WORLD_HEMI_SKY,
         fillGround: WORLD_HEMI_GROUND,
-        bloomStrengthBps: 0n,
+        bloomStrengthBps: props.bloomStrengthBps,
         bloomRadiusBps: props.bloomRadiusBps,
         bloomThresholdBps: props.bloomThresholdBps,
       })
@@ -197,8 +197,17 @@ export function SceneHost(props: {
   useLayoutEffect(() => {
     const handle = handleRef.current
     if (handle === undefined) return
-    handle.selectObject(props.selectedObjectId)
-    emitProjection(handle, props.selectedObjectId)
+    const objectId = props.selectedObjectId
+    emitProjection(handle, objectId)
+    const frame = requestAnimationFrame(() => {
+      const live = handleRef.current
+      if (live === undefined) return
+      if (selectedRef.current !== objectId) return
+      live.selectObject(objectId)
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+    }
   }, [props.selectedObjectId])
   useEffect(() => {
     const host = hostRef.current

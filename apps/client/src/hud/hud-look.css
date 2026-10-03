@@ -273,6 +273,7 @@
 }
 
 .hud-economy__go:focus-visible,
+.hud-economy__capital:focus-visible,
 .hud-economy__payroll:focus-visible,
 .hud-economy__res-row:focus-visible,
 .hud-economy__city-go:focus-visible,
@@ -290,7 +291,15 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
+  width: 100%;
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
 .hud-economy__capital-top {

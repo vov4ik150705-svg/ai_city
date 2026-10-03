@@ -1118,6 +1118,7 @@
       "state_codes": [
         "DISTRICT_FREEZING",
         "DISTRICT_FROZEN",
+        "ORACLE_NO_SAMPLE",
         "ORACLE_STALE",
         "ORACLE_DECAYING"
       ],
@@ -2418,6 +2419,14 @@
       "src": "DESIGN.md §2.3",
       "why": "External warning: TWAP stale, freeze and decay down"
     },
+    "oracle_sampled": {
+      "code": "ORACLE_NO_SAMPLE",
+      "tier": 80,
+      "kind": "warning",
+      "predicate": "economy.params.efficiency_ema_short_city_hours.v",
+      "src": "DESIGN.md §4.6",
+      "why": "External warning: a district slot has no quote, so efficiency stays neutral"
+    },
     "oracle_fresh": {
       "code": "ORACLE_STALE",
       "tier": 80,
@@ -2561,6 +2570,10 @@
     "CHAIN_REORG": [
       "bank",
       "exchange"
+    ],
+    "ORACLE_NO_SAMPLE": [
+      "stock_bar",
+      "districts_panel"
     ],
     "ORACLE_STALE": [
       "stock_bar",

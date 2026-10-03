@@ -388,6 +388,20 @@ export function quoteStockAmount(
   return walletStocks[ticker]
 }
 
+function effectText(bps: bigint, neutral: bigint): string {
+  const delta = bps - neutral
+  if (delta === 0n) return "0%"
+  const neg = delta < 0n
+  const abs = neg ? -delta : delta
+  const hundred = neutral / (10n * 10n)
+  const step = hundred / 10n
+  const whole = hundred === 0n ? 0n : abs / hundred
+  const tenth = step === 0n ? 0n : (abs % hundred) / step
+  const sign = neg ? "-" : "+"
+  if (tenth === 0n) return sign + whole.toString() + "%"
+  return sign + whole.toString() + "." + tenth.toString() + "%"
+}
+
 function projectStocks(
   city: Dict,
   efficiency: Json,
@@ -395,6 +409,7 @@ function projectStocks(
   ageMs: bigint | undefined,
   quote: { readonly corpEth: bigint; readonly ethUsd: bigint } | undefined,
   walletStocks: { readonly [ticker: string]: bigint } | undefined,
+  neutral: bigint,
 ): Json {
   const rows: Json[] = []
   if (efficiency !== null && typeof efficiency === "object" && !Array.isArray(efficiency)) {
@@ -410,7 +425,7 @@ function projectStocks(
           ticker,
           price: "",
           day_pct: "",
-          effect: asBigint(row["bps"]).toString(),
+          effect: effectText(asBigint(row["bps"]), neutral),
         }
         if (held !== undefined) quoteRow["stocks"] = held
         rows.push(quoteRow)
@@ -608,6 +623,7 @@ export function projectState(
       age,
       quote,
       live === undefined ? undefined : live.walletStocks,
+      asBigint(ctx.cfg["bps"], 0n),
     )
     sections["seasons.influence_rank"] = {
       ...asObj(projectRank(ctx, state, cityId, city)),

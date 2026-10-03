@@ -1,0 +1,123 @@
+{
+  "gates": {
+    "hireStatus": "200",
+    "synergyBuildStatus": "200",
+    "noHub": true,
+    "openedDistricts": [],
+    "stakes": {},
+    "autonomousRequestAfterConstruction": "325069",
+    "note": "Resource stocks are supplied to isolate the access check; this is not a complete paid progression route."
+  },
+  "ratchet": {
+    "start": "43",
+    "target": "510",
+    "after365Days": "43",
+    "at49": "49"
+  },
+  "withdraw": {
+    "normal": {
+      "httpStatus": "200",
+      "reply": {
+        "amount": "1000000",
+        "capital": "48980000",
+        "city_time": "0",
+        "corp": "17825311942959001782531",
+        "effect": "withdraw",
+        "pack_hash": "1053fda2283e116cf4706ae3910b046f3a66594e8bf4bffc958e52a53b8d4bd8",
+        "rules_version": "0.24.0",
+        "tick_index": "0",
+        "voucher_id": "probe"
+      },
+      "corp": "17825311942959001782531"
+    },
+    "trader": {
+      "httpStatus": "200",
+      "reply": {
+        "amount": "1000000",
+        "capital": "48980000",
+        "city_time": "0",
+        "corp": "17825311942959001782531",
+        "effect": "withdraw",
+        "pack_hash": "1053fda2283e116cf4706ae3910b046f3a66594e8bf4bffc958e52a53b8d4bd8",
+        "rules_version": "0.24.0",
+        "tick_index": "0",
+        "voucher_id": "probe"
+      },
+      "corp": "17825311942959001782531"
+    },
+    "bankBuilt": false
+  },
+  "buyback": {
+    "hopTickers": [
+      "NVDA",
+      "TSLA",
+      "AMZN",
+      "AAPL",
+      "MSFT",
+      "COIN",
+      "NVDA",
+      "TSLA",
+      "AMZN",
+      "AAPL",
+      "MSFT",
+      "COIN"
+    ],
+    "corpDepositCalls": 1,
+    "corpMintCalls": 0
+  },
+  "sampler": {
+    "quote": {
+      "ethUsd8dec": "250087000000",
+      "corpEthWeiPerWhole": "4000000000000000000",
+      "turnoverUsd8dec": "0"
+    },
+    "logRequest": {
+      "jsonrpc": "2.0",
+      "id": "0",
+      "method": "eth_getLogs",
+      "params": [
+        {
+          "address": "0x2222222222222222222222222222222222222222",
+          "fromBlock": "0x10",
+          "toBlock": "latest",
+          "topics": [
+            "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"
+          ]
+        }
+      ]
+    },
+    "chainlinkUpdatedAt": 1,
+    "note": "pool address order is not read; corpIsToken0 hardcoded true"
+  },
+  "offline": {
+    "ticksSinceLastLogin": "108",
+    "configuredCap": "12",
+    "slottedRequest": "135445",
+    "syntheticRequest": "0"
+  },
+  "backing": {
+    "vault": {
+      "ok": true,
+      "amount": "10100000000000000000000"
+    },
+    "spenderCapitalAfterSpend": "0",
+    "sharedFundAfterSpend": "299880",
+    "spenderBackingUnchanged": {
+      "ok": true,
+      "amount": "10000000000000000000000"
+    },
+    "beyond": {
+      "ok": false,
+      "code": "NOT_ENOUGH_CORP"
+    },
+    "own": {
+      "ok": true
+    },
+    "explanation": "Spending only changes the game ledger; no Vault selector reassigns backingOf."
+  },
+  "houseReplay": {
+    "afterFirst": "49980000",
+    "afterHostRecreated": "99960000",
+    "physicalHouseBackingUnchanged": true
+  }
+}

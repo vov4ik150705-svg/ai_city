@@ -107,6 +107,21 @@ export function hudDestinationByShortcut(key: string): HudDestination | undefine
 
 export type HudPaneMotion = "in" | "forward" | "back"
 
+/**
+ * A cabinet opened while another is already open keeps that cabinet behind Back.
+ * The six root cabinets are not an exception: Agent Hub opened from Overview
+ * returns to Overview. A fresh open from the island does not push.
+ */
+export function hudRoutePushesParent(
+  from: string,
+  to: string,
+  agentChanges: boolean,
+  tabChanges: boolean,
+): boolean {
+  if (from.length === 0) return false
+  return from !== to || agentChanges || tabChanges
+}
+
 /** How the cabinet body should enter. Overlays that are not one of the six step forward. */
 export function hudPaneMotion(from: string, to: string, back: boolean): HudPaneMotion {
   if (from.length === 0) return "in"

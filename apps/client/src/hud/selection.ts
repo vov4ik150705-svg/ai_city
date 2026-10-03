@@ -1,6 +1,7 @@
 import type { SceneProjection } from "./sceneProjection.js"
 import type { ClientPack } from "../packview.js"
 import type { OverviewTabId } from "./fields.js"
+import { buildingCardKind } from "./parts/hudArt.js"
 
 export type SelectionKind = "none" | "mapped" | "unmapped"
 export type PopoverMode = "float" | "dock" | "hidden"
@@ -64,6 +65,12 @@ export function resolveBuildingSelection(
     labelKey: buildingLabelKey(objectId),
     manage: manageForBuilding(objectId, pack, functions),
   }
+}
+
+/** Decorative scenery is not a pick. Neon Residence must not select or open a card. */
+export function scenePickSelects(objectId: string): boolean {
+  if (objectId.length === 0) return false
+  return buildingCardKind(objectId) !== "decorative"
 }
 
 export function popoverMode(
